@@ -297,3 +297,35 @@ fn issue16015<T: 'static, U: 'static>() -> bool {
     if let _ = typeid!(U) { true } else { false }
     //~^ match_like_matches_macro
 }
+
+mod issue17503 {
+    enum MatchType {
+        A(String),
+        B(String, String),
+        C,
+    }
+
+    fn matches(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(_str1) => true,
+            MatchType::B(_str1, _str2) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    enum MatchType2 {
+        A,
+        B,
+        C,
+    }
+
+    fn matches2(match_type2: MatchType2) -> bool {
+        match match_type2 {
+            MatchType2::A => true,
+            MatchType2::B => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+}

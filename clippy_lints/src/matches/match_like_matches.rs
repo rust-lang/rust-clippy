@@ -157,7 +157,24 @@ pub(super) fn check_match<'tcx>(
             use itertools::Itertools as _;
             arms_without_last
                 .iter()
-                .map(|arm| snippet_with_applicability(cx, arm.pat.span, "..", &mut applicability))
+                .map(|arm| {
+                    let mut s = snippet_with_applicability(cx, arm.pat.span, "..", &mut applicability).into_owned();
+
+                    if !middle_arms.is_empty() {
+                        // Only erase bindings when actually merging multiple arms into an or-pattern (#17503)
+                        arm.pat.walk_always(|p| {
+                            if let PatKind::Binding(..) = p.kind {
+                                s = s.replacen(
+                                    &*snippet_with_applicability(cx, p.span, "_", &mut applicability),
+                                    "_",
+                                    1,
+                                );
+                            }
+                        });
+                    }
+
+                    s
+                })
                 .join(" | ")
         };
         let pat_and_guard = if let Some(g) = first_arm.guard {
