@@ -360,7 +360,27 @@ LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:341:9
+  --> tests/ui/match_like_matches_macro.rs:335:9
+   |
+LL | /         match match_type {
+LL | |             MatchType::A(r#match) => true,
+LL | |             MatchType::B(very_long_name_in_snake_case, __very_strange_name__) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type {
+LL -             MatchType::A(r#match) => true,
+LL -             MatchType::B(very_long_name_in_snake_case, __very_strange_name__) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:350:9
    |
 LL | /         match match_type2 {
 LL | |             MatchType2::A => true,
@@ -379,5 +399,85 @@ LL -         }
 LL +         matches!(match_type2, MatchType2::A | MatchType2::B)
    |
 
-error: aborting due to 20 previous errors
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:359:9
+   |
+LL | /         match v {
+LL | |             (Some(left), _) => true,
+LL | |             (_, Some(right)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(left), _) => true,
+LL -             (_, Some(right)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(_), _) | (_, Some(_)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:390:9
+   |
+LL | /         match e {
+LL | |             NestedTupleInEnum::A((x, y)) => true,
+LL | |             NestedTupleInEnum::B((a, b)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match e {
+LL -             NestedTupleInEnum::A((x, y)) => true,
+LL -             NestedTupleInEnum::B((a, b)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(e, NestedTupleInEnum::A((_, _)) | NestedTupleInEnum::B((_, _)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:408:9
+   |
+LL | /         match o {
+LL | |             Outer::A(Inner::X(x)) => true,
+LL | |             Outer::B(Inner::X(y)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match o {
+LL -             Outer::A(Inner::X(x)) => true,
+LL -             Outer::B(Inner::X(y)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(o, Outer::A(Inner::X(_)) | Outer::B(Inner::X(_)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:428:9
+   |
+LL | /         match v {
+LL | |             [first, ..] => true,
+LL | |             [_, last] => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             [first, ..] => true,
+LL -             [_, last] => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, [_, ..] | [_, _])
+   |
+
+error: aborting due to 25 previous errors
 
