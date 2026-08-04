@@ -4,7 +4,7 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::source::snippet_opt;
 use clippy_utils::ty::{deref_chain, implements_trait};
-use clippy_utils::visitors::is_const_evaluatable;
+use clippy_utils::visitors::is_const_param_evaluatable;
 use clippy_utils::{contains_name, msrvs, sym};
 use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
@@ -102,7 +102,7 @@ fn is_const_size_window<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, size_arg:
         .map(Unnormalized::skip_normalization)
         .is_some_and(Ty::is_slice);
 
-    is_slice_method_call && is_const_evaluatable(cx.tcx, cx.typeck_results(), size_arg)
+    is_slice_method_call && is_const_param_evaluatable(cx.tcx, cx.typeck_results(), size_arg)
 }
 
 fn compute_suggestion<'tcx>(
