@@ -99,7 +99,7 @@ fn reachable_while_storage_live<const N: usize>(
 
     let mut states = IndexVec::from_raw(vec![0; mir.basic_blocks.len()]);
     let mut queue = Vec::new();
-    let init = !(!0u8 << N);
+    let init = u8::MAX >> (u8::BITS as usize - N);
     states[location.block] = init;
 
     // `location.block` is the only block entered part-way through, so it is walked separately.
