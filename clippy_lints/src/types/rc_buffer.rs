@@ -24,10 +24,9 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &Ty<'_>, qpath: &QPath<'_>, de
             hir_ty.span,
             format!("usage of `{rc}<T>` when `T` is a buffer type"),
             |diag| {
-                diag.span_help(
-                    ty.span,
-                    format!("consider using `{alternate}` if you do not need to mutate the inner buffer"),
-                );
+                diag.help(format!(
+                    "consider using `{alternate}` if you do not need to mutate the inner buffer"
+                ));
                 diag.note("changing the type may require reallocating or copying the buffer");
             },
         );

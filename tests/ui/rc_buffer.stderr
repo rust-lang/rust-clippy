@@ -4,11 +4,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad1: Rc<String>,
    |           ^^^^^^^^^^
    |
-help: consider using `str` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:10:14
-   |
-LL |     bad1: Rc<String>,
-   |              ^^^^^^
+   = help: consider using `str` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
    = note: `-D clippy::rc-buffer` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::rc_buffer)]`
@@ -19,11 +15,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad2: Rc<PathBuf>,
    |           ^^^^^^^^^^^
    |
-help: consider using `std::path::Path` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:12:14
-   |
-LL |     bad2: Rc<PathBuf>,
-   |              ^^^^^^^
+   = help: consider using `std::path::Path` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
@@ -32,11 +24,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad3: Rc<Vec<u8>>,
    |           ^^^^^^^^^^^
    |
-help: consider using `[u8]` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:14:14
-   |
-LL |     bad3: Rc<Vec<u8>>,
-   |              ^^^^^^^
+   = help: consider using `[u8]` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
@@ -45,11 +33,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad4: Rc<OsString>,
    |           ^^^^^^^^^^^^
    |
-help: consider using `std::ffi::OsStr` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:16:14
-   |
-LL |     bad4: Rc<OsString>,
-   |              ^^^^^^^^
+   = help: consider using `std::ffi::OsStr` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
@@ -58,11 +42,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad1(_: Rc<String>) {}
    |                 ^^^^^^^^^^
    |
-help: consider using `str` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:23:20
-   |
-LL | fn func_bad1(_: Rc<String>) {}
-   |                    ^^^^^^
+   = help: consider using `str` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
@@ -71,11 +51,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad2(_: Rc<PathBuf>) {}
    |                 ^^^^^^^^^^^
    |
-help: consider using `std::path::Path` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:25:20
-   |
-LL | fn func_bad2(_: Rc<PathBuf>) {}
-   |                    ^^^^^^^
+   = help: consider using `std::path::Path` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
@@ -84,11 +60,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad3(_: Rc<Vec<u8>>) {}
    |                 ^^^^^^^^^^^
    |
-help: consider using `[u8]` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:27:20
-   |
-LL | fn func_bad3(_: Rc<Vec<u8>>) {}
-   |                    ^^^^^^^
+   = help: consider using `[u8]` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
@@ -97,11 +69,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad4(_: Rc<OsString>) {}
    |                 ^^^^^^^^^^^^
    |
-help: consider using `std::ffi::OsStr` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:29:20
-   |
-LL | fn func_bad4(_: Rc<OsString>) {}
-   |                    ^^^^^^^^
+   = help: consider using `std::ffi::OsStr` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
@@ -110,11 +78,7 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     fn foo(_: std::rc::Rc<Vec<u8>>) {}
    |               ^^^^^^^^^^^^^^^^^^^^
    |
-help: consider using `[u8]` if you do not need to mutate the inner buffer
-  --> tests/ui/rc_buffer.rs:35:27
-   |
-LL |     fn foo(_: std::rc::Rc<Vec<u8>>) {}
-   |                           ^^^^^^^
+   = help: consider using `[u8]` if you do not need to mutate the inner buffer
    = note: changing the type may require reallocating or copying the buffer
 
 error: aborting due to 9 previous errors
