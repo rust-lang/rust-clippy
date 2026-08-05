@@ -74,10 +74,8 @@ fn are_direct_children_of_block(cx: &LateContext<'_>, block: &Block<'_>, item_sp
         let mut item_offsets = item_spans
             .iter()
             .enumerate()
-            .filter_map(|(index, item_span)| {
-                (item_span.lo() >= block.span.lo() && item_span.lo() <= block.span.hi())
-                    .then(|| (index, (item_span.lo() - block.span.lo()).to_usize()))
-            })
+            .filter(|(_, item_span)| item_span.lo() >= block.span.lo() && item_span.lo() <= block.span.hi())
+            .map(|(index, item_span)| (index, (item_span.lo() - block.span.lo()).to_usize()))
             .filter(|&(_, offset)| offset <= src.len())
             .collect::<Vec<_>>();
         item_offsets.sort_unstable_by_key(|&(_, offset)| offset);
