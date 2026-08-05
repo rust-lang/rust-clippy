@@ -53,23 +53,18 @@ pub fn visit_local_usage<const N: usize>(
     Some(v.results)
 }
 
-/// Which `locals` still hold their values when each block is entered, as a bit mask of idx.
-/// A block which is unreachable from `location`, or only reachable once every local is dead, is
-/// left at zero.
+/// Starting from the specified location, determines which of the successor blocks may be entered
+/// while any of the `locals` are still live.
 ///
-/// A path is walked until every local has been `StorageDead`-ed.
-/// No statement past that point can refer to the values being tracked.
-/// A local declared inside a loop is therefore distinct on each iteration.
-///
-/// Returns `None` if `location.block` is reachable again while some local is still live.
-/// The statements preceding `location` then run a second time and cannot be ordered against it.
+/// Returns:
+/// - `None` if `location.block` may be re-entered while any of the locals are live.
+/// - `Some` with (for each [`BasicBlock`]) a bitset representing which of the locals are
+///   potentially live at the start of the block. Bit `i` stands for `locals[i]`.
 fn reachable_while_storage_live<const N: usize>(
     locals: &[Local; N],
     mir: &Body<'_>,
     location: Location,
 ) -> Option<IndexVec<BasicBlock, u8>> {
-    const ENQUEUED_FLAG: u8 = 0b1000_0000;
-
     fn join(base: &mut u8, other: u8) -> bool {
         let new = *base | other;
         mem::replace(base, new) != new
@@ -82,7 +77,13 @@ fn reachable_while_storage_live<const N: usize>(
         *state &= !ENQUEUED_FLAG;
     }
 
-    const { assert!(N <= ENQUEUED_FLAG.trailing_zeros() as usize) }
+    const ENQUEUED_FLAG: u8 = 0b1000_0000;
+    const {
+        assert!(
+            N <= ENQUEUED_FLAG.trailing_zeros() as usize,
+            "implementation isn't well suited for handling a larger number locals nor do we have any reason to pass a larger number"
+        )
+    }
 
     // Kills every local which is `StorageDead`-ed by a statement of `bb_data` at or after `start`.
     let apply_deaths = |bb_data: &BasicBlockData<'_>, start: usize, mut live: u8| {
@@ -97,8 +98,13 @@ fn reachable_while_storage_live<const N: usize>(
         live
     };
 
+    // Walk forward over the successors of `location`.
+    // Each block's state packs the locals which are live on entry into the low `N` bits, plus a flag
+    // marking the block as queued.
+
     let mut states = IndexVec::from_raw(vec![0; mir.basic_blocks.len()]);
     let mut queue = Vec::new();
+    // Assumed to have all locals live, so fully filled
     let init = u8::MAX >> (u8::BITS as usize - N);
     states[location.block] = init;
 
@@ -106,6 +112,9 @@ fn reachable_while_storage_live<const N: usize>(
     // Reaching it again in the loop below means a cycle closed around `location`.
     let bb_data = &mir.basic_blocks[location.block];
     let result = apply_deaths(bb_data, location.statement_index + 1, init);
+    // A path is not followed past the point where every local is dead, as no statement there can
+    // refer to the values being tracked.
+    // A local declared inside a loop is therefore treated as distinct on each iteration.
     if result != 0 {
         for succ in bb_data.terminator().successors() {
             if succ == location.block {
