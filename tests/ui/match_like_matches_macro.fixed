@@ -335,8 +335,7 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
-    // FIXME: Handle `@` bindings when removing bindings from suggestions.
-    // Replacing only the binding span creates invalid patterns like `_ @ 0`.
+    // FIXME: Avoid invalid suggestions for `@` bindings.
     // ```rs
     // fn at_binding(v: Option<u8>) -> bool {
     //     match v {

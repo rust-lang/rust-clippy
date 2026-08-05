@@ -460,7 +460,7 @@ LL +         matches!(o, Outer::A(Inner::X(_)) | Outer::B(Inner::X(_)))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:429:9
+  --> tests/ui/match_like_matches_macro.rs:428:9
    |
 LL | /         match v {
 LL | |             [first, ..] => true,
