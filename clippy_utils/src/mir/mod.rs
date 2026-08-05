@@ -82,7 +82,7 @@ fn reachable_while_storage_live<const N: usize>(
         assert!(
             N <= ENQUEUED_FLAG.trailing_zeros() as usize,
             "implementation isn't well suited for handling a larger number locals nor do we have any reason to pass a larger number"
-        )
+        );
     }
 
     // Kills every local which is `StorageDead`-ed by a statement of `bb_data` at or after `start`.
