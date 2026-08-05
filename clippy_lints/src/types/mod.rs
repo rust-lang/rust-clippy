@@ -201,18 +201,19 @@ declare_clippy_lint! {
     /// Checks for `Rc<T>` and `Arc<T>` when `T` is a mutable buffer type such as `String` or `Vec`.
     ///
     /// ### Why restrict this?
-    /// Expressions such as `Rc<String>` usually have no advantage over `Rc<str>`, since
-    /// it is larger and involves an extra level of indirection, and doesn't implement `Borrow<str>`.
+    /// Expressions such as `Rc<String>` usually have no advantage over `Rc<str>` when the
+    /// inner buffer is never mutated. They involve an extra level of indirection and don't
+    /// implement `Borrow<str>`.
     ///
-    /// While mutating a buffer type would still be possible with `Rc::get_mut()`, it only
-    /// works if there are no additional references yet, which usually defeats the purpose of
-    /// enclosing it in a shared ownership type. Instead, additionally wrapping the inner
-    /// type with an interior mutable container (such as `RefCell` or `Mutex`) would normally
-    /// be used.
+    /// If mutation is required, an interior mutable container (such as `RefCell` or `Mutex`)
+    /// can be used instead.
     ///
     /// ### Known problems
-    /// This pattern can be desirable to avoid the overhead of a `RefCell` or `Mutex` for
-    /// cases where mutation only happens before there are any additional references.
+    /// Changing `Rc<Vec<T>>` to `Rc<[T]>` (or the corresponding buffer types) can require
+    /// reallocating or copying the buffer during construction. It also removes the ability to
+    /// mutate the buffer with `Rc::get_mut` or `Rc::make_mut`. The same applies to `Arc`.
+    /// Therefore, this pattern can be desirable for copy-on-write data or to avoid the overhead
+    /// of an interior mutable container.
     ///
     /// ### Example
     /// ```rust,ignore
