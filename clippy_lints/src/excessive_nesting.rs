@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::is_from_proc_macro;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_item};
 use rustc_hir::{Block, HirId, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
@@ -98,7 +98,7 @@ struct NestingVisitor<'conf, 'tcx> {
     nest_level: u64,
 }
 
-impl<'conf, 'tcx> NestingVisitor<'conf, 'tcx> {
+impl NestingVisitor<'_, '_> {
     fn check_indent(&mut self, span: Span, hir_id: HirId) -> bool {
         if self.nest_level > self.conf.excessive_nesting_threshold
             && !span.in_external_macro(self.cx.sess().source_map())
@@ -168,15 +168,7 @@ impl<'tcx> Visitor<'tcx> for NestingVisitor<'_, 'tcx> {
                 self.nest_level -= 1;
             },
             ItemKind::Mod(_, module) => {
-                let sm = self.cx.sess().source_map();
-                let is_inline = module
-                    .item_ids
-                    .first()
-                    .map(|&id| {
-                        let inner_item = self.cx.tcx.hir_item(id);
-                        sm.lookup_source_file(item.span.lo()).name == sm.lookup_source_file(inner_item.span.lo()).name
-                    })
-                    .unwrap_or(true);
+                let is_inline = item.span.contains(module.spans.inner_span);
 
                 if is_inline {
                     self.nest_level += 1;
