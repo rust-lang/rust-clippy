@@ -2,14 +2,13 @@
 #![allow(clippy::let_and_return)]
 
 fn main() {
-    // This should trigger at level 7
+    // This should not trigger
     let a = {
         let b = {
             let c = {
                 let d = {
                     let e = {
                         let f = { 42 };
-                        //~^ excessive_nesting
                         f
                     };
                     e
@@ -21,15 +20,18 @@ fn main() {
         b
     };
 
-    // This should trigger at level 7
+    // This should trigger at level 9
     let x = {
         let y = {
             let z = {
                 let w = {
                     let v = {
                         let u = {
-                            //~^ excessive_nesting
-                            let t = { 42 };
+                            let t = {
+                                let s = { 42 };
+                                //~^ excessive_nesting
+                                s
+                            };
                             t
                         };
                         u
@@ -48,16 +50,18 @@ struct A;
 
 impl A {
     fn test() {
-        // This should trigger at level 7
+        // This should trigger at level 9
         struct B;
         impl B {
             fn test() {
                 struct C;
                 impl C {
                     fn test() {
-                        if true {
-                            //~^ excessive_nesting
-                            let x = { 1 };
+                        {
+                            if true {
+                                let x = { 1 };
+                                //~^ excessive_nesting
+                            }
                         }
                     }
                 }
@@ -68,16 +72,18 @@ impl A {
 
 trait TestTrait {
     fn test() {
-        // This should trigger at level 7
+        // This should trigger at level 9
         struct B;
         impl B {
             fn test() {
                 struct C;
                 impl C {
                     fn test() {
-                        if true {
-                            //~^ excessive_nesting
-                            let x = { 1 };
+                        {
+                            if true {
+                                let x = { 1 };
+                                //~^ excessive_nesting
+                            }
                         }
                     }
                 }

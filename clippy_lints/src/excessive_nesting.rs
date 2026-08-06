@@ -12,7 +12,7 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for blocks which are nested beyond a certain threshold.
     ///
-    /// The default maximum nesting level is 6 and can be customized in the clippy.toml file.
+    /// The default maximum nesting level is 8 and can be customized in the clippy.toml file.
     ///
     /// ### Why is this bad?
     /// It can severely hinder readability.

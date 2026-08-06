@@ -716,7 +716,7 @@ The maximum size of an enum's variant to avoid box suggestion
 ## `excessive-nesting-threshold`
 The maximum amount of nesting a block can reside in
 
-**Default Value:** `6`
+**Default Value:** `8`
 
 ---
 **Affected lints:**
