@@ -373,19 +373,4 @@ mod issue16096 {
         }
         println!("{s}");
     }
-
-    // `may_panic` unwinding gives every block below it a second predecessor
-    fn unwind_edge(c: bool) {
-        fn may_panic() -> String {
-            unimplemented!()
-        }
-
-        let s = String::new();
-        let t = s.clone(); // ok: `s` is used after the call
-        let _u = may_panic();
-        if c {
-            drop(t);
-        }
-        println!("{s}");
-    }
 }
