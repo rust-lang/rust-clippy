@@ -62,7 +62,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
         let h1_expr = expr;
 
         if cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::NonZero) {
-            let mut app = Applicability::MachineApplicable;
+            let mut app = Applicability::MaybeIncorrect;
 
             let sugg = {
                 let (recv_str, _) = snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
@@ -89,17 +89,16 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             match cx.tcx.parent_hir_node(hir_id) {
                 Node::Arm(arm) => hir_id = arm.hir_id,
                 Node::Block(block)
-                    if block.stmts.is_empty()
-                // Otherwise, this block may have side effect
-                && block.expr.is_some_and(|e| e.hir_id == hir_id) =>
+                    // Otherwise, this block may have side effect
+                    if block.stmts.is_empty() && block.expr.is_some_and(|e| e.hir_id == hir_id) =>
                 {
                     hir_id = block.hir_id;
                 },
                 Node::Expr(expr) => match expr.kind {
                     ExprKind::Block(..) => hir_id = expr.hir_id,
-                    // if x == 0 {} else {}
-                    // if x != 0 {} else {}
-                    // if unsigned > 0 {} else {}
+                    // if x == 0 {} else { h1 }
+                    // if x != 0 { h1 } else {}
+                    // if unsigned > 0 { h1 } else {}
                     ExprKind::If(condition, then_block, Some(else_block))
                         if matches!(else_block.kind, ExprKind::Block(..)) =>
                     {
@@ -110,7 +109,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
                     },
                     // match u {
                     //     0 => do_something(),
-                    //     _ => u.highest_one_like(),
+                    //     _ => u.highest_one_equiv(),
                     // }
                     ExprKind::Match(scrutinee, [arm1, arm2], MatchSource::Normal) => {
                         if lint_match_pattern(cx, expr.span, scrutinee, arm1, arm2, h1_expr, recv) {
@@ -124,7 +123,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             }
         }
 
-        let mut app = Applicability::MachineApplicable;
+        let mut app = Applicability::MaybeIncorrect;
         let sugg = {
             let (recv_str, _) = snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
 
@@ -151,7 +150,7 @@ fn lint_if_pattern<'tcx>(
     h1_expr: &'tcx Expr<'tcx>,
     recv_of_h1: &'tcx Expr<'tcx>,
 ) -> bool {
-    // normalize condition: `x ? 0`
+    // normalize condition: `0 ? x`
     let (rel, value) = {
         if let ExprKind::Binary(bin_op, lhs, rhs) = condition.kind
             && let Some((rel, lhs, rhs)) = normalize_comparison(bin_op.node, lhs, rhs)
@@ -164,7 +163,7 @@ fn lint_if_pattern<'tcx>(
             } {
                 (rel, rhs)
             } else
-            // x == 0, x != 0
+            // 0 == x, 0 != x
             if is_zero_integer_const(cx, rhs, condition.span.ctxt())
                 && !rhs.span.from_expansion()
                 && matches!(rel, Rel::Eq | Rel::Ne)
@@ -190,12 +189,12 @@ fn lint_if_pattern<'tcx>(
         return false;
     }
 
-    // This lint suggest `unwrap_or_else` to avoid side effect.
-    // However, in some simple cases, `unwrap_or` will be better.
+    // Because suggestion may trigger `unnecessary_lazy_evaluations` lint
     let mut app = Applicability::MaybeIncorrect;
 
     let sugg = {
         let (recv_str, _) = snippet_with_context(cx, recv_of_h1.span, h1_expr.span.ctxt(), "..", &mut app);
+        // the arm other than the one equivalent to `highest_one`
         let (else_str, _) = if recv_in_then_block {
             snippet_with_context(cx, else_block.span, span.ctxt(), "..", &mut app)
         } else {
@@ -240,6 +239,7 @@ fn lint_match_pattern<'tcx>(
         // same item
         && eq_expr_value(cx, span.ctxt(), scrutinee, recv_of_h1)
     {
+        // Because suggestion may trigger `unnecessary_lazy_evaluations` lint
         let mut app = Applicability::MaybeIncorrect;
 
         let sugg = {
@@ -282,6 +282,7 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
 
     // const - x.leading_zeros()
     if let Some((recv,[])) = unpack_method_call(rhs, sym::leading_zeros)
+        && !recv.span.from_expansion()
         && let Some(lit) = integer_const(cx, lhs, expr.span.ctxt())
         // check constant
         && let ty = cx.typeck_results().expr_ty(recv)
@@ -294,6 +295,7 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
     // (BITS - 1) - x.leading_zeros()
     if let Some((inner_lhs, inner_rhs)) = unpack_bin_op(lhs, BinOpKind::Sub)
         && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_rhs, rhs)
+        && !recv.span.from_expansion()
         // check BITS
         && let ty = cx.typeck_results().expr_ty(recv)
         && integer_const(cx, inner_lhs, expr.span.ctxt()) == bit_width(cx, ty)
@@ -304,6 +306,7 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
     // BITS - (1 + x.leading_zeros())
     if let Some(( inner_lhs, inner_rhs)) = unpack_bin_op(rhs, BinOpKind::Add)
         && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_lhs, inner_rhs)
+        && !recv.span.from_expansion()
         // check BITS
         && let ty = cx.typeck_results().expr_ty(recv)
         && integer_const(cx, lhs, expr.span.ctxt()) == bit_width(cx, ty)

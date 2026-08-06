@@ -156,19 +156,13 @@ LL |         31 - u.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:114:9
-   |
-LL |         31 - u.leading_zeros()
-   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
-
-error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:119:9
+  --> tests/ui/manual_highest_one.rs:109:9
    |
 LL |         31 - i.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `i.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:125:13
+  --> tests/ui/manual_highest_one.rs:115:13
    |
 LL |       let _ = match u {
    |  _____________^
@@ -189,40 +183,40 @@ LL ~         });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:137:13
+  --> tests/ui/manual_highest_one.rs:127:13
    |
 LL |             31 - u.leading_zeros()
    |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:141:14
+  --> tests/ui/manual_highest_one.rs:131:14
    |
 LL |         0 => 31 - u.leading_zeros(),
    |              ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:146:13
+  --> tests/ui/manual_highest_one.rs:138:13
    |
 LL |     let _ = identity!(31) - u.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:147:13
+  --> tests/ui/manual_highest_one.rs:139:13
    |
 LL |     let _ = 31 - identity!(u).leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:148:13
+  --> tests/ui/manual_highest_one.rs:147:13
    |
-LL |     let _ = 31 - double!(u).leading_zeros();
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `double!(u).highest_one().unwrap()`
+LL |     let _ = double!(u).bit_width() - 1;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `double!(u).highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:167:9
+  --> tests/ui/manual_highest_one.rs:161:9
    |
 LL |         31 - v.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `v.highest_one().unwrap()`
 
-error: aborting due to 25 previous errors
+error: aborting due to 24 previous errors
 

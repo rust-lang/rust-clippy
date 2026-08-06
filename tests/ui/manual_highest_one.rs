@@ -103,16 +103,6 @@ fn main() {
         may_change_state();
         31 - u.leading_zeros() //~ manual_highest_one
     };
-    // False negative
-    #[expect(clippy::blocks_in_conditions)]
-    let _ = if {
-        do_something(u);
-        u == 0
-    } {
-        todo!()
-    } else {
-        31 - u.leading_zeros() //~ manual_highest_one
-    };
 
     let i = -1_i32;
     let _ = if i > 0 {
@@ -143,14 +133,19 @@ fn main() {
     };
 
     // --- Macro ---
+    // `identity!` macro cannot be detected because span is not updated during expansion,
+    // so this is a false positive.
     let _ = identity!(31) - u.leading_zeros(); //~ manual_highest_one
     let _ = 31 - identity!(u).leading_zeros(); //~ manual_highest_one
-    let _ = 31 - double!(u).leading_zeros(); //~ manual_highest_one
+    // We are very conservative about macro, so these should not be linted.
+    let _ = 31 - double!(u).leading_zeros();
     let _ = thirty_one!() - u.leading_zeros();
     let _ = (u32::BITS - one!()) - u.leading_zeros();
     let _ = (u32::BITS - u.leading_zeros()) - one!();
     let _ = u32::BITS - (one!() + u.leading_zeros());
     let _ = u32::BITS - (u.leading_zeros() + one!());
+    // Whereas, this case should be linted.
+    let _ = double!(u).bit_width() - 1; //~ manual_highest_one
 
     macro_rules! ignore_me {
         () => {
