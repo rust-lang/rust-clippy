@@ -45,8 +45,11 @@ fn main() {
     let _ = u32::BITS - (1 + u.leading_zeros()); //~ manual_highest_one
     let _ = u32::BITS - (u.leading_zeros() + 1); //~ manual_highest_one
     let _ = u.bit_width() - 1; //~ manual_highest_one
-    // False negative
-    let _ = u32::BITS.checked_sub(u.leading_zeros() + 1);
+
+    let _ = 31_u32.checked_sub(u.leading_zeros()); //~ manual_highest_one
+    let _ = u32::BITS.checked_sub(u.leading_zeros() + 1); //~ manual_highest_one
+    let _ = (u32::BITS - 1).checked_sub(u.leading_zeros()); //~ manual_highest_one
+    let _ = u.bit_width().checked_sub(1); //~ manual_highest_one
 
     // --- Nonzero type ---
     let _ = 31 - nz.leading_zeros(); //~ manual_highest_one
@@ -59,8 +62,7 @@ fn main() {
     }
     let _ = u32::BITS - (1 + nz.leading_zeros()); //~ manual_highest_one
     let _ = u32::BITS - (nz.leading_zeros() + 1); //~ manual_highest_one
-    // False negative
-    let _ = nz.bit_width().get() - 1;
+    let _ = nz.bit_width().get() - 1; //~ manual_highest_one
     // False positive: Currently, `integer_const` does not support `NonZero`
     // and related aliases. It is better to enhance `integer_const`.
     let _ = NonZeroU32::BITS - 1 - nz.leading_zeros();
@@ -164,5 +166,4 @@ fn main() {
         let _ = "Rust is fast, memory-safe and productive.";
         3
     };
-    let _ = u32::BITS.checked_sub(u.leading_zeros() + 1);
 }

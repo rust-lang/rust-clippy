@@ -38,37 +38,67 @@ LL |     let _ = u.bit_width() - 1;
    |             ^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:49:13
+   |
+LL |     let _ = 31_u32.checked_sub(u.leading_zeros());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:50:13
+   |
+LL |     let _ = u32::BITS.checked_sub(u.leading_zeros() + 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:51:13
+   |
+LL |     let _ = (u32::BITS - 1).checked_sub(u.leading_zeros());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one()`
+
+error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:52:13
+   |
+LL |     let _ = u.bit_width().checked_sub(1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:55:13
    |
 LL |     let _ = 31 - nz.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:53:13
+  --> tests/ui/manual_highest_one.rs:56:13
    |
 LL |     let _ = u32::BITS - 1 - nz.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:58:17
+  --> tests/ui/manual_highest_one.rs:61:17
    |
 LL |         let _ = u32::BITS - nz.leading_zeros() - 1;
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:60:13
+  --> tests/ui/manual_highest_one.rs:63:13
    |
 LL |     let _ = u32::BITS - (1 + nz.leading_zeros());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:61:13
+  --> tests/ui/manual_highest_one.rs:64:13
    |
 LL |     let _ = u32::BITS - (nz.leading_zeros() + 1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:72:17
+  --> tests/ui/manual_highest_one.rs:65:13
+   |
+LL |     let _ = nz.bit_width().get() - 1;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `nz.highest_one()`
+
+error: manually reimplementing `highest_one`
+  --> tests/ui/manual_highest_one.rs:74:17
    |
 LL |           let _ = if u == 0 {
    |  _________________^
@@ -88,7 +118,7 @@ LL ~         });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:79:13
+  --> tests/ui/manual_highest_one.rs:81:13
    |
 LL |       let _ = if 0 == u {
    |  _____________^
@@ -108,7 +138,7 @@ LL ~     });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:85:13
+  --> tests/ui/manual_highest_one.rs:87:13
    |
 LL |       let _ = if u != 0 {
    |  _____________^
@@ -129,7 +159,7 @@ LL ~     });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:92:13
+  --> tests/ui/manual_highest_one.rs:94:13
    |
 LL |       let _ = if u > 0 {
    |  _____________^
@@ -150,19 +180,19 @@ LL ~     });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:104:9
+  --> tests/ui/manual_highest_one.rs:106:9
    |
 LL |         31 - u.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:109:9
+  --> tests/ui/manual_highest_one.rs:111:9
    |
 LL |         31 - i.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `i.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:115:13
+  --> tests/ui/manual_highest_one.rs:117:13
    |
 LL |       let _ = match u {
    |  _____________^
@@ -183,40 +213,40 @@ LL ~         });
    |
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:127:13
+  --> tests/ui/manual_highest_one.rs:129:13
    |
 LL |             31 - u.leading_zeros()
    |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:131:14
+  --> tests/ui/manual_highest_one.rs:133:14
    |
 LL |         0 => 31 - u.leading_zeros(),
    |              ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:138:13
+  --> tests/ui/manual_highest_one.rs:140:13
    |
 LL |     let _ = identity!(31) - u.leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:139:13
+  --> tests/ui/manual_highest_one.rs:141:13
    |
 LL |     let _ = 31 - identity!(u).leading_zeros();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:147:13
+  --> tests/ui/manual_highest_one.rs:150:13
    |
 LL |     let _ = double!(u).bit_width() - 1;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `double!(u).highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
-  --> tests/ui/manual_highest_one.rs:161:9
+  --> tests/ui/manual_highest_one.rs:164:9
    |
 LL |         31 - v.leading_zeros()
    |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `v.highest_one().unwrap()`
 
-error: aborting due to 24 previous errors
+error: aborting due to 29 previous errors
 

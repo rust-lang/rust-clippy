@@ -45,8 +45,11 @@ fn main() {
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
-    // False negative
-    let _ = u32::BITS.checked_sub(u.leading_zeros() + 1);
+
+    let _ = u.highest_one(); //~ manual_highest_one
+    let _ = u.highest_one(); //~ manual_highest_one
+    let _ = u.highest_one(); //~ manual_highest_one
+    let _ = u.highest_one(); //~ manual_highest_one
 
     // --- Nonzero type ---
     let _ = nz.highest_one(); //~ manual_highest_one
@@ -59,8 +62,7 @@ fn main() {
     }
     let _ = nz.highest_one(); //~ manual_highest_one
     let _ = nz.highest_one(); //~ manual_highest_one
-    // False negative
-    let _ = nz.bit_width().get() - 1;
+    let _ = nz.highest_one(); //~ manual_highest_one
     // False positive: Currently, `integer_const` does not support `NonZero`
     // and related aliases. It is better to enhance `integer_const`.
     let _ = NonZeroU32::BITS - 1 - nz.leading_zeros();
@@ -120,16 +122,17 @@ fn main() {
 
     // --- Macro ---
     // `identity!` macro cannot be detected because span is not updated during expansion,
-    // so this is a false positive
+    // so this is a false positive.
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
+    // We are very conservative about macro, so these should not be linted.
     let _ = 31 - double!(u).leading_zeros();
     let _ = thirty_one!() - u.leading_zeros();
     let _ = (u32::BITS - one!()) - u.leading_zeros();
     let _ = (u32::BITS - u.leading_zeros()) - one!();
     let _ = u32::BITS - (one!() + u.leading_zeros());
     let _ = u32::BITS - (u.leading_zeros() + one!());
-    // This case should be linted.
+    // Whereas, this case should be linted.
     let _ = double!(u).highest_one().unwrap(); //~ manual_highest_one
 
     macro_rules! ignore_me {
@@ -149,5 +152,4 @@ fn main() {
         let _ = "Rust is fast, memory-safe and productive.";
         3
     };
-    let _ = u32::BITS.checked_sub(u.leading_zeros() + 1);
 }

@@ -50,37 +50,33 @@ impl ManualHighestOne {
 
 impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
-        let mid_ty = cx.typeck_results().expr_ty(expr);
-
-        if !self.msrv.meets(cx, msrvs::HIGHEST_ONE) || expr.span.from_expansion() || !mid_ty.is_integral() {
+        if !self.msrv.meets(cx, msrvs::HIGHEST_ONE) || expr.span.from_expansion() {
             return;
         }
 
-        let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr) else {
+        match IntTy::parse(cx, expr) {
+            Some(IntTy::Option) => {
+                if let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr, true) {
+                    lint_basic_pattern(cx, expr.span, recv, IntTy::Option);
+                }
+                return;
+            },
+            Some(IntTy::Raw) => (),
+            _ => return,
+        }
+
+        let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr, false) else {
             return;
         };
         let h1_expr = expr;
 
-        if cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::NonZero) {
-            let mut app = Applicability::MaybeIncorrect;
-
-            let sugg = {
-                let (recv_str, _) = snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
-
-                format!("{recv_str}.highest_one()")
-            };
-
-            span_lint_and_sugg(
-                cx,
-                MANUAL_HIGHEST_ONE,
-                h1_expr.span,
-                "manually reimplementing `highest_one`",
-                "try",
-                sugg,
-                app,
-            );
-
-            return;
+        match IntTy::parse(cx, recv) {
+            Some(IntTy::NonZero) => {
+                lint_basic_pattern(cx, h1_expr.span, recv, IntTy::NonZero);
+                return;
+            },
+            Some(IntTy::Raw) => (),
+            _ => return,
         }
 
         // Walk the node up
@@ -96,9 +92,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
                 },
                 Node::Expr(expr) => match expr.kind {
                     ExprKind::Block(..) => hir_id = expr.hir_id,
-                    // if x == 0 {} else { h1 }
-                    // if x != 0 { h1 } else {}
-                    // if unsigned > 0 { h1 } else {}
                     ExprKind::If(condition, then_block, Some(else_block))
                         if matches!(else_block.kind, ExprKind::Block(..)) =>
                     {
@@ -107,10 +100,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
                         }
                         break;
                     },
-                    // match u {
-                    //     0 => do_something(),
-                    //     _ => u.highest_one_equiv(),
-                    // }
                     ExprKind::Match(scrutinee, [arm1, arm2], MatchSource::Normal) => {
                         if lint_match_pattern(cx, expr.span, scrutinee, arm1, arm2, h1_expr, recv) {
                             return;
@@ -123,22 +112,59 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             }
         }
 
-        let mut app = Applicability::MaybeIncorrect;
-        let sugg = {
-            let (recv_str, _) = snippet_with_context(cx, recv.span, h1_expr.span.ctxt(), "..", &mut app);
-
-            format!("{recv_str}.highest_one().unwrap()")
-        };
-        span_lint_and_sugg(
-            cx,
-            MANUAL_HIGHEST_ONE,
-            h1_expr.span,
-            "manually reimplementing `highest_one`",
-            "try",
-            sugg,
-            app,
-        );
+        lint_basic_pattern(cx, h1_expr.span, recv, IntTy::Raw);
     }
+}
+
+enum IntTy {
+    Raw,
+    NonZero,
+    Option,
+}
+
+impl IntTy {
+    fn parse<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<Self> {
+        let ty = cx.typeck_results().expr_ty(expr);
+
+        match ty.kind() {
+            ty::Int(..) | ty::Uint(..) => Some(Self::Raw),
+            ty::Adt(def, arg) if def.is_diag_item(&cx.tcx, sym::NonZero) => match arg.type_at(0).kind() {
+                ty::Int(..) | ty::Uint(..) => Some(Self::NonZero),
+                _ => None,
+            },
+            ty::Adt(def, arg) if def.is_diag_item(&cx.tcx, sym::Option) => match arg.type_at(0).kind() {
+                ty::Int(..) | ty::Uint(..) => Some(Self::Option),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    fn basic_suggestion(self) -> &'static str {
+        match self {
+            IntTy::Raw => ".highest_one().unwrap()",
+            IntTy::NonZero => ".highest_one()",
+            IntTy::Option => ".highest_one()",
+        }
+    }
+}
+
+fn lint_basic_pattern<'tcx>(cx: &LateContext<'tcx>, span: Span, recv: &'tcx Expr<'tcx>, int_ty: IntTy) {
+    let mut app = Applicability::MaybeIncorrect;
+    let sugg = {
+        let (recv_str, _) = snippet_with_context(cx, recv.span, span.ctxt(), "..", &mut app);
+
+        format!("{recv_str}{}", int_ty.basic_suggestion())
+    };
+    span_lint_and_sugg(
+        cx,
+        MANUAL_HIGHEST_ONE,
+        span,
+        "manually reimplementing `highest_one`",
+        "try",
+        sugg,
+        app,
+    );
 }
 
 fn lint_if_pattern<'tcx>(
@@ -181,9 +207,9 @@ fn lint_if_pattern<'tcx>(
         return false;
     }
 
-    // if x == 0 {} else {}
-    // if x != 0 {} else {}
-    // if 0 < unsigned {} else {}
+    // if x == 0 {} else { h1 }
+    // if x != 0 { h1 } else {}
+    // if 0 < unsigned { h1 } else {}
     let recv_in_then_block = cx.tcx.hir_parent_iter(h1_expr.hir_id).any(|v| v.0 == then_block.hir_id);
     if (rel == Rel::Eq) == recv_in_then_block {
         return false;
@@ -226,6 +252,10 @@ fn lint_match_pattern<'tcx>(
     h1_expr: &'tcx Expr<'tcx>,
     recv_of_h1: &'tcx Expr<'tcx>,
 ) -> bool {
+    // match u {
+    //     0 => do_something(),
+    //     _ => u.highest_one_equiv(),
+    // }
     if
     // `0` pattern
     arm1.guard.is_none()
@@ -269,18 +299,38 @@ fn lint_match_pattern<'tcx>(
 fn extract_recv_from_highest_one_equiv<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'tcx>,
+    checked: bool,
 ) -> Option<&'tcx Expr<'tcx>> {
     // lhs - rhs
-    let (lhs, rhs) = unpack_bin_op(expr, BinOpKind::Sub)?;
+    let (lhs, rhs) = if checked {
+        if let Some((recv, [arg])) = unpack_method_call(expr, sym::checked_sub) {
+            (recv, arg)
+        } else {
+            return None;
+        }
+    } else {
+        unpack_bin_op(expr, BinOpKind::Sub)?
+    };
 
-    // x.bit_width() - 1_u32
+    // lhs = x.bit_width()
+    // rhs = 1
     if let Some((recv, [])) = unpack_method_call(lhs, sym::bit_width)
         && integer_const(cx, rhs, expr.span.ctxt()) == Some(1)
     {
         return Some(recv);
     }
 
-    // const - x.leading_zeros()
+    // lhs = nonzero.bit_width().get()
+    // rhs = 1
+    if let Some((recv, [])) = unpack_method_call(lhs, sym::get)
+        && let Some((recv, [])) = unpack_method_call(recv, sym::bit_width)
+        && integer_const(cx, rhs, expr.span.ctxt()) == Some(1)
+    {
+        return Some(recv);
+    }
+
+    // lhs = const
+    // rhs = x.leading_zeros()
     if let Some((recv,[])) = unpack_method_call(rhs, sym::leading_zeros)
         && !recv.span.from_expansion()
         && let Some(lit) = integer_const(cx, lhs, expr.span.ctxt())
@@ -292,7 +342,8 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
         return Some(recv);
     }
 
-    // (BITS - 1) - x.leading_zeros()
+    // lhs = BITS - 1
+    // rhs = x.leading_zeros()
     if let Some((inner_lhs, inner_rhs)) = unpack_bin_op(lhs, BinOpKind::Sub)
         && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_rhs, rhs)
         && !recv.span.from_expansion()
@@ -303,7 +354,8 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
         return Some(recv);
     }
 
-    // BITS - (1 + x.leading_zeros())
+    // lhs = BITS
+    // rhs = 1 + x.leading_zeros()
     if let Some(( inner_lhs, inner_rhs)) = unpack_bin_op(rhs, BinOpKind::Add)
         && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_lhs, inner_rhs)
         && !recv.span.from_expansion()
