@@ -107,7 +107,7 @@ const DROP_NON_DROP_SUMMARY: &str = "call to `std::mem::drop` with a value that 
                                  Dropping such a type only extends its contained lifetimes";
 const FORGET_NON_DROP_SUMMARY: &str = "call to `std::mem::forget` with a value that does not implement `Drop`. \
                                    Forgetting such a type is the same as dropping it";
-const FORGET_FUTURE_SUMMARY: &str = "forgetting a Future might cause problems with cancelation";
+const FORGET_FUTURE_SUMMARY: &str = "forgetting a Future might cause problems with cancellation";
 
 impl<'tcx> LateLintPass<'tcx> for DropForgetRef {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
