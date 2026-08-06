@@ -119,12 +119,14 @@ mod stable_sort_primitive;
 mod str_split;
 mod str_splitn;
 mod string_extend_chars;
+mod string_from_utf8_as_bytes;
 mod string_lit_chars_any;
 mod suspicious_command_arg_space;
 mod suspicious_map;
 mod suspicious_splitn;
 mod suspicious_to_owned;
 mod swap_with_temporary;
+mod trim_split_white_space;
 mod type_id_on_box;
 mod unbuffered_bytes;
 mod uninit_assumed_init;
@@ -153,8 +155,6 @@ mod verbose_file_reads;
 mod waker_clone_wake;
 mod wrong_self_convention;
 mod zst_offset;
-mod string_from_utf8_as_bytes;
-mod trim_split_white_space;
 
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
@@ -5098,6 +5098,7 @@ impl_lint_pass!(Methods => [
     SUSPICIOUS_SPLITN,
     SUSPICIOUS_TO_OWNED,
     SWAP_WITH_TEMPORARY,
+    TRIM_SPLIT_WHITESPACE,
     TYPE_ID_ON_BOX,
     UNBUFFERED_BYTES,
     UNINIT_ASSUMED_INIT,
@@ -6011,8 +6012,8 @@ impl Methods {
                     map_or_identity::check(cx, expr, recv, call_span, def, map);
                 },
                 (sym::split_whitespace, []) => {
-                    trim_split_white_space::check(cx ,expr, recv, call_span);
-                }
+                    trim_split_white_space::check(cx, expr, recv, call_span);
+                },
                 (sym::to_string, []) => {
                     inefficient_to_string::check(cx, expr, recv, self.msrv);
                 },

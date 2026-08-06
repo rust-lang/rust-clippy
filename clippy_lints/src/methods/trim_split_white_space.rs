@@ -1,15 +1,15 @@
-use clippy_utils::{sym};
+use crate::methods::TRIM_SPLIT_WHITESPACE;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::sym;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::LateContext;
-use rustc_span::def_id::DefId;
 use rustc_span::Span;
-use crate::methods::TRIM_SPLIT_WHITESPACE;
+use rustc_span::def_id::DefId;
 
-pub (super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, split_recv: &Expr<'_>, split_ws_span: Span)   {
+pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, split_recv: &Expr<'_>, split_ws_span: Span) {
     let tyckres = cx.typeck_results();
-        if let Some(split_ws_def_id) = tyckres.type_dependent_def_id(expr.hir_id)
+    if let Some(split_ws_def_id) = tyckres.type_dependent_def_id(expr.hir_id)
         && cx.tcx.is_diagnostic_item(sym::str_split_whitespace, split_ws_def_id)
         && let ExprKind::MethodCall(path, _trim_recv, [], trim_span) = split_recv.kind
         && let trim_fn_name @ (sym::trim | sym::trim_start | sym::trim_end) = path.ident.name

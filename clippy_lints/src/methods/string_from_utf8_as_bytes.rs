@@ -1,14 +1,14 @@
-use clippy_utils::{method_calls, sym};
+use crate::methods::STRING_FROM_UTF8_AS_BYTES;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::res::{MaybeDef, MaybeQPath};
+use clippy_utils::res::{MaybeDef as _, MaybeQPath as _};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
+use clippy_utils::{method_calls, sym};
 use rustc_ast::BorrowKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, LangItem};
 use rustc_lint::LateContext;
-use crate::methods::STRING_FROM_UTF8_AS_BYTES;
 
-pub (super) fn check_call(cx: &LateContext<'_>, expr: &Expr<'_>, fun: &Expr<'_>, args: &[Expr<'_>])   {
+pub(super) fn check_call(cx: &LateContext<'_>, expr: &Expr<'_>, fun: &Expr<'_>, args: &[Expr<'_>]) {
     // Find `std::str::converts::from_utf8` or `std::primitive::str::from_utf8`
 
     if let [bytes_arg] = args && let Some(sym::str_from_utf8 | sym::str_inherent_from_utf8) =
