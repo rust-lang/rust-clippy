@@ -1,5 +1,5 @@
 error: this block is too nested
-  --> tests/ui/excessive_nesting.rs:13:33
+  --> tests/ui/excessive_nesting.rs:11:33
    |
 LL |                         let f = { 42 };
    |                                 ^^^^^^
@@ -9,7 +9,7 @@ LL |                         let f = { 42 };
    = help: to override `-D warnings` add `#[allow(clippy::excessive_nesting)]`
 
 error: this block is too nested
-  --> tests/ui/excessive_nesting.rs:32:33
+  --> tests/ui/excessive_nesting.rs:30:33
    |
 LL |                           let u = {
    |  _________________________________^
@@ -22,7 +22,7 @@ LL | |                         };
    = help: try refactoring your code to minimize nesting
 
 error: this block is too nested
-  --> tests/ui/excessive_nesting.rs:60:33
+  --> tests/ui/excessive_nesting.rs:58:33
    |
 LL |                           if true {
    |  _________________________________^
@@ -34,7 +34,7 @@ LL | |                         }
    = help: try refactoring your code to minimize nesting
 
 error: this block is too nested
-  --> tests/ui/excessive_nesting.rs:80:33
+  --> tests/ui/excessive_nesting.rs:78:33
    |
 LL |                           if true {
    |  _________________________________^
