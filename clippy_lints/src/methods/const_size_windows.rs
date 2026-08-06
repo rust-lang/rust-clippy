@@ -80,7 +80,7 @@ pub(super) fn check<'tcx>(
                         SpanLocation::MethodCall => call_span,
                         SpanLocation::EntireExpression => expr.span,
                     };
-                    diag.span_suggestion(span, "use", code, Applicability::MachineApplicable);
+                    diag.span_suggestion(span, "try", code, Applicability::MaybeIncorrect);
 
                     if let Some(example) = destructuring_example {
                         diag.note(format!("this allows array destructuring: `{example}`"));
