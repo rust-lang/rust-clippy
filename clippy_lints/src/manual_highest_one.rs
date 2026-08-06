@@ -143,8 +143,7 @@ impl IntTy {
     fn basic_suggestion(self) -> &'static str {
         match self {
             IntTy::Raw => ".highest_one().unwrap()",
-            IntTy::NonZero => ".highest_one()",
-            IntTy::Option => ".highest_one()",
+            IntTy::NonZero | IntTy::Option => ".highest_one()",
         }
     }
 }
