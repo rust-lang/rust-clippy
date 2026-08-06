@@ -259,6 +259,9 @@ define_Conf! {
     /// Whether to allow `r#""#` when `r""` can be used
     #[lints(needless_raw_string_hashes)]
     allow_one_hash_in_raw_strings("allow-one-hash-in-raw-strings"): bool = false,
+    /// Whether `panic_in_result_fn` should be allowed in test functions or `#[cfg(test)]`
+    #[lints(panic_in_result_fn)]
+    allow_panic_in_result_fn_in_tests("allow-panic-in-result-fn-in-tests"): bool = false,
     /// Whether `panic` should be allowed in test functions or `#[cfg(test)]`
     #[lints(panic)]
     allow_panic_in_tests("allow-panic-in-tests"): bool = false,
