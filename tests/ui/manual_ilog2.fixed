@@ -1,5 +1,5 @@
 //@aux-build:proc_macros.rs
-#![allow(clippy::manual_highest_one, reason = "Both lints share some patterns.")]
+#![allow(clippy::manual_highest_one)]
 #![warn(clippy::manual_ilog2)]
 #![expect(clippy::unnecessary_operation)]
 
