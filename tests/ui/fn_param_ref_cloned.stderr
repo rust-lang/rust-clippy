@@ -66,7 +66,7 @@ LL | pub fn basic_clone_function(is_not_clone_ref: &IsNotClone, is_clone_ref: &I
    |                                                                          ^^^^^^^^
 
 error: function gets a parameter by reference, but you later unconditionally clone it
-  --> tests/ui/fn_param_ref_cloned.rs:122:44
+  --> tests/ui/fn_param_ref_cloned.rs:121:44
    |
 LL |     let should_not_allow_clone = clone_ref.clone();
    |                                            ^^^^^^^
