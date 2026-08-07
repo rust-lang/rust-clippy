@@ -1,5 +1,5 @@
-#![warn(clippy::manual_highest_one)]
 #![allow(clippy::manual_ilog2, reason = "Both lints share some patterns.")]
+#![warn(clippy::manual_highest_one)]
 
 use std::hint::black_box;
 use std::num::NonZeroU32;
