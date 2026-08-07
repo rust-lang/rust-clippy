@@ -1159,6 +1159,16 @@ fn field_of_struct<'tcx>(
     }
 }
 
+fn constant_to_integer(constant: &Constant, is_standard_nonzero: bool) -> Option<u128> {
+    match constant {
+        Constant::Int(value) => Some(*value),
+        Constant::Adt(ConstValue::Scalar(Scalar::Int(value))) if is_standard_nonzero => {
+            Some(value.to_bits(value.size()))
+        },
+        _ => None,
+    }
+}
+
 /// If `expr` evaluates to an integer constant, return its value.
 ///
 /// The context argument is the context used to view the evaluated expression. e.g. when evaluating
@@ -1166,11 +1176,9 @@ fn field_of_struct<'tcx>(
 /// the const evaluator can see the `m` macro and marke the evaluation as non-local independant of
 /// what the macro expands to.
 pub fn integer_const(cx: &LateContext<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> Option<u128> {
-    if let Some(Constant::Int(value)) = ConstEvalCtxt::new(cx).eval_local(expr, ctxt) {
-        Some(value)
-    } else {
-        None
-    }
+    let constant = ConstEvalCtxt::new(cx).eval_local(expr, ctxt)?;
+    let is_standard_nonzero = cx.typeck_results().expr_ty(expr).is_diag_item(cx, sym::NonZero);
+    constant_to_integer(&constant, is_standard_nonzero)
 }
 
 /// Check if `expr` evaluates to an integer constant of 0.
@@ -1198,5 +1206,44 @@ pub fn const_item_rhs_to_expr<'tcx>(tcx: TyCtxt<'tcx>, ct_rhs: ConstItemRhs<'tcx
             | ConstArgKind::Error(..)
             | ConstArgKind::Infer(..) => None,
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use core::num::{NonZero, NonZeroU32};
+
+    const GENERIC: NonZero<u32> = NonZero::<u32>::MIN;
+    const ALIAS: NonZeroU32 = NonZeroU32::MIN;
+
+    fn scalar_adt(value: u32) -> Constant {
+        let value = ScalarInt::try_from_uint(value, Size::from_bytes(4)).unwrap();
+        Constant::Adt(ConstValue::Scalar(Scalar::Int(value)))
+    }
+
+    #[test]
+    fn integer_const_keeps_primitive_values() {
+        assert_eq!(constant_to_integer(&Constant::Int(42), false), Some(42));
+    }
+
+    #[test]
+    fn integer_const_supports_nonzero_forms() {
+        assert_eq!(constant_to_integer(&scalar_adt(GENERIC.get()), true), Some(1));
+        assert_eq!(constant_to_integer(&scalar_adt(ALIAS.get()), true), Some(1));
+    }
+
+    #[test]
+    fn integer_const_rejects_nonzero_like_wrappers() {
+        #[repr(transparent)]
+        struct Transparent(u32);
+
+        const WRAPPED: Transparent = Transparent(1);
+        assert_eq!(constant_to_integer(&scalar_adt(WRAPPED.0), false), None);
+    }
+
+    #[test]
+    fn integer_const_rejects_other_constants() {
+        assert_eq!(constant_to_integer(&Constant::Str(String::from("one")), true), None);
     }
 }
