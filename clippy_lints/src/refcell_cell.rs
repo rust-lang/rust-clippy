@@ -18,21 +18,34 @@ use rustc_span::sym::RefCell;
 
 declare_clippy_lint! {
     /// ### What it does
+    /// This lint suggests using `Cell` for `Copy` types instead of `RefCell`.
     ///
     /// ### Why is this bad?
+    /// `RefCell` avoids cloning at the cost of additional memory usage and
+    /// instructions, which isn't worth it for `Copy` types.
     ///
     /// ### Example
     /// ```no_run
-    /// // example code where clippy issues a warning
+    /// use std::cell::RefCell;
+    ///
+    /// struct Counter(RefCell<i32>);
+    ///
+    /// let _ = RefCell::new(1);
+    /// let _ = RefCell::default();
     /// ```
     /// Use instead:
     /// ```no_run
-    /// // example code which does not raise clippy warning
+    /// use std::cell::Cell;
+    ///
+    /// struct Counter(Cell<i32>);
+    ///
+    /// let _ = Cell::new(1);
+    /// let _ = Cell::default();
     /// ```
     #[clippy::version = "1.99.0"]
     pub REFCELL_CELL,
     perf,
-    "default lint description"
+    "using a `RefCell` for a `Copy` type"
 }
 
 declare_lint_pass!(RefcellCell => [REFCELL_CELL]);
