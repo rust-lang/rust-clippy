@@ -1,4 +1,4 @@
-use clippy_utils::res::MaybeResPath;
+use clippy_utils::res::MaybeResPath as _;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::visitors::{Descend, for_each_expr};
 use rustc_hir::PatKind;
