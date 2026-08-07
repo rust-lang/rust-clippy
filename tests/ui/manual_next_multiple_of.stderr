@@ -58,7 +58,7 @@ LL |     let _ = (u1 + 3) & !3;
 error: manually reimplementing `next_multiple_of
   --> tests/ui/manual_next_multiple_of.rs:40:13
    |
-LL |     let _ = (u1 + 7) & !7;
+LL |     let _ = !7 & (u1 + 7);
    |             ^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(7)`
 
 error: manually reimplementing `next_multiple_of

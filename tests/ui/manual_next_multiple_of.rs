@@ -37,7 +37,7 @@ fn main() {
 
     // power of two
     let _ = (u1 + 3) & !3; //~ manual_next_multiple_of
-    let _ = (u1 + 7) & !7; //~ manual_next_multiple_of
+    let _ = !7 & (u1 + 7); //~ manual_next_multiple_of
 
     // function and macro
     let _ = u1.div_ceil(f_val()) * f_val();
