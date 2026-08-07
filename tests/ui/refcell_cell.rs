@@ -87,4 +87,21 @@ fn main() {
 
     // False negative: This lint does not check trait bounds on call site.
     let _ = black_box(RefCell::new(1));
+
+    // Macro expansion
+    macro_rules! black_box {
+        ( $e:expr ) => {
+            black_box($e)
+        };
+    }
+    let _ = RefCell::new(black_box!(1));
+    let _ = RefCell::from(black_box!(1));
+    let _ = black_box!(RefCell::new(1));
+
+    macro_rules! ignore_me {
+        () => {
+            let _ = RefCell::new(1);
+        };
+    }
+    ignore_me!();
 }
