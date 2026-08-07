@@ -237,3 +237,18 @@ fn issue_15068() {
         let _ = a[0][i];
     }
 }
+
+// Regression test for #17432: the container indexed by `i` changes between iterations.
+fn issue_17432(a: [[usize; 5]; 5]) {
+    let mut sum = 0;
+
+    for i in 0..5 {
+        sum += a[sum % 5][i];
+    }
+
+    // Keep linting when `i` selects the outer container.
+    for i in 0..5 {
+        //~^ needless_range_loop
+        let _ = a[i][sum % 5];
+    }
+}
