@@ -7,11 +7,11 @@ use clippy_utils::res::{HasHirId as _, MaybeDef as _};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{eq_expr_value, sym};
 use rustc_errors::Applicability;
-use rustc_hir::{Arm, BinOpKind, Expr, ExprKind, MatchSource, Node, PatKind};
+use rustc_hir::{Arm, BinOpKind, Expr, ExprKind, MatchSource, Node, PatKind, QPath};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
-use rustc_span::{Span, Symbol};
+use rustc_span::{Span, Symbol, SyntaxContext};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -54,7 +54,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
             return;
         }
 
-        match IntTy::parse(cx, expr) {
+        match IntTy::new(cx, expr) {
             Some(IntTy::Option) => {
                 if let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr, true) {
                     lint_basic_pattern(cx, expr.span, recv, IntTy::Option);
@@ -70,7 +70,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
         };
         let h1_expr = expr;
 
-        match IntTy::parse(cx, recv) {
+        match IntTy::new(cx, recv) {
             Some(IntTy::NonZero) => {
                 lint_basic_pattern(cx, h1_expr.span, recv, IntTy::NonZero);
                 return;
@@ -123,7 +123,7 @@ enum IntTy {
 }
 
 impl IntTy {
-    fn parse<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<Self> {
+    fn new<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<Self> {
         let ty = cx.typeck_results().expr_ty(expr);
 
         match ty.kind() {
@@ -341,6 +341,8 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
         return Some(recv);
     }
 
+    // `x.leading_zeros()` and `1` can be swapped.
+
     // lhs = BITS - 1
     // rhs = x.leading_zeros()
     if let Some((inner_lhs, inner_rhs)) = unpack_bin_op(lhs, BinOpKind::Sub)
@@ -348,7 +350,7 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
         && !recv.span.from_expansion()
         // check BITS
         && let ty = cx.typeck_results().expr_ty(recv)
-        && integer_const(cx, inner_lhs, expr.span.ctxt()) == bit_width(cx, ty)
+        && integer_const_or_bits(cx, inner_lhs, expr.span.ctxt()) == bit_width(cx, ty)
     {
         return Some(recv);
     }
@@ -360,7 +362,7 @@ fn extract_recv_from_highest_one_equiv<'tcx>(
         && !recv.span.from_expansion()
         // check BITS
         && let ty = cx.typeck_results().expr_ty(recv)
-        && integer_const(cx, lhs, expr.span.ctxt()) == bit_width(cx, ty)
+        && integer_const_or_bits(cx, lhs, expr.span.ctxt()) == bit_width(cx, ty)
     {
         return Some(recv);
     }
@@ -394,6 +396,18 @@ fn bit_width<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<u128> {
         ty::Adt(adt_def, args) if adt_def.is_diag_item(cx, sym::NonZero) => bit_width(cx, args[0].expect_ty()),
         _ => None,
     }
+}
+
+fn integer_const_or_bits(cx: &LateContext<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> Option<u128> {
+    integer_const(cx, expr, ctxt).or_else(|| {
+        if let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = expr.kind
+            && segment.ident.name == sym::BITS
+        {
+            bit_width(cx, cx.typeck_results().node_type(hir_ty.hir_id))
+        } else {
+            None
+        }
+    })
 }
 
 // Returns `(a, [b, ..])` of `a.method(b, ..)`
