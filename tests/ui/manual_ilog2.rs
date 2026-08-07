@@ -1,7 +1,7 @@
 //@aux-build:proc_macros.rs
+#![allow(clippy::manual_highest_one, reason = "Both lints share some patterns.")]
 #![warn(clippy::manual_ilog2)]
 #![expect(clippy::unnecessary_operation)]
-#![allow(clippy::manual_highest_one, reason = "Both lints share some patterns.")]
 
 use proc_macros::{external, with_span};
 
