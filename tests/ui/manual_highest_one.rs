@@ -1,4 +1,3 @@
-#![allow(clippy::manual_ilog2)]
 #![warn(clippy::manual_highest_one)]
 
 use std::hint::black_box;
@@ -33,6 +32,7 @@ fn main() {
     let nz = NonZeroU32::new(5).unwrap();
 
     // --- Integer type ---
+    #[allow(clippy::manual_ilog2, reason = "This pattern is shared.")]
     let _ = 31 - u.leading_zeros(); //~ manual_highest_one
     let _ = u32::BITS - 1 - u.leading_zeros(); //~ manual_highest_one
     let _ = u32::BITS - u.leading_zeros() - 1; //~ manual_highest_one
@@ -63,23 +63,23 @@ fn main() {
         //~^ manual_highest_one
         todo!()
     } else {
-        31 - u.leading_zeros()
+        u.bit_width() - 1
     };
     let _ = if 0 == u {
         //~^ manual_highest_one
         todo!()
     } else {
-        31 - u.leading_zeros()
+        u.bit_width() - 1
     };
     let _ = if u != 0 {
         //~^ manual_highest_one
-        31 - u.leading_zeros()
+        u.bit_width() - 1
     } else {
         todo!()
     };
     let _ = if u > 0 {
         //~^ manual_highest_one
-        31 - u.leading_zeros()
+        u.bit_width() - 1
     } else {
         todo!()
     };
@@ -95,7 +95,7 @@ fn main() {
     } else {
         // this arm may change state
         black_box(u);
-        31 - u.leading_zeros() //~ manual_highest_one
+        u.bit_width() - 1 //~ manual_highest_one
     };
     // Whereas, this should be linted.
     let _ = if u == 0 {
@@ -103,7 +103,7 @@ fn main() {
         black_box(u);
         todo!()
     } else {
-        31 - u.leading_zeros()
+        u.bit_width() - 1
     };
 
     // --- In match arm ---
@@ -113,17 +113,17 @@ fn main() {
             black_box(u);
             todo!()
         },
-        _ => 31 - u.leading_zeros(),
+        _ => u.bit_width() - 1,
     };
     let _ = match u {
         0 => todo!(),
         _ => {
             black_box(u);
-            31 - u.leading_zeros() //~ manual_highest_one
+            u.bit_width() - 1 //~ manual_highest_one
         },
     };
     let _ = match u {
-        0 => 31 - u.leading_zeros(), //~ manual_highest_one
+        0 => u.bit_width() - 1, //~ manual_highest_one
         _ => todo!(),
     };
 

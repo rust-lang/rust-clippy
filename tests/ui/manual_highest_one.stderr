@@ -129,7 +129,7 @@ LL |       let _ = if u == 0 {
 LL | |
 LL | |         todo!()
 LL | |     } else {
-LL | |         31 - u.leading_zeros()
+LL | |         u.bit_width() - 1
 LL | |     };
    | |_____^
    |
@@ -149,7 +149,7 @@ LL |       let _ = if 0 == u {
 LL | |
 LL | |         todo!()
 LL | |     } else {
-LL | |         31 - u.leading_zeros()
+LL | |         u.bit_width() - 1
 LL | |     };
    | |_____^
    |
@@ -167,7 +167,7 @@ error: manually reimplementing `highest_one`
 LL |       let _ = if u != 0 {
    |  _____________^
 LL | |
-LL | |         31 - u.leading_zeros()
+LL | |         u.bit_width() - 1
 LL | |     } else {
 LL | |         todo!()
 LL | |     };
@@ -186,7 +186,7 @@ error: manually reimplementing `highest_one`
 LL |       let _ = if u > 0 {
    |  _____________^
 LL | |
-LL | |         31 - u.leading_zeros()
+LL | |         u.bit_width() - 1
 LL | |     } else {
 LL | |         todo!()
 LL | |     };
@@ -208,8 +208,8 @@ LL |         31 - i.leading_zeros()
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:98:9
    |
-LL |         31 - u.leading_zeros()
-   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+LL |         u.bit_width() - 1
+   |         ^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:101:13
@@ -220,7 +220,7 @@ LL | |
 LL | |         black_box(u);
 LL | |         todo!()
 LL | |     } else {
-LL | |         31 - u.leading_zeros()
+LL | |         u.bit_width() - 1
 LL | |     };
    | |_____^
    |
@@ -242,7 +242,7 @@ LL | |
 LL | |         0 => {
 LL | |             black_box(u);
 ...  |
-LL | |         _ => 31 - u.leading_zeros(),
+LL | |         _ => u.bit_width() - 1,
 LL | |     };
    | |_____^
    |
@@ -257,14 +257,14 @@ LL ~         });
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:122:13
    |
-LL |             31 - u.leading_zeros()
-   |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+LL |             u.bit_width() - 1
+   |             ^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:126:14
    |
-LL |         0 => 31 - u.leading_zeros(),
-   |              ^^^^^^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
+LL |         0 => u.bit_width() - 1,
+   |              ^^^^^^^^^^^^^^^^^ help: try: `u.highest_one().unwrap()`
 
 error: manually reimplementing `highest_one`
   --> tests/ui/manual_highest_one.rs:133:13

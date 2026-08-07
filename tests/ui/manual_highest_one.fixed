@@ -1,4 +1,3 @@
-#![allow(clippy::manual_ilog2)]
 #![warn(clippy::manual_highest_one)]
 
 use std::hint::black_box;
@@ -33,6 +32,7 @@ fn main() {
     let nz = NonZeroU32::new(5).unwrap();
 
     // --- Integer type ---
+    #[allow(clippy::manual_ilog2, reason = "This pattern is shared.")]
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
     let _ = u.highest_one().unwrap(); //~ manual_highest_one
