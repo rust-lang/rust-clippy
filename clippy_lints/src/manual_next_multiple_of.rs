@@ -25,7 +25,7 @@ declare_clippy_lint! {
     /// let b = 2_u32;
     ///
     /// let _ = a.div_ceil(b) * b;
-    /// let _ = a + (b - a % b) % b;
+    /// let _ = a.div_ceil(b).checked_mul(b);
     /// ```
     /// Use instead:
     /// ```no_run
@@ -33,7 +33,7 @@ declare_clippy_lint! {
     /// let b = 2_u32;
     ///
     /// let _ = a.next_multiple_of(b);
-    /// let _ = a.next_multiple_of(b);
+    /// let _ = a.checked_next_multiple_of(b);
     /// ```
     #[clippy::version = "1.99.0"]
     pub MANUAL_NEXT_MULTIPLE_OF,
@@ -59,15 +59,14 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
             return;
         }
 
-        // find expression equivalent to `a.next_multiple_of(b)`
         let (a, b, checked) = match cx.typeck_results().expr_ty(expr).kind() {
             ty::Uint(_) => {
-                if let Some((a, b)) = match_arith_pattern(cx, expr) {
+                if let Some((a, b)) = match_arith_pattern(cx, expr, false) {
                     (a, b, false)
                 } else if let Some((a, b)) = match_power_of_two_pattern(cx, expr) {
                     (a, b, false)
                 } else if self.msrv.meets(cx, DIV_CEIL)
-                    && let Some((a, b)) = match_div_ceil_pattern(cx, expr)
+                    && let Some((a, b)) = match_div_ceil_pattern(cx, expr, false)
                 {
                     (a, b, false)
                 } else {
@@ -84,8 +83,10 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
             {
                 match ty.kind() {
                     ty::Uint(_) => {
-                        if self.msrv.meets(cx, DIV_CEIL)
-                            && let Some((a, b)) = match_div_ceil_pattern_checked(cx, expr)
+                        if let Some((a, b)) = match_arith_pattern(cx, expr, true) {
+                            (a, b, true)
+                        } else if self.msrv.meets(cx, DIV_CEIL)
+                            && let Some((a, b)) = match_div_ceil_pattern(cx, expr, true)
                         {
                             (a, b, true)
                         } else {
@@ -129,9 +130,18 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
 fn match_arith_pattern<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'tcx>,
+    checked: bool,
 ) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
     // `x + y`
-    let (x1, y1) = unpack_bin_op(expr, BinOpKind::Add)?;
+    let (x1, y1) = if checked {
+        if let Some((recv, [arg])) = unpack_method_call(expr, sym::checked_add) {
+            (recv, arg)
+        } else {
+            return None;
+        }
+    } else {
+        unpack_bin_op(expr, BinOpKind::Add)?
+    };
 
     // `a + x % b`
     let (a, b, x2) = if let Some((lhs, rhs)) = unpack_bin_op(x1, BinOpKind::Rem) {
@@ -194,43 +204,31 @@ fn match_power_of_two_pattern<'tcx>(
 fn match_div_ceil_pattern<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'tcx>,
+    checked: bool,
 ) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
-    if let Some((lhs, rhs)) = unpack_bin_op(expr, BinOpKind::Mul) {
-        if let Some((a, [b])) = unpack_method_call(lhs, sym::div_ceil)
-            && eq_expr_value(cx, expr.span.ctxt(), b, rhs)
-        {
-            Some((a, b))
-        } else if let Some((a, [b])) = unpack_method_call(rhs, sym::div_ceil)
-            && eq_expr_value(cx, expr.span.ctxt(), b, lhs)
-        {
-            Some((a, b))
+    // lhs * rhs
+    let (lhs, rhs) = if checked {
+        // x.checked_mul(y)
+        if let Some((recv, [arg])) = unpack_method_call(expr, sym::checked_mul) {
+            (recv, arg)
         } else {
-            None
+            return None;
         }
     } else {
-        None
-    }
-}
-
-// Returns `(a, b)` of `a.div_ceil(b).checked_mul(b)`
-fn match_div_ceil_pattern_checked<'tcx>(
-    cx: &LateContext<'tcx>,
-    expr: &'tcx Expr<'tcx>,
-) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
-    // x.checked_mul(y)
-    let Some((x, [y])) = unpack_method_call(expr, sym::checked_mul) else {
-        return None;
+        unpack_bin_op(expr, BinOpKind::Mul)?
     };
 
-    // a.div_ceil(b).checked_mul(b)
-    if let Some((a, [b])) = unpack_method_call(x, sym::div_ceil)
-        && eq_expr_value(cx, expr.span.ctxt(), y, b)
+    // lhs = a.div_ceil(b)
+    // rhs = b
+    if let Some((a, [b])) = unpack_method_call(lhs, sym::div_ceil)
+        && eq_expr_value(cx, expr.span.ctxt(), b, rhs)
     {
         Some((a, b))
     } else
-    // b.checked_mul(a.div_ceil(b))
-    if let Some((a, [b])) = unpack_method_call(y, sym::div_ceil)
-        && eq_expr_value(cx, expr.span.ctxt(), x, b)
+    // lhs = b
+    // rhs = a.div_ceil(b)
+    if let Some((a, [b])) = unpack_method_call(rhs, sym::div_ceil)
+        && eq_expr_value(cx, expr.span.ctxt(), b, lhs)
     {
         Some((a, b))
     } else {

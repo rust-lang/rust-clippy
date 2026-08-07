@@ -27,6 +27,11 @@ fn main() {
     let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
     let _ = u1.next_multiple_of(u2); //~ manual_next_multiple_of
 
+    // checked ops
+    let _ = u1.checked_next_multiple_of(u2); //~ manual_next_multiple_of
+    let _ = u1.checked_next_multiple_of(u2); //~ manual_next_multiple_of
+    let _ = u1.checked_next_multiple_of(u2); //~ manual_next_multiple_of
+
     // power of two
     let _ = u1.next_multiple_of(3); //~ manual_next_multiple_of
     let _ = u1.next_multiple_of(7); //~ manual_next_multiple_of
