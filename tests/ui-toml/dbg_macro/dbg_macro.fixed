@@ -1,4 +1,5 @@
 //@compile-flags: --test
+//@error-in-other-file: `allow-dbg-in-tests` is deprecated
 #![warn(clippy::dbg_macro)]
 #![allow(clippy::no_effect, clippy::unnecessary_operation)]
 

@@ -7670,6 +7670,7 @@ Released 2018-09-13
 [`allow-exact-repetitions`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-exact-repetitions
 [`allow-expect-in-consts`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-expect-in-consts
 [`allow-expect-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-expect-in-tests
+[`allow-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-in-tests
 [`allow-indexing-slicing-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-indexing-slicing-in-tests
 [`allow-large-stack-frames-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-large-stack-frames-in-tests
 [`allow-mixed-uninlined-format-args`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-mixed-uninlined-format-args

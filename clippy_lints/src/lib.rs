@@ -416,8 +416,12 @@ mod zombie_processes;
 use clippy_config::{Conf, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
+use rustc_errors::Applicability;
 use rustc_lint::is_lint_pass_required;
 use rustc_middle::ty::TyCtxt;
+use rustc_session::Session;
+use rustc_span::Symbol;
+use rustc_span::edit_distance::find_best_match_for_name;
 use utils::attr_collector::AttrStorage;
 
 pub fn explain(name: &str) -> i32 {
@@ -441,10 +445,64 @@ pub fn explain(name: &str) -> i32 {
     }
 }
 
+/// Resolves the lint names given in the `allow-in-tests` configuration and hands them to
+/// `clippy_utils`, which drops their diagnostics when they are emitted from test code.
+///
+/// Names which don't refer to a Clippy lint are reported and ignored.
+fn register_lints_allowed_in_tests(sess: &Session, conf: &'static Conf) {
+    let mut allowed = Vec::with_capacity(conf.allow_in_tests.len());
+    for name in &conf.allow_in_tests {
+        // Accept `unwrap_used`, `clippy::unwrap_used` and `unwrap-used` alike.
+        let bare_name = name.node.strip_prefix("clippy::").unwrap_or(&name.node);
+        let lint_name = format!("clippy::{}", bare_name.replace('-', "_").to_ascii_uppercase());
+
+        if let Some(info) = declared_lints::LINTS.iter().find(|info| info.lint.name == lint_name) {
+            allowed.push(info.lint.name);
+            continue;
+        }
+
+        let mut diag = sess
+            .dcx()
+            .struct_span_warn(name.span, format!("unknown lint: `{}`", name.node));
+        diag.note("`allow-in-tests` only accepts Clippy lints");
+        let renamed = deprecated_lints::RENAMED
+            .iter()
+            .find(|(old_name, _)| old_name.eq_ignore_ascii_case(&lint_name));
+        if let Some((_, new_name)) = renamed {
+            let new_name = new_name.strip_prefix("clippy::").unwrap_or(new_name);
+            diag.span_suggestion(
+                name.span,
+                format!("`{}` has been renamed", name.node),
+                format!("\"{new_name}\""),
+                Applicability::MachineApplicable,
+            );
+        } else if let Some(sugg) = find_best_match_for_name(&lint_symbols(), Symbol::intern(bare_name), None) {
+            diag.span_suggestion(
+                name.span,
+                "did you mean",
+                format!("\"{sugg}\""),
+                Applicability::MaybeIncorrect,
+            );
+        }
+        diag.emit();
+    }
+    clippy_utils::diagnostics::set_lints_allowed_in_tests(allowed);
+}
+
+/// The names of all Clippy lints, without the `clippy::` prefix, for use in suggestions.
+fn lint_symbols() -> Vec<Symbol> {
+    declared_lints::LINTS
+        .iter()
+        .map(|info| Symbol::intern(info.lint.name_lower().strip_prefix("clippy::").unwrap()))
+        .collect()
+}
+
 /// Register all lints and lint groups with the rustc lint store
 ///
 /// Used in `./src/driver.rs`.
-pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
+pub fn register_lint_passes(sess: &Session, store: &mut rustc_lint::LintStore, conf: &'static Conf) {
+    register_lints_allowed_in_tests(sess, conf);
+
     for (old_name, new_name) in deprecated_lints::RENAMED {
         store.register_renamed(old_name, new_name);
     }

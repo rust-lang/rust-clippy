@@ -1,0 +1,18 @@
+warning: `allow-panic-in-tests` is deprecated
+  --> $DIR/tests/ui-toml/allow_in_tests_deprecated/clippy.toml:2:1
+   |
+LL | allow-panic-in-tests = true
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `allow-in-tests = ["panic"]` instead, which works for any lint
+
+warning: `allow-print-in-tests` is deprecated
+  --> $DIR/tests/ui-toml/allow_in_tests_deprecated/clippy.toml:3:1
+   |
+LL | allow-print-in-tests = true
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `allow-in-tests = ["print_stderr", "print_stdout"]` instead, which works for any lint
+
+warning: 2 warnings emitted
+

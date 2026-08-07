@@ -1,5 +1,13 @@
+warning: `allow-useless-vec-in-tests` is deprecated
+  --> $DIR/tests/ui-toml/useless_vec/clippy.toml:1:1
+   |
+LL | allow-useless-vec-in-tests = true
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `allow-in-tests = ["useless_vec"]` instead, which works for any lint
+
 error: useless use of `vec!`
-  --> tests/ui-toml/useless_vec/useless_vec.rs:8:9
+  --> tests/ui-toml/useless_vec/useless_vec.rs:9:9
    |
 LL |     foo(&vec![1_u32]);
    |         ^^^^^^^^^^^^ help: you can use a slice directly: `&[1_u32]`
@@ -7,5 +15,5 @@ LL |     foo(&vec![1_u32]);
    = note: `-D clippy::useless-vec` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::useless_vec)]`
 
-error: aborting due to 1 previous error
+error: aborting due to 1 previous error; 1 warning emitted
 

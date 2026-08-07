@@ -1,4 +1,5 @@
 //@compile-flags: --test
+//@error-in-other-file: `allow-expect-in-tests` is deprecated
 #![warn(clippy::expect_used)]
 #![allow(clippy::unnecessary_literal_unwrap)]
 

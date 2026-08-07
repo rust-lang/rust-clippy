@@ -1,3 +1,4 @@
+//@error-in-other-file: `allow-unwrap-in-tests` is deprecated
 #![warn(clippy::unwrap_used)]
 
 fn main() {
