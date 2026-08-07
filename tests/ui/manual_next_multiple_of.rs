@@ -4,6 +4,8 @@ fn f_val() -> u32 {
     todo!()
 }
 
+// This macro cannot be detected because span is not updated during expansion.
+// However, this rarely matters in practice.
 macro_rules! identity {
     ( $e:expr ) => {
         $e
@@ -29,6 +31,7 @@ fn main() {
 
     // checked ops
     let _ = u1.div_ceil(u2).checked_mul(u2); //~ manual_next_multiple_of
+    let _ = u2.checked_mul(u1.div_ceil(u2)); //~ manual_next_multiple_of
     let _ = u1.checked_add((u2 - u1 % u2) % u2); //~ manual_next_multiple_of
     let _ = ((u2 - u1 % u2) % u2).checked_add(u1); //~ manual_next_multiple_of
 
@@ -39,7 +42,7 @@ fn main() {
     // function and macro
     let _ = u1.div_ceil(f_val()) * f_val();
     let _ = f_val().div_ceil(u2) * u2; //~ manual_next_multiple_of
-
+    // False positive
     let _ = u1.div_ceil(identity!(u2)) * identity!(u2); //~ manual_next_multiple_of
     let _ = identity!(u1).div_ceil(u2) * u2; //~ manual_next_multiple_of
 

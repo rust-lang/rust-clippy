@@ -103,7 +103,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualNextMultipleOf {
             _ => return,
         };
 
-        let mut app = Applicability::MachineApplicable;
+        let mut app = Applicability::MaybeIncorrect;
         let sugg = {
             let (a, _) = snippet_with_context(cx, a.span, expr.span.ctxt(), "..", &mut app);
             let (b, _) = snippet_with_context(cx, b.span, expr.span.ctxt(), "..", &mut app);
@@ -132,8 +132,8 @@ fn match_arith_pattern<'tcx>(
     expr: &'tcx Expr<'tcx>,
     checked: bool,
 ) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
-    // `x + y`
-    let (x1, y1) = if checked {
+    // `lhs + rhs`
+    let (lhs1, rhs1) = if checked {
         if let Some((recv, [arg])) = unpack_method_call(expr, sym::checked_add) {
             (recv, arg)
         } else {
@@ -143,17 +143,21 @@ fn match_arith_pattern<'tcx>(
         unpack_bin_op(expr, BinOpKind::Add)?
     };
 
-    // `a + x % b`
-    let (a, b, x2) = if let Some((lhs, rhs)) = unpack_bin_op(x1, BinOpKind::Rem) {
-        (y1, rhs, lhs)
-    } else if let Some((lhs, rhs)) = unpack_bin_op(y1, BinOpKind::Rem) {
-        (x1, rhs, lhs)
+    // lhs = x % b
+    // rhs = a
+    let (a, b, x) = if let Some((lhs, rhs)) = unpack_bin_op(lhs1, BinOpKind::Rem) {
+        (rhs1, rhs, lhs)
+    } else
+    // lhs = a
+    // rhs = x % b
+    if let Some((lhs, rhs)) = unpack_bin_op(rhs1, BinOpKind::Rem) {
+        (lhs1, rhs, lhs)
     } else {
         return None;
     };
 
-    // `b - a % b`
-    if let Some((lhs, rhs)) = unpack_bin_op(x2, BinOpKind::Sub)
+    // x = b - a % b
+    if let Some((lhs, rhs)) = unpack_bin_op(x, BinOpKind::Sub)
         && eq_expr_value(cx, expr.span.ctxt(), lhs, b)
         && let Some((lhs, rhs)) = unpack_bin_op(rhs, BinOpKind::Rem)
         && eq_expr_value(cx, expr.span.ctxt(), lhs, a)
