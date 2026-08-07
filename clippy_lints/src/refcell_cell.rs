@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath};
-use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
+use clippy_utils::source::{snippet, snippet_with_applicability, snippet_with_context};
 use clippy_utils::ty::{is_copy, ty_from_hir_ty};
 use clippy_utils::{is_trait_impl_item, sym};
 use rustc_errors::Applicability;
@@ -104,17 +104,31 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
             // `init` is a constructor of `RefCell`
             && let ExprKind::Call(maybe_qpath, args) = init.kind
             && is_refcell_ctor(cx, maybe_qpath, args.len())
+            // Be conservative about macro
+            && args.iter().all(|e| !e.span.from_expansion())
         {
+            let span = match (
+                snippet(cx, init.span, "").contains("RefCell"),
+                let_stmt
+                    .ty
+                    .is_some_and(|ty| snippet(cx, ty.span, "").contains("RefCell")),
+            ) {
+                (true, true) => let_stmt.span,
+                (true, false) => init.span,
+                (false, true) => let_stmt.ty.unwrap().span,
+                (false, false) => return,
+            };
+
             // Because this may be required to be `RefCell`
             let mut app = Applicability::MaybeIncorrect;
             let sugg = {
-                let (init, _) = snippet_with_context(cx, let_stmt.span, stmt.span.ctxt(), "..", &mut app);
+                let (init, _) = snippet_with_context(cx, span, stmt.span.ctxt(), "..", &mut app);
                 init.to_owned().replace("RefCell", "Cell")
             };
             span_lint_and_sugg(
                 cx,
                 REFCELL_CELL,
-                let_stmt.span,
+                span,
                 "using a `RefCell` for a `Copy` type",
                 "try",
                 sugg,
@@ -143,7 +157,7 @@ fn emit_refcell_copy_def<'tcx>(cx: &LateContext<'tcx>, hir_ty: &'tcx Ty<'tcx>) {
                 && let [GenericArg::Type(hir_ty)] = args.args
                 // T: Copy
                 && is_copy(cx, ty_from_hir_ty(cx, hir_ty.as_unambig_ty()))
-                // be conservative about macro
+                // Be conservative about macro
                 && !hir_ty.span.from_expansion() =>
         {
             let mut app = Applicability::MaybeIncorrect;

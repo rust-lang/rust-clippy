@@ -74,40 +74,40 @@ LL |         RefCell<T>,
    |         ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:78:5
+  --> tests/ui/refcell_cell.rs:78:13
    |
 LL |     let _ = RefCell::new(1);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let _ = Cell::new(1);`
+   |             ^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:79:5
+  --> tests/ui/refcell_cell.rs:79:13
    |
 LL |     let _ = RefCell::<i32>::new(1);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let _ = Cell::<i32>::new(1);`
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::new(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:82:5
+  --> tests/ui/refcell_cell.rs:82:13
    |
 LL |     let _ = RefCell::from(1);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let _ = Cell::from(1);`
+   |             ^^^^^^^^^^^^^^^^ help: try: `Cell::from(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:83:5
+  --> tests/ui/refcell_cell.rs:83:13
    |
 LL |     let _ = RefCell::<i32>::from(1);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let _ = Cell::<i32>::from(1);`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::from(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:85:5
+  --> tests/ui/refcell_cell.rs:85:12
    |
 LL |     let _: RefCell<i32> = Default::default();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let _: Cell<i32> = Default::default();`
+   |            ^^^^^^^^^^^^ help: try: `Cell<i32>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:86:5
+  --> tests/ui/refcell_cell.rs:86:13
    |
 LL |     let _ = <RefCell<i32> as Default>::default();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `let _ = <Cell<i32> as Default>::default();`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `<Cell<i32> as Default>::default()`
 
 error: aborting due to 18 previous errors
 
