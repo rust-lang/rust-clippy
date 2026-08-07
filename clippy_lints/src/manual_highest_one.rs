@@ -32,7 +32,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.99.0"]
     pub MANUAL_HIGHEST_ONE,
-    nursery,
+    complexity,
     "manually reimplementing `highest_one`"
 }
 
@@ -398,6 +398,7 @@ fn bit_width<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<u128> {
     }
 }
 
+// from <https://github.com/rust-lang/rust-clippy/pull/17472#discussion_r3703083830>
 fn integer_const_or_bits(cx: &LateContext<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> Option<u128> {
     integer_const(cx, expr, ctxt).or_else(|| {
         if let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = expr.kind
