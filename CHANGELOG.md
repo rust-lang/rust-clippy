@@ -7533,6 +7533,7 @@ Released 2018-09-13
 [`type_repetition_in_bounds`]: https://rust-lang.github.io/rust-clippy/master/index.html#type_repetition_in_bounds
 [`unbuffered_bytes`]: https://rust-lang.github.io/rust-clippy/master/index.html#unbuffered_bytes
 [`unchecked_duration_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_duration_subtraction
+[`unchecked_non_zero`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_non_zero
 [`unchecked_time_subtraction`]: https://rust-lang.github.io/rust-clippy/master/index.html#unchecked_time_subtraction
 [`unconditional_recursion`]: https://rust-lang.github.io/rust-clippy/master/index.html#unconditional_recursion
 [`undocumented_unsafe_blocks`]: https://rust-lang.github.io/rust-clippy/master/index.html#undocumented_unsafe_blocks
