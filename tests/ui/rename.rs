@@ -45,6 +45,7 @@
 #![allow(enum_intrinsics_non_enums)]
 #![allow(clippy::needless_ifs)]
 #![allow(clippy::new_without_default)]
+#![allow(clippy::improper_nonnull_from_box)]
 #![allow(clippy::bind_instead_of_map)]
 #![allow(clippy::expect_used)]
 #![allow(clippy::map_unwrap_or)]
@@ -114,6 +115,7 @@
 #![warn(clippy::mismatched_target_os)] //~ ERROR: lint `clippy::mismatched_target_os`
 #![warn(clippy::needless_if)] //~ ERROR: lint `clippy::needless_if`
 #![warn(clippy::new_without_default_derive)] //~ ERROR: lint `clippy::new_without_default_derive`
+#![warn(clippy::nonnull_unchecked_on_box_ptr)] //~ ERROR: lint `clippy::nonnull_unchecked_on_box_ptr`
 #![warn(clippy::option_and_then_some)] //~ ERROR: lint `clippy::option_and_then_some`
 #![warn(clippy::option_expect_used)] //~ ERROR: lint `clippy::option_expect_used`
 #![warn(clippy::option_map_unwrap_or)] //~ ERROR: lint `clippy::option_map_unwrap_or`
