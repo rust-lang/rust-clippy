@@ -1,15 +1,15 @@
+use LintKind::{AllocInsteadOfCore, StdInsteadOfAlloc, StdInsteadOfCore};
 use clippy_config::Conf;
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
+use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::Msrv;
-use rustc_errors::Applicability;
-use rustc_hir::def::{DefKind, Res};
+use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Block, Body, HirId, Path, PathSegment, StabilityLevel, StableSince};
-use rustc_lint::{LateContext, LateLintPass, Lint, LintContext as _};
+use rustc_hir::{Block, Body, HirId, Item, ItemKind, Path, PathSegment, StabilityLevel, StableSince};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::symbol::kw;
-use rustc_span::{Span, sym};
+use rustc_span::{Ident, Span, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -93,8 +93,9 @@ impl_lint_pass!(StdReexports => [
 ]);
 
 pub struct StdReexports {
-    lint_points: Option<(Span, Vec<LintPoint>)>,
+    lint_points: Option<(LintPoint, Vec<Span>, Vec<Span>, usize)>,
     msrv: Msrv,
+    paths_to_skip: usize,
 }
 
 impl StdReexports {
@@ -102,58 +103,83 @@ impl StdReexports {
         Self {
             lint_points: Option::default(),
             msrv: conf.msrv.into(),
-        }
-    }
-
-    fn lint_if_finish(&mut self, cx: &LateContext<'_>, krate: Span, lint_point: LintPoint) {
-        match &mut self.lint_points {
-            Some((prev_krate, prev_lints)) if prev_krate.overlaps(krate) => {
-                prev_lints.push(lint_point);
-            },
-            _ => emit_lints(cx, self.lint_points.replace((krate, vec![lint_point]))),
+            paths_to_skip: 0,
         }
     }
 }
 
 #[derive(Debug)]
-enum LintPoint {
-    Available(Span, &'static Lint, &'static str, &'static str),
-    Conflict,
+struct LintPoint {
+    ident: Ident,
+    is_crate: bool,
+    from: UsedFrom,
+}
+
+impl LintPoint {
+    fn try_new(cx: &LateContext<'_>, &PathSegment { ident, res, .. }: &PathSegment<'_>) -> Option<Self> {
+        let def_id = res.opt_def_id()?;
+        let is_crate = def_id.is_crate_root();
+        let from = match cx.tcx.crate_name(def_id.krate) {
+            sym::std => UsedFrom::Std,
+            sym::alloc => UsedFrom::Alloc,
+            _ => return None,
+        };
+        Some(LintPoint { ident, is_crate, from })
+    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for StdReexports {
     fn check_path(&mut self, cx: &LateContext<'tcx>, path: &Path<'tcx>, _: HirId) {
-        if let Res::Def(def_kind, def_id) = path.res
-            && !matches!(def_kind, DefKind::Macro(_))
-            && let Some(first_segment) = get_first_segment(path)
-            && let Res::Def(DefKind::Mod, crate_def_id) = first_segment.res
-            && crate_def_id.is_crate_root()
-            && is_stable(cx, def_id, self.msrv)
-            && !path.span.in_external_macro(cx.sess().source_map())
-            && !is_from_proc_macro(cx, &first_segment.ident)
-            && let Some(last_segment) = path.segments.last()
-        {
-            let (lint, used_mod, replace_with) = match first_segment.ident.name {
-                sym::std => match cx.tcx.crate_name(def_id.krate) {
-                    sym::core => (STD_INSTEAD_OF_CORE, "std", "core"),
-                    sym::alloc => (STD_INSTEAD_OF_ALLOC, "std", "alloc"),
-                    _ => {
-                        self.lint_if_finish(cx, first_segment.ident.span, LintPoint::Conflict);
-                        return;
-                    },
-                },
-                sym::alloc if cx.tcx.crate_name(def_id.krate) == sym::core => (ALLOC_INSTEAD_OF_CORE, "alloc", "core"),
-                _ => {
-                    self.lint_if_finish(cx, first_segment.ident.span, LintPoint::Conflict);
-                    return;
-                },
-            };
+        let Some((a, b)) = get_end_segments(path) else { return };
 
-            self.lint_if_finish(
-                cx,
-                first_segment.ident.span,
-                LintPoint::Available(last_segment.ident.span, lint, used_mod, replace_with),
-            );
+        if let Some(n) = self.paths_to_skip.checked_sub(1) {
+            self.paths_to_skip = n;
+        } else if let Some(lint_point) = LintPoint::try_new(cx, a)
+            && let Some(b_def_id) = path.res.opt_def_id()
+            && let Some(defined_in) = DefinedIn::try_new(cx, b_def_id)
+            && let Some(kind) = LintKind::try_new(lint_point.from, defined_in)
+            && is_stable(cx, b_def_id, self.msrv)
+        {
+            emit_lints(cx, self.lint_points.take());
+            emit_lint(cx, &lint_point, &kind, false, b.ident.span);
+        }
+    }
+
+    fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
+        let ItemKind::Use(path, ..) = item.kind else { return };
+        let Some((a, b)) = get_end_segments(path) else { return };
+
+        self.paths_to_skip += path.res.present_items().count();
+
+        if self
+            .lint_points
+            .as_ref()
+            .is_none_or(|(x, ..)| x.ident.span != a.ident.span)
+        {
+            emit_lints(cx, self.lint_points.take());
+            self.lint_points = LintPoint::try_new(cx, a).map(|a| (a, Vec::new(), Vec::new(), 0));
+        }
+
+        if let Some((lint_point, in_core, in_alloc, conflicts)) = self.lint_points.as_mut() {
+            let lint_kind = path
+                .res
+                .iter()
+                .flatten()
+                .try_fold(DefinedIn::Core, |acc, res| {
+                    let def_id = res.opt_def_id()?;
+                    match (acc, DefinedIn::try_new(cx, def_id)?, is_stable(cx, def_id, self.msrv)) {
+                        (_, _, false) => None,
+                        (DefinedIn::Core, DefinedIn::Core, _) => Some(DefinedIn::Core),
+                        _ => Some(DefinedIn::Alloc),
+                    }
+                })
+                .and_then(|defined_in| LintKind::try_new(lint_point.from, defined_in));
+
+            match lint_kind {
+                Some(AllocInsteadOfCore | StdInsteadOfCore) => in_core.push(b.ident.span),
+                Some(StdInsteadOfAlloc) => in_alloc.push(b.ident.span),
+                None => *conflicts += 1,
+            }
         }
     }
 
@@ -170,64 +196,71 @@ impl<'tcx> LateLintPass<'tcx> for StdReexports {
     }
 }
 
-fn emit_lints(cx: &LateContext<'_>, lint_points: Option<(Span, Vec<LintPoint>)>) {
-    let Some((krate_span, lint_points)) = lint_points else {
+fn emit_lints(cx: &LateContext<'_>, lint_points: Option<(LintPoint, Vec<Span>, Vec<Span>, usize)>) {
+    let Some((lint_point, in_core, in_alloc, conflicts)) = lint_points else {
         return;
     };
 
-    let mut lint: Option<(&'static Lint, &'static str, &'static str)> = None;
-    let mut has_conflict = false;
-    for lint_point in &lint_points {
-        match lint_point {
-            LintPoint::Available(_, l, used_mod, replace_with)
-                if lint.is_none_or(|(prev_l, ..)| l.name == prev_l.name) =>
-            {
-                lint = Some((l, used_mod, replace_with));
-            },
-            _ => {
-                has_conflict = true;
-                break;
-            },
+    let total = in_core.len() + in_alloc.len() + conflicts;
+    for (spans, defined_in) in [(in_core, DefinedIn::Core), (in_alloc, DefinedIn::Alloc)] {
+        let Some(lint_kind) = LintKind::try_new(lint_point.from, defined_in) else {
+            continue;
+        };
+
+        if !spans.is_empty() {
+            emit_lint(cx, &lint_point, &lint_kind, spans.len() < total, spans);
         }
     }
+}
 
-    if !has_conflict && let Some((lint, used_mod, replace_with)) = lint {
+fn emit_lint(cx: &LateContext<'_>, point: &LintPoint, kind: &LintKind, has_conflict: bool, span: impl Into<MultiSpan>) {
+    if point.ident.span.in_external_macro(cx.sess().source_map()) || is_from_proc_macro(cx, &point.ident) {
+        return;
+    }
+
+    let (lint, lint_message) = match kind {
+        StdInsteadOfCore => (STD_INSTEAD_OF_CORE, "used import from `std` instead of `core`"),
+        StdInsteadOfAlloc => (STD_INSTEAD_OF_ALLOC, "used import from `std` instead of `alloc`"),
+        AllocInsteadOfCore => (ALLOC_INSTEAD_OF_CORE, "used import from `alloc` instead of `core`"),
+    };
+
+    let (help_message, replace_with) = match kind {
+        StdInsteadOfCore | AllocInsteadOfCore => ("consider importing the item from `core`", &sym::core),
+        StdInsteadOfAlloc => ("consider importing the item from `alloc`", &sym::alloc),
+    };
+
+    if !has_conflict && point.is_crate {
         span_lint_and_sugg(
             cx,
             lint,
-            krate_span,
-            format!("used import from `{used_mod}` instead of `{replace_with}`"),
-            format!("consider importing the item from `{replace_with}`"),
+            point.ident.span,
+            lint_message,
+            help_message,
             (*replace_with).to_string(),
             Applicability::MachineApplicable,
         );
         return;
     }
 
-    for lint_point in lint_points {
-        let LintPoint::Available(span, lint, used_mod, replace_with) = lint_point else {
-            continue;
-        };
-        span_lint_and_help(
-            cx,
-            lint,
-            span,
-            format!("used import from `{used_mod}` instead of `{replace_with}`"),
-            None,
-            format!("consider importing the item from `{replace_with}`"),
-        );
+    let leaf_spans = span.into();
+    if leaf_spans.primary_spans().len() == 1 {
+        span_lint_and_help(cx, lint, leaf_spans, lint_message, None, help_message);
+    } else {
+        span_lint_and_then(cx, lint, point.ident.span, lint_message, |diag| {
+            diag.span_help(leaf_spans, help_message);
+        });
     }
 }
 
-/// Returns the first named segment of a [`Path`].
+/// Returns the first and last named segments of a [`Path`].
 ///
 /// If this is a global path (such as `::std::fmt::Debug`), then the segment after [`kw::PathRoot`]
 /// is returned.
-fn get_first_segment<'tcx>(path: &Path<'tcx>) -> Option<&'tcx PathSegment<'tcx>> {
+fn get_end_segments<'tcx, T>(path: &Path<'tcx, T>) -> Option<(&'tcx PathSegment<'tcx>, &'tcx PathSegment<'tcx>)> {
     match path.segments {
         // A global path will have PathRoot as the first segment. In this case, return the segment after.
-        [x, y, ..] if x.ident.name == kw::PathRoot => Some(y),
-        [x, ..] => Some(x),
+        [x, y, .., z] if x.ident.name == kw::PathRoot => Some((y, z)),
+        [x, .., y] => Some((x, y)),
         _ => None,
     }
 }
@@ -261,4 +294,43 @@ fn is_stable(cx: &LateContext<'_>, mut def_id: DefId, msrv: Msrv) -> bool {
             None => return true,
         }
     }
+}
+
+enum LintKind {
+    StdInsteadOfCore,
+    StdInsteadOfAlloc,
+    AllocInsteadOfCore,
+}
+
+impl LintKind {
+    fn try_new(used_from: UsedFrom, defined_in: DefinedIn) -> Option<Self> {
+        match (used_from, defined_in) {
+            (UsedFrom::Alloc, DefinedIn::Core) => Some(AllocInsteadOfCore),
+            (UsedFrom::Std, DefinedIn::Core) => Some(StdInsteadOfCore),
+            (UsedFrom::Std, DefinedIn::Alloc) => Some(StdInsteadOfAlloc),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum DefinedIn {
+    Core,
+    Alloc,
+}
+
+impl DefinedIn {
+    fn try_new(cx: &LateContext<'_>, def_id: DefId) -> Option<Self> {
+        match cx.tcx.crate_name(def_id.krate) {
+            sym::alloc => Some(DefinedIn::Alloc),
+            sym::core => Some(DefinedIn::Core),
+            _ => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum UsedFrom {
+    Alloc,
+    Std,
 }
