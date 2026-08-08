@@ -213,5 +213,17 @@ LL -     if let &Struct { ref a, b: _, .. } = &s {}
 LL +     if let Struct { a, b: _, .. } = &s {}
    |
 
-error: aborting due to 17 previous errors
+error: this pattern takes a mutable reference on something that is being dereferenced
+  --> tests/ui/needless_borrowed_ref.rs:129:17
+   |
+LL |     if let Some(&mut ref mut x) = x {
+   |                 ^^^^^^^^^^^^^^
+   |
+help: try removing the `&mut ref mut` part
+   |
+LL -     if let Some(&mut ref mut x) = x {
+LL +     if let Some(x) = x {
+   |
+
+error: aborting due to 18 previous errors
 
