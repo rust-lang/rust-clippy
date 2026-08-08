@@ -3,7 +3,7 @@ use clippy_utils::higher::IfLetOrMatch;
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _};
 use clippy_utils::source::{indent_of, reindent_multiline, snippet_with_context};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::ty::{expr_type_is_certain, is_copy};
+use clippy_utils::ty::{expr_type_is_certain, implements_trait, is_copy};
 use clippy_utils::usage::local_used_after_expr;
 use clippy_utils::{
     CaptureKind, can_move_expr_to_closure, fn_def_id_with_node_args, is_else_clause, is_in_const_context,
@@ -80,9 +80,11 @@ enum ErrPat {
     Wild,
 }
 
-/// The `Err(..)` arm of the match: what it binds and the error value that gets returned.
+/// The `Err(..)` arm of the match: what it binds, the returned `Err(..)` call, and the error value
+/// inside it.
 struct ErrArm<'tcx> {
     pat: ErrPat,
+    err_call: &'tcx Expr<'tcx>,
     err_expr: &'tcx Expr<'tcx>,
 }
 
@@ -121,10 +123,13 @@ fn parse_err_pat(cx: &LateContext<'_>, pat: &Pat<'_>) -> Option<ErrPat> {
     }
 }
 
-/// Checks that `body` is `return Err(<err_expr>)`, returning `<err_expr>`. Uses
-/// `peel_blocks_with_stmt` so that the common `Err(_) => { return Err(e); }` form, where the
+/// Checks that `body` is `return Err(<err_expr>)`, returning the `Err(..)` call and `<err_expr>`.
+/// Uses `peel_blocks_with_stmt` so that the common `Err(_) => { return Err(e); }` form, where the
 /// `return` is a statement rather than a tail expression, is recognised too.
-fn parse_return_err<'tcx>(cx: &LateContext<'_>, body: &'tcx Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
+fn parse_return_err<'tcx>(
+    cx: &LateContext<'_>,
+    body: &'tcx Expr<'tcx>,
+) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
     let ret = peel_blocks_with_stmt(body);
     // A macro such as `anyhow::bail!` expands to `return Err(..)`. Rewriting it would put the
     // `return` inside a `map_err` closure, where it would return from the closure instead of the
@@ -134,7 +139,7 @@ fn parse_return_err<'tcx>(cx: &LateContext<'_>, body: &'tcx Expr<'tcx>) -> Optio
         && let ExprKind::Call(err_ctor, [err_expr]) = returned.kind
         && err_ctor.res(cx).ctor_parent(cx).is_lang_item(cx, ResultErr)
     {
-        Some(err_expr)
+        Some((returned, err_expr))
     } else {
         None
     }
@@ -155,21 +160,50 @@ fn is_local_or_local_into(cx: &LateContext<'_>, expr: &Expr<'_>, val: HirId) -> 
 }
 
 /// In `return Err(e)`, the type of `e` is pinned to the function's error type, and that pin is what
-/// picks `Self` for a call to a trait associated function such as `de::Error::invalid_type(..)`.
-/// Behind `?` the pin is gone: `?` inserts a `From` conversion, so the closure's error type only
-/// has to satisfy `From<_>` and `Self` becomes ambiguous (E0790/E0283).
+/// picks `Self` for a call to a trait associated function such as `de::Error::invalid_type(..)`, or
+/// the output type of a generic trait method such as `.into()`. Behind `?` the pin is gone: `?`
+/// inserts a `From` conversion, so the closure's error type only has to satisfy `From<_>` and the
+/// call becomes ambiguous (E0790/E0283).
 fn err_type_needs_return_context(cx: &LateContext<'_>, err_expr: &Expr<'_>) -> bool {
-    // Only a call naming the trait itself (`Trait::assoc(..)`) leaves `Self` to inference. A method
-    // call takes it from the receiver, and `Ty::assoc(..)` / `<Ty as Trait>::assoc(..)` spell it out.
-    if let ExprKind::Call(callee, _) = err_expr.kind
-        && let ExprKind::Path(QPath::Resolved(None, path)) = callee.kind
-        && let Res::Def(DefKind::AssocFn, def_id) = path.res
-        && cx.tcx.trait_of_assoc(def_id).is_some()
-    {
-        !expr_type_is_certain(cx, err_expr)
-    } else {
-        false
-    }
+    let via_trait = match err_expr.kind {
+        // Only a call naming the trait itself (`Trait::assoc(..)`) leaves `Self` to inference.
+        // `Ty::assoc(..)` and `<Ty as Trait>::assoc(..)` spell it out.
+        ExprKind::Call(callee, _) => {
+            if let ExprKind::Path(QPath::Resolved(None, path)) = callee.kind
+                && let Res::Def(DefKind::AssocFn, def_id) = path.res
+            {
+                cx.tcx.trait_of_assoc(def_id).is_some()
+            } else {
+                false
+            }
+        },
+        // A trait method with a generic output, `.into()` above all. This is conservative: some
+        // `.into()` calls would still infer behind `?` when only one `From` impl fits, but which
+        // ones cannot be told from here.
+        ExprKind::MethodCall(..) => cx
+            .typeck_results()
+            .type_dependent_def_id(err_expr.hir_id)
+            .and_then(|def_id| cx.tcx.trait_of_assoc(def_id))
+            .is_some(),
+        _ => false,
+    };
+    via_trait && !expr_type_is_certain(cx, err_expr)
+}
+
+/// `?` ends the suggestion with a `From` conversion to the function's error type, so a `From` impl
+/// must exist from the error expression's own type. `return Err(e)` was not so constrained: there
+/// `e` could also rely on an unsize coercion, e.g. `Box<ConcreteError>` returned from a function
+/// whose error type is `Box<dyn Error>` with no `From` impl to bridge them.
+fn from_conversion_exists<'tcx>(cx: &LateContext<'tcx>, err_call: &Expr<'tcx>, err_expr: &Expr<'tcx>) -> bool {
+    let err_ty = cx.typeck_results().expr_ty(err_expr);
+    let ty::Adt(adt, args) = cx.typeck_results().expr_ty(err_call).kind() else {
+        return false;
+    };
+    cx.tcx.is_diagnostic_item(sym::Result, adt.did())
+        && cx
+            .tcx
+            .get_diagnostic_item(sym::From)
+            .is_some_and(|from_trait| implements_trait(cx, args.type_at(1), from_trait, &[err_ty.into()]))
 }
 
 /// `.map()` and `.map_err()` take the scrutinee by value, so it must be an owned `Result` with no
@@ -231,7 +265,7 @@ fn parse_arms<'tcx>(
 
     let (binding, binding_span) = parse_ok_pat(cx, ok_arm.pat)?;
     let err_pat = parse_err_pat(cx, err_arm.pat)?;
-    let err_expr = parse_return_err(cx, err_arm.body)?;
+    let (err_call, err_expr) = parse_return_err(cx, err_arm.body)?;
 
     // `Err(e) => return Err(e)` and `Err(e) => return Err(e.into())` are `question_mark`'s job.
     if let ErrPat::Binding(err_id, _) = err_pat
@@ -246,7 +280,11 @@ fn parse_arms<'tcx>(
             binding_span,
             body: peel_blocks(ok_arm.body),
         },
-        ErrArm { pat: err_pat, err_expr },
+        ErrArm {
+            pat: err_pat,
+            err_call,
+            err_expr,
+        },
     ))
 }
 
@@ -262,7 +300,7 @@ fn parse_expr<'tcx>(
         },
         IfLetOrMatch::IfLet(scrutinee, let_pat, if_then, Some(if_else), _) => {
             let (binding, binding_span) = parse_ok_pat(cx, let_pat)?;
-            let err_expr = parse_return_err(cx, if_else)?;
+            let (err_call, err_expr) = parse_return_err(cx, if_else)?;
             Some((
                 scrutinee,
                 OkArm {
@@ -273,6 +311,7 @@ fn parse_expr<'tcx>(
                 // `if let Ok(v) = r { .. } else { return Err(e) }` never binds the error.
                 ErrArm {
                     pat: ErrPat::Wild,
+                    err_call,
                     err_expr,
                 },
             ))
@@ -306,6 +345,7 @@ impl QuestionMark {
             || !is_owned_result(cx, scrutinee)
             || !bodies_can_become_closures(cx, expr, ok_arm.body, err_arm.err_expr)
             || err_type_needs_return_context(cx, err_arm.err_expr)
+            || !from_conversion_exists(cx, err_arm.err_call, err_arm.err_expr)
         {
             return None;
         }

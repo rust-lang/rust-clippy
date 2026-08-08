@@ -203,6 +203,41 @@ fn err_from_trait_assoc_fn(s: &str) -> Result<u32, Error> {
     Ok(v)
 }
 
+// The `.into()` target is pinned by the `return Err(..)` position. Behind `?`, which adds its own
+// `From` conversion, the intermediate type is ambiguous (E0283). (uutils' tac does this.)
+#[derive(Debug)]
+struct WrappedErr(std::num::ParseIntError);
+impl std::fmt::Display for WrappedErr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.0)
+    }
+}
+impl std::error::Error for WrappedErr {}
+
+fn err_into_needs_return_context(s: &str) -> Result<u32, Box<dyn std::error::Error>> {
+    let v = match parse(s) {
+        Ok(v) => v,
+        Err(e) => return Err(WrappedErr(e).into()),
+    };
+    Ok(v)
+}
+
+// `Err(Box::new(..))` relies on the unsize coercion `Box<ConcreteErr>` to `Box<dyn MyError>`,
+// which only happens in the pinned `return` position. `?` needs a `From` impl instead, and no
+// such impl exists. (uutils' ls does this with its `UError` trait.)
+trait MyError {}
+#[derive(Debug)]
+struct ConcreteErr;
+impl MyError for ConcreteErr {}
+
+fn err_box_needs_unsize_coercion(s: &str) -> Result<u32, Box<dyn MyError>> {
+    let v = match parse(s) {
+        Ok(v) => v,
+        Err(_) => return Err(Box::new(ConcreteErr)),
+    };
+    Ok(v)
+}
+
 // `question_mark`'s job: the error is returned as is.
 fn same_error(s: &str) -> Result<u32, std::num::ParseIntError> {
     let v = match parse(s) {

@@ -153,7 +153,7 @@ LL | |     };
    | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|_| format!("nope: {s}"))?`
 
 error: this can be replaced with `map`, `map_err` and `?`
-  --> tests/ui/manual_map_err.rs:295:16
+  --> tests/ui/manual_map_err.rs:330:16
    |
 LL |       let data = match parse("1") {
    |  ________________^
@@ -164,7 +164,7 @@ LL | |     };
    | |_____^ help: try: `parse("1").map_err(|e| (guard, e.to_string()))?`
 
 error: this can be replaced with `map`, `map_err` and `?`
-  --> tests/ui/manual_map_err.rs:371:13
+  --> tests/ui/manual_map_err.rs:406:13
    |
 LL |       let v = match parse(s) {
    |  _____________^
