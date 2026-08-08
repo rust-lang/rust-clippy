@@ -147,7 +147,6 @@ jobs:
       max-parallel: 6
       matrix:
         integration:
-        - 'matthiaskrgr/clippy_ci_panic_test'
         - 'rust-lang/cargo'
         - 'rust-lang/chalk'
         - 'rust-lang/rustfmt'
