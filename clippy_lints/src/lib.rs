@@ -393,6 +393,7 @@ mod unused_result_ok;
 mod unused_rounding;
 mod unused_self;
 mod unused_trait_names;
+mod unused_underscore_prefixed_argument;
 mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
@@ -865,6 +866,7 @@ rustc_lint::late_lint_methods!(
         RefPatterns: ref_patterns::RefPatterns = ref_patterns::RefPatterns,
         RedundantElse: redundant_else::RedundantElse = redundant_else::RedundantElse,
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
+        UnusedUnderscorePrefixedArgument: unused_underscore_prefixed_argument::UnusedUnderscorePrefixedArgument = <unused_underscore_prefixed_argument::UnusedUnderscorePrefixedArgument>::default(),
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         // add late passes here, used by `cargo dev new_lint`
