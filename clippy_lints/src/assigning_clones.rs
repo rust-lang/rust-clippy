@@ -192,7 +192,7 @@ fn clone_source_borrows_from_dest(cx: &LateContext<'_>, lhs: &Expr<'_>, call_spa
         && let mir::StatementKind::Assign(box (borrowed, _)) = &assignment.kind
         && let Some(borrowers) = borrow_map.get(&borrowed.local)
     {
-        borrowers.contains(source.local)
+        borrowers.contains_key(&source.local)
     } else {
         false
     }
