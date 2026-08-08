@@ -1,0 +1,16 @@
+error: unnecessary linkage of `std`
+  --> tests/ui/unnecessary_std_linkage.rs:5:1
+   |
+LL | use core::fmt;
+   | ^
+   |
+   = note: consider adding `extern crate alloc;` for access to allocation items such as `Box`, `Vec`
+   = note: `-D clippy::unnecessary-std-linkage` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_std_linkage)]`
+help: add `#![no_std]` to the crate root
+   |
+LL + #![no_std]
+   |
+
+error: aborting due to 1 previous error
+
