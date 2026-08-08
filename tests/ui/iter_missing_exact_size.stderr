@@ -1,5 +1,5 @@
 error: iterator can implement `ExactSizeIterator`
-  --> tests/ui/iter_missing_exact_size.rs:13:1
+  --> tests/ui/iter_missing_exact_size.rs:12:1
    |
 LL | / impl Iterator for StringRepeater1 {
 LL | |
@@ -10,7 +10,7 @@ LL | | }
    | |_^
    |
 help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
-  --> tests/ui/iter_missing_exact_size.rs:20:9
+  --> tests/ui/iter_missing_exact_size.rs:19:9
    |
 LL |         self.range.size_hint()
    |         ^^^^^^^^^^^^^^^^^^^^^^
@@ -18,7 +18,7 @@ LL |         self.range.size_hint()
    = help: to override `-D warnings` add `#[allow(clippy::iter_missing_exact_size)]`
 
 error: iterator can implement `ExactSizeIterator`
-  --> tests/ui/iter_missing_exact_size.rs:27:1
+  --> tests/ui/iter_missing_exact_size.rs:26:1
    |
 LL | / impl Iterator for StringRepeater2 {
 LL | |
@@ -29,13 +29,13 @@ LL | | }
    | |_^
    |
 help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
-  --> tests/ui/iter_missing_exact_size.rs:34:9
+  --> tests/ui/iter_missing_exact_size.rs:33:9
    |
 LL |         self.1.size_hint()
    |         ^^^^^^^^^^^^^^^^^^
 
 error: iterator can implement `ExactSizeIterator`
-  --> tests/ui/iter_missing_exact_size.rs:41:1
+  --> tests/ui/iter_missing_exact_size.rs:40:1
    |
 LL | / impl Iterator for StringRepeater3 {
 LL | |
@@ -46,13 +46,13 @@ LL | | }
    | |_^
    |
 help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
-  --> tests/ui/iter_missing_exact_size.rs:48:16
+  --> tests/ui/iter_missing_exact_size.rs:47:16
    |
 LL |         return self.1.size_hint();
    |                ^^^^^^^^^^^^^^^^^^
 
 error: iterator can implement `ExactSizeIterator`
-  --> tests/ui/iter_missing_exact_size.rs:55:1
+  --> tests/ui/iter_missing_exact_size.rs:54:1
    |
 LL | / impl Iterator for StringRepeater4 {
 LL | |
@@ -63,7 +63,7 @@ LL | | }
    | |_^
    |
 help: this `size_hint()` implementation delegates to to the `size_hint()` of an `ExactSizeIterator`, so the overall iterator is likely to have an exact size
-  --> tests/ui/iter_missing_exact_size.rs:62:16
+  --> tests/ui/iter_missing_exact_size.rs:61:16
    |
 LL |         return self.1.size_hint();
    |                ^^^^^^^^^^^^^^^^^^
