@@ -1,3 +1,4 @@
+#![allow(clippy::refcell_cell)]
 #![warn(clippy::await_holding_refcell_ref)]
 
 use std::cell::RefCell;
