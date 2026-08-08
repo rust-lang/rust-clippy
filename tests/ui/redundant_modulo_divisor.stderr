@@ -1,0 +1,59 @@
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:5:5
+   |
+LL |     (x + n + y) % n
+   |     ^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::redundant-modulo-divisor` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_modulo_divisor)]`
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:10:5
+   |
+LL |     (x + n + y) % n
+   |     ^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:19:5
+   |
+LL |     (x + y + m) % m
+   |     ^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:24:5
+   |
+LL |     (n + x + y) % n
+   |     ^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:33:5
+   |
+LL |     (x + (n) + y) % (n)
+   |     ^^^^^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:38:5
+   |
+LL |     (n + x + n) % n
+   |     ^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:43:5
+   |
+LL |     (x + (o + o) + y) % (o + o)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:48:5
+   |
+LL |     (x + (n + y) + z) % (n + y)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo contains an addition of the divisor
+  --> tests/ui/redundant_modulo_divisor.rs:53:5
+   |
+LL |     (x + n + 1 + y) % n
+   |     ^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 9 previous errors
+
