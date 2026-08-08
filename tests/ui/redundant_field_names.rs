@@ -75,7 +75,6 @@ fn main() {
     macro_rules! internal {
         ($i:ident) => {
             let _ = S { v: v };
-            //~^ redundant_field_names
             let _ = S { $i: v };
             let _ = S { v: $i };
             let _ = S { $i: $i };
