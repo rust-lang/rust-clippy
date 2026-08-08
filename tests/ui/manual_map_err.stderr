@@ -1,0 +1,178 @@
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:29:18
+   |
+LL |       let filter = match parse(s) {
+   |  __________________^
+LL | |
+LL | |         Ok(g) => IfFrom::Group(g),
+LL | |         Err(_) => {
+LL | |             return Err(Error);
+LL | |         },
+LL | |     };
+   | |_____^ help: try: `parse(s).map(|g| IfFrom::Group(g)).map_err(|_| Error)?`
+   |
+   = note: `-D clippy::manual-map-err` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_map_err)]`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:41:13
+   |
+LL |       let v = match parse(s) {
+   |  _____________^
+LL | |
+LL | |         Ok(v) => v,
+LL | |         Err(_) => return Err(Error),
+LL | |     };
+   | |_____^ help: try: `parse(s).map_err(|_| Error)?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:51:13
+   |
+LL |       let v = match parse(s) {
+   |  _____________^
+LL | |
+LL | |         Ok(v) => v * 2,
+LL | |         Err(e) => return Err(format!("bad: {e}")),
+LL | |     };
+   | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|e| format!("bad: {e}"))?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:61:13
+   |
+LL |       let v = match parse(s) {
+   |  _____________^
+LL | |
+LL | |         Err(_) => return Err(Error),
+LL | |         Ok(v) => v + 1,
+LL | |     };
+   | |_____^ help: try: `parse(s).map(|v| v + 1).map_err(|_| Error)?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:71:13
+   |
+LL |       let v = match parse(s) {
+   |  _____________^
+LL | |
+LL | |         Ok(v) => {
+LL | |             let doubled = v * 2;
+...  |
+LL | |         Err(_) => return Err(Error),
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     let v = parse(s).map(|v| {
+LL +         let doubled = v * 2;
+LL +         doubled + 1
+LL ~     }).map_err(|_| Error)?;
+   |
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:84:18
+   |
+LL |       let filter = if let Ok(g) = parse(s) {
+   |  __________________^
+LL | |
+LL | |         IfFrom::Group(g)
+LL | |     } else {
+LL | |         return Err(Error);
+LL | |     };
+   | |_____^ help: try: `parse(s).map(|g| IfFrom::Group(g)).map_err(|_| Error)?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:95:8
+   |
+LL |       Ok(match parse(s) {
+   |  ________^
+LL | |
+LL | |         Ok(g) => IfFrom::Group(g),
+LL | |         Err(_) => return Err(Error),
+LL | |     })
+   | |_____^ help: try: `parse(s).map(|g| IfFrom::Group(g)).map_err(|_| Error)?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:105:13
+   |
+LL |       let v = match parse(s) {
+   |  _____________^
+LL | |
+LL | |         // this comment would be lost
+LL | |         Ok(v) => v * 2,
+LL | |         Err(_) => return Err(Error),
+LL | |     };
+   | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|_| Error)?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:131:12
+   |
+LL |       } else if let Ok(v) = parse(s) {
+   |  ____________^
+LL | |
+LL | |         v * 2
+LL | |     } else {
+LL | |         return Err(Error);
+LL | |     };
+   | |_____^
+   |
+help: try
+   |
+LL ~     } else {
+LL +         parse(s).map(|v| v * 2).map_err(|_| Error)?
+LL ~     };
+   |
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:143:5
+   |
+LL | /     match parse(s) {
+LL | |
+LL | |         Ok(v) => {
+LL | |             acc.push(v);
+LL | |         },
+LL | |         Err(_) => return Err(Error),
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     parse(s).map(|v| {
+LL +         acc.push(v);
+LL +     }).map_err(|_| Error)?;
+   |
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:178:13
+   |
+LL |       let v = match parse(s) {
+   |  _____________^
+LL | |
+LL | |         Ok(v) => v * 2,
+LL | |         Err(_) => return Err(format!("nope: {s}")),
+LL | |     };
+   | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|_| format!("nope: {s}"))?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:330:16
+   |
+LL |       let data = match parse("1") {
+   |  ________________^
+LL | |
+LL | |         Ok(data) => data,
+LL | |         Err(e) => return Err((guard, e.to_string())),
+LL | |     };
+   | |_____^ help: try: `parse("1").map_err(|e| (guard, e.to_string()))?`
+
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:406:13
+   |
+LL |       let v = match parse(s) {
+   |  _____________^
+LL | |
+LL | |         Ok(v) => v * 2,
+LL | |         Err(_) => return Err(Error),
+LL | |     };
+   | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|_| Error)?`
+
+error: aborting due to 13 previous errors
+

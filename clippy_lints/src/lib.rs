@@ -213,6 +213,7 @@ mod manual_is_ascii_check;
 mod manual_is_power_of_two;
 mod manual_let_else;
 mod manual_main_separator_str;
+mod manual_map_err;
 mod manual_non_exhaustive;
 mod manual_noop_waker;
 mod manual_option_as_slice;
