@@ -80,9 +80,9 @@ impl<'tcx> LateLintPass<'tcx> for ComparisonChain {
             return;
         }
 
-        for cond in conds.windows(2) {
+        for [left, right] in conds.array_windows() {
             if let (&ExprKind::Binary(ref kind1, lhs1, rhs1), &ExprKind::Binary(ref kind2, lhs2, rhs2)) =
-                (&cond[0].kind, &cond[1].kind)
+                (&left.kind, &right.kind)
             {
                 if !kind_is_cmp(kind1.node) || !kind_is_cmp(kind2.node) {
                     return;

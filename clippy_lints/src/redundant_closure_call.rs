@@ -270,12 +270,12 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClosureCall {
             closure_usage_count.count
         }
 
-        for w in block.stmts.windows(2) {
-            if let hir::StmtKind::Let(local) = w[0].kind
+        for [left, right] in block.stmts.array_windows() {
+            if let hir::StmtKind::Let(local) = left.kind
                 && let Some(t) = local.init
                 && let ExprKind::Closure { .. } = t.kind
                 && let hir::PatKind::Binding(_, _, ident, _) = local.pat.kind
-                && let hir::StmtKind::Semi(second) = w[1].kind
+                && let hir::StmtKind::Semi(second) = right.kind
                 && let ExprKind::Assign(_, call, _) = second.kind
                 && let ExprKind::Call(closure, _) = call.kind
                 && let ExprKind::Path(hir::QPath::Resolved(_, path)) = closure.kind

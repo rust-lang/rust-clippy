@@ -134,6 +134,7 @@ generate! {
     append,
     applicability,
     arg,
+    array_windows,
     as_bytes,
     as_deref,
     as_deref_mut,

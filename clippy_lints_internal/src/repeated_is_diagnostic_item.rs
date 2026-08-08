@@ -125,10 +125,9 @@ impl<'tcx> LateLintPass<'tcx> for RepeatedIsDiagnosticItem {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'_>) {
         for [(cond1, stmt1_span), (cond2, stmt2_span)] in block
             .stmts
-            .windows(2)
-            .filter_map(|pair| {
-                if let [if1, if2] = pair
-                    && let StmtKind::Expr(e1) | StmtKind::Semi(e1) = if1.kind
+            .array_windows()
+            .filter_map(|[if1, if2]| {
+                if let StmtKind::Expr(e1) | StmtKind::Semi(e1) = if1.kind
                     && let ExprKind::If(cond1, ..) = e1.kind
                     && let StmtKind::Expr(e2) | StmtKind::Semi(e2) = if2.kind
                     && let ExprKind::If(cond2, ..) = e2.kind
