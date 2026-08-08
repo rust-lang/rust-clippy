@@ -143,19 +143,20 @@ impl RawStrings {
             // `once` so a raw string ending in hashes is still checked
             let num = str.as_bytes().iter().chain(once(&0)).try_fold(0u8, |acc, &b| {
                 match b {
-                    b'"' if !following_quote => (following_quote, req) = (true, 1),
                     b'#' => req += u8::from(following_quote),
-                    _ => {
-                        if following_quote {
-                            following_quote = false;
+                    b'"' if !following_quote => (following_quote, req) = (true, 1),
+                    _ if following_quote => {
+                        let ended = req;
+                        // a quote also starts a new run, e.g. `""#` requires two hashes
+                        (following_quote, req) = (b == b'"', 1);
 
-                            if req == max {
-                                return ControlFlow::Break(req);
-                            }
-
-                            return ControlFlow::Continue(acc.max(req));
+                        if ended == max {
+                            return ControlFlow::Break(ended);
                         }
+
+                        return ControlFlow::Continue(acc.max(ended));
                     },
+                    _ => {},
                 }
 
                 ControlFlow::Continue(acc)
