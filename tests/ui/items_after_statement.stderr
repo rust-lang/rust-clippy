@@ -35,5 +35,17 @@ LL |       b!();
    |
    = note: this error originates in the macro `b` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: aborting due to 3 previous errors
+error: adding items after statements is confusing, since items exist from the start of the scope
+  --> tests/ui/items_after_statement.rs:90:5
+   |
+LL |     fn foo() {}
+   |     ^^^^^^^^^^^
+
+error: adding items after statements is confusing, since items exist from the start of the scope
+  --> tests/ui/items_after_statement.rs:98:9
+   |
+LL |         fn foo() {}
+   |         ^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
 

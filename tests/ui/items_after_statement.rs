@@ -68,6 +68,38 @@ fn item_from_macro() {
     static_assert_size!(u32, 4);
 }
 
+fn cfg_select_arm() {
+    let x = 1;
+    // `cfg_select!` splices the tokens of the arm into this block, without any expansion marker
+    std::cfg_select! {
+        true => {
+            use std::mem;
+            let _ = (x, mem::size_of::<u8>());
+        },
+    }
+}
+
+fn item_after_cfg_select() {
+    let x = 1;
+    std::cfg_select! {
+        true => {
+            use std::mem;
+            let _ = (x, mem::size_of::<u8>());
+        },
+    }
+    fn foo() {}
+    //~^ items_after_statements
+}
+
+fn nested_block() {
+    let _ = 1;
+    {
+        let _ = 2;
+        fn foo() {}
+        //~^ items_after_statements
+    }
+}
+
 fn allow_attribute() {
     let _ = 1;
     #[allow(clippy::items_after_statements)]
