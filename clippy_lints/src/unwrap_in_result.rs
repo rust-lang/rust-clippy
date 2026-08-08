@@ -1,10 +1,11 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::ty::is_never_like;
 use clippy_utils::{return_ty, sym};
 use rustc_hir::{
     Body, BodyOwnerKind, Expr, ExprKind, FnSig, ImplItem, ImplItemKind, Item, ItemKind, OwnerId, PathSegment, QPath,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{self, Ty};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Ident, Span, Symbol};
 
@@ -87,7 +88,7 @@ pub struct UnwrapInResult {
 impl UnwrapInResult {
     fn enter_item(&mut self, cx: &LateContext<'_>, fn_def_id: OwnerId, sig: &FnSig<'_>) {
         self.fn_stack.push(self.current_fn.take());
-        self.current_fn = is_option_or_result(cx, return_ty(cx, fn_def_id)).map(|kind| OptionOrResultFn {
+        self.current_fn = is_option_or_fallible_result(cx, return_ty(cx, fn_def_id)).map(|kind| OptionOrResultFn {
             kind,
             return_ty_span: Some(sig.decl.output.span()),
         });
@@ -177,10 +178,16 @@ impl<'tcx> LateLintPass<'tcx> for UnwrapInResult {
     }
 }
 
-fn is_option_or_result(cx: &LateContext<'_>, ty: Ty<'_>) -> Option<OptionOrResult> {
+fn is_option_or_fallible_result(cx: &LateContext<'_>, ty: Ty<'_>) -> Option<OptionOrResult> {
     match ty.ty_adt_def().and_then(|def| cx.tcx.get_diagnostic_name(def.did())) {
         Some(sym::Option) => Some(OptionOrResult::Option),
-        Some(sym::Result) => Some(OptionOrResult::Result),
+        Some(sym::Result)
+            if let ty::Adt(_, substs) = ty.kind()
+                && let [_, err_ty] = substs.as_slice()
+                && !is_never_like(err_ty.as_type()?) =>
+        {
+            Some(OptionOrResult::Result)
+        },
         _ => None,
     }
 }
@@ -199,7 +206,7 @@ fn is_unwrap_or_expect_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<(Op
             },
         )) = func.kind
     {
-        is_option_or_result(cx, cx.typeck_results().node_type(hir_ty.hir_id)).map(|oor| (oor, *name))
+        is_option_or_fallible_result(cx, cx.typeck_results().node_type(hir_ty.hir_id)).map(|oor| (oor, *name))
     } else if let ExprKind::MethodCall(
         PathSegment {
             ident: Ident {
@@ -213,7 +220,7 @@ fn is_unwrap_or_expect_call(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<(Op
         _,
     ) = expr.kind
     {
-        is_option_or_result(cx, cx.typeck_results().expr_ty_adjusted(recv)).map(|oor| (oor, *name))
+        is_option_or_fallible_result(cx, cx.typeck_results().expr_ty_adjusted(recv)).map(|oor| (oor, *name))
     } else {
         None
     }
