@@ -31,7 +31,7 @@ declare_clippy_lint! {
     /// struct Counter(RefCell<i32>);
     ///
     /// let _ = RefCell::new(1);
-    /// let _ = RefCell::default();
+    /// let _ = RefCell::<i32>::default();
     /// ```
     /// Use instead:
     /// ```no_run
@@ -40,7 +40,7 @@ declare_clippy_lint! {
     /// struct Counter(Cell<i32>);
     ///
     /// let _ = Cell::new(1);
-    /// let _ = Cell::default();
+    /// let _ = Cell::<i32>::default();
     /// ```
     #[clippy::version = "1.99.0"]
     pub REFCELL_CELL,
