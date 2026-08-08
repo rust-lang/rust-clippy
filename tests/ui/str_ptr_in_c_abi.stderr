@@ -1,0 +1,164 @@
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:7:21
+   |
+LL |     unsafe { printf("Hello".as_ptr() as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+   = note: `-D clippy::str-ptr-in-c-abi` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::str_ptr_in_c_abi)]`
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:10:21
+   |
+LL |     unsafe { printf("Hello".as_ptr() as *const i8) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:20:21
+   |
+LL |     unsafe { strcpy(buffer.as_mut_ptr() as *mut _, cstring.as_ptr()) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:27:21
+   |
+LL |     unsafe { strcpy(buffer.as_mut_ptr() as *mut _, "Hello".as_ptr() as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:34:21
+   |
+LL |     unsafe { printf(hello_string.as_ptr() as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:36:21
+   |
+LL |     unsafe { printf(hello_box.as_ptr() as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:38:21
+   |
+LL |     unsafe { printf(hello_rc.as_ptr() as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:43:35
+   |
+LL |     unsafe { printf(fmt.as_ptr(), "I'm (incorrectly) printf-ing a str!".as_ptr() as *const _) };
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:47:35
+   |
+LL |     unsafe { printf(fmt.as_ptr(), "hello".as_ptr()) };
+   |                                   ^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:51:21
+   |
+LL |     unsafe { printf("hello".as_ptr() as *const _ as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:53:21
+   |
+LL |     unsafe { printf("hello".as_ptr() as *const _ as *const _ as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:58:45
+   |
+LL |     unsafe { strcpy(cstring_mut.into_raw(), "Hello".as_ptr().cast()) };
+   |                                             ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:60:21
+   |
+LL |     unsafe { strcpy(buffer.as_mut_ptr().cast(), cstring.as_ptr()) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:62:21
+   |
+LL |     unsafe { printf(("hello".as_ptr() as *const i8).cast()) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:64:21
+   |
+LL |     unsafe { printf("hello".as_ptr().cast() as *const _) };
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:66:35
+   |
+LL |     unsafe { printf(fmt.as_ptr(), "hello".as_ptr().cast::<i8>()) };
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:68:35
+   |
+LL |     unsafe { printf(fmt.as_ptr(), "hello".as_ptr().cast_mut()) };
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:74:25
+   |
+LL |     unsafe { printf_box("hello".as_ptr() as *const _) };
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:76:24
+   |
+LL |     unsafe { printf_rc("hello".as_ptr() as *const _) };
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: giving a pointer to a Rust `str` to an `extern "C" fn` can cause undefined behavior
+  --> tests/ui/str_ptr_in_c_abi.rs:80:19
+   |
+LL |         (&printf)("hello".as_ptr() as *const _)
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if the foreign function calls for a null-terminated string in this position, first convert this value to a `std::ffi::CString` and take the pointer from that
+
+error: aborting due to 20 previous errors
+
