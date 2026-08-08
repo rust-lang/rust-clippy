@@ -46,7 +46,7 @@ declare_clippy_lint! {
     /// # fn parse(s: &str) -> Result<u32, std::num::ParseIntError> { s.parse() }
     /// fn f(s: &str) -> Result<Option<u32>, Error> {
     ///     let value = match parse(s) {
-    ///         Ok(v) => Some(v),
+    ///         Ok(v) => Some(v + 1),
     ///         Err(_) => return Err(Error),
     ///     };
     ///     Ok(value)
@@ -57,7 +57,7 @@ declare_clippy_lint! {
     /// # #[derive(Debug)] struct Error;
     /// # fn parse(s: &str) -> Result<u32, std::num::ParseIntError> { s.parse() }
     /// fn f(s: &str) -> Result<Option<u32>, Error> {
-    ///     let value = parse(s).map(Some).map_err(|_| Error)?;
+    ///     let value = parse(s).map(|v| Some(v + 1)).map_err(|_| Error)?;
     ///     Ok(value)
     /// }
     /// ```
@@ -154,7 +154,7 @@ fn is_local_or_local_into(cx: &LateContext<'_>, expr: &Expr<'_>, val: HirId) -> 
     }
 }
 
-/// In `return Err(e)`, `e`'s type is pinned to the function's error type, and that pin is what
+/// In `return Err(e)`, the type of `e` is pinned to the function's error type, and that pin is what
 /// picks `Self` for a call to a trait associated function such as `de::Error::invalid_type(..)`.
 /// Behind `?` the pin is gone: `?` inserts a `From` conversion, so the closure's error type only
 /// has to satisfy `From<_>` and `Self` becomes ambiguous (E0790/E0283).
@@ -291,8 +291,8 @@ impl QuestionMark {
     ) -> Option<(&'tcx Expr<'tcx>, OkArm<'tcx>, ErrArm<'tcx>)> {
         // Cheapest first: flag checks, then the HIR shape, then the queries, and only then the
         // source scan and the visitors.
+        // `?` is unusable in these three contexts.
         if expr.span.from_expansion()
-            // `?` is unusable in these three contexts.
             || self.inside_try_block()
             || !self.msrv.meets(cx, msrvs::QUESTION_MARK_OPERATOR)
         {
@@ -398,7 +398,7 @@ fn emit<'tcx>(
         cx,
         MANUAL_MAP_ERR,
         expr.span,
-        "this can be replaced with `map_err` and `?`",
+        "this can be replaced with `map`, `map_err` and `?`",
         "try",
         sugg,
         app,

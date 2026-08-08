@@ -110,7 +110,8 @@ fn as_statement(s: &str, acc: &mut Vec<u32>) -> Result<(), Error> {
 }
 
 //
-// Negative cases below: none of these should lint.
+// Each case below shows a reason not to lint; some are paired with a contrasting nearby
+// variant that does lint.
 //
 
 // A `bail!`-style macro expands to `return Err(..)`. Moving it into a `map_err` closure would

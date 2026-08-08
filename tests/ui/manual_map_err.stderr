@@ -1,4 +1,4 @@
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:29:18
    |
 LL |       let filter = match parse(s) {
@@ -14,7 +14,7 @@ LL | |     };
    = note: `-D clippy::manual-map-err` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::manual_map_err)]`
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:41:13
    |
 LL |       let v = match parse(s) {
@@ -25,7 +25,7 @@ LL | |         Err(_) => return Err(Error),
 LL | |     };
    | |_____^ help: try: `parse(s).map_err(|_| Error)?`
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:51:13
    |
 LL |       let v = match parse(s) {
@@ -36,7 +36,7 @@ LL | |         Err(e) => return Err(format!("bad: {e}")),
 LL | |     };
    | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|e| format!("bad: {e}"))?`
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:61:13
    |
 LL |       let v = match parse(s) {
@@ -47,7 +47,7 @@ LL | |         Ok(v) => v + 1,
 LL | |     };
    | |_____^ help: try: `parse(s).map(|v| v + 1).map_err(|_| Error)?`
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:71:13
    |
 LL |       let v = match parse(s) {
@@ -68,7 +68,7 @@ LL +         doubled + 1
 LL ~     }).map_err(|_| Error)?;
    |
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:84:18
    |
 LL |       let filter = if let Ok(g) = parse(s) {
@@ -80,7 +80,7 @@ LL | |         return Err(Error);
 LL | |     };
    | |_____^ help: try: `parse(s).map(|g| IfFrom::Group(g)).map_err(|_| Error)?`
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:95:8
    |
 LL |       Ok(match parse(s) {
@@ -91,7 +91,7 @@ LL | |         Err(_) => return Err(Error),
 LL | |     })
    | |_____^ help: try: `parse(s).map(|g| IfFrom::Group(g)).map_err(|_| Error)?`
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:105:13
    |
 LL |       let v = match parse(s) {
@@ -103,7 +103,7 @@ LL | |         Err(_) => return Err(Error),
 LL | |     };
    | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|_| Error)?`
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:131:12
    |
 LL |       } else if let Ok(v) = parse(s) {
@@ -122,7 +122,7 @@ LL +         parse(s).map(|v| v * 2).map_err(|_| Error)?
 LL ~     };
    |
 
-error: this can be replaced with `map_err` and `?`
+error: this can be replaced with `map`, `map_err` and `?`
   --> tests/ui/manual_map_err.rs:143:5
    |
 LL | /     match parse(s) {
@@ -141,8 +141,8 @@ LL +         acc.push(v);
 LL +     }).map_err(|_| Error)?;
    |
 
-error: this can be replaced with `map_err` and `?`
-  --> tests/ui/manual_map_err.rs:177:13
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:178:13
    |
 LL |       let v = match parse(s) {
    |  _____________^
@@ -152,8 +152,8 @@ LL | |         Err(_) => return Err(format!("nope: {s}")),
 LL | |     };
    | |_____^ help: try: `parse(s).map(|v| v * 2).map_err(|_| format!("nope: {s}"))?`
 
-error: this can be replaced with `map_err` and `?`
-  --> tests/ui/manual_map_err.rs:294:16
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:295:16
    |
 LL |       let data = match parse("1") {
    |  ________________^
@@ -163,8 +163,8 @@ LL | |         Err(e) => return Err((guard, e.to_string())),
 LL | |     };
    | |_____^ help: try: `parse("1").map_err(|e| (guard, e.to_string()))?`
 
-error: this can be replaced with `map_err` and `?`
-  --> tests/ui/manual_map_err.rs:370:13
+error: this can be replaced with `map`, `map_err` and `?`
+  --> tests/ui/manual_map_err.rs:371:13
    |
 LL |       let v = match parse(s) {
    |  _____________^
