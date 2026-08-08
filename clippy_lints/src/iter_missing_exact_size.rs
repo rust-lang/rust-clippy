@@ -20,6 +20,13 @@ declare_clippy_lint! {
     /// known to have an exact size, the wrapping iterator may also have an
     /// exact size and should be marked as such.
     ///
+    /// ### Known issues
+    ///
+    /// * The lint only checks the `size_hint()` method, which may not match
+    /// what the iterator actually does.
+    /// * Marking the iterator as implementing `ExactSizeIterator` may have
+    /// backwards compatibility implications for exported types.
+    ///
     /// ### Example
     /// ```no_run
     /// struct StringRepeater {
