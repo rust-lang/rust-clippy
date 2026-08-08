@@ -292,9 +292,7 @@ impl QuestionMark {
         // Cheapest first: flag checks, then the HIR shape, then the queries, and only then the
         // source scan and the visitors.
         // `?` is unusable in these three contexts.
-        if expr.span.from_expansion()
-            || self.inside_try_block()
-            || !self.msrv.meets(cx, msrvs::QUESTION_MARK_OPERATOR)
+        if expr.span.from_expansion() || self.inside_try_block() || !self.msrv.meets(cx, msrvs::QUESTION_MARK_OPERATOR)
         {
             return None;
         }

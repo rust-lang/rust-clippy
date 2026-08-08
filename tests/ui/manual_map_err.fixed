@@ -1,13 +1,13 @@
 #![feature(try_blocks)]
 #![warn(clippy::manual_map_err)]
 #![allow(
+    unused,
     clippy::manual_let_else,
     clippy::needless_late_init,
     clippy::needless_question_mark,
     clippy::question_mark,
     clippy::redundant_closure,
-    clippy::unnecessary_wraps,
-    unused
+    clippy::unnecessary_wraps
 )]
 
 #[derive(Debug)]
