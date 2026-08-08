@@ -1,6 +1,5 @@
 #![warn(clippy::iter_missing_exact_size)]
-#![allow(clippy::needless_return)]
-#![allow(unreachable_code)]
+#![allow(clippy::needless_return, unreachable_code)]
 
 use std::ops::Range;
 
