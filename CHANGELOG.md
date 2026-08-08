@@ -7393,6 +7393,7 @@ Released 2018-09-13
 [`ref_option`]: https://rust-lang.github.io/rust-clippy/master/index.html#ref_option
 [`ref_option_ref`]: https://rust-lang.github.io/rust-clippy/master/index.html#ref_option_ref
 [`ref_patterns`]: https://rust-lang.github.io/rust-clippy/master/index.html#ref_patterns
+[`refcell_cell`]: https://rust-lang.github.io/rust-clippy/master/index.html#refcell_cell
 [`regex_creation_in_loops`]: https://rust-lang.github.io/rust-clippy/master/index.html#regex_creation_in_loops
 [`regex_macro`]: https://rust-lang.github.io/rust-clippy/master/index.html#regex_macro
 [`renamed_function_params`]: https://rust-lang.github.io/rust-clippy/master/index.html#renamed_function_params
