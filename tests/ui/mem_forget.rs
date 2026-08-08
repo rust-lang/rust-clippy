@@ -5,7 +5,7 @@ use std::mem as memstuff;
 use std::mem::forget as forgetSomething;
 
 #[warn(clippy::mem_forget)]
-#[allow(forgetting_copy_types)]
+#[allow(forgetting_copy_types, clippy::forget_future)]
 fn main() {
     let five: i32 = 5;
     forgetSomething(five);
@@ -24,6 +24,10 @@ fn main() {
 
     let string = String::new();
     std::mem::forget(string);
+    //~^ mem_forget
+
+    let fut = async {};
+    std::mem::forget(fut);
     //~^ mem_forget
 
     std::mem::forget(7);
