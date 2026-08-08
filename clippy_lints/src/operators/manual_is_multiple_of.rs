@@ -32,6 +32,11 @@ pub(super) fn check<'tcx>(
             ty::Uint(_)
         )
         && expr_type_is_certain(cx, operand_left)
+        // https://github.com/rust-lang/rust-clippy/issues/16537
+        && !matches!(
+            operand_right.kind,
+            ExprKind::Lit(_)
+        )
     {
         let mut app = Applicability::MachineApplicable;
         let divisor = deref_sugg(
