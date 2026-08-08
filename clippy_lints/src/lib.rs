@@ -81,6 +81,7 @@ mod bool_to_int_with_if;
 mod booleans;
 mod borrow_deref_ref;
 mod box_default;
+mod bufreader_stdin;
 mod byte_char_slices;
 mod cargo;
 mod casts;
@@ -867,6 +868,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
