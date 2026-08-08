@@ -10,8 +10,9 @@ use rustc_span::symbol::kw;
 declare_clippy_lint! {
     /// ### What it does
     ///
-    /// Suggest that iterators be marked as `ExactSizeIterator` when they wrap
-    /// around another iterator that *does* implement `ExactSizeIterator`.
+    /// Checks for iterators where the size hint wraps around an iterator that
+    /// implements `ExactSizeIterator` but do not themselves implement
+    /// `ExactSizeIterator`.
     ///
     /// ### Why is this bad?
     ///
