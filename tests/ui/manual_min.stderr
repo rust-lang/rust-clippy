@@ -1,0 +1,45 @@
+error: this `if` expression is a manual `min`
+  --> tests/ui/manual_min.rs:8:13
+   |
+LL |     let _ = if a > b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.min(b)`
+   |
+   = note: `-D clippy::manual-min` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_min)]`
+
+error: this `if` expression is a manual `min`
+  --> tests/ui/manual_min.rs:10:13
+   |
+LL |     let _ = if a >= b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.min(b)`
+
+error: this `if` expression is a manual `min`
+  --> tests/ui/manual_min.rs:12:13
+   |
+LL |     let _ = if a < b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.min(b)`
+
+error: this `if` expression is a manual `min`
+  --> tests/ui/manual_min.rs:14:13
+   |
+LL |     let _ = if a <= b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.min(b)`
+
+error: this `if` expression is a manual `min`
+  --> tests/ui/manual_min.rs:19:5
+   |
+LL | /     if cores > b {
+LL | |         cores = b;
+LL | |     }
+   | |_____^ help: replace with: `cores = cores.min(b);`
+
+error: this `if` expression is a manual `min`
+  --> tests/ui/manual_min.rs:25:5
+   |
+LL | /     if limit >= b {
+LL | |         limit = b;
+LL | |     }
+   | |_____^ help: replace with: `limit = limit.min(b);`
+
+error: aborting due to 6 previous errors
+
