@@ -821,6 +821,47 @@ pub fn str_literal_to_char_literal<'sm>(
     }
 }
 
+/// Walks contiguous preceding `//` lines (nearest first) looking for a marked line comment
+/// of the form `// {comment_mark}:`. Returns the absolute [`BytePos`] of that line if found.
+///
+/// Stops and returns `None` when a non-`//` line is encountered. Empty lines (and attributes,
+/// when `accept_comment_above_attributes` is true) are skipped between comments.
+pub fn find_preceding_marked_line_comment(
+    src: &str,
+    line_starts: &[RelativeBytePos],
+    start_pos: BytePos,
+    comment_mark: &str,
+    accept_comment_above_attributes: bool,
+) -> Option<BytePos> {
+    let lines = line_starts
+        .array_windows::<2>()
+        .rev()
+        .map_while(|[start, end]| {
+            let start = start.to_usize();
+            let end = end.to_usize();
+            let text = src.get(start..end)?;
+            let trimmed = text.trim_start();
+            Some((start + (text.len() - trimmed.len()), trimmed))
+        })
+        .filter(|(_, text)| {
+            !(text.is_empty()
+                || (accept_comment_above_attributes
+                    // is the line an attribute
+                    && ((text.starts_with("#[") || text.starts_with("#![")) && text.trim_end().ends_with(']'))))
+        });
+
+    let needle = format!("// {comment_mark}:");
+    for (line_start, line) in lines {
+        if !line.starts_with("//") {
+            return None;
+        }
+        if line.starts_with(&needle) {
+            return Some(start_pos + BytePos(u32::try_from(line_start).unwrap()));
+        }
+    }
+    None
+}
+
 #[cfg(test)]
 mod test {
     use super::reindent_multiline;

@@ -1,0 +1,205 @@
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:12:5
+   |
+LL |     external!(0u32 as u64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::undocumented-as-casts` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::undocumented_as_casts)]`
+   = note: this error originates in the macro `external` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:34:13
+   |
+LL |             $x as $t
+   |             ^^^^^^^^
+...
+LL |     cast!(0u32, u64);
+   |     ---------------- in this macro invocation
+   |
+   = note: this error originates in the macro `cast` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     cast!(0u32, u64);
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:50:13
+   |
+LL |             $x as $t
+   |             ^^^^^^^^
+...
+LL |     cast_with_comment_in_macro_body!(0u32, u64);
+   |     ------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `cast_with_comment_in_macro_body` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     cast_with_comment_in_macro_body!(0u32, u64);
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:164:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:170:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:176:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:181:13
+   |
+LL |     let _ = 0u32 as u64; // CAST: explanation
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64; // CAST: explanation
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:188:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:195:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:202:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:208:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:214:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:221:13
+   |
+LL |     let _ = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let _ = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:226:13
+   |
+LL |     let x = 0u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let x = 0u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:237:13
+   |
+LL |     let y = 1u32 as u64;
+   |             ^^^^^^^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let y = 1u32 as u64;
+   |
+
+error: `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:244:13
+   |
+LL |       let y = match x {
+   |  _____________^
+LL | |
+LL | |         0 => {
+...  |
+LL | |     } as usize;
+   | |______________^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     let y = match x {
+   |
+
+error: aborting due to 16 previous errors
+
