@@ -213,6 +213,7 @@ mod manual_is_ascii_check;
 mod manual_is_power_of_two;
 mod manual_let_else;
 mod manual_main_separator_str;
+mod manual_next_multiple_of;
 mod manual_non_exhaustive;
 mod manual_noop_waker;
 mod manual_option_as_slice;
@@ -867,6 +868,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        ManualNextMultipleOf: manual_next_multiple_of::ManualNextMultipleOf = manual_next_multiple_of::ManualNextMultipleOf::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

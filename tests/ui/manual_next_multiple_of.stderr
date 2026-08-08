@@ -1,0 +1,89 @@
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:27:13
+   |
+LL |     let _ = u1.div_ceil(u2) * u2;
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(u2)`
+   |
+   = note: `-D clippy::manual-next-multiple-of` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_next_multiple_of)]`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:28:13
+   |
+LL |     let _ = u2 * u1.div_ceil(u2);
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:29:13
+   |
+LL |     let _ = u1 + (u2 - u1 % u2) % u2;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:30:13
+   |
+LL |     let _ = (u2 - u1 % u2) % u2 + u1;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:33:13
+   |
+LL |     let _ = u1.div_ceil(u2).checked_mul(u2);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.checked_next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:34:13
+   |
+LL |     let _ = u2.checked_mul(u1.div_ceil(u2));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.checked_next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:35:13
+   |
+LL |     let _ = u1.checked_add((u2 - u1 % u2) % u2);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.checked_next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:36:13
+   |
+LL |     let _ = ((u2 - u1 % u2) % u2).checked_add(u1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.checked_next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:39:13
+   |
+LL |     let _ = (u1 + 3) & !3;
+   |             ^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(3)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:40:13
+   |
+LL |     let _ = !7 & (u1 + 7);
+   |             ^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(7)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:44:13
+   |
+LL |     let _ = f_val().div_ceil(u2) * u2;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `f_val().next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:46:13
+   |
+LL |     let _ = u1.div_ceil(identity!(u2)) * identity!(u2);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:47:13
+   |
+LL |     let _ = identity!(u1).div_ceil(u2) * u2;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `u1.next_multiple_of(u2)`
+
+error: manually reimplementing `next_multiple_of
+  --> tests/ui/manual_next_multiple_of.rs:50:13
+   |
+LL |     let _ = may_have_side_effect!(u1).div_ceil(u2) * u2;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `may_have_side_effect!(u1).next_multiple_of(u2)`
+
+error: aborting due to 14 previous errors
+

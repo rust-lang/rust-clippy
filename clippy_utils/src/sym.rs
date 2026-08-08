@@ -213,6 +213,7 @@ generate! {
     deref_mut_method,
     diagnostics,
     disallowed_types,
+    div_ceil,
     drain,
     dump,
     duration_constructors,
