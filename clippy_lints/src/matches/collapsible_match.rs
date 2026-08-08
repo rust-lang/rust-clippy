@@ -166,11 +166,33 @@ fn check_arm<'tcx>(
                 let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner_expr.span);
                 let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
+
                 if matches!(outer_then_body.kind, ExprKind::Block(..)) {
-                    let outer_then_open_bracket = outer_then_body
-                        .span
-                        .split_at(1)
-                        .0
+                    let block_span = outer_then_body.span;
+                    // The Block Span can start with a label so finding actual opening braces instead of assuming it's
+                    // first Byte
+                    let block_snippet = snippet(cx, block_span, "");
+                    let mut byte_pos: u32 = 0;
+                    let mut brace_offset = None;
+
+                    for token in rustc_lexer::tokenize(&block_snippet, rustc_lexer::FrontmatterAllowed::No) {
+                        if token.kind == rustc_lexer::TokenKind::OpenBrace {
+                            brace_offset = Some(byte_pos);
+                            break;
+                        }
+                        byte_pos += token.len;
+                    }
+
+                    let Some(brace_offset) = brace_offset else {
+                        return;
+                    };
+                    let brace_offset_usize = brace_offset as usize;
+                    let brace_pos = block_span.lo() + BytePos(brace_offset);
+
+                    let label_prefix = block_snippet[..brace_offset_usize].trim();
+                    let outer_then_open_bracket = block_span
+                        .with_lo(brace_pos)
+                        .with_hi(brace_pos + BytePos(1))
                         .with_leading_whitespace(cx)
                         .into_span();
                     let outer_then_closing_bracket = {
@@ -181,6 +203,10 @@ fn check_arm<'tcx>(
                     };
                     sugg.push((outer_arrow_end.to(outer_then_open_bracket), String::new()));
                     sugg.push((outer_then_closing_bracket, String::new()));
+
+                    if !label_prefix.is_empty() {
+                        sugg[0].1 = format!("=> {label_prefix} ");
+                    }
                 } else {
                     sugg.push((outer_arrow_end.until(inner_if), " ".to_string()));
                 }
