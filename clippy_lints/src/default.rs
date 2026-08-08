@@ -1,7 +1,9 @@
 use clippy_utils::diagnostics::{span_lint_and_note, span_lint_and_sugg};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{has_drop, is_copy};
-use clippy_utils::{contains_name, get_parent_expr, in_automatically_derived, is_expr_default, is_from_proc_macro};
+use clippy_utils::{
+    contains_name, get_parent_expr, get_path_to_ty, in_automatically_derived, is_expr_default, is_from_proc_macro,
+};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, PatKind, QPath, Stmt, StmtKind, StructTailExpr};
@@ -91,10 +93,12 @@ impl<'tcx> LateLintPass<'tcx> for Default {
             // Detect and ignore <Foo as Default>::default() because these calls do explicitly name the type.
             && let QPath::Resolved(None, _path) = qpath
             && let expr_ty = cx.typeck_results().expr_ty(expr)
-            && let ty::Adt(def, ..) = expr_ty.kind()
             && !is_from_proc_macro(cx, expr)
         {
-            let replacement = with_forced_trimmed_paths!(format!("{}::default()", cx.tcx.def_path_str(def.did())));
+            let caller = expr.hir_id.owner.def_id;
+            let args = ty::GenericArgs::identity_for_item(cx.tcx, caller);
+            let type_path = with_forced_trimmed_paths!(get_path_to_ty(cx.tcx, caller, expr_ty, args));
+            let replacement = format!("{type_path}::default()");
             span_lint_and_sugg(
                 cx,
                 DEFAULT_TRAIT_ACCESS,
