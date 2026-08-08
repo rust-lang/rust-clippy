@@ -76,7 +76,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub COLLAPSIBLE_IF,
     style,
-    "nested `if`s that can be collapsed (e.g., `if x { if y { ... } }`"
+    "nested `if`s that can be collapsed (e.g., `if x { if y { ... } }`",
+    @msrv_behavior = "Nested `if let` conditions are only collapsed into if-let chains when the crate uses Rust 2024 edition and the configured MSRV is at least 1.88. Other collapsible `if` suggestions are not gated by this MSRV check."
 }
 
 impl_lint_pass!(CollapsibleIf => [COLLAPSIBLE_ELSE_IF, COLLAPSIBLE_IF]);

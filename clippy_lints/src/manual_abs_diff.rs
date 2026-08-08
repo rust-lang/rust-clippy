@@ -38,7 +38,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.88.0"]
     pub MANUAL_ABS_DIFF,
     complexity,
-    "using an if-else pattern instead of `abs_diff`"
+    "using an if-else pattern instead of `abs_diff`",
+    @msrv_behavior = "This lint is only emitted for primitive integers when the configured MSRV is at least 1.60, and for `Duration` when the configured MSRV is at least 1.81, because those versions provide `abs_diff`."
 }
 
 impl_lint_pass!(ManualAbsDiff => [MANUAL_ABS_DIFF]);

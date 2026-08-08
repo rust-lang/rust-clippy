@@ -80,7 +80,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub USELESS_VEC,
     perf,
-    "useless `vec!`"
+    "useless `vec!`",
+    @msrv_behavior = "Most `vec!`-to-array or slice suggestions do not depend on MSRV. In `for` loops, this lint only suggests replacing `vec![...]` with an array when the configured MSRV is at least 1.53, because arrays implement `IntoIterator` by value from that version."
 }
 
 impl_lint_pass!(UselessVec => [USELESS_VEC]);

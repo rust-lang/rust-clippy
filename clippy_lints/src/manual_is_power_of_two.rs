@@ -32,7 +32,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.83.0"]
     pub MANUAL_IS_POWER_OF_TWO,
     pedantic,
-    "manually reimplementing `is_power_of_two`"
+    "manually reimplementing `is_power_of_two`",
+    @msrv_behavior = "This lint can be emitted outside const contexts on all configured MSRVs. In const contexts, it is only emitted when the configured MSRV is at least 1.32, because it suggests const-stable `is_power_of_two`."
 }
 
 impl_lint_pass!(ManualIsPowerOfTwo => [MANUAL_IS_POWER_OF_TWO]);

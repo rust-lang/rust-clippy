@@ -41,7 +41,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.64.0"]
     pub MANUAL_RETAIN,
     perf,
-    "`retain()` is simpler and the same functionalities"
+    "`retain()` is simpler and the same functionalities",
+    @msrv_behavior = "`Vec` and `VecDeque` retain suggestions are not MSRV-gated. This lint only checks `String` patterns when the configured MSRV is at least 1.26, `HashMap` and `HashSet` patterns at least 1.18, `BTreeMap` and `BTreeSet` patterns at least 1.53, and `BinaryHeap` patterns at least 1.70."
 }
 
 impl_lint_pass!(ManualRetain => [MANUAL_RETAIN]);

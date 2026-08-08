@@ -26,7 +26,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.68.0"]
     pub ALMOST_COMPLETE_RANGE,
     suspicious,
-    "almost complete range"
+    "almost complete range",
+    @msrv_behavior = "When the configured MSRV is at least 1.26, this lint suggests `..=` for inclusive ranges. For range patterns on older MSRVs, it suggests the older `...` syntax instead; expression ranges do not get a suggestion on older MSRVs."
 }
 
 impl_lint_pass!(AlmostCompleteRange => [ALMOST_COMPLETE_RANGE]);

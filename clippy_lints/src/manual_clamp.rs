@@ -86,7 +86,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.66.0"]
     pub MANUAL_CLAMP,
     complexity,
-    "using a clamp pattern instead of the clamp function"
+    "using a clamp pattern instead of the clamp function",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.50, because it suggests `clamp()`."
 }
 
 impl_lint_pass!(ManualClamp => [MANUAL_CLAMP]);

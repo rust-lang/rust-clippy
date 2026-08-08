@@ -29,7 +29,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.34.0"]
     pub ASSERTIONS_ON_CONSTANTS,
     style,
-    "`assert!(true)` / `assert!(false)` will be optimized out by the compiler, and should probably be replaced by a `panic!()` or `unreachable!()`"
+    "`assert!(true)` / `assert!(false)` will be optimized out by the compiler, and should probably be replaced by a `panic!()` or `unreachable!()`",
+    @msrv_behavior = "Assertions on local constants are linted for all MSRVs. Assertions on non-local constants outside always-const contexts are only linted when the configured MSRV is at least 1.57 (suggesting an anonymous const) or 1.79 (suggesting a const block)."
 }
 
 impl_lint_pass!(AssertionsOnConstants => [ASSERTIONS_ON_CONSTANTS]);

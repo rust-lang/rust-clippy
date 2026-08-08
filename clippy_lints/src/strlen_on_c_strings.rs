@@ -34,7 +34,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.55.0"]
     pub STRLEN_ON_C_STRINGS,
     complexity,
-    "using `libc::strlen` on a `CString` or `CStr` value, while `count_bytes()` can be used instead"
+    "using `libc::strlen` on a `CString` or `CStr` value, while `count_bytes()` can be used instead",
+    @msrv_behavior = "When the configured MSRV is at least 1.79, this lint suggests `count_bytes()`. On older MSRVs, it suggests `to_bytes().len()`."
 }
 
 impl_lint_pass!(StrlenOnCStrings => [STRLEN_ON_C_STRINGS]);

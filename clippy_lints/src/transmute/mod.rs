@@ -288,7 +288,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub TRANSMUTE_PTR_TO_PTR,
     pedantic,
-    "transmutes from a pointer to a pointer / a reference to a reference"
+    "transmutes from a pointer to a pointer / a reference to a reference",
+    @msrv_behavior = "When the configured MSRV is at least 1.38, this lint can suggest `pointer::cast` for raw pointer transmutes that keep constness. When it is at least 1.65, it can suggest `cast_mut` or `cast_const` for constness-only pointer casts. Otherwise, it falls back to suggesting an `as` cast."
 }
 
 declare_clippy_lint! {
@@ -316,7 +317,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub TRANSMUTE_PTR_TO_REF,
     complexity,
-    "transmutes from a pointer to a reference type"
+    "transmutes from a pointer to a reference type",
+    @msrv_behavior = "When the configured MSRV is at least 1.38 and the pointee type is sized, this lint can suggest `pointer::cast` before dereferencing. On older MSRVs, it falls back to an `as` cast before dereferencing."
 }
 
 declare_clippy_lint! {

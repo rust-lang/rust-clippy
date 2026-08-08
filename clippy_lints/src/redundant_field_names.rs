@@ -32,7 +32,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub REDUNDANT_FIELD_NAMES,
     style,
-    "checks for fields in struct literals where shorthands could be used"
+    "checks for fields in struct literals where shorthands could be used",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.17, because it suggests field init shorthand."
 }
 
 impl_lint_pass!(RedundantFieldNames => [REDUNDANT_FIELD_NAMES]);

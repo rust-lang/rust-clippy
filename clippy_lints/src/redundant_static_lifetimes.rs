@@ -31,7 +31,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.37.0"]
     pub REDUNDANT_STATIC_LIFETIMES,
     style,
-    "Using explicit `'static` lifetime for constants or statics when elision rules would allow omitting them."
+    "Using explicit `'static` lifetime for constants or statics when elision rules would allow omitting them.",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.17, because `'static` lifetime elision in constants and statics is available from that version."
 }
 
 impl_lint_pass!(RedundantStaticLifetimes => [REDUNDANT_STATIC_LIFETIMES]);

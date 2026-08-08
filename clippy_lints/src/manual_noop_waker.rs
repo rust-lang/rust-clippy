@@ -34,7 +34,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.96.0"]
     pub MANUAL_NOOP_WAKER,
     complexity,
-    "manual implementations of noop wakers can be simplified using Waker::noop()"
+    "manual implementations of noop wakers can be simplified using Waker::noop()",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.85, because it suggests `Waker::noop()`."
 }
 
 impl_lint_pass!(ManualNoopWaker => [MANUAL_NOOP_WAKER]);

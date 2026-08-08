@@ -145,7 +145,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.60.0"]
     pub BORROW_AS_PTR,
     pedantic,
-    "borrowing just to cast to a raw pointer"
+    "borrowing just to cast to a raw pointer",
+    @msrv_behavior = "When the configured MSRV is at least 1.82, this lint suggests the `&raw` syntax. On older MSRVs, it suggests `std::ptr::addr_of!` or `std::ptr::addr_of_mut!` instead."
 }
 
 declare_clippy_lint! {
@@ -168,7 +169,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.62.0"]
     pub CAST_ABS_TO_UNSIGNED,
     suspicious,
-    "casting the result of `abs()` to an unsigned integer can panic"
+    "casting the result of `abs()` to an unsigned integer can panic",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.51, because it suggests `unsigned_abs`."
 }
 
 declare_clippy_lint! {
@@ -238,7 +240,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub CAST_LOSSLESS,
     pedantic,
-    "casts using `as` that are known to be lossless, e.g., `x as u64` where `x: u8`"
+    "casts using `as` that are known to be lossless, e.g., `x as u64` where `x: u8`",
+    @msrv_behavior = "Lossless casts from `bool` are only linted when the configured MSRV is at least 1.28, because that version provides `From<bool>` conversions."
 }
 
 declare_clippy_lint! {
@@ -335,7 +338,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub CAST_POSSIBLE_WRAP,
     pedantic,
-    "casts that may cause wrapping around the value, e.g., `x as i32` where `x: u32` and `x > i32::MAX`"
+    "casts that may cause wrapping around the value, e.g., `x as i32` where `x: u32` and `x > i32::MAX`",
+    @msrv_behavior = "When the configured MSRV is at least 1.87, this lint may suggest integer sign-cast methods for wrapping casts."
 }
 
 declare_clippy_lint! {
@@ -411,7 +415,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub CAST_SIGN_LOSS,
     pedantic,
-    "casts from signed types to unsigned types, e.g., `x as u32` where `x: i32`"
+    "casts from signed types to unsigned types, e.g., `x as u32` where `x: i32`",
+    @msrv_behavior = "When the configured MSRV is at least 1.87, this lint may suggest integer sign-cast methods for signed-to-unsigned casts."
 }
 
 declare_clippy_lint! {
@@ -456,7 +461,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.61.0"]
     pub CAST_SLICE_DIFFERENT_SIZES,
     correctness,
-    "casting using `as` between raw pointers to slices of types with different sizes"
+    "casting using `as` between raw pointers to slices of types with different sizes",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.42, because it suggests raw slice pointer APIs."
 }
 
 declare_clippy_lint! {
@@ -483,7 +489,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.65.0"]
     pub CAST_SLICE_FROM_RAW_PARTS,
     suspicious,
-    "casting a slice created from a pointer and length to a slice pointer"
+    "casting a slice created from a pointer and length to a slice pointer",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.42, because it suggests raw slice pointer APIs."
 }
 
 declare_clippy_lint! {
@@ -724,7 +731,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.51.0"]
     pub PTR_AS_PTR,
     pedantic,
-    "casting using `as` between raw pointers that doesn't change their constness, where `pointer::cast` could take the place of `as`"
+    "casting using `as` between raw pointers that doesn't change their constness, where `pointer::cast` could take the place of `as`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.38, because it suggests raw pointer `cast`."
 }
 
 declare_clippy_lint! {
@@ -760,7 +768,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.72.0"]
     pub PTR_CAST_CONSTNESS,
     pedantic,
-    "casting using `as` on raw pointers to change constness when specialized methods apply"
+    "casting using `as` on raw pointers to change constness when specialized methods apply",
+    @msrv_behavior = "Null pointer constness casts can be linted for all MSRVs. Other raw pointer constness casts are only linted when the configured MSRV is at least 1.65, because they suggest `cast_mut` or `cast_const`."
 }
 
 declare_clippy_lint! {
@@ -843,7 +852,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub ZERO_PTR,
     style,
-    "using `0 as *{const, mut} T`"
+    "using `0 as *{const, mut} T`",
+    @msrv_behavior = "This lint can be emitted outside const contexts on all configured MSRVs. In const contexts, it is only emitted when the configured MSRV is at least 1.24, because it suggests `ptr::null` or `ptr::null_mut`."
 }
 
 impl_lint_pass!(Casts => [

@@ -55,7 +55,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.67.0"]
     pub MANUAL_IS_ASCII_CHECK,
     style,
-    "use dedicated method to check ascii range"
+    "use dedicated method to check ascii range",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.24. In const contexts, this lint is only emitted when the configured MSRV is at least 1.47."
 }
 
 impl_lint_pass!(ManualIsAsciiCheck => [MANUAL_IS_ASCII_CHECK]);

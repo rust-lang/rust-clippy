@@ -85,7 +85,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub LEN_ZERO,
     style,
-    "checking `.len() == 0` or `.len() > 0` (or similar) when `.is_empty()` could be used instead"
+    "checking `.len() == 0` or `.len() > 0` (or similar) when `.is_empty()` could be used instead",
+    @msrv_behavior = "This lint only suggests `is_empty()` for types where an `is_empty` method is available for the configured MSRV. Arrays, slices, and `str` are not MSRV-gated."
 }
 
 impl_lint_pass!(LenZero => [COMPARISON_TO_EMPTY, LEN_ZERO]);

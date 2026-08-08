@@ -53,7 +53,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub USE_SELF,
     nursery,
-    "unnecessary structure name repetition whereas `Self` is applicable"
+    "unnecessary structure name repetition whereas `Self` is applicable",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.37, because `Self` in this context depends on the type alias enum variants feature."
 }
 
 impl_lint_pass!(UseSelf => [USE_SELF]);
