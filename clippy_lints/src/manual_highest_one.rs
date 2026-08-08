@@ -1,0 +1,434 @@
+use clippy_config::Conf;
+use clippy_utils::comparisons::{Rel, normalize_comparison};
+use clippy_utils::consts::{ConstEvalCtxt, Constant, integer_const, is_zero_integer_const};
+use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::res::{HasHirId as _, MaybeDef as _};
+use clippy_utils::source::snippet_with_context;
+use clippy_utils::{eq_expr_value, sym};
+use rustc_errors::Applicability;
+use rustc_hir::{Arm, BinOpKind, Expr, ExprKind, MatchSource, Node, PatKind, QPath};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::ty::{self, Ty};
+use rustc_session::impl_lint_pass;
+use rustc_span::{Span, Symbol, SyntaxContext};
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for manual implementations of `x.highest_one()`.
+    ///
+    /// ### Why is this bad?
+    /// Manual implementation of `highest_one()` is error-prone and less readable.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: u32 = 5;
+    /// let i = 31 - x.leading_zeros();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x: u32 = 5;
+    /// let i = x.highest_one().unwrap();
+    /// ```
+    #[clippy::version = "1.99.0"]
+    pub MANUAL_HIGHEST_ONE,
+    complexity,
+    "manually reimplementing `highest_one`"
+}
+
+impl_lint_pass!(ManualHighestOne => [MANUAL_HIGHEST_ONE]);
+
+pub struct ManualHighestOne {
+    msrv: Msrv,
+}
+
+impl ManualHighestOne {
+    pub fn new(conf: &Conf) -> Self {
+        Self { msrv: conf.msrv.into() }
+    }
+}
+
+impl<'tcx> LateLintPass<'tcx> for ManualHighestOne {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
+        if !self.msrv.meets(cx, msrvs::HIGHEST_ONE) || expr.span.from_expansion() {
+            return;
+        }
+
+        match IntTy::new(cx, expr) {
+            Some(IntTy::Option) => {
+                if let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr, true) {
+                    lint_basic_pattern(cx, expr.span, recv, IntTy::Option);
+                }
+                return;
+            },
+            Some(IntTy::Raw) => (),
+            _ => return,
+        }
+
+        let Some(recv) = extract_recv_from_highest_one_equiv(cx, expr, false) else {
+            return;
+        };
+        let h1_expr = expr;
+
+        match IntTy::new(cx, recv) {
+            Some(IntTy::NonZero) => {
+                lint_basic_pattern(cx, h1_expr.span, recv, IntTy::NonZero);
+                return;
+            },
+            Some(IntTy::Raw) => (),
+            _ => return,
+        }
+
+        // Walk the node up
+        let mut hir_id = h1_expr.hir_id();
+        loop {
+            match cx.tcx.parent_hir_node(hir_id) {
+                Node::Arm(arm) => hir_id = arm.hir_id,
+                Node::Block(block)
+                    // Otherwise, this block may have side effect
+                    if block.stmts.is_empty() && block.expr.is_some_and(|e| e.hir_id == hir_id) =>
+                {
+                    hir_id = block.hir_id;
+                },
+                Node::Expr(expr) => match expr.kind {
+                    ExprKind::Block(..) => hir_id = expr.hir_id,
+                    ExprKind::If(condition, then_block, Some(else_block))
+                        if matches!(else_block.kind, ExprKind::Block(..)) =>
+                    {
+                        if lint_if_pattern(cx, expr.span, condition, then_block, else_block, h1_expr, recv) {
+                            return;
+                        }
+                        break;
+                    },
+                    ExprKind::Match(scrutinee, [arm1, arm2], MatchSource::Normal) => {
+                        if lint_match_pattern(cx, expr.span, scrutinee, arm1, arm2, h1_expr, recv) {
+                            return;
+                        }
+                        break;
+                    },
+                    _ => break,
+                },
+                _ => break,
+            }
+        }
+
+        lint_basic_pattern(cx, h1_expr.span, recv, IntTy::Raw);
+    }
+}
+
+enum IntTy {
+    Raw,
+    NonZero,
+    Option,
+}
+
+impl IntTy {
+    fn new<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> Option<Self> {
+        let ty = cx.typeck_results().expr_ty(expr);
+
+        match ty.kind() {
+            ty::Int(..) | ty::Uint(..) => Some(Self::Raw),
+            ty::Adt(def, arg) if def.is_diag_item(&cx.tcx, sym::NonZero) => match arg.type_at(0).kind() {
+                ty::Int(..) | ty::Uint(..) => Some(Self::NonZero),
+                _ => None,
+            },
+            ty::Adt(def, arg) if def.is_diag_item(&cx.tcx, sym::Option) => match arg.type_at(0).kind() {
+                ty::Int(..) | ty::Uint(..) => Some(Self::Option),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+
+    fn basic_suggestion(self) -> &'static str {
+        match self {
+            IntTy::Raw => ".highest_one().unwrap()",
+            IntTy::NonZero | IntTy::Option => ".highest_one()",
+        }
+    }
+}
+
+fn lint_basic_pattern<'tcx>(cx: &LateContext<'tcx>, span: Span, recv: &'tcx Expr<'tcx>, int_ty: IntTy) {
+    let mut app = Applicability::MaybeIncorrect;
+    let sugg = {
+        let (recv_str, _) = snippet_with_context(cx, recv.span, span.ctxt(), "..", &mut app);
+
+        format!("{recv_str}{}", int_ty.basic_suggestion())
+    };
+    span_lint_and_sugg(
+        cx,
+        MANUAL_HIGHEST_ONE,
+        span,
+        "manually reimplementing `highest_one`",
+        "try",
+        sugg,
+        app,
+    );
+}
+
+fn lint_if_pattern<'tcx>(
+    cx: &LateContext<'tcx>,
+    span: Span,
+    condition: &'tcx Expr<'tcx>,
+    then_block: &'tcx Expr<'tcx>,
+    else_block: &'tcx Expr<'tcx>,
+    h1_expr: &'tcx Expr<'tcx>,
+    recv_of_h1: &'tcx Expr<'tcx>,
+) -> bool {
+    // normalize condition: `0 ? x`
+    let (rel, value) = {
+        if let ExprKind::Binary(bin_op, lhs, rhs) = condition.kind
+            && let Some((rel, lhs, rhs)) = normalize_comparison(bin_op.node, lhs, rhs)
+        {
+            // 0 == x, 0 != x, 0 < x
+            if is_zero_integer_const(cx, lhs, condition.span.ctxt()) && !lhs.span.from_expansion() && {
+                matches!(rel, Rel::Eq | Rel::Ne) || {
+                    matches!(rel, Rel::Lt) && matches!(cx.typeck_results().expr_ty(rhs).kind(), ty::Uint(..))
+                }
+            } {
+                (rel, rhs)
+            } else
+            // 0 == x, 0 != x
+            if is_zero_integer_const(cx, rhs, condition.span.ctxt())
+                && !rhs.span.from_expansion()
+                && matches!(rel, Rel::Eq | Rel::Ne)
+            {
+                (rel, lhs)
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    };
+    // `value` and `recv_of_h1` must indicate the same entity
+    if !eq_expr_value(cx, span.ctxt(), value, recv_of_h1) {
+        return false;
+    }
+
+    // if x == 0 {} else { h1 }
+    // if x != 0 { h1 } else {}
+    // if 0 < unsigned { h1 } else {}
+    let recv_in_then_block = cx.tcx.hir_parent_iter(h1_expr.hir_id).any(|v| v.0 == then_block.hir_id);
+    if (rel == Rel::Eq) == recv_in_then_block {
+        return false;
+    }
+
+    // Because suggestion may trigger `unnecessary_lazy_evaluations` lint
+    let mut app = Applicability::MaybeIncorrect;
+
+    let sugg = {
+        let (recv_str, _) = snippet_with_context(cx, recv_of_h1.span, h1_expr.span.ctxt(), "..", &mut app);
+        // the arm other than the one equivalent to `highest_one`
+        let (else_str, _) = if recv_in_then_block {
+            snippet_with_context(cx, else_block.span, span.ctxt(), "..", &mut app)
+        } else {
+            snippet_with_context(cx, then_block.span, span.ctxt(), "..", &mut app)
+        };
+
+        format!("{recv_str}.highest_one().unwrap_or_else(|| {else_str})")
+    };
+
+    span_lint_and_sugg(
+        cx,
+        MANUAL_HIGHEST_ONE,
+        span,
+        "manually reimplementing `highest_one`",
+        "try",
+        sugg,
+        app,
+    );
+
+    true
+}
+
+fn lint_match_pattern<'tcx>(
+    cx: &LateContext<'tcx>,
+    span: Span,
+    scrutinee: &'tcx Expr<'tcx>,
+    arm1: &'tcx Arm<'tcx>,
+    arm2: &'tcx Arm<'tcx>,
+    h1_expr: &'tcx Expr<'tcx>,
+    recv_of_h1: &'tcx Expr<'tcx>,
+) -> bool {
+    // match u {
+    //     0 => do_something(),
+    //     _ => u.highest_one_equiv(),
+    // }
+    if
+    // `0` pattern
+    arm1.guard.is_none()
+        && let PatKind::Expr(pat_expr) = arm1.pat.kind
+        && !pat_expr.span.from_expansion()
+        && ConstEvalCtxt::new(cx).eval_pat_expr(pat_expr) == Some(Constant::Int(0))
+        // `_` pattern
+        && arm2.guard.is_none()
+        && let PatKind::Wild = arm2.pat.kind
+        && arm2.body.hir_id == h1_expr.hir_id
+        // same item
+        && eq_expr_value(cx, span.ctxt(), scrutinee, recv_of_h1)
+    {
+        // Because suggestion may trigger `unnecessary_lazy_evaluations` lint
+        let mut app = Applicability::MaybeIncorrect;
+
+        let sugg = {
+            let (recv_str, _) = snippet_with_context(cx, recv_of_h1.span, h1_expr.span.ctxt(), "..", &mut app);
+            let (else_str, _) = snippet_with_context(cx, arm1.body.span, span.ctxt(), "..", &mut app);
+
+            format!("{recv_str}.highest_one().unwrap_or_else(|| {else_str})")
+        };
+
+        span_lint_and_sugg(
+            cx,
+            MANUAL_HIGHEST_ONE,
+            span,
+            "manually reimplementing `highest_one`",
+            "try",
+            sugg,
+            app,
+        );
+
+        true
+    } else {
+        false
+    }
+}
+
+/// Returns `x` of `BITS - 1 - x.leading_zeros()`-like expressions.
+fn extract_recv_from_highest_one_equiv<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx Expr<'tcx>,
+    checked: bool,
+) -> Option<&'tcx Expr<'tcx>> {
+    // lhs - rhs
+    let (lhs, rhs) = if checked {
+        if let Some((recv, [arg])) = unpack_method_call(expr, sym::checked_sub) {
+            (recv, arg)
+        } else {
+            return None;
+        }
+    } else {
+        unpack_bin_op(expr, BinOpKind::Sub)?
+    };
+
+    // lhs = x.bit_width()
+    // rhs = 1
+    if let Some((recv, [])) = unpack_method_call(lhs, sym::bit_width)
+        && integer_const(cx, rhs, expr.span.ctxt()) == Some(1)
+    {
+        return Some(recv);
+    }
+
+    // lhs = nonzero.bit_width().get()
+    // rhs = 1
+    if let Some((recv, [])) = unpack_method_call(lhs, sym::get)
+        && let Some((recv, [])) = unpack_method_call(recv, sym::bit_width)
+        && integer_const(cx, rhs, expr.span.ctxt()) == Some(1)
+    {
+        return Some(recv);
+    }
+
+    // lhs = const
+    // rhs = x.leading_zeros()
+    if let Some((recv,[])) = unpack_method_call(rhs, sym::leading_zeros)
+        && !recv.span.from_expansion()
+        && let Some(lit) = integer_const(cx, lhs, expr.span.ctxt())
+        // check constant
+        && let ty = cx.typeck_results().expr_ty(recv)
+        && let Some(bits) = bit_width(cx, ty)
+        && lit == bits.wrapping_sub(1)
+    {
+        return Some(recv);
+    }
+
+    // `x.leading_zeros()` and `1` can be swapped.
+
+    // lhs = BITS - 1
+    // rhs = x.leading_zeros()
+    if let Some((inner_lhs, inner_rhs)) = unpack_bin_op(lhs, BinOpKind::Sub)
+        && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_rhs, rhs)
+        && !recv.span.from_expansion()
+        // check BITS
+        && let ty = cx.typeck_results().expr_ty(recv)
+        && integer_const_or_bits(cx, inner_lhs, expr.span.ctxt()) == bit_width(cx, ty)
+    {
+        return Some(recv);
+    }
+
+    // lhs = BITS
+    // rhs = 1 + x.leading_zeros()
+    if let Some(( inner_lhs, inner_rhs)) = unpack_bin_op(rhs, BinOpKind::Add)
+        && let Some(recv) = check_one_and_extract_recv_of_lz(cx, expr,inner_lhs, inner_rhs)
+        && !recv.span.from_expansion()
+        // check BITS
+        && let ty = cx.typeck_results().expr_ty(recv)
+        && integer_const_or_bits(cx, lhs, expr.span.ctxt()) == bit_width(cx, ty)
+    {
+        return Some(recv);
+    }
+
+    None
+}
+
+fn check_one_and_extract_recv_of_lz<'tcx>(
+    cx: &LateContext<'_>,
+    h1_expr: &'tcx Expr<'tcx>,
+    expr1: &'tcx Expr<'tcx>,
+    expr2: &'tcx Expr<'tcx>,
+) -> Option<&'tcx Expr<'tcx>> {
+    if let Some((recv, [])) = unpack_method_call(expr1, sym::leading_zeros)
+        && integer_const(cx, expr2, h1_expr.span.ctxt()) == Some(1)
+    {
+        Some(recv)
+    } else if let Some((recv, [])) = unpack_method_call(expr2, sym::leading_zeros)
+        && integer_const(cx, expr1, h1_expr.span.ctxt()) == Some(1)
+    {
+        Some(recv)
+    } else {
+        None
+    }
+}
+
+fn bit_width<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<u128> {
+    match ty.kind() {
+        ty::Uint(uint_ty) => uint_ty.bit_width().map(u128::from),
+        ty::Int(int_ty) => int_ty.bit_width().map(u128::from),
+        ty::Adt(adt_def, args) if adt_def.is_diag_item(cx, sym::NonZero) => bit_width(cx, args[0].expect_ty()),
+        _ => None,
+    }
+}
+
+// from <https://github.com/rust-lang/rust-clippy/pull/17472#discussion_r3703083830>
+fn integer_const_or_bits(cx: &LateContext<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> Option<u128> {
+    integer_const(cx, expr, ctxt).or_else(|| {
+        if let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = expr.kind
+            && segment.ident.name == sym::BITS
+        {
+            bit_width(cx, cx.typeck_results().node_type(hir_ty.hir_id))
+        } else {
+            None
+        }
+    })
+}
+
+// Returns `(a, [b, ..])` of `a.method(b, ..)`
+fn unpack_method_call<'tcx>(expr: &'tcx Expr<'tcx>, method: Symbol) -> Option<(&'tcx Expr<'tcx>, &'tcx [Expr<'tcx>])> {
+    if let ExprKind::MethodCall(path, recv, args, _) = expr.kind
+        && path.ident.name == method
+    {
+        Some((recv, args))
+    } else {
+        None
+    }
+}
+
+// Returns `(a, b)` of `a ? b`
+fn unpack_bin_op<'tcx>(expr: &'tcx Expr<'tcx>, kind: BinOpKind) -> Option<(&'tcx Expr<'tcx>, &'tcx Expr<'tcx>)> {
+    if let ExprKind::Binary(bin_op, lhs, rhs) = expr.kind
+        && bin_op.node == kind
+    {
+        Some((lhs, rhs))
+    } else {
+        None
+    }
+}

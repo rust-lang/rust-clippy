@@ -7110,6 +7110,7 @@ Released 2018-09-13
 [`manual_find_map`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_find_map
 [`manual_flatten`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_flatten
 [`manual_hash_one`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_hash_one
+[`manual_highest_one`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_highest_one
 [`manual_ignore_case_cmp`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_ignore_case_cmp
 [`manual_ilog2`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_ilog2
 [`manual_inspect`]: https://rust-lang.github.io/rust-clippy/master/index.html#manual_inspect

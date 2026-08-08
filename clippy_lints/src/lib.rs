@@ -207,6 +207,7 @@ mod manual_checked_ops;
 mod manual_clamp;
 mod manual_float_methods;
 mod manual_hash_one;
+mod manual_highest_one;
 mod manual_ignore_case_cmp;
 mod manual_ilog2;
 mod manual_is_ascii_check;
@@ -867,6 +868,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        ManualHighestOne: manual_highest_one::ManualHighestOne = manual_highest_one::ManualHighestOne::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
