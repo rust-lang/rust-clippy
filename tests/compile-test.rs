@@ -477,6 +477,7 @@ fn ui_cargo_toml_metadata() {
 struct Renderer<'a> {
     count: usize,
     lints: &'a Vec<LintMetadata>,
+    git_ref: String,
 }
 
 impl Renderer<'_> {
@@ -558,6 +559,7 @@ impl DiagnosticCollector {
                 Renderer {
                     count: LINTS.len(),
                     lints: &metadata,
+                    git_ref: env::var("TAG_NAME").unwrap_or("master".to_string()),
                 }
                 .render()
                 .unwrap(),
