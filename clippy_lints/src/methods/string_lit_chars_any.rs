@@ -33,9 +33,9 @@ pub(super) fn check<'tcx>(
             (false, true) => lhs,
             _ => return,
         }
+        && let Some(scrutinee_snip) = scrutinee.span.get_text(cx)
         && msrv.meets(cx, msrvs::MATCHES_MACRO)
         && !is_from_proc_macro(cx, expr)
-        && let Some(scrutinee_snip) = scrutinee.span.get_text(cx)
     {
         // Normalize the char using `map` so `join` doesn't use `Display`, if we don't then
         // something like `r"\"` will become `'\'`, which is of course invalid

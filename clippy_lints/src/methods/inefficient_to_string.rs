@@ -19,9 +19,9 @@ pub fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, receiver: &hir::Expr<'_
         && let self_ty = args.type_at(0)
         && let (deref_self_ty, deref_count, _) = peel_and_count_ty_refs(self_ty)
         && deref_count >= 1
+        && specializes_tostring(cx, deref_self_ty)
         // Since Rust 1.82, the specialized `ToString` is properly called
         && !msrv.meets(cx, msrvs::SPECIALIZED_TO_STRING_FOR_REFS)
-        && specializes_tostring(cx, deref_self_ty)
     {
         span_lint_and_then(
             cx,
