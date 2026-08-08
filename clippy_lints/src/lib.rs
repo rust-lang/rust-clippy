@@ -323,6 +323,7 @@ mod ref_option_ref;
 mod ref_patterns;
 mod reference;
 mod regex;
+mod relative_paths;
 mod repeat_vec_with_capacity;
 mod replace_box;
 mod reserve_after_initialization;
@@ -867,6 +868,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        RelativePaths: relative_paths::RelativePaths = relative_paths::RelativePaths,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
