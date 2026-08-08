@@ -3,7 +3,8 @@
     clippy::deref_addrof,
     clippy::needless_borrow,
     clippy::no_effect,
-    clippy::unnecessary_operation
+    clippy::unnecessary_operation,
+    clippy::refcell_cell
 )]
 #![expect(clippy::toplevel_ref_arg)]
 

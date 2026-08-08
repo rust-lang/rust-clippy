@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _};
 use clippy_utils::source::{snippet, snippet_with_applicability, snippet_with_context};
 use clippy_utils::ty::{is_copy, ty_from_hir_ty};
 use clippy_utils::{is_trait_impl_item, sym};
@@ -136,7 +136,7 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
             let mut app = Applicability::MaybeIncorrect;
             let sugg = {
                 let (init, _) = snippet_with_context(cx, span, stmt.span.ctxt(), "..", &mut app);
-                init.to_owned().replace("RefCell", "Cell")
+                init.into_owned().replace("RefCell", "Cell")
             };
             span_lint_and_sugg(
                 cx,
@@ -188,7 +188,7 @@ fn emit_refcell_copy_def<'tcx>(cx: &LateContext<'tcx>, hir_ty: &'tcx Ty<'tcx>) {
                 app,
             );
         },
-        _ => return,
+        _ => (),
     }
 }
 
