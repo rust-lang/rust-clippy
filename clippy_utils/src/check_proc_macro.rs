@@ -296,6 +296,14 @@ fn item_search_pat(item: &Item<'_>) -> (Pat, Pat) {
     }
 }
 
+fn block_search_pat(block: &Block<'_>) -> (Pat, Pat) {
+    if matches!(block.rules, BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided)) {
+        (Pat::Str("unsafe"), Pat::Str("}"))
+    } else {
+        (Pat::Str("{"), Pat::Str("}"))
+    }
+}
+
 fn trait_item_search_pat(item: &TraitItem<'_>) -> (Pat, Pat) {
     match &item.kind {
         TraitItemKind::Const(..) => (Pat::Str("const"), Pat::Str(";")),
@@ -704,6 +712,7 @@ macro_rules! impl_with_search_pat {
     };
 }
 impl_with_search_pat!((cx: LateContext<'tcx>, self: Expr<'tcx>) => expr_search_pat(cx.tcx, self));
+impl_with_search_pat!((_cx: LateContext<'tcx>, self: Block<'tcx>) => block_search_pat(self));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: Item<'_>) => item_search_pat(self));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: TraitItem<'_>) => trait_item_search_pat(self));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: ImplItem<'_>) => impl_item_search_pat(self));

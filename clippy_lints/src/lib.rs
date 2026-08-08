@@ -531,7 +531,6 @@ rustc_lint::early_lint_methods!(
         MultiAssignments: multi_assignments::MultiAssignments = multi_assignments::MultiAssignments,
         PartialPubFields: partial_pub_fields::PartialPubFields = partial_pub_fields::PartialPubFields,
         UnderscoreTyped: let_with_type_underscore::UnderscoreTyped = let_with_type_underscore::UnderscoreTyped,
-        ExcessiveNesting: excessive_nesting::ExcessiveNesting = excessive_nesting::ExcessiveNesting::new(conf),
         NeedlessElse: needless_else::NeedlessElse = needless_else::NeedlessElse,
         RawStrings: raw_strings::RawStrings = raw_strings::RawStrings::new(conf),
         Visibility: visibility::Visibility = visibility::Visibility,
@@ -867,6 +866,7 @@ rustc_lint::late_lint_methods!(
         RestWhenDestructuringStruct: rest_when_destructuring_struct::RestWhenDestructuringStruct = rest_when_destructuring_struct::RestWhenDestructuringStruct,
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
+        ExcessiveNesting: excessive_nesting::ExcessiveNesting = excessive_nesting::ExcessiveNesting::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
