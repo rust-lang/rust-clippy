@@ -1,4 +1,5 @@
 //@compile-flags: --test
+//@error-in-other-file: `allow-print-in-tests` is deprecated
 #![warn(clippy::print_stderr, clippy::print_stdout)]
 
 fn foo(n: u32) {

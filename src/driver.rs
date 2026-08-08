@@ -163,7 +163,7 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             list_builder.register(lint_store);
 
             let conf = clippy_config::Conf::load(sess);
-            clippy_lints::register_lint_passes(lint_store, conf);
+            clippy_lints::register_lint_passes(sess, lint_store, conf);
 
             #[cfg(feature = "internal")]
             clippy_lints_internal::register_lints(lint_store);

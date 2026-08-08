@@ -1,4 +1,5 @@
 //@compile-flags: --test
+//@error-in-other-file: `allow-useless-vec-in-tests` is deprecated
 #![warn(clippy::useless_vec)]
 #![allow(clippy::no_effect, clippy::unnecessary_operation)]
 

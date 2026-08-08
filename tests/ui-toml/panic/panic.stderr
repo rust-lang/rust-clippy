@@ -1,5 +1,13 @@
+warning: `allow-panic-in-tests` is deprecated
+  --> $DIR/tests/ui-toml/panic/clippy.toml:1:1
+   |
+LL | allow-panic-in-tests = true
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `allow-in-tests = ["panic"]` instead, which works for any lint
+
 error: `panic` should not be present in production code
-  --> tests/ui-toml/panic/panic.rs:12:14
+  --> tests/ui-toml/panic/panic.rs:13:14
    |
 LL |         _ => panic!(""),
    |              ^^^^^^^^^^
@@ -8,10 +16,10 @@ LL |         _ => panic!(""),
    = help: to override `-D warnings` add `#[allow(clippy::panic)]`
 
 error: `panic_any` should not be present in production code
-  --> tests/ui-toml/panic/panic.rs:18:5
+  --> tests/ui-toml/panic/panic.rs:19:5
    |
 LL |     panic_any("should lint")
    |     ^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 2 previous errors
+error: aborting due to 2 previous errors; 1 warning emitted
 

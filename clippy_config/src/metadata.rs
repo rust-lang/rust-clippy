@@ -26,17 +26,25 @@ impl ConfMetadata {
             fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                 write!(
                     f,
-                    "## `{}`\n{}\n\n**Default Value:** `{}`\n\n---\n**Affected lints:**\n{}\n\n",
+                    "## `{}`\n{}\n\n**Default Value:** `{}`\n\n",
                     self.0.name,
                     self.0
                         .doc
                         .lines()
                         .format_with("\n", |doc, f| f(&doc.strip_prefix(" ").unwrap_or(doc))),
                     self.0.default,
-                    self.0.lints.iter().format_with("\n", |name, f| f(&format_args!(
-                        "* [`{name}`](https://rust-lang.github.io/rust-clippy/master/index.html#{name})"
-                    ))),
-                )
+                )?;
+                // Options such as `allow-in-tests` apply to any lint, so they have no list to show.
+                if !self.0.lints.is_empty() {
+                    write!(
+                        f,
+                        "---\n**Affected lints:**\n{}\n\n",
+                        self.0.lints.iter().format_with("\n", |name, f| f(&format_args!(
+                            "* [`{name}`](https://rust-lang.github.io/rust-clippy/master/index.html#{name})"
+                        ))),
+                    )?;
+                }
+                Ok(())
             }
         }
         S(self)
