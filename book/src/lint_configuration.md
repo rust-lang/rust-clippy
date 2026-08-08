@@ -141,6 +141,16 @@ Whether to allow `r#""#` when `r""` can be used
 * [`needless_raw_string_hashes`](https://rust-lang.github.io/rust-clippy/master/index.html#needless_raw_string_hashes)
 
 
+## `allow-panic-in-result-fn-in-tests`
+Whether `panic_in_result_fn` should be allowed in test functions or `#[cfg(test)]`
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`panic_in_result_fn`](https://rust-lang.github.io/rust-clippy/master/index.html#panic_in_result_fn)
+
+
 ## `allow-panic-in-tests`
 Whether `panic` should be allowed in test functions or `#[cfg(test)]`
 

@@ -704,7 +704,7 @@ rustc_lint::late_lint_methods!(
         IfNotElse: if_not_else::IfNotElse = if_not_else::IfNotElse,
         PatternEquality: equatable_if_let::PatternEquality = equatable_if_let::PatternEquality,
         ManualAsyncFn: manual_async_fn::ManualAsyncFn = manual_async_fn::ManualAsyncFn,
-        PanicInResultFn: panic_in_result_fn::PanicInResultFn = panic_in_result_fn::PanicInResultFn,
+        PanicInResultFn: panic_in_result_fn::PanicInResultFn = panic_in_result_fn::PanicInResultFn::new(conf),
         MacroUseImports: macro_use::MacroUseImports = <macro_use::MacroUseImports>::default(),
         PatternTypeMismatch: pattern_type_mismatch::PatternTypeMismatch = pattern_type_mismatch::PatternTypeMismatch,
         UnwrapInResult: unwrap_in_result::UnwrapInResult = <unwrap_in_result::UnwrapInResult>::default(),
