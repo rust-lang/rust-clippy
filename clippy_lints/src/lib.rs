@@ -114,6 +114,7 @@ mod disallowed_types;
 mod doc;
 mod double_parens;
 mod drop_forget_ref;
+mod duplicate_fn_bodies;
 mod duplicate_mod;
 mod duration_suboptimal_units;
 mod else_if_without_else;
@@ -869,6 +870,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         UnnecessaryNonzeroGet: unnecessary_nonzero_get::UnnecessaryNonzeroGet = unnecessary_nonzero_get::UnnecessaryNonzeroGet::new(conf),
+        DuplicateFnBodies: duplicate_fn_bodies::DuplicateFnBodies = duplicate_fn_bodies::DuplicateFnBodies::default(),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
