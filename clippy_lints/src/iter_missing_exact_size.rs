@@ -113,7 +113,7 @@ fn size_hint_return<'tcx>(body: &'tcx Body<'tcx>) -> Option<&'tcx Expr<'tcx>> {
         return None;
     };
     // Block without statements - either it has a trailing expression (and we
-    // return that) or it doesn't (and we return none)
+    // return that) or it doesn't (and we return none).
     if block.stmts.is_empty() {
         return block.expr;
     }
@@ -153,7 +153,6 @@ impl<'tcx> LateLintPass<'tcx> for IterMissingExactSize {
         let Some(size_hint_body) = size_hint_body(cx, item.owner_id) else {
             return;
         };
-        // We found the function body for size_hint()!
         let Some(size_hint_return) = size_hint_return(size_hint_body) else {
             return;
         };
@@ -172,7 +171,7 @@ impl<'tcx> LateLintPass<'tcx> for IterMissingExactSize {
             let Some(field) = field else {
                 return;
             };
-            // Does that type implement ExactSizeIterator ?
+            // Does that type implement ExactSizeIterator?
             let Some(trait_def) = EXACT_SIZE_ITERATOR.only(cx) else {
                 // Type isn't know, no_core environment
                 return;
