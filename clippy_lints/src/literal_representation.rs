@@ -8,7 +8,6 @@ use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, Lint, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
-use std::iter;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -351,11 +350,7 @@ impl LiteralDigitGrouping {
         }
 
         let group_sizes: Vec<usize> = num_lit.integer.split('_').map(str::len).collect();
-        if UUID_GROUP_LENS.len() == group_sizes.len() {
-            iter::zip(&UUID_GROUP_LENS, &group_sizes).all(|(&a, &b)| a == b)
-        } else {
-            false
-        }
+        group_sizes == UUID_GROUP_LENS
     }
 
     /// Given the sizes of the digit groups of both integral and fractional
