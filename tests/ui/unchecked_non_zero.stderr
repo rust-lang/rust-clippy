@@ -1,0 +1,268 @@
+error: `chunks` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:34:10
+   |
+LL |     data.chunks(size);
+   |          ^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:34:17
+   |
+LL |     data.chunks(size);
+   |                 ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+   = note: `-D clippy::unchecked-non-zero` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unchecked_non_zero)]`
+
+error: `windows` will panic if the window size is zero
+  --> tests/ui/unchecked_non_zero.rs:36:10
+   |
+LL |     data.windows(size);
+   |          ^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:36:18
+   |
+LL |     data.windows(size);
+   |                  ^^^^
+   = help: consider taking the window size as a `NonZero<usize>`, or checking it before this call
+
+error: `chunks_exact` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:38:10
+   |
+LL |     data.chunks_exact(size);
+   |          ^^^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:38:23
+   |
+LL |     data.chunks_exact(size);
+   |                       ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `rchunks` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:40:10
+   |
+LL |     data.rchunks(size);
+   |          ^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:40:18
+   |
+LL |     data.rchunks(size);
+   |                  ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `rchunks_exact` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:42:10
+   |
+LL |     data.rchunks_exact(size);
+   |          ^^^^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:42:24
+   |
+LL |     data.rchunks_exact(size);
+   |                        ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `chunks` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:44:10
+   |
+LL |     data.chunks(size / 2);
+   |          ^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:44:17
+   |
+LL |     data.chunks(size / 2);
+   |                 ^^^^^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `chunks` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:46:10
+   |
+LL |     data.chunks(std::env::args().count());
+   |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:46:17
+   |
+LL |     data.chunks(std::env::args().count());
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `chunks_mut` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:51:10
+   |
+LL |     data.chunks_mut(size);
+   |          ^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:51:21
+   |
+LL |     data.chunks_mut(size);
+   |                     ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `chunks_exact_mut` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:53:10
+   |
+LL |     data.chunks_exact_mut(size);
+   |          ^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:53:27
+   |
+LL |     data.chunks_exact_mut(size);
+   |                           ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `rchunks_mut` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:55:10
+   |
+LL |     data.rchunks_mut(size);
+   |          ^^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:55:22
+   |
+LL |     data.rchunks_mut(size);
+   |                      ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `rchunks_exact_mut` will panic if the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:57:10
+   |
+LL |     data.rchunks_exact_mut(size);
+   |          ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:57:28
+   |
+LL |     data.rchunks_exact_mut(size);
+   |                            ^^^^
+   = help: consider taking the chunk size as a `NonZero<usize>`, or checking it before this call
+
+error: `chunks` will panic, as the chunk size is zero
+  --> tests/ui/unchecked_non_zero.rs:64:10
+   |
+LL |     data.chunks(0);
+   |          ^^^^^^^^^
+
+error: `windows` will panic, as the window size is zero
+  --> tests/ui/unchecked_non_zero.rs:66:10
+   |
+LL |     data.windows(ZERO);
+   |          ^^^^^^^^^^^^^
+
+error: `step_by` will panic if the step is zero
+  --> tests/ui/unchecked_non_zero.rs:77:13
+   |
+LL |     (0..10).step_by(size);
+   |             ^^^^^^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:77:21
+   |
+LL |     (0..10).step_by(size);
+   |                     ^^^^
+   = help: consider taking the step as a `NonZero<usize>`, or checking it before this call
+
+error: `ilog2` will panic if the value is zero
+  --> tests/ui/unchecked_non_zero.rs:97:7
+   |
+LL |     x.ilog2();
+   |       ^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:97:5
+   |
+LL |     x.ilog2();
+   |     ^
+   = help: consider using `checked_ilog2`, which returns `None` instead of panicking
+
+error: `ilog10` will panic if the value is zero
+  --> tests/ui/unchecked_non_zero.rs:99:7
+   |
+LL |     x.ilog10();
+   |       ^^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:99:5
+   |
+LL |     x.ilog10();
+   |     ^
+   = help: consider using `checked_ilog10`, which returns `None` instead of panicking
+
+error: `ilog` will panic if the value is zero
+  --> tests/ui/unchecked_non_zero.rs:101:7
+   |
+LL |     x.ilog(3);
+   |       ^^^^^^^
+   |
+note: this may be zero
+  --> tests/ui/unchecked_non_zero.rs:101:5
+   |
+LL |     x.ilog(3);
+   |     ^
+   = help: consider using `checked_ilog`, which returns `None` instead of panicking
+
+error: `ilog` will panic if the base is less than `2`
+  --> tests/ui/unchecked_non_zero.rs:105:10
+   |
+LL |     7u32.ilog(base);
+   |          ^^^^^^^^^^
+   |
+note: this may be less than `2`
+  --> tests/ui/unchecked_non_zero.rs:105:15
+   |
+LL |     7u32.ilog(base);
+   |               ^^^^
+   = help: consider using `checked_ilog`, which returns `None` instead of panicking
+
+error: `ilog` will panic, as the base is less than `2`
+  --> tests/ui/unchecked_non_zero.rs:107:10
+   |
+LL |     7u32.ilog(1);
+   |          ^^^^^^^
+
+error: `ilog2` will panic if the value is zero or negative
+  --> tests/ui/unchecked_non_zero.rs:114:7
+   |
+LL |     x.ilog2();
+   |       ^^^^^^^
+   |
+note: this may be zero or negative
+  --> tests/ui/unchecked_non_zero.rs:114:5
+   |
+LL |     x.ilog2();
+   |     ^
+   = help: consider using `checked_ilog2`, which returns `None` instead of panicking
+
+error: `ilog2` will panic if the value is zero or negative
+  --> tests/ui/unchecked_non_zero.rs:117:20
+   |
+LL |     non_zero.get().ilog2();
+   |                    ^^^^^^^
+   |
+note: this may be zero or negative
+  --> tests/ui/unchecked_non_zero.rs:117:5
+   |
+LL |     non_zero.get().ilog2();
+   |     ^^^^^^^^^^^^^^
+   = help: consider using `checked_ilog2`, which returns `None` instead of panicking
+
+error: `ilog2` will panic, as the value is zero
+  --> tests/ui/unchecked_non_zero.rs:122:10
+   |
+LL |     0u32.ilog2();
+   |          ^^^^^^^
+
+error: `ilog2` will panic, as the value is zero or negative
+  --> tests/ui/unchecked_non_zero.rs:124:13
+   |
+LL |     (-1i32).ilog2();
+   |             ^^^^^^^
+
+error: aborting due to 23 previous errors
+

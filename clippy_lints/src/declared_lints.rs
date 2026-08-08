@@ -497,6 +497,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::SWAP_WITH_TEMPORARY_INFO,
     crate::methods::TYPE_ID_ON_BOX_INFO,
     crate::methods::UNBUFFERED_BYTES_INFO,
+    crate::methods::UNCHECKED_NON_ZERO_INFO,
     crate::methods::UNINIT_ASSUMED_INIT_INFO,
     crate::methods::UNIT_HASH_INFO,
     crate::methods::UNNECESSARY_FALLIBLE_CONVERSIONS_INFO,

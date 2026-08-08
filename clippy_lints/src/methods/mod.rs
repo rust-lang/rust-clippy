@@ -127,6 +127,7 @@ mod suspicious_to_owned;
 mod swap_with_temporary;
 mod type_id_on_box;
 mod unbuffered_bytes;
+mod unchecked_non_zero;
 mod uninit_assumed_init;
 mod unit_hash;
 mod unnecessary_fallible_conversions;
@@ -4091,6 +4092,60 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for calls to standard library methods that panic when a value is zero, where
+    /// that value could be zero as far as Clippy can tell. Covered methods are:
+    ///
+    /// - `chunks`, `chunks_exact`, `rchunks`, `rchunks_exact`, `windows` and their `_mut`
+    ///   variants, which panic on a chunk or window size of `0`
+    /// - `Iterator::step_by`, which panics on a step of `0`
+    /// - `ilog2`, `ilog10` and `ilog`, which panic on a receiver of `0` (or, for signed
+    ///   integers, on a negative receiver). `ilog` also panics on a base below `2`.
+    ///
+    /// ### Why restrict this?
+    /// Nothing in these signatures rules out the value that panics, so it is easy to
+    /// overlook. When the value comes from a computation, user input or a configuration
+    /// file, a zero can reach the call and take the whole program down far away from where
+    /// the value was produced.
+    ///
+    /// Accepting a [`NonZero<usize>`](std::num::NonZero) moves the check to the boundary
+    /// where the value enters the program, so the call site cannot panic at all. For the
+    /// `ilog` family, `checked_ilog2` and friends return `None` rather than panicking.
+    ///
+    /// ### Known problems
+    /// Clippy only accepts a value as safe when it is a constant, `NonZero::get()` on an
+    /// unsigned `NonZero`, or `max(n)` for a large enough constant `n`. A value ruled out as
+    /// zero in some other way, such as by an earlier `assert!` or an enclosing `if`, still
+    /// triggers this lint.
+    ///
+    /// `step_by` with a literal `0` is left to `iterator_step_by_zero`, which is
+    /// warn-by-default, so the two lints do not both fire on it.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn print_rows(data: &[u8], row_len: usize) {
+    ///     for row in data.chunks(row_len) {
+    ///         println!("{row:?}");
+    ///     }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// use std::num::NonZero;
+    ///
+    /// fn print_rows(data: &[u8], row_len: NonZero<usize>) {
+    ///     for row in data.chunks(row_len.get()) {
+    ///         println!("{row:?}");
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.99.0"]
+    pub UNCHECKED_NON_ZERO,
+    restriction,
+    "calling a method that panics on a zero value, where the value could be zero"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for `MaybeUninit::uninit().assume_init()`.
     ///
     /// ### Why is this bad?
@@ -5054,6 +5109,7 @@ impl_lint_pass!(Methods => [
     SWAP_WITH_TEMPORARY,
     TYPE_ID_ON_BOX,
     UNBUFFERED_BYTES,
+    UNCHECKED_NON_ZERO,
     UNINIT_ASSUMED_INIT,
     UNIT_HASH,
     UNNECESSARY_FALLIBLE_CONVERSIONS,
@@ -5267,6 +5323,9 @@ impl Methods {
     fn check_methods<'tcx>(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         // Handle method calls whose receiver and arguments may not come from expansion
         if let Some((name, recv, args, span, call_span)) = method_call(expr) {
+            // Spans several unrelated method families, so it does its own dispatch on `name`.
+            unchecked_non_zero::check(cx, expr, recv, args, call_span, name);
+
             match (name, args) {
                 (sym::add | sym::sub | sym::wrapping_add | sym::wrapping_sub, [_arg]) => {
                     zst_offset::check(cx, expr, recv);
