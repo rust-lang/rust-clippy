@@ -713,7 +713,6 @@ macro_rules! impl_with_search_pat {
     };
 }
 impl_with_search_pat!((cx: LateContext<'tcx>, self: Expr<'tcx>) => expr_search_pat(cx.tcx, self));
-impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: Block) => block_search_pat(self));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: Item<'_>) => item_search_pat(self));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: TraitItem<'_>) => trait_item_search_pat(self));
 impl_with_search_pat!((_cx: LateContext<'tcx>, self: ImplItem<'_>) => impl_item_search_pat(self));
@@ -728,6 +727,7 @@ impl_with_search_pat!((cx: LateContext<'tcx>, self: rustc_hir::Pat<'_>) => pat_s
 
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: Attribute) => attr_search_pat(self));
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: ast::Ty) => ast_ty_search_pat(self));
+impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: Block) => block_search_pat(self));
 
 impl<'cx> WithSearchPat<'cx> for (&FnKind<'cx>, &Body<'cx>, HirId, Span) {
     type Context = LateContext<'cx>;
