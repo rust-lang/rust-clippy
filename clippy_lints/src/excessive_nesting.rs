@@ -1,10 +1,10 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::is_from_proc_macro;
-use rustc_hir::intravisit::{Visitor, walk_block, walk_item};
-use rustc_hir::{Block, HirId, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _};
-use rustc_middle::hir::nested_filter;
+use rustc_ast::node_id::NodeSet;
+use rustc_ast::visit::{Visitor, walk_block, walk_item};
+use rustc_ast::{Block, Crate, Inline, Item, ItemKind, ModKind, NodeId};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 
@@ -66,18 +66,33 @@ impl_lint_pass!(ExcessiveNesting => [EXCESSIVE_NESTING]);
 
 pub struct ExcessiveNesting {
     pub excessive_nesting_threshold: u64,
+    pub nodes: NodeSet,
 }
 
 impl ExcessiveNesting {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             excessive_nesting_threshold: conf.excessive_nesting_threshold,
+            nodes: NodeSet::default(),
+        }
+    }
+
+    pub fn check_node_id(&self, cx: &EarlyContext<'_>, span: Span, node_id: NodeId) {
+        if self.nodes.contains(&node_id) {
+            span_lint_and_help(
+                cx,
+                EXCESSIVE_NESTING,
+                span,
+                "this block is too nested",
+                None,
+                "try refactoring your code to minimize nesting",
+            );
         }
     }
 }
 
-impl<'tcx> LateLintPass<'tcx> for ExcessiveNesting {
-    fn check_crate(&mut self, cx: &LateContext<'tcx>) {
+impl EarlyLintPass for ExcessiveNesting {
+    fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &Crate) {
         if self.excessive_nesting_threshold == 0 {
             return;
         }
@@ -88,31 +103,32 @@ impl<'tcx> LateLintPass<'tcx> for ExcessiveNesting {
             nest_level: 0,
         };
 
-        cx.tcx.hir_walk_toplevel_module(&mut visitor);
+        for item in &krate.items {
+            visitor.visit_item(item);
+        }
+    }
+
+    fn check_block(&mut self, cx: &EarlyContext<'_>, block: &Block) {
+        self.check_node_id(cx, block.span, block.id);
+    }
+
+    fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
+        self.check_node_id(cx, item.span, item.id);
     }
 }
 
-struct NestingVisitor<'conf, 'tcx> {
-    conf: &'conf ExcessiveNesting,
-    cx: &'conf LateContext<'tcx>,
+struct NestingVisitor<'conf, 'cx> {
+    conf: &'conf mut ExcessiveNesting,
+    cx: &'cx EarlyContext<'cx>,
     nest_level: u64,
 }
 
 impl NestingVisitor<'_, '_> {
-    fn check_indent(&mut self, span: Span, hir_id: HirId) -> bool {
+    fn check_indent(&mut self, span: Span, id: NodeId) -> bool {
         if self.nest_level > self.conf.excessive_nesting_threshold
             && !span.in_external_macro(self.cx.sess().source_map())
         {
-            span_lint_hir_and_then(
-                self.cx,
-                EXCESSIVE_NESTING,
-                hir_id,
-                span,
-                "this block is too nested",
-                |diag| {
-                    diag.help("try refactoring your code to minimize nesting");
-                },
-            );
+            self.conf.nodes.insert(id);
 
             return true;
         }
@@ -121,21 +137,9 @@ impl NestingVisitor<'_, '_> {
     }
 }
 
-impl<'tcx> Visitor<'tcx> for NestingVisitor<'_, 'tcx> {
-    type NestedFilter = nested_filter::All;
-
-    fn maybe_tcx(&mut self) -> Self::MaybeTyCtxt {
-        self.cx.tcx
-    }
-
-    fn visit_block(&mut self, block: &'tcx Block<'_>) {
-        // If it's a compiler desugaring (like `for`, `while`, or `async`),
-        // keep walking so we reach the inner user blocks!
+impl Visitor<'_> for NestingVisitor<'_, '_> {
+    fn visit_block(&mut self, block: &Block) {
         if block.span.from_expansion() {
-            if block.span.desugaring_kind().is_some() {
-                walk_block(self, block);
-            }
-
             return;
         }
 
@@ -145,47 +149,37 @@ impl<'tcx> Visitor<'tcx> for NestingVisitor<'_, 'tcx> {
 
         self.nest_level += 1;
 
-        if !self.check_indent(block.span, block.hir_id) {
+        if !self.check_indent(block.span, block.id) {
             walk_block(self, block);
         }
 
         self.nest_level -= 1;
     }
 
-    fn visit_item(&mut self, item: &'tcx Item<'tcx>) {
+    fn visit_item(&mut self, item: &Item) {
         if item.span.from_expansion() {
             return;
         }
 
         match &item.kind {
-            ItemKind::Trait { .. } | ItemKind::Impl(_) => {
+            ItemKind::Trait(_) | ItemKind::Impl(_) | ItemKind::Mod(.., ModKind::Loaded(_, Inline::Yes, _)) => {
                 self.nest_level += 1;
 
-                if !self.check_indent(item.span, item.hir_id()) {
+                if !self.check_indent(item.span, item.id) {
                     walk_item(self, item);
                 }
 
                 self.nest_level -= 1;
             },
-            ItemKind::Mod(_, module) => {
-                let is_inline = item.span.contains(module.spans.inner_span);
-
-                if is_inline {
-                    self.nest_level += 1;
-                    if !self.check_indent(item.span, item.hir_id()) {
-                        walk_item(self, item);
-                    }
-                    self.nest_level -= 1;
-                } else {
-                    // Reset nesting level for non-inline modules (since these are in another file)
-                    let mut visitor = NestingVisitor {
-                        conf: self.conf,
-                        cx: self.cx,
-                        nest_level: 0,
-                    };
-                    walk_item(&mut visitor, item);
-                }
-            },
+            // Reset nesting level for non-inline modules (since these are in another file)
+            ItemKind::Mod(..) => walk_item(
+                &mut NestingVisitor {
+                    conf: self.conf,
+                    cx: self.cx,
+                    nest_level: 0,
+                },
+                item,
+            ),
             _ => walk_item(self, item),
         }
     }
