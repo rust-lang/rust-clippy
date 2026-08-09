@@ -238,7 +238,9 @@ impl Params {
             param.uses = Vec::new();
             let key = (param.fn_id, param.idx);
             self.by_fn.remove(&key);
-            // FIXME(rust/#120456) - is `swap_remove` correct?
+            // `swap_remove` is correct here: `by_id` is never iterated in insertion
+            // order anywhere in this file (only `insert`, `get`, and `clear` are used
+            // elsewhere), so the reordering side effect of `swap_remove` is unobservable.
             self.by_id.swap_remove(&id);
         }
     }
