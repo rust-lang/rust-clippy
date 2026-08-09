@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_hir_and_then;
 use rustc_hir::{
     Body, Expr, ExprKind, FnDecl, LetExpr, LocalSource, Mutability, Pat, PatKind, Stmt, StmtKind, intravisit,
 };
@@ -138,10 +138,10 @@ enum DerefPossible {
 fn apply_lint(cx: &LateContext<'_>, pat: &Pat<'_>, deref_possible: DerefPossible) -> bool {
     let maybe_mismatch = find_first_mismatch(cx, pat);
     if let Some((span, mutability, level)) = maybe_mismatch {
-        #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
-        span_lint_and_then(
+        span_lint_hir_and_then(
             cx,
             PATTERN_TYPE_MISMATCH,
+            pat.hir_id,
             span,
             "type of pattern does not match the expression type",
             |diag| {
