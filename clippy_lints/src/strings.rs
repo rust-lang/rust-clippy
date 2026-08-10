@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _};
 use clippy_utils::source::{snippet, snippet_with_applicability, snippet_with_context};
-use clippy_utils::{SpanlessEq, get_expr_use_or_unification_node, get_parent_expr, is_lint_allowed, method_calls, sym};
+use clippy_utils::{SpanlessEq, get_expr_use_or_unification_node, get_parent_expr, is_lint_allowed, sym};
 use rustc_errors::Applicability;
 use rustc_hir::attrs::lang_items::LangItem;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, Node};
+use rustc_hir::{BinOpKind, Expr, ExprKind, Node};
 use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
 use rustc_middle::ty;
 
@@ -89,28 +89,6 @@ declare_clippy_lint! {
     pub STRING_ADD_ASSIGN,
     pedantic,
     "using `x = x + ..` where x is a `String` instead of `push_str()`"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Check if the string is transformed to byte array and cast back to string.
-    ///
-    /// ### Why is this bad?
-    /// It's unnecessary, the string can be used directly.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// std::str::from_utf8(&"Hello World!".as_bytes()[6..11]).unwrap();
-    /// ```
-    ///
-    /// Use instead:
-    /// ```no_run
-    /// &"Hello World!"[6..11];
-    /// ```
-    #[clippy::version = "1.50.0"]
-    pub STRING_FROM_UTF8_AS_BYTES,
-    complexity,
-    "casting string slices to byte slices and back"
 }
 
 declare_clippy_lint! {
@@ -208,10 +186,7 @@ declare_lint_pass!(StrToString => [STR_TO_STRING]);
 
 declare_lint_pass!(StringAdd => [STRING_ADD, STRING_ADD_ASSIGN, STRING_SLICE]);
 
-declare_lint_pass!(StringLitAsBytes => [
-    STRING_FROM_UTF8_AS_BYTES,
-    STRING_LIT_AS_BYTES,
-]);
+declare_lint_pass!(StringLitAsBytes => [STRING_LIT_AS_BYTES]);
 
 declare_lint_pass!(TrimSplitWhitespace => [TRIM_SPLIT_WHITESPACE]);
 
@@ -286,41 +261,8 @@ impl<'tcx> LateLintPass<'tcx> for StringLitAsBytes {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         use rustc_ast::LitKind;
 
-        if let ExprKind::Call(fun, [bytes_arg]) = e.kind
-            // Find `std::str::converts::from_utf8` or `std::primitive::str::from_utf8`
-            && let Some(sym::str_from_utf8 | sym::str_inherent_from_utf8) =
-                fun.res(cx).opt_diag_name(cx)
-
-            // Find string::as_bytes
-            && let ExprKind::AddrOf(BorrowKind::Ref, _, args) = bytes_arg.kind
-            && let ExprKind::Index(left, right, _) = args.kind
-            && let (method_names, expressions, _) = method_calls(left, 1)
-            && method_names == [sym::as_bytes]
-            && expressions.len() == 1
-            && expressions[0].1.is_empty()
-
-            // Check for slicer
-            && let ExprKind::Struct(&qpath, _, _) = right.kind
-            && cx.tcx.qpath_is_lang_item(qpath, LangItem::Range)
-        {
-            let mut applicability = Applicability::MachineApplicable;
-            let string_expression = &expressions[0].0;
-
-            let snippet_app = snippet_with_applicability(cx, string_expression.span, "..", &mut applicability);
-            let (right_snip, _) = snippet_with_context(cx, right.span, e.span.ctxt(), "..", &mut applicability);
-
-            span_lint_and_sugg(
-                cx,
-                STRING_FROM_UTF8_AS_BYTES,
-                e.span,
-                "calling a slice of `as_bytes()` with `from_utf8` should be not necessary",
-                "try",
-                format!("Some(&{snippet_app}[{right_snip}])"),
-                applicability,
-            );
-        }
-
-        if let ExprKind::MethodCall(path, receiver, ..) = &e.kind
+        if !e.span.in_external_macro(cx.sess().source_map())
+            && let ExprKind::MethodCall(path, receiver, ..) = &e.kind
             && path.ident.name == sym::as_bytes
             && let ExprKind::Lit(lit) = &receiver.kind
             && let LitKind::Str(lit_content, _) = &lit.node

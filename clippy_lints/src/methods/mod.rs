@@ -120,6 +120,7 @@ mod stable_sort_primitive;
 mod str_split;
 mod str_splitn;
 mod string_extend_chars;
+mod string_from_utf8_as_bytes;
 mod string_lit_chars_any;
 mod suspicious_command_arg_space;
 mod suspicious_map;
@@ -3808,6 +3809,28 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Check if the string is transformed to byte array and casted back to string.
+    ///
+    /// ### Why is this bad?
+    /// It's unnecessary, the string can be used directly.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// std::str::from_utf8(&"Hello World!".as_bytes()[6..11]).unwrap();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// &"Hello World!"[6..11];
+    /// ```
+    #[clippy::version = "1.50.0"]
+    pub STRING_FROM_UTF8_AS_BYTES,
+    complexity,
+    "casting string slices to byte slices and back"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for `<string_lit>.chars().any(|i| i == c)`.
     ///
     /// ### Why is this bad?
@@ -5076,6 +5099,7 @@ impl_lint_pass!(Methods => [
     SOME_FILTER,
     STABLE_SORT_PRIMITIVE,
     STRING_EXTEND_CHARS,
+    STRING_FROM_UTF8_AS_BYTES,
     STRING_LIT_CHARS_ANY,
     STR_SPLIT_AT_NEWLINE,
     SUSPICIOUS_COMMAND_ARG_SPACE,
@@ -5193,6 +5217,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 swap_with_temporary::check(cx, expr, func, args);
                 ip_constant::check(cx, expr, func, args);
                 clone_on_copy::check_function(cx, expr);
+                string_from_utf8_as_bytes::check_call(cx, expr, func, args);
                 unwrap_expect_used::check_call(
                     cx,
                     expr,
