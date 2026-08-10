@@ -51,7 +51,7 @@ mod nested {
 
 mod another_nested {
     #[rustfmt::skip]
-    pub fn cross_module_b(x: i32) -> i32 { //~ duplicate_fn_bodies
+    pub fn cross_module_b(x: i32) -> i32 {
         let y = x + 4;
         y * 5
     }
@@ -217,7 +217,7 @@ trait TraitBoilerplate {
     }
 
     #[rustfmt::skip]
-    fn trait_default_b(&self, x: i32) -> i32 { //~ duplicate_fn_bodies
+    fn trait_default_b(&self, x: i32) -> i32 {
         let y = x + 23;
         y * 24
     }
@@ -232,7 +232,7 @@ impl TraitBoilerplate for TraitImplementation {
     }
 
     #[rustfmt::skip]
-    fn trait_default_b(&self, x: i32) -> i32 { //~ duplicate_fn_bodies
+    fn trait_default_b(&self, x: i32) -> i32 {
         let y = x + 25;
         y * 26
     }

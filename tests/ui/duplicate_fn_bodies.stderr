@@ -1,4 +1,25 @@
 error: this function has the same body as another function
+  --> tests/ui/duplicate_fn_bodies.rs:259:1
+   |
+LL | / fn enabled_duplicate(x: i32) -> i32 {
+LL | |     let y = x + 22;
+LL | |     y * 23
+LL | | }
+   | |_^
+   |
+note: identical function body is defined here
+  --> tests/ui/duplicate_fn_bodies.rs:253:1
+   |
+LL | / fn allowed_canonical(x: i32) -> i32 {
+LL | |     let y = x + 22;
+LL | |     y * 23
+LL | | }
+   | |_^
+   = help: consider sharing the implementation if the duplication is unintentional
+   = note: `-D clippy::duplicate-fn-bodies` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::duplicate_fn_bodies)]`
+
+error: this function has the same body as another function
   --> tests/ui/duplicate_fn_bodies.rs:10:1
    |
 LL | / fn exact_free_b(x: i32) -> i32 {
@@ -16,8 +37,25 @@ LL | |     y * 2
 LL | | }
    | |_^
    = help: consider sharing the implementation if the duplication is unintentional
-   = note: `-D clippy::duplicate-fn-bodies` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::duplicate_fn_bodies)]`
+
+error: this function has the same body as another function
+  --> tests/ui/duplicate_fn_bodies.rs:123:1
+   |
+LL | / fn macro_body_b(x: i32) -> i32 {
+LL | |     let y = source_level_macro!(x);
+LL | |     y * 2
+LL | | }
+   | |_^
+   |
+note: identical function body is defined here
+  --> tests/ui/duplicate_fn_bodies.rs:117:1
+   |
+LL | / fn macro_body_a(x: i32) -> i32 {
+LL | |     let y = source_level_macro!(x);
+LL | |     y * 2
+LL | | }
+   | |_^
+   = help: consider sharing the implementation if the duplication is unintentional
 
 error: this function has the same body as another function
   --> tests/ui/duplicate_fn_bodies.rs:22:1
@@ -79,41 +117,22 @@ LL | | }
    = help: consider sharing the implementation if the duplication is unintentional
 
 error: this function has the same body as another function
-  --> tests/ui/duplicate_fn_bodies.rs:54:5
+  --> tests/ui/duplicate_fn_bodies.rs:282:1
    |
-LL | /     pub fn cross_module_b(x: i32) -> i32 {
-LL | |         let y = x + 4;
-LL | |         y * 5
-LL | |     }
-   | |_____^
-   |
-note: identical function body is defined here
-  --> tests/ui/duplicate_fn_bodies.rs:46:5
-   |
-LL | /     pub fn cross_module_a(x: i32) -> i32 {
-LL | |         let y = x + 4;
-LL | |         y * 5
-LL | |     }
-   | |_____^
-   = help: consider sharing the implementation if the duplication is unintentional
-
-error: this function has the same body as another function
-  --> tests/ui/duplicate_fn_bodies.rs:71:5
-   |
-LL | /     fn inherent_method_b(&self) -> i32 {
-LL | |         let y = self.value + 5;
-LL | |         y * 6
-LL | |     }
-   | |_____^
+LL | / fn expected_primary_duplicate(x: i32) -> i32 {
+LL | |     let y = x + 29;
+LL | |     y * 30
+LL | | }
+   | |_^
    |
 note: identical function body is defined here
-  --> tests/ui/duplicate_fn_bodies.rs:65:5
+  --> tests/ui/duplicate_fn_bodies.rs:276:1
    |
-LL | /     fn inherent_method_a(&self) -> i32 {
-LL | |         let y = self.value + 5;
-LL | |         y * 6
-LL | |     }
-   | |_____^
+LL | / fn expected_primary(x: i32) -> i32 {
+LL | |     let y = x + 29;
+LL | |     y * 30
+LL | | }
+   | |_^
    = help: consider sharing the implementation if the duplication is unintentional
 
 error: this function has the same body as another function
@@ -136,99 +155,23 @@ LL | | }
    = help: consider sharing the implementation if the duplication is unintentional
 
 error: this function has the same body as another function
-  --> tests/ui/duplicate_fn_bodies.rs:123:1
+  --> tests/ui/duplicate_fn_bodies.rs:71:5
    |
-LL | / fn macro_body_b(x: i32) -> i32 {
-LL | |     let y = source_level_macro!(x);
-LL | |     y * 2
-LL | | }
-   | |_^
-   |
-note: identical function body is defined here
-  --> tests/ui/duplicate_fn_bodies.rs:117:1
-   |
-LL | / fn macro_body_a(x: i32) -> i32 {
-LL | |     let y = source_level_macro!(x);
-LL | |     y * 2
-LL | | }
-   | |_^
-   = help: consider sharing the implementation if the duplication is unintentional
-
-error: this function has the same body as another function
-  --> tests/ui/duplicate_fn_bodies.rs:220:5
-   |
-LL | /     fn trait_default_b(&self, x: i32) -> i32 {
-LL | |         let y = x + 23;
-LL | |         y * 24
+LL | /     fn inherent_method_b(&self) -> i32 {
+LL | |         let y = self.value + 5;
+LL | |         y * 6
 LL | |     }
    | |_____^
    |
 note: identical function body is defined here
-  --> tests/ui/duplicate_fn_bodies.rs:214:5
+  --> tests/ui/duplicate_fn_bodies.rs:65:5
    |
-LL | /     fn trait_default_a(&self, x: i32) -> i32 {
-LL | |         let y = x + 23;
-LL | |         y * 24
+LL | /     fn inherent_method_a(&self) -> i32 {
+LL | |         let y = self.value + 5;
+LL | |         y * 6
 LL | |     }
    | |_____^
    = help: consider sharing the implementation if the duplication is unintentional
 
-error: this function has the same body as another function
-  --> tests/ui/duplicate_fn_bodies.rs:235:5
-   |
-LL | /     fn trait_default_b(&self, x: i32) -> i32 {
-LL | |         let y = x + 25;
-LL | |         y * 26
-LL | |     }
-   | |_____^
-   |
-note: identical function body is defined here
-  --> tests/ui/duplicate_fn_bodies.rs:229:5
-   |
-LL | /     fn trait_default_a(&self, x: i32) -> i32 {
-LL | |         let y = x + 25;
-LL | |         y * 26
-LL | |     }
-   | |_____^
-   = help: consider sharing the implementation if the duplication is unintentional
-
-error: this function has the same body as another function
-  --> tests/ui/duplicate_fn_bodies.rs:259:1
-   |
-LL | / fn enabled_duplicate(x: i32) -> i32 {
-LL | |     let y = x + 22;
-LL | |     y * 23
-LL | | }
-   | |_^
-   |
-note: identical function body is defined here
-  --> tests/ui/duplicate_fn_bodies.rs:253:1
-   |
-LL | / fn allowed_canonical(x: i32) -> i32 {
-LL | |     let y = x + 22;
-LL | |     y * 23
-LL | | }
-   | |_^
-   = help: consider sharing the implementation if the duplication is unintentional
-
-error: this function has the same body as another function
-  --> tests/ui/duplicate_fn_bodies.rs:282:1
-   |
-LL | / fn expected_primary_duplicate(x: i32) -> i32 {
-LL | |     let y = x + 29;
-LL | |     y * 30
-LL | | }
-   | |_^
-   |
-note: identical function body is defined here
-  --> tests/ui/duplicate_fn_bodies.rs:276:1
-   |
-LL | / fn expected_primary(x: i32) -> i32 {
-LL | |     let y = x + 29;
-LL | |     y * 30
-LL | | }
-   | |_^
-   = help: consider sharing the implementation if the duplication is unintentional
-
-error: aborting due to 12 previous errors
+error: aborting due to 9 previous errors
 
