@@ -19,7 +19,7 @@ use rustc_middle::ty::adjustment::{
 };
 use rustc_session::impl_lint_pass;
 use rustc_span::Span;
-use std::hash::{Hash, Hasher};
+use std::hash::{Hash, Hasher as _};
 use std::mem;
 
 const MIN_BODY_TOKENS: u32 = 12;
@@ -380,13 +380,7 @@ impl<'tcx> LateLintPass<'tcx> for DuplicateFnBodies {
                 self.hash_active(&ident.name);
             },
 
-            ExprKind::Break(destination, _) => {
-                if let Some(label) = destination.label {
-                    self.hash_active(&label.ident.name);
-                }
-            },
-
-            ExprKind::Continue(destination) => {
+            ExprKind::Break(destination, _) | ExprKind::Continue(destination) => {
                 if let Some(label) = destination.label {
                     self.hash_active(&label.ident.name);
                 }
@@ -505,7 +499,7 @@ fn extraction_domain(cx: &LateContext<'_>, kind: FnKind<'_>, def_id: LocalDefId)
     }
 }
 
-fn process_shape_bucket<'tcx>(cx: &LateContext<'tcx>, entries: &[BodyEntry]) {
+fn process_shape_bucket(cx: &LateContext<'_>, entries: &[BodyEntry]) {
     let mut token_candidates = Vec::with_capacity(entries.len());
 
     for entry in entries {
@@ -549,7 +543,7 @@ fn process_shape_bucket<'tcx>(cx: &LateContext<'tcx>, entries: &[BodyEntry]) {
     }
 }
 
-fn process_token_hash_bucket<'tcx>(cx: &LateContext<'tcx>, candidates: &[&BodyEntry]) {
+fn process_token_hash_bucket(cx: &LateContext<'_>, candidates: &[&BodyEntry]) {
     let mut exact_token_classes: Vec<Vec<&BodyEntry>> = Vec::new();
 
     for &candidate in candidates {
@@ -585,7 +579,7 @@ struct SemanticCandidate<'a, 'tcx> {
     tape: SemanticTape<'tcx>,
 }
 
-fn process_exact_token_class<'tcx>(cx: &LateContext<'tcx>, token_class: &[&BodyEntry]) {
+fn process_exact_token_class(cx: &LateContext<'_>, token_class: &[&BodyEntry]) {
     let mut candidates = Vec::with_capacity(token_class.len());
 
     for &entry in token_class {
@@ -812,9 +806,9 @@ struct PatAdjustmentKey<'tcx> {
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 enum PatAdjustmentKindKey {
-    BuiltinDeref,
-    OverloadedDeref,
-    PinDeref,
+    Builtin,
+    Overloaded,
+    Pin,
 }
 
 fn semantic_tape<'tcx>(cx: &LateContext<'tcx>, entry: &BodyEntry) -> Option<SemanticTape<'tcx>> {
@@ -996,9 +990,9 @@ impl<'tcx> SemanticVisitor<'_, 'tcx> {
 
         for adjustment in adjustments {
             let kind = match adjustment.kind {
-                PatAdjust::BuiltinDeref => PatAdjustmentKindKey::BuiltinDeref,
-                PatAdjust::OverloadedDeref => PatAdjustmentKindKey::OverloadedDeref,
-                PatAdjust::PinDeref => PatAdjustmentKindKey::PinDeref,
+                PatAdjust::BuiltinDeref => PatAdjustmentKindKey::Builtin,
+                PatAdjust::OverloadedDeref => PatAdjustmentKindKey::Overloaded,
+                PatAdjust::PinDeref => PatAdjustmentKindKey::Pin,
             };
 
             let source = self.cx.tcx.erase_and_anonymize_regions(adjustment.source);
