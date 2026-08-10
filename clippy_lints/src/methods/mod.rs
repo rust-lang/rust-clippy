@@ -127,6 +127,7 @@ mod suspicious_map;
 mod suspicious_splitn;
 mod suspicious_to_owned;
 mod swap_with_temporary;
+mod trim_split_white_space;
 mod type_id_on_box;
 mod unbuffered_bytes;
 mod uninit_assumed_init;
@@ -4069,6 +4070,27 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Warns about calling `str::trim` (or variants) before `str::split_whitespace`.
+    ///
+    /// ### Why is this bad?
+    /// `split_whitespace` already ignores leading and trailing whitespace.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// " A B C ".trim().split_whitespace();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// " A B C ".split_whitespace();
+    /// ```
+    #[clippy::version = "1.62.0"]
+    pub TRIM_SPLIT_WHITESPACE,
+    style,
+    "using `str::trim()` or alike before `str::split_whitespace`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Looks for calls to `.type_id()` on a `Box<dyn _>`.
     ///
     /// ### Why is this bad?
@@ -5108,6 +5130,7 @@ impl_lint_pass!(Methods => [
     SUSPICIOUS_SPLITN,
     SUSPICIOUS_TO_OWNED,
     SWAP_WITH_TEMPORARY,
+    TRIM_SPLIT_WHITESPACE,
     TYPE_ID_ON_BOX,
     UNBUFFERED_BYTES,
     UNINIT_ASSUMED_INIT,
@@ -6022,7 +6045,9 @@ impl Methods {
                 (sym::map_or, [def, map]) => {
                     map_or_identity::check(cx, expr, recv, call_span, def, map);
                 },
-
+                (sym::split_whitespace, []) => {
+                    trim_split_white_space::check(cx, expr, recv, call_span);
+                },
                 (sym::to_string, []) => {
                     inefficient_to_string::check(cx, expr, recv, self.msrv);
                 },
