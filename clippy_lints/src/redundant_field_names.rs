@@ -51,6 +51,7 @@ impl EarlyLintPass for RedundantFieldNames {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
         if let ExprKind::Struct(ref se) = expr.kind
             && self.msrv.meets(msrvs::FIELD_INIT_SHORTHAND)
+            && !expr.span.in_external_macro(cx.sess().source_map())
         {
             for field in &se.fields {
                 if !field.is_shorthand
