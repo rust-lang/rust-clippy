@@ -1,0 +1,29 @@
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let.rs:24:8
+   |
+LL |     if matches!(unit, Enum::A) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Enum::A = unit`
+   |
+   = note: `-D clippy::matches-if-let` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::matches_if_let)]`
+
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let.rs:29:15
+   |
+LL |     } else if matches!(opt, Some(_)) {
+   |               ^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Some(_) = opt`
+
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let.rs:33:8
+   |
+LL |     if matches!(Some(1), Some(_)) {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Some(_) = Some(1)`
+
+error: `matches!` used as an `if` condition
+  --> tests/ui/matches_if_let.rs:43:8
+   |
+LL |     if matches!(mixed, Some(_)) && mixed.is_some() {}
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^ help: use `if let`: `let Some(_) = mixed`
+
+error: aborting due to 4 previous errors
+
