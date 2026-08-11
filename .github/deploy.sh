@@ -60,11 +60,11 @@ elif [[ $BETA = "true" ]]; then
   git add beta
   git commit -m "Automatic deploy to GitHub Pages (beta): ${SHA}"
 else
+  git add .
   if git diff --exit-code --quiet; then
     echo "No changes to the output on this push; exiting."
     exit 0
   fi
-  git add .
   git commit -m "Automatic deploy to GitHub Pages: ${SHA}"
 fi
 
