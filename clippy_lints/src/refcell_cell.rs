@@ -1,8 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _};
-use clippy_utils::source::{snippet, snippet_with_applicability, snippet_with_context};
+use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::ty::{is_copy, ty_from_hir_ty};
-use clippy_utils::{is_trait_impl_item, sym};
+use clippy_utils::{is_trait_impl_item, qpath_generic_tys, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
@@ -111,33 +111,79 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
             && let Some(init) = let_stmt.init
             // RefCell<T: Copy>
             && let Some(ty) = cx.typeck_results().expr_ty_opt(init)
-            && let ty::Adt(def,args) = ty.kind()
+            && let ty::Adt(def, args) = ty.kind()
             && def.is_diag_item(&cx.tcx, RefCell)
             && is_copy(cx, args.type_at(0))
             // `init` is a constructor of `RefCell`
             && let ExprKind::Call(maybe_qpath, args) = init.kind
-            && is_refcell_ctor(cx, maybe_qpath, args.len())
+            && let Some(kind) = CtorKind::new(cx, maybe_qpath, args.len())
             // Be conservative about macro
             && args.iter().all(|e| !e.span.from_expansion())
         {
-            let span = match (
-                snippet(cx, init.span, "").contains("RefCell"),
-                let_stmt
-                    .ty
-                    .is_some_and(|ty| snippet(cx, ty.span, "").contains("RefCell")),
-            ) {
-                (true, true) => let_stmt.span,
-                (true, false) => init.span,
-                (false, true) => let_stmt.ty.unwrap().span,
-                (false, false) => return,
+            // This can be a false positive, for example, when passed to a function
+            // that requires `RefCell`.
+            let mut app = Applicability::MaybeIncorrect;
+
+            let (span, sugg) = if let Some(annotation) = let_stmt.ty
+                && let TyKind::Path(qpath) = annotation.kind
+                && let Some(inner_ty) = qpath_generic_tys(&qpath).next()
+            {
+                let sugg = {
+                    let inner_ty = snippet_with_context(cx, inner_ty.span, stmt.span.ctxt(), "_", &mut app).0;
+
+                    let arg = args
+                        .first()
+                        .map_or_default(|arg| snippet_with_context(cx, arg.span, stmt.span.ctxt(), "..", &mut app).0);
+                    let init = match kind {
+                        CtorKind::New => format!("Cell::new({arg})"),
+                        CtorKind::From => format!("Cell::from({arg})"),
+                        CtorKind::Default => "Cell::default()".to_string(),
+                    };
+
+                    format!(/* let pat: */ "Cell<{inner_ty}> = {init};")
+                };
+
+                (annotation.span.to(init.span), sugg)
+            } else {
+                let sugg = {
+                    let arg = args
+                        .first()
+                        .map_or_default(|arg| snippet_with_context(cx, arg.span, stmt.span.ctxt(), "..", &mut app).0);
+                    let init = match kind {
+                        CtorKind::New => format!("Cell::new({arg})"),
+                        CtorKind::From => format!("Cell::from({arg})"),
+                        CtorKind::Default => "Cell::default()".to_string(),
+                    };
+
+                    let extract_ty = |qpath| {
+                        // <T>::ctor
+                        let ty = match qpath {
+                            QPath::Resolved(ty, _) => ty,
+                            QPath::TypeRelative(ty, _) => Some(ty),
+                        };
+
+                        if let Some(TyKind::Path(qpath)) = ty.map(|ty| ty.kind)
+                            && let Some(ty) = qpath_generic_tys(&qpath).next()
+                        {
+                            Some(ty)
+                        } else {
+                            None
+                        }
+                    };
+
+                    if let ExprKind::Path(qpath) = maybe_qpath.kind
+                        && let Some(ty) = extract_ty(qpath)
+                    {
+                        let ty = snippet_with_context(cx, ty.span, stmt.span.ctxt(), "_", &mut app).0;
+                        init.replacen("::", &format!("::<{ty}>::"), 1)
+                    } else {
+                        init
+                    }
+                };
+
+                (init.span, sugg)
             };
 
-            // Because this may be required to be `RefCell`
-            let mut app = Applicability::MaybeIncorrect;
-            let sugg = {
-                let (init, _) = snippet_with_context(cx, span, stmt.span.ctxt(), "..", &mut app);
-                init.into_owned().replace("RefCell", "Cell")
-            };
             span_lint_and_sugg(
                 cx,
                 REFCELL_CELL,
@@ -192,22 +238,32 @@ fn emit_refcell_copy_def<'tcx>(cx: &LateContext<'tcx>, hir_ty: &'tcx Ty<'tcx>) {
     }
 }
 
-fn is_refcell_ctor<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, num_args: usize) -> bool {
-    if let Some(def_id) = expr.res(cx).opt_def_id()
-        && let Some(name) = cx.tcx.get_diagnostic_name(def_id)
-        && (matches!(name, sym::from_fn if num_args == 1) || matches!(name, sym::default_fn if num_args == 0))
-    {
-        return true;
-    }
+enum CtorKind {
+    New,
+    From,
+    Default,
+}
 
-    // RefCell::new()
-    if let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = expr.kind
-        && segment.ident.name == sym::new
-        && hir_ty.res(cx).is_diag_item(&cx.tcx, RefCell)
-        && num_args == 1
-    {
-        return true;
+impl CtorKind {
+    fn new<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, num_args: usize) -> Option<Self> {
+        if let Some(def_id) = expr.res(cx).opt_def_id()
+            && def_id.is_diag_item(&cx.tcx, sym::from_fn)
+            && num_args == 1
+        {
+            Some(Self::From)
+        } else if let Some(def_id) = expr.res(cx).opt_def_id()
+            && def_id.is_diag_item(&cx.tcx, sym::default_fn)
+            && num_args == 0
+        {
+            Some(Self::Default)
+        } else if let ExprKind::Path(QPath::TypeRelative(hir_ty, segment)) = expr.kind
+            && segment.ident.name == sym::new
+            && hir_ty.res(cx).is_diag_item(&cx.tcx, RefCell)
+            && num_args == 1
+        {
+            Some(Self::New)
+        } else {
+            None
+        }
     }
-
-    false
 }

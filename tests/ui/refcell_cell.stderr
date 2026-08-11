@@ -86,28 +86,34 @@ LL |     let _ = RefCell::<i32>::new(1);
    |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::new(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:82:13
+  --> tests/ui/refcell_cell.rs:80:13
+   |
+LL |     let _ = RefCell::<_>::new(1);
+   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
+
+error: using a `RefCell` for a `Copy` type
+  --> tests/ui/refcell_cell.rs:83:13
    |
 LL |     let _ = RefCell::from(1);
    |             ^^^^^^^^^^^^^^^^ help: try: `Cell::from(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:83:13
+  --> tests/ui/refcell_cell.rs:84:13
    |
 LL |     let _ = RefCell::<i32>::from(1);
    |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::from(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:85:12
+  --> tests/ui/refcell_cell.rs:86:12
    |
 LL |     let _: RefCell<i32> = Default::default();
-   |            ^^^^^^^^^^^^ help: try: `Cell<i32>`
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell<i32> = Cell::default();`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:86:13
+  --> tests/ui/refcell_cell.rs:87:13
    |
 LL |     let _ = <RefCell<i32> as Default>::default();
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `<Cell<i32> as Default>::default()`
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::default()`
 
-error: aborting due to 18 previous errors
+error: aborting due to 19 previous errors
 

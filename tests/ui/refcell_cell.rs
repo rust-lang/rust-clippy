@@ -77,6 +77,7 @@ impl Dummy {
 fn main() {
     let _ = RefCell::new(1); //~ refcell_cell
     let _ = RefCell::<i32>::new(1); //~ refcell_cell
+    let _ = RefCell::<_>::new(1); //~ refcell_cell
     let _ = RefCell::new(vec![1]);
 
     let _ = RefCell::from(1); //~ refcell_cell
