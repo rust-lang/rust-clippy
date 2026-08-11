@@ -1,0 +1,71 @@
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:30:13
+   |
+LL |     let _ = if a < b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.max(b)`
+   |
+   = note: `-D clippy::manual-max` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_max)]`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:32:13
+   |
+LL |     let _ = if a <= b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.max(b)`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:34:13
+   |
+LL |     let _ = if a > b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.max(b)`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:36:13
+   |
+LL |     let _ = if a >= b { a } else { b };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.max(b)`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:40:13
+   |
+LL |     let _ = if a + 1 < b { b } else { a + 1 };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `(a + 1).max(b)`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:45:5
+   |
+LL | /     if cores < b {
+LL | |         cores = b;
+LL | |     }
+   | |_____^ help: replace with: `cores = cores.max(b);`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:51:5
+   |
+LL | /     if limit <= b {
+LL | |         limit = b;
+LL | |     }
+   | |_____^ help: replace with: `limit = limit.max(b);`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:59:5
+   |
+LL | /     if n < ignore {
+LL | |         n = ignore;
+LL | |     }
+   | |_____^ help: replace with: `n = n.max(ignore);`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:67:13
+   |
+LL |     let _ = if k1 < k2 { k2 } else { k1 };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `k1.max(k2)`
+
+error: this `if` expression is a manual `max`
+  --> tests/ui/manual_max.rs:93:13
+   |
+LL |     let _ = if a < b { b } else { a };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `a.max(b)`
+
+error: aborting due to 10 previous errors
+
