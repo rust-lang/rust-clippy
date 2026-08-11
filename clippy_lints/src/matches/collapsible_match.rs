@@ -1,3 +1,5 @@
+use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
+use crate::collapsible_if::{parens_around, peel_parens};
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::{If, IfLetOrMatch};
 use clippy_utils::msrvs::Msrv;
@@ -7,6 +9,7 @@ use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
     SpanlessEq, get_ref_operators, is_none_pattern, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators,
+    tokenize_with_text,
 };
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
@@ -16,9 +19,6 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
 use rustc_span::{BytePos, Ident, Span, SyntaxContext};
-
-use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
-use crate::collapsible_if::{parens_around, peel_parens};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
@@ -172,24 +172,18 @@ fn check_arm<'tcx>(
                     // The Block Span can start with a label so finding actual opening braces instead of assuming it's
                     // first Byte
                     let block_snippet = snippet(cx, block_span, "");
-                    let mut byte_pos: u32 = 0;
-                    let mut brace_offset = None;
 
-                    for token in rustc_lexer::tokenize(&block_snippet, rustc_lexer::FrontmatterAllowed::No) {
-                        if token.kind == rustc_lexer::TokenKind::OpenBrace {
-                            brace_offset = Some(byte_pos);
-                            break;
-                        }
-                        byte_pos += token.len;
-                    }
-
-                    let Some(brace_offset) = brace_offset else {
+                    let Some((_, _, brace_range)) = tokenize_with_text(&block_snippet)
+                        .find(|(token, _, _)| *token == rustc_lexer::TokenKind::OpenBrace)
+                    else {
                         return;
                     };
-                    let brace_offset_usize = brace_offset as usize;
+
+                    let brace_offset = u32::try_from(brace_range.start).unwrap();
+
                     let brace_pos = block_span.lo() + BytePos(brace_offset);
 
-                    let label_prefix = block_snippet[..brace_offset_usize].trim();
+                    let label_prefix = block_snippet.get(..brace_range.start).unwrap_or("").trim();
                     let outer_then_open_bracket = block_span
                         .with_lo(brace_pos)
                         .with_hi(brace_pos + BytePos(1))
