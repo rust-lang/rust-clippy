@@ -1,0 +1,257 @@
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:5:13
+   |
+LL |     let _ = "Ba-dum!".to_lowercase().to_lowercase();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `"Ba-dum!".to_lowercase()`
+   |
+   = note: `-D clippy::redundant-idempotent-calls` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_idempotent_calls)]`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:11:5
+   |
+LL |     s.to_lowercase();
+   |     ^^^^^^^^^^^^^^^^ help: replace with: `s`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:17:5
+   |
+LL |     x.floor();
+   |     ^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:25:17
+   |
+LL |         let _ = t.to_lowercase();
+   |                 ^^^^^^^^^^^^^^^^ help: replace with: `t`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:29:13
+   |
+LL |     let _ = t.to_lowercase();
+   |             ^^^^^^^^^^^^^^^^ help: replace with: `t`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:51:13
+   |
+LL |         c = c.floor();
+   |             ^^^^^^^^^ help: replace with: `c`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:71:9
+   |
+LL |     c = c.floor();
+   |         ^^^^^^^^^ help: replace with: `c`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:104:13
+   |
+LL |     let _ = x.to_lowercase();
+   |             ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:111:13
+   |
+LL |     let _ = y.to_lowercase();
+   |             ^^^^^^^^^^^^^^^^ help: replace with: `y`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:119:5
+   |
+LL |     y.to_lowercase();
+   |     ^^^^^^^^^^^^^^^^ help: replace with: `y`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:125:8
+   |
+LL |     if x.to_lowercase() == "Inside, we both know what's been going on" {}
+   |        ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:133:18
+   |
+LL |     takes_string(x.to_lowercase());
+   |                  ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:140:16
+   |
+LL |         return x.to_lowercase();
+   |                ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:148:14
+   |
+LL |     let _ = (x.to_lowercase(), 1);
+   |              ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:155:14
+   |
+LL |         _ if x.to_lowercase() == "Never gonna let you down" => {},
+   |              ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:164:14
+   |
+LL |     arr[0] = x.to_lowercase();
+   |              ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:170:14
+   |
+LL |     let _ = [x.to_lowercase(), String::new()];
+   |              ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:181:16
+   |
+LL |         field: x.to_lowercase(),
+   |                ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:188:9
+   |
+LL |     x = x.max(0_f64);
+   |         ^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:196:9
+   |
+LL |     z = z.max(confusion);
+   |         ^^^^^^^^^^^^^^^^ help: replace with: `z`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:202:14
+   |
+LL |     let _ = -(x.abs());
+   |              ^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:209:9
+   |
+LL |         x.to_lowercase();
+   |         ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:221:13
+   |
+LL |     let _ = x.floor() as f32;
+   |             ^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:229:17
+   |
+LL |         let _ = x.to_lowercase();
+   |                 ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:237:14
+   |
+LL |     let _ = [x.floor(); 3];
+   |              ^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:243:13
+   |
+LL |     let _ = (x.to_lowercase()).to_uppercase();
+   |             ^^^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:249:16
+   |
+LL |     if let y = x.to_lowercase()
+   |                ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:257:14
+   |
+LL |     let _ = &x.to_lowercase();
+   |              ^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:280:13
+   |
+LL |     let _ = Some(1).and(None::<i32>).and(None::<i32>);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `Some(1).and(None::<i32>)`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:282:13
+   |
+LL |     let _ = Some(1).and(Some(2)).and(Some(2));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `Some(1).and(Some(2))`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:284:13
+   |
+LL |     let _ = None::<i32>.or(Some(2)).or(Some(2));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `None::<i32>.or(Some(2))`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:286:13
+   |
+LL |     let _ = Some(1).or(Some(2)).or(Some(2));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `Some(1).or(Some(2))`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:289:9
+   |
+LL |     a = a.min(10).min(10);
+   |         ^^^^^^^^^^^^^^^^^ help: replace with: `a.min(10)`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:291:13
+   |
+LL |     let _ = 1_i32.clamp(-1, 1).clamp(-1, 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `1_i32.clamp(-1, 1)`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:293:13
+   |
+LL |     let _ = b"Never gonna say goodbye".to_vec().to_vec();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `b"Never gonna say goodbye".to_vec()`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:295:13
+   |
+LL |     let _ = 1.32_f64.ceil().ceil();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `1.32_f64.ceil()`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:297:13
+   |
+LL |     let _ = 1.32_f64.signum().signum();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `1.32_f64.signum()`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:299:13
+   |
+LL |     let _ = "  Never gonna tell a lie and hurt you  ".trim_start().trim_start();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `"  Never gonna tell a lie and hurt you  ".trim_start()`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:301:13
+   |
+LL |     let _ = "  Ooh (Give you up)  ".trim_end().trim_end();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `"  Ooh (Give you up)  ".trim_end()`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:304:13
+   |
+LL |     let _ = x.to_ascii_lowercase();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `x`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:307:13
+   |
+LL |     let _ = y.to_ascii_uppercase();
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `y`
+
+error: redundant call to idempotent method, the result is already the same
+  --> tests/ui/redundant_idempotent_calls.rs:310:13
+   |
+LL |     let _ = x.round();
+   |             ^^^^^^^^^ help: replace with: `x`
+
+error: aborting due to 42 previous errors
+
