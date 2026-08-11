@@ -221,6 +221,7 @@ mod manual_range_patterns;
 mod manual_rem_euclid;
 mod manual_retain;
 mod manual_rotate;
+mod manual_slice_match;
 mod manual_slice_size_calculation;
 mod manual_string_new;
 mod manual_strip;
@@ -869,6 +870,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         UnnecessaryNonzeroGet: unnecessary_nonzero_get::UnnecessaryNonzeroGet = unnecessary_nonzero_get::UnnecessaryNonzeroGet::new(conf),
+        ManualSliceMatch: manual_slice_match::ManualSliceMatch = manual_slice_match::ManualSliceMatch::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
