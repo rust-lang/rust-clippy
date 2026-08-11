@@ -135,6 +135,10 @@ path_macros! {
 
 // Paths in the standard library missing a diagnostic item
 
+pub static CMP_ORDERING_LESS: PathLookup = value_path!(core::cmp::Ordering::Less);
+pub static CMP_ORDERING_EQUAL: PathLookup = value_path!(core::cmp::Ordering::Equal);
+pub static CMP_ORDERING_GREATER: PathLookup = value_path!(core::cmp::Ordering::Greater);
+
 // Paths in external crates
 pub static FUTURES_IO_ASYNCREADEXT: PathLookup = type_path!(futures_util::AsyncReadExt);
 pub static FUTURES_IO_ASYNCWRITEEXT: PathLookup = type_path!(futures_util::AsyncWriteExt);
