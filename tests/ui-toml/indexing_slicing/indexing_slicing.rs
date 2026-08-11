@@ -1,4 +1,5 @@
 //@compile-flags: --test
+//@error-in-other-file: `allow-indexing-slicing-in-tests` is deprecated
 #![warn(clippy::indexing_slicing)]
 #![allow(clippy::no_effect)]
 

@@ -8,13 +8,57 @@
 //! Thank you!
 //! ~The `INTERNAL_METADATA_COLLECTOR` lint
 
+use crate::is_in_test;
+use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::{Applicability, Diag, DiagCtxtHandle, DiagMessage, Diagnostic, Level, MultiSpan};
 #[cfg(debug_assertions)]
 use rustc_errors::{EmissionGuarantee, SubstitutionPart, Suggestions};
 use rustc_hir::HirId;
-use rustc_lint::{LateContext, Lint, LintContext};
+use rustc_lint::{EarlyContext, LateContext, Lint, LintContext};
 use rustc_span::Span;
 use std::env;
+use std::sync::OnceLock;
+
+/// The lints which the `allow-in-tests` configuration suppresses in test code, stored as
+/// [`Lint::name`] values (e.g. `"clippy::UNWRAP_USED"`).
+static ALLOWED_IN_TESTS: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+
+/// Sets the lints which the `allow-in-tests` configuration suppresses in test code.
+///
+/// This must be called before any lint pass runs; only the first call has an effect.
+pub fn set_lints_allowed_in_tests(lints: impl IntoIterator<Item = &'static str>) {
+    let _ = ALLOWED_IN_TESTS.set(lints.into_iter().collect());
+}
+
+fn is_allowed_in_tests(lint: &'static Lint) -> bool {
+    // This runs for every emitted lint, so check for the common case of an unset configuration
+    // before hashing the lint's name.
+    ALLOWED_IN_TESTS
+        .get()
+        .is_some_and(|lints| !lints.is_empty() && lints.contains(lint.name))
+}
+
+/// Extends [`LintContext`] with the information clippy's diagnostic functions need to apply the
+/// `allow-in-tests` configuration.
+pub trait ClippyLintContext: LintContext {
+    /// Whether the node the lint level is resolved against is in test code, i.e. inside a
+    /// `#[test]` function or a `#[cfg(test)]` item.
+    fn is_in_test_code(&self) -> bool;
+}
+
+impl ClippyLintContext for LateContext<'_> {
+    fn is_in_test_code(&self) -> bool {
+        is_in_test(self.tcx, self.last_node_with_lint_attrs)
+    }
+}
+
+/// Early lint passes run before the HIR is built, at which point test code becomes recognizable,
+/// so `allow-in-tests` applies to late lint passes only.
+impl ClippyLintContext for EarlyContext<'_> {
+    fn is_in_test_code(&self) -> bool {
+        false
+    }
+}
 
 fn docs_link(diag: &mut Diag<'_, ()>, lint: &'static Lint) {
     if env::var("CLIPPY_DISABLE_DOCS_LINKS").is_err()
@@ -103,7 +147,12 @@ fn validate_diag(diag: &Diag<'_, impl EmissionGuarantee>) {
 ///    |     ^^^^^^^^^^^^^^^^^^^^^^^
 /// ```
 #[track_caller]
-pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<MultiSpan>, msg: impl Into<DiagMessage>) {
+pub fn span_lint<T: ClippyLintContext>(
+    cx: &T,
+    lint: &'static Lint,
+    sp: impl Into<MultiSpan>,
+    msg: impl Into<DiagMessage>,
+) {
     span_lint_and_then(cx, lint, sp, msg, |_| {});
 }
 
@@ -142,7 +191,7 @@ pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<Mult
 ///    = help: consider using `f64::NAN` if you would like a constant representing NaN
 /// ```
 #[track_caller]
-pub fn span_lint_and_help<T: LintContext>(
+pub fn span_lint_and_help<T: ClippyLintContext>(
     cx: &T,
     lint: &'static Lint,
     span: impl Into<MultiSpan>,
@@ -197,7 +246,7 @@ pub fn span_lint_and_help<T: LintContext>(
 ///    |            ^^^^^^^^^^^
 /// ```
 #[track_caller]
-pub fn span_lint_and_note<T: LintContext>(
+pub fn span_lint_and_note<T: ClippyLintContext>(
     cx: &T,
     lint: &'static Lint,
     span: impl Into<MultiSpan>,
@@ -235,7 +284,7 @@ pub fn span_lint_and_note<T: LintContext>(
 #[track_caller]
 pub fn span_lint_and_then<C, S, M, F>(cx: &C, lint: &'static Lint, sp: S, msg: M, f: F)
 where
-    C: LintContext,
+    C: ClippyLintContext,
     S: Into<MultiSpan>,
     M: Into<DiagMessage>,
     F: FnOnce(&mut Diag<'_, ()>),
@@ -248,6 +297,10 @@ where
             (self.0)(&mut lint);
             lint
         }
+    }
+
+    if is_allowed_in_tests(lint) && cx.is_in_test_code() {
+        return;
     }
 
     let sp = sp.into();
@@ -329,6 +382,10 @@ pub fn span_lint_hir_and_then(
     msg: impl Into<DiagMessage>,
     f: impl FnOnce(&mut Diag<'_, ()>),
 ) {
+    if is_allowed_in_tests(lint) && is_in_test(cx.tcx, hir_id) {
+        return;
+    }
+
     #[expect(clippy::disallowed_methods)]
     cx.tcx.emit_node_span_lint(
         lint,
@@ -379,7 +436,7 @@ pub fn span_lint_hir_and_then(
 ///     = note: `-D fold-any` implied by `-D warnings`
 /// ```
 #[track_caller]
-pub fn span_lint_and_sugg<T: LintContext>(
+pub fn span_lint_and_sugg<T: ClippyLintContext>(
     cx: &T,
     lint: &'static Lint,
     sp: Span,

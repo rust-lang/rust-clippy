@@ -1,0 +1,9 @@
+# Superseded by `allow-in-tests`; enabling these warns.
+allow-panic-in-tests = true
+allow-print-in-tests = true
+
+# Explicitly disabling is the default and has no `allow-in-tests` equivalent, so it stays quiet.
+allow-dbg-in-tests = false
+
+# Not superseded: `false` can't be expressed with `allow-in-tests`.
+allow-large-stack-frames-in-tests = true

@@ -1,4 +1,5 @@
 //@compile-flags: --test
+//@error-in-other-file: `allow-panic-in-tests` is deprecated
 #![warn(clippy::panic)]
 use std::panic::panic_any;
 

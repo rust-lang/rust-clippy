@@ -64,6 +64,9 @@ Don't lint when comparing the result of a modulo operation to zero.
 ## `allow-dbg-in-tests`
 Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests), which works for any
+lint. This option still works, but new configurations should use `allow-in-tests`.
+
 **Default Value:** `false`
 
 ---
@@ -94,6 +97,9 @@ Whether `expect` should be allowed in code always evaluated at compile time
 ## `allow-expect-in-tests`
 Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests), which works for any
+lint. This option still works, but new configurations should use `allow-in-tests`.
+
 **Default Value:** `false`
 
 ---
@@ -101,8 +107,32 @@ Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 * [`expect_used`](https://rust-lang.github.io/rust-clippy/master/index.html#expect_used)
 
 
+## `allow-in-tests`
+A list of Clippy lints to suppress in test functions and `#[cfg(test)]` items.
+
+This supersedes the per-lint `allow-<lint>-in-tests` options, which are deprecated but
+still honored: a lint is suppressed in test code if it is listed here or its own
+`allow-<lint>-in-tests` option is set.
+
+#### Example
+
+```toml
+allow-in-tests = ["dbg_macro", "unwrap_used"]
+```
+
+#### Noteworthy
+
+- This applies to late lint passes only, as test code becomes recognizable once the HIR
+  has been built.
+
+**Default Value:** `[]`
+
+
 ## `allow-indexing-slicing-in-tests`
 Whether `indexing_slicing` should be allowed in test functions or `#[cfg(test)]`
+
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests), which works for any
+lint. This option still works, but new configurations should use `allow-in-tests`.
 
 **Default Value:** `false`
 
@@ -144,6 +174,9 @@ Whether to allow `r#""#` when `r""` can be used
 ## `allow-panic-in-tests`
 Whether `panic` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests), which works for any
+lint. This option still works, but new configurations should use `allow-in-tests`.
+
 **Default Value:** `false`
 
 ---
@@ -153,6 +186,9 @@ Whether `panic` should be allowed in test functions or `#[cfg(test)]`
 
 ## `allow-print-in-tests`
 Whether print macros (ex. `println!`) should be allowed in test functions or `#[cfg(test)]`
+
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests), which works for any
+lint. This option still works, but new configurations should use `allow-in-tests`.
 
 **Default Value:** `false`
 
@@ -207,6 +243,9 @@ Whether `unwrap` should be allowed in code always evaluated at compile time
 ## `allow-unwrap-in-tests`
 Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests), which works for any
+lint. This option still works, but new configurations should use `allow-in-tests`.
+
 **Default Value:** `false`
 
 ---
@@ -233,6 +272,9 @@ allow-unwrap-types = [ "std::sync::LockResult" ]
 
 ## `allow-useless-vec-in-tests`
 Whether `useless_vec` should ignore test functions or `#[cfg(test)]`
+
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests), which works for any
+lint. This option still works, but new configurations should use `allow-in-tests`.
 
 **Default Value:** `false`
 

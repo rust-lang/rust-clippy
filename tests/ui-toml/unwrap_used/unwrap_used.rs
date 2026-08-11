@@ -1,4 +1,5 @@
 //@compile-flags: --test
+//@error-in-other-file: `allow-unwrap-in-tests` is deprecated
 
 #![allow(clippy::get_first, clippy::useless_vec)]
 #![warn(clippy::get_unwrap, clippy::unwrap_used)]

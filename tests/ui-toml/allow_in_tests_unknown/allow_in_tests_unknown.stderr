@@ -1,0 +1,26 @@
+warning: unknown lint: `unwrap_use`
+  --> $DIR/tests/ui-toml/allow_in_tests_unknown/clippy.toml:3:5
+   |
+LL |     "unwrap_use",
+   |     ^^^^^^^^^^^^ help: did you mean: `"unwrap_used"`
+   |
+   = note: `allow-in-tests` only accepts Clippy lints
+
+warning: unknown lint: `clippy::stutter`
+  --> $DIR/tests/ui-toml/allow_in_tests_unknown/clippy.toml:5:5
+   |
+LL |     "clippy::stutter",
+   |     ^^^^^^^^^^^^^^^^^ help: `clippy::stutter` has been renamed: `"module_name_repetitions"`
+   |
+   = note: `allow-in-tests` only accepts Clippy lints
+
+warning: unknown lint: `unused_variables`
+  --> $DIR/tests/ui-toml/allow_in_tests_unknown/clippy.toml:7:5
+   |
+LL |     "unused_variables",
+   |     ^^^^^^^^^^^^^^^^^^ help: did you mean: `"unused_peekable"`
+   |
+   = note: `allow-in-tests` only accepts Clippy lints
+
+warning: 3 warnings emitted
+

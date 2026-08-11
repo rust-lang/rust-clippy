@@ -1,5 +1,13 @@
+warning: `allow-dbg-in-tests` is deprecated
+  --> $DIR/tests/ui-toml/dbg_macro/clippy.toml:1:1
+   |
+LL | allow-dbg-in-tests = true
+   | ^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `allow-in-tests = ["dbg_macro"]` instead, which works for any lint
+
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui-toml/dbg_macro/dbg_macro.rs:6:22
+  --> tests/ui-toml/dbg_macro/dbg_macro.rs:7:22
    |
 LL |     if let Some(n) = dbg!(n.checked_sub(4)) { n } else { n }
    |                      ^^^^^^^^^^^^^^^^^^^^^^
@@ -13,7 +21,7 @@ LL +     if let Some(n) = n.checked_sub(4) { n } else { n }
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui-toml/dbg_macro/dbg_macro.rs:11:8
+  --> tests/ui-toml/dbg_macro/dbg_macro.rs:12:8
    |
 LL |     if dbg!(n <= 1) {
    |        ^^^^^^^^^^^^
@@ -25,7 +33,7 @@ LL +     if n <= 1 {
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui-toml/dbg_macro/dbg_macro.rs:13:9
+  --> tests/ui-toml/dbg_macro/dbg_macro.rs:14:9
    |
 LL |         dbg!(1)
    |         ^^^^^^^
@@ -37,7 +45,7 @@ LL +         1
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui-toml/dbg_macro/dbg_macro.rs:16:9
+  --> tests/ui-toml/dbg_macro/dbg_macro.rs:17:9
    |
 LL |         dbg!(n * factorial(n - 1))
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,7 +57,7 @@ LL +         n * factorial(n - 1)
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui-toml/dbg_macro/dbg_macro.rs:22:5
+  --> tests/ui-toml/dbg_macro/dbg_macro.rs:23:5
    |
 LL |     dbg!(42);
    |     ^^^^^^^^
@@ -61,7 +69,7 @@ LL +     42;
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui-toml/dbg_macro/dbg_macro.rs:24:14
+  --> tests/ui-toml/dbg_macro/dbg_macro.rs:25:14
    |
 LL |     foo(3) + dbg!(factorial(4));
    |              ^^^^^^^^^^^^^^^^^^
@@ -73,7 +81,7 @@ LL +     foo(3) + factorial(4);
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui-toml/dbg_macro/dbg_macro.rs:26:5
+  --> tests/ui-toml/dbg_macro/dbg_macro.rs:27:5
    |
 LL |     dbg!(1, 2, 3, 4, 5);
    |     ^^^^^^^^^^^^^^^^^^^
@@ -84,5 +92,5 @@ LL -     dbg!(1, 2, 3, 4, 5);
 LL +     (1, 2, 3, 4, 5);
    |
 
-error: aborting due to 7 previous errors
+error: aborting due to 7 previous errors; 1 warning emitted
 
