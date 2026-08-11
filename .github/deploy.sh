@@ -41,10 +41,6 @@ git status
 if [[ -n $TAG_NAME ]]; then
   # track files, so that the following check works
   git add --intent-to-add "$TAG_NAME"
-  if git diff --exit-code --quiet -- $TAG_NAME/; then
-    echo "No changes to the output on this push; exiting."
-    exit 0
-  fi
   # Add the new dir
   git add "$TAG_NAME"
   # Update the symlink
@@ -53,6 +49,10 @@ if [[ -n $TAG_NAME ]]; then
   git add main
   # Update the index.html file
   git add index.html
+  if git diff --exit-code --quiet -- $TAG_NAME/; then
+    echo "No changes to the output on this push; exiting."
+    exit 0
+  fi
   git commit -m "Add documentation for ${TAG_NAME} release: ${SHA}"
 elif [[ $BETA = "true" ]]; then
   if git diff --exit-code --quiet -- beta/; then
