@@ -402,6 +402,7 @@ mod use_self;
 mod useless_concat;
 mod useless_conversion;
 mod useless_vec;
+mod vec_from_literal_array;
 mod vec_init_then_push;
 mod visibility;
 mod volatile_composites;
@@ -869,6 +870,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        VecFromLiteralArray: vec_from_literal_array::VecFromLiteralArray = vec_from_literal_array::VecFromLiteralArray,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
