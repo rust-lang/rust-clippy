@@ -10724,7 +10724,26 @@ fn f&lt;T: Clone + ?Sized&gt;(t: &amp;T) {}
 
 // or choose alternative bounds for `T` so that it can be unsized
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.81.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_maybe_sized">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_maybe_sized.rs#L11">View Source</a></div></div></article><article id="needless_option_as_deref"><input id="label-needless_option_as_deref" type="checkbox"><label for="label-needless_option_as_deref"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_option_as_deref">needless_option_as_deref
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.81.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_maybe_sized">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_maybe_sized.rs#L11">View Source</a></div></div></article><article id="needless_nonzero_get"><input id="label-needless_nonzero_get" type="checkbox"><label for="label-needless_nonzero_get"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_nonzero_get">needless_nonzero_get
+<a href="#needless_nonzero_get" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
+<p>Checks for <code>NonZero::get</code> calls that are immediately followed by a method or operator
+which <code>NonZero</code> provides itself, with the same return type.</p>
+<h3>Why is this bad?</h3>
+<p>The <code>get</code> call adds nothing but noise, as the method could be called on the
+<code>NonZero</code> value directly.</p>
+<h3>Example</h3>
+<pre><code class="language-rust">let _ = nz.get().leading_zeros();
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">let _ = nz.leading_zeros();
+</code></pre>
+<p>The lint also handles division and remainder operators:</p>
+<pre><code class="language-rust">let _ = 4 / nz.get();
+</code></pre>
+<p>Use instead:</p>
+<pre><code class="language-rust">let _ = 4 / nz;
+</code></pre>
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.99.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_nonzero_get">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/needless_nonzero_get.rs#L14">View Source</a></div></div></article><article id="needless_option_as_deref"><input id="label-needless_option_as_deref" type="checkbox"><label for="label-needless_option_as_deref"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_option_as_deref">needless_option_as_deref
 <a href="#needless_option_as_deref" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for no-op uses of <code>Option::{as_deref, as_deref_mut}</code>,
 for example, <code>Option&lt;&amp;T&gt;::as_deref()</code> returns the same type.</p>
@@ -16958,26 +16977,7 @@ the value. Also the code misleads about the intent of the call site.</p>
 <p>Use instead:</p>
 <pre><code class="language-rust">vec.push(&amp;value);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_mut_passed">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/unnecessary_mut_passed.rs#L11">View Source</a></div></div></article><article id="unnecessary_nonzero_get"><input id="label-unnecessary_nonzero_get" type="checkbox"><label for="label-unnecessary_nonzero_get"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_nonzero_get">unnecessary_nonzero_get
-<a href="#unnecessary_nonzero_get" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Checks for <code>NonZero::get</code> calls that are immediately followed by a method or operator
-which <code>NonZero</code> provides itself, with the same return type.</p>
-<h3>Why is this bad?</h3>
-<p>The <code>get</code> call adds nothing but noise, as the method could be called on the
-<code>NonZero</code> value directly.</p>
-<h3>Example</h3>
-<pre><code class="language-rust">let _ = nz.get().leading_zeros();
-</code></pre>
-<p>Use instead:</p>
-<pre><code class="language-rust">let _ = nz.leading_zeros();
-</code></pre>
-<p>The lint also handles division and remainder operators:</p>
-<pre><code class="language-rust">let _ = 4 / nz.get();
-</code></pre>
-<p>Use instead:</p>
-<pre><code class="language-rust">let _ = 4 / nz;
-</code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.99.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_nonzero_get">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/unnecessary_nonzero_get.rs#L14">View Source</a></div></div></article><article id="unnecessary_operation"><input id="label-unnecessary_operation" type="checkbox"><label for="label-unnecessary_operation"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_operation">unnecessary_operation
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_mut_passed">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/unnecessary_mut_passed.rs#L11">View Source</a></div></div></article><article id="unnecessary_operation"><input id="label-unnecessary_operation" type="checkbox"><label for="label-unnecessary_operation"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_operation">unnecessary_operation
 <a href="#unnecessary_operation" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for expression statements that can be reduced to a
 sub-expression.</p>
