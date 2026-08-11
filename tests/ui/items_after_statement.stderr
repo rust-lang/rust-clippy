@@ -42,10 +42,28 @@ LL |     fn foo() {}
    |     ^^^^^^^^^^^
 
 error: adding items after statements is confusing, since items exist from the start of the scope
-  --> tests/ui/items_after_statement.rs:98:9
+  --> tests/ui/items_after_statement.rs:96:5
+   |
+LL |     use std::cmp::{max, min};
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: adding items after statements is confusing, since items exist from the start of the scope
+  --> tests/ui/items_after_statement.rs:96:20
+   |
+LL |     use std::cmp::{max, min};
+   |                    ^^^
+
+error: adding items after statements is confusing, since items exist from the start of the scope
+  --> tests/ui/items_after_statement.rs:96:25
+   |
+LL |     use std::cmp::{max, min};
+   |                         ^^^
+
+error: adding items after statements is confusing, since items exist from the start of the scope
+  --> tests/ui/items_after_statement.rs:107:9
    |
 LL |         fn foo() {}
    |         ^^^^^^^^^^^
 
-error: aborting due to 5 previous errors
+error: aborting due to 8 previous errors
 

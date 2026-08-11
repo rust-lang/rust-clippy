@@ -73,8 +73,8 @@ fn cfg_select_arm() {
     // `cfg_select!` splices the tokens of the arm into this block, without any expansion marker
     std::cfg_select! {
         true => {
-            use std::mem;
-            let _ = (x, mem::size_of::<u8>());
+            use std::{cmp, mem};
+            let _ = (x, cmp::max(0, 1), mem::size_of::<u8>());
         },
     }
 }
@@ -83,12 +83,21 @@ fn item_after_cfg_select() {
     let x = 1;
     std::cfg_select! {
         true => {
-            use std::mem;
-            let _ = (x, mem::size_of::<u8>());
+            use std::{cmp, mem};
+            let _ = (x, cmp::max(0, 1), mem::size_of::<u8>());
         },
     }
     fn foo() {}
     //~^ items_after_statements
+}
+
+fn grouped_use_after_statement() {
+    let x = 1;
+    use std::cmp::{max, min};
+    //~^ items_after_statements
+    //~| items_after_statements
+    //~| items_after_statements
+    let _ = (x, max(0, 1), min(0, 1));
 }
 
 fn nested_block() {
