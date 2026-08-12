@@ -49,6 +49,9 @@ impl RedundantFieldNames {
 
 impl EarlyLintPass for RedundantFieldNames {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
+        if expr.span.in_external_macro(cx.sess().source_map()) {
+            return;
+        }
         if let ExprKind::Struct(ref se) = expr.kind
             && self.msrv.meets(msrvs::FIELD_INIT_SHORTHAND)
         {
