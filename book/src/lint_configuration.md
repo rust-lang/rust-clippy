@@ -401,7 +401,6 @@ The maximum allowed size for const arrays
 ---
 **Affected lints:**
 * [`large_const_arrays`](https://rust-lang.github.io/rust-clippy/main/index.html#large_const_arrays)
-* [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/main/index.html#large_stack_arrays)
 
 
 ## `avoid-breaking-exported-api`
@@ -1098,7 +1097,7 @@ The maximum allowed size for arrays on the stack
 
 ---
 **Affected lints:**
-* [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/master/index.html#large_stack_arrays)
+* [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/main/index.html#large_stack_arrays)
 
 
 ## `stack-size-threshold`
