@@ -348,6 +348,7 @@ mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
 mod std_instead_of_core;
+mod str_ptr_in_c_abi;
 mod string_patterns;
 mod strings;
 mod strlen_on_c_strings;
@@ -869,6 +870,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        StrPtrInCAbi: str_ptr_in_c_abi::StrPtrInCAbi = str_ptr_in_c_abi::StrPtrInCAbi,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
