@@ -3,7 +3,7 @@ use super::{Attribute, BLANKET_ALLOW_WARNINGS};
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::{is_from_proc_macro, sym};
 use rustc_ast::MetaItemInner;
-use rustc_lint::{EarlyContext, LintContext};
+use rustc_lint::{EarlyContext, LintContext as _};
 use rustc_span::symbol::Symbol;
 
 pub(super) fn check<'cx>(cx: &EarlyContext<'cx>, name: Symbol, items: &[MetaItemInner], attr: &'cx Attribute) {
