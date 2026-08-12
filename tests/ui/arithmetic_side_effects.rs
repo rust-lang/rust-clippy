@@ -26,6 +26,16 @@ pub struct Custom;
 #[derive(proc_macro_derive::ShadowDerive)]
 pub struct Nothing;
 
+pub trait CustomPow {
+    fn pow(self, exp: u32) -> u32;
+}
+
+impl CustomPow for &u32 {
+    fn pow(self, _: u32) -> u32 {
+        0
+    }
+}
+
 macro_rules! impl_arith {
     ( $( $_trait:ident, $lhs:ty, $rhs:ty, $method:ident; )* ) => {
         $(
@@ -304,6 +314,10 @@ pub fn non_overflowing_ops_or_ops_already_handled_by_the_compiler_should_not_tri
     _n.overflowing_pow(2);
     _n.saturating_pow(2);
     _n.wrapping_pow(2);
+
+    // Only the inherent `pow` of the integer types is linted.
+    let _u = 2u32;
+    let _ = (&_u).pow(_u);
 
     // Unary
     _n = -2147483647;
