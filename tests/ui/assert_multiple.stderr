@@ -1,0 +1,25 @@
+error: multiple equality comparisons combined into one assertion
+  --> tests/ui/assert_multiple.rs:9:5
+   |
+LL |     assert!(actual_name == expected_name && actual_count == expected_count);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::assert-multiple` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_multiple)]`
+help: split the comparisons into separate assertions
+   |
+LL ~     assert_eq!(actual_name, expected_name);
+LL ~     assert_eq!(actual_count, expected_count);
+
+error: multiple equality comparisons combined into one assertion
+  --> tests/ui/assert_multiple.rs:11:5
+   |
+LL |     debug_assert!(actual_name != expected_name && actual_count != expected_count);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: split the comparisons into separate assertions
+   |
+LL ~     debug_assert_ne!(actual_name, expected_name);
+LL ~     debug_assert_ne!(actual_count, expected_count);
+
+error: aborting due to 2 previous errors

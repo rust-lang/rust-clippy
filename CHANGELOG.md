@@ -8,6 +8,10 @@ document.
 
 [b147b68...master](https://github.com/rust-lang/rust-clippy/compare/b147b68...master)
 
+### New Lints
+
+* Added [`assert_multiple`] to `nursery`
+
 ## Rust 1.97
 
 Current stable, released 2026-07-09
@@ -6753,6 +6757,7 @@ Released 2018-09-13
 [`as_ptr_cast_mut`]: https://rust-lang.github.io/rust-clippy/main/index.html#as_ptr_cast_mut
 [`as_underscore`]: https://rust-lang.github.io/rust-clippy/main/index.html#as_underscore
 [`assert_is_empty`]: https://rust-lang.github.io/rust-clippy/main/index.html#assert_is_empty
+[`assert_multiple`]: https://rust-lang.github.io/rust-clippy/main/index.html#assert_multiple
 [`assertions_on_constants`]: https://rust-lang.github.io/rust-clippy/main/index.html#assertions_on_constants
 [`assertions_on_result_states`]: https://rust-lang.github.io/rust-clippy/main/index.html#assertions_on_result_states
 [`assign_op_pattern`]: https://rust-lang.github.io/rust-clippy/main/index.html#assign_op_pattern
