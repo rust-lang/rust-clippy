@@ -11,7 +11,7 @@ use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, Pl
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::place::ProjectionKind;
 use rustc_middle::mir::FakeReadCause;
-use rustc_middle::ty;
+use rustc_middle::ty::{self, TypeVisitableExt as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Symbol, sym};
 
@@ -121,7 +121,15 @@ impl LateLintPass<'_> for ReplaceBox {
                 && let Some(rhs_inner) = get_box_new_payload(cx, rhs)
             {
                 span_lint_and_then(cx, REPLACE_BOX, expr.span, "creating a new box", |diag| {
-                    let mut app = Applicability::MachineApplicable;
+                    // Replacing the box in place (`*b = ..`) keeps any borrow already stored in it
+                    // alive across the assignment, while `b = Box::new(..)` drops the old box first.
+                    // When the boxed type carries a lifetime, that difference can change
+                    // borrow-check results, so don't offer this as a machine-applicable rewrite.
+                    let mut app = if inner_ty.has_type_flags(ty::TypeFlags::HAS_RE_ERASED) {
+                        Applicability::MaybeIncorrect
+                    } else {
+                        Applicability::MachineApplicable
+                    };
                     let suggestion = format!(
                         "{} = {}",
                         Sugg::hir_with_applicability(cx, lhs, "_", &mut app).deref(),
