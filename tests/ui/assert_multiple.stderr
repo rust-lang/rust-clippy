@@ -10,6 +10,7 @@ help: split the comparisons into separate assertions
    |
 LL ~     assert_eq!(actual_name, expected_name);
 LL ~     assert_eq!(actual_count, expected_count);
+   |
 
 error: multiple equality comparisons combined into one assertion
   --> tests/ui/assert_multiple.rs:11:5
@@ -21,5 +22,6 @@ help: split the comparisons into separate assertions
    |
 LL ~     debug_assert_ne!(actual_name, expected_name);
 LL ~     debug_assert_ne!(actual_count, expected_count);
+   |
 
 error: aborting due to 2 previous errors
