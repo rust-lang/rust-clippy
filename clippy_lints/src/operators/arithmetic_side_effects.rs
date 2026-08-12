@@ -210,7 +210,7 @@ impl ArithmeticSideEffects {
     }
 
     /// There are some integer methods like `wrapping_div` that will panic depending on the
-    /// provided input.
+    /// provided input, and others like `pow` that can overflow.
     fn manage_method_call<'tcx>(
         &mut self,
         args: &'tcx [hir::Expr<'_>],
@@ -230,6 +230,14 @@ impl ArithmeticSideEffects {
             return;
         }
         self.manage_sugar_methods(cx, expr, receiver, ps, arg);
+        // `pow` overflows like a multiplication does. Exponents of `0` and `1` are the exception:
+        // they always yield `1` and the receiver itself.
+        if ps.ident.name == sym::pow {
+            if !matches!(literal_integer(cx, peel_hir_expr_refs(arg).0), Some(0 | 1)) {
+                self.issue_lint(cx, expr);
+            }
+            return;
+        }
         if !self.disallowed_int_methods.contains(&ps.ident.name) {
             return;
         }
