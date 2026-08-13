@@ -126,7 +126,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
         }
 
         // Look whether the candidates call the `.clone()` method anywhere
-        _ = for_each_expr(cx.tcx, fn_body.value, move |x| match x.kind {
+        _ = for_each_expr(cx.tcx, fn_body.value, move |expr| match expr.kind {
             rustc_hir::ExprKind::If(_, _, _) | rustc_hir::ExprKind::Match(_, _, _) => {
                 ControlFlow::<(), Descend>::Continue(Descend::No)
             },
