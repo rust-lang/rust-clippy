@@ -116,9 +116,9 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                     && let rustc_hir::ExprKind::Path(qpath) = expr.kind
                     && let Some(hir_id) = qpath.res_local_id()
                 {
-                    self.candidates.iter_mut().for_each(|(cand, relat)| {
+                    self.candidates.iter_mut().for_each(|(cand, rebinds)| {
                         if cand.0 == hir_id {
-                            relat.push((let_stmt.pat.hir_id, let_stmt.span));
+                            rebinds.push((let_stmt.pat.hir_id, let_stmt.span));
                         }
                     });
                 }
