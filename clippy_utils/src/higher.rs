@@ -68,8 +68,8 @@ pub struct If<'hir> {
 }
 
 impl<'hir> If<'hir> {
-    #[inline]
     /// Parses an `if` expression without `let`
+    #[inline]
     pub const fn hir(expr: &Expr<'hir>) -> Option<Self> {
         if let ExprKind::If(cond, then, r#else) = expr.kind
             && !has_let_expr(cond)
@@ -191,8 +191,8 @@ pub struct IfOrIfLet<'hir> {
 }
 
 impl<'hir> IfOrIfLet<'hir> {
-    #[inline]
     /// Parses an `if` or `if let` expression
+    #[inline]
     pub const fn hir(expr: &Expr<'hir>) -> Option<Self> {
         if let ExprKind::If(cond, then, r#else) = expr.kind {
             Some(Self { cond, then, r#else })
@@ -406,8 +406,8 @@ pub struct While<'hir> {
 }
 
 impl<'hir> While<'hir> {
-    #[inline]
     /// Parses a desugared `while` loop
+    #[inline]
     pub const fn hir(expr: &Expr<'hir>) -> Option<Self> {
         if let ExprKind::Loop(
             Block {
@@ -450,8 +450,8 @@ pub struct WhileLet<'hir> {
 }
 
 impl<'hir> WhileLet<'hir> {
-    #[inline]
     /// Parses a desugared `while let` loop
+    #[inline]
     pub const fn hir(expr: &Expr<'hir>) -> Option<Self> {
         if let ExprKind::Loop(
             &Block {

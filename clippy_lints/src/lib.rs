@@ -112,6 +112,7 @@ mod disallowed_names;
 mod disallowed_script_idents;
 mod disallowed_types;
 mod doc;
+mod doc_attr_ordering;
 mod double_parens;
 mod drop_forget_ref;
 mod duplicate_mod;
@@ -542,6 +543,7 @@ rustc_lint::early_lint_methods!(
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
         DefinitionInModuleRoot: definition_in_module_root::DefinitionInModuleRoot = definition_in_module_root::DefinitionInModuleRoot::default(),
+        DocAttrOrdering: doc_attr_ordering::DocAttrOrdering = doc_attr_ordering::DocAttrOrdering::default(),
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );

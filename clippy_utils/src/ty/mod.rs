@@ -3,6 +3,9 @@
 #![expect(clippy::module_name_repetitions)]
 
 use core::ops::ControlFlow;
+use std::collections::hash_map::Entry;
+use std::{debug_assert_matches, iter, mem};
+
 use itertools::Itertools as _;
 use rustc_abi::{BackendRepr, FieldsShape, VariantIdx, Variants};
 use rustc_ast::ast::Mutability;
@@ -32,8 +35,6 @@ use rustc_span::{DUMMY_SP, Span, Symbol};
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::query::normalize::QueryNormalizeExt as _;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
-use std::collections::hash_map::Entry;
-use std::{debug_assert_matches, iter, mem};
 
 use crate::paths::{PathNS, lookup_path_str};
 use crate::res::{MaybeDef as _, MaybeQPath as _};
@@ -1114,8 +1115,8 @@ pub fn approx_ty_size<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> u64 {
     }
 }
 
-#[cfg(debug_assertions)]
 /// Asserts that the given arguments match the generic parameters of the given item.
+#[cfg(debug_assertions)]
 fn assert_generic_args_match<'tcx>(tcx: TyCtxt<'tcx>, did: DefId, args: &[GenericArg<'tcx>]) {
     use itertools::Itertools as _;
     let g = tcx.generics_of(did);
