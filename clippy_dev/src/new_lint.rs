@@ -157,20 +157,29 @@ fn add_lint(lint: &LintData<'_>, enable_msrv: bool) -> io::Result<()> {
     let path = "clippy_lints/src/lib.rs";
     let mut lib_rs = fs::read_to_string(path).context("reading")?;
 
-    let (comment, ctor_arg) = if lint.pass == Pass::Late {
-        ("// add late passes here", "_")
-    } else {
-        ("// add early passes here", "")
-    };
-    let comment_start = lib_rs.find(comment).expect("Couldn't find comment");
     let module_name = lint.name;
     let camel_name = to_camel_case(lint.name);
 
-    let new_lint = if enable_msrv {
-        format!("Box::new(move |{ctor_arg}| Box::new({module_name}::{camel_name}::new(conf))),\n        ")
+    let (comment, new_lint) = if lint.pass == Pass::Late {
+        // Late passes are folded into the statically-combined struct, so a new
+        // entry is just `Field: Type = constructor` (see `combined_late_pass`).
+        let new_lint = if enable_msrv {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name}::new(conf),\n        ")
+        } else {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name},\n        ")
+        };
+        ("// add late passes here", new_lint)
     } else {
-        format!("Box::new(|{ctor_arg}| Box::new({module_name}::{camel_name})),\n        ")
+        // Early passes are folded into the statically-combined struct, so a new
+        // entry is just `Field: Type = constructor` (see `combined_early_pass`).
+        let new_lint = if enable_msrv {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name}::new(conf),\n        ")
+        } else {
+            format!("{camel_name}: {module_name}::{camel_name} = {module_name}::{camel_name},\n        ")
+        };
+        ("// add early passes here", new_lint)
     };
+    let comment_start = lib_rs.find(comment).expect("Couldn't find comment");
 
     lib_rs.insert_str(comment_start, &new_lint);
 
@@ -257,13 +266,9 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
         Pass::Early => ("EarlyLintPass", "", "use rustc_ast::ast::*;", "EarlyContext"),
         Pass::Late => ("LateLintPass", "<'_>", "use rustc_hir::*;", "LateContext"),
     };
-    let (msrv_ty, msrv_ctor, extract_msrv) = match lint.pass {
-        Pass::Early => (
-            "MsrvStack",
-            "MsrvStack::new(conf.msrv)",
-            "\n    extract_msrv_attr!();\n",
-        ),
-        Pass::Late => ("Msrv", "conf.msrv", ""),
+    let (msrv_ty, extract_msrv) = match lint.pass {
+        Pass::Early => ("MsrvStack", "\n    extract_msrv_attr!();\n"),
+        Pass::Late => ("Msrv", ""),
     };
 
     let lint_name = lint.name;
@@ -311,7 +316,7 @@ fn get_lint_file_contents(lint: &LintData<'_>, enable_msrv: bool) -> String {
 
             impl {name_camel} {{
                 pub fn new(conf: &'static Conf) -> Self {{
-                    Self {{ msrv: {msrv_ctor} }}
+                    Self {{ msrv: conf.msrv.into() }}
                 }}
             }}
 

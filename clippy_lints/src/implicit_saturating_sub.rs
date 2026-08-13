@@ -90,7 +90,7 @@ pub struct ImplicitSaturatingSub {
 
 impl ImplicitSaturatingSub {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -104,7 +104,7 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingSub {
             // Check if the conditional expression is a binary operation
             && let ExprKind::Binary(ref cond_op, cond_left, cond_right) = cond.kind
         {
-            check_with_condition(cx, expr, cond_op.node, cond_left, cond_right, then);
+            check_with_condition(cx, expr, cond_op.node, cond_left, cond_right, then, self.msrv);
         } else if let Some(higher::If {
             cond,
             then: if_block,
@@ -184,7 +184,7 @@ fn check_gt(
     msrv: Msrv,
     is_composited: bool,
 ) {
-    if is_side_effect_free(cx, big_expr) && is_side_effect_free(cx, little_expr) {
+    if !big_expr.can_have_side_effects() && !little_expr.can_have_side_effects() {
         check_subtraction(
             cx,
             condition_span,
@@ -197,10 +197,6 @@ fn check_gt(
             is_composited,
         );
     }
-}
-
-fn is_side_effect_free(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    eq_expr_value(cx, expr, expr)
 }
 
 #[expect(clippy::too_many_arguments)]
@@ -242,7 +238,8 @@ fn check_subtraction(
         && let ExprKind::Binary(op, left, right) = if_block.kind
         && let BinOpKind::Sub = op.node
     {
-        if eq_expr_value(cx, left, big_expr) && eq_expr_value(cx, right, little_expr) {
+        let ctxt = expr_span.ctxt();
+        if eq_expr_value(cx, ctxt, left, big_expr) && eq_expr_value(cx, ctxt, right, little_expr) {
             // This part of the condition is voluntarily split from the one before to ensure that
             // if `snippet_opt` fails, it won't try the next conditions.
             if !is_in_const_context(cx) || msrv.meets(cx, msrvs::SATURATING_SUB_CONST) {
@@ -277,8 +274,8 @@ fn check_subtraction(
                     },
                 );
             }
-        } else if eq_expr_value(cx, left, little_expr)
-            && eq_expr_value(cx, right, big_expr)
+        } else if eq_expr_value(cx, ctxt, left, little_expr)
+            && eq_expr_value(cx, ctxt, right, big_expr)
             && let Some(big_expr_sugg) = Sugg::hir_opt(cx, big_expr)
             && let Some(little_expr_sugg) = Sugg::hir_opt(cx, little_expr)
         {
@@ -312,6 +309,7 @@ fn check_with_condition<'tcx>(
     cond_left: &Expr<'tcx>,
     cond_right: &Expr<'tcx>,
     then: &Expr<'tcx>,
+    msrv: Msrv,
 ) {
     // Ensure that the binary operator is >, !=, or <
     if (BinOpKind::Ne == cond_op || BinOpKind::Gt == cond_op || BinOpKind::Lt == cond_op)
@@ -322,14 +320,15 @@ fn check_with_condition<'tcx>(
         // Extracting out the variable name
         && let ExprKind::Path(QPath::Resolved(_, ares_path)) = target.kind
     {
+        let ctxt = expr.span.ctxt();
         // Handle symmetric conditions in the if statement
-        let (cond_var, cond_num_val) = if SpanlessEq::new(cx).eq_expr(cond_left, target) {
+        let (cond_var, cond_num_val) = if SpanlessEq::new(cx).eq_expr(ctxt, cond_left, target) {
             if BinOpKind::Gt == cond_op || BinOpKind::Ne == cond_op {
                 (cond_left, cond_right)
             } else {
                 return;
             }
-        } else if SpanlessEq::new(cx).eq_expr(cond_right, target) {
+        } else if SpanlessEq::new(cx).eq_expr(ctxt, cond_right, target) {
             if BinOpKind::Lt == cond_op || BinOpKind::Ne == cond_op {
                 (cond_right, cond_left)
             } else {
@@ -341,6 +340,10 @@ fn check_with_condition<'tcx>(
 
         // Check if the variable in the condition statement is an integer
         if !cx.typeck_results().expr_ty(cond_var).is_integral() {
+            return;
+        }
+
+        if is_in_const_context(cx) && !msrv.meets(cx, msrvs::SATURATING_SUB_CONST) {
             return;
         }
 
@@ -399,7 +402,7 @@ fn subtracts_one<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>) -> Option<&'a Exp
         ExprKind::Assign(target, value, _) => {
             if let ExprKind::Binary(ref op1, left1, right1) = value.kind
                 && BinOpKind::Sub == op1.node
-                && SpanlessEq::new(cx).eq_expr(left1, target)
+                && SpanlessEq::new(cx).eq_expr(expr.span.ctxt(), left1, target)
                 && is_integer_literal(right1, 1)
             {
                 Some(target)

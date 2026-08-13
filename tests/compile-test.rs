@@ -6,7 +6,7 @@ use askama::Template;
 use askama::filters::Safe;
 use cargo_metadata::Message;
 use cargo_metadata::diagnostic::{Applicability, Diagnostic};
-use clippy_config::ClippyConfiguration;
+use clippy_config::ConfMetadata;
 use clippy_lints::declared_lints::LINTS;
 use clippy_lints::deprecated_lints::{DEPRECATED, DEPRECATED_VERSION, RENAMED};
 use declare_clippy_lint::LintInfo;
@@ -24,7 +24,7 @@ use ui_test::{Args, CommandBuilder, Config, Match, error_on_output_conflict};
 use std::collections::{BTreeMap, HashMap};
 use std::env::{self, set_var, var_os};
 use std::ffi::{OsStr, OsString};
-use std::fmt::Write;
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{Sender, channel};
 use std::{fs, iter, thread};
@@ -82,18 +82,41 @@ fn internal_extern_flags() -> Vec<String> {
         .copied()
         .filter(|n| !crates.contains_key(n))
         .collect();
-    assert!(
-        not_found.is_empty(),
+    assert_eq!(
+        not_found,
+        [] as [&str; 0],
         "dependencies not found in depinfo: {not_found:?}\n\
         help: Make sure the `-Z binary-dep-depinfo` rust flag is enabled\n\
         help: Try adding to dev-dependencies in Cargo.toml\n\
         help: Be sure to also add `extern crate ...;` to tests/compile-test.rs",
     );
-    crates
+
+    let mut args: Vec<String> = crates
         .into_iter()
         .map(|(name, path)| format!("--extern={name}={path}"))
-        .chain([format!("-Ldependency={}", deps_path.display())])
-        .collect()
+        .collect();
+
+    if deps_path.ends_with("deps") {
+        args.push(format!("-Ldependency={}", deps_path.display()));
+    } else {
+        // If the dep_path does not point to `/deps` it very likely means Cargo is using the v2 build-dir
+        // layout
+        assert!(deps_path.ends_with("out"));
+
+        // Get a path to `target/<platform-profile>/build`
+        let build_dir = {
+            let mut d = deps_path.to_path_buf();
+            d.pop(); // remove `out`
+            d.pop(); // remove `<hash>`
+            d.pop(); // remove `<pkgname>`
+            d
+        };
+
+        let out_dirs = discover_out_dirs(&build_dir);
+        args.extend(out_dirs.iter().map(|path| format!("-Ldependency={}", path.display())));
+    }
+
+    args
 }
 
 // whether to run internal tests or not
@@ -214,8 +237,21 @@ impl TestContext {
         config.program.envs.push(("RUSTC_ICE".into(), Some("0".into())));
 
         if let Some(host_libs) = option_env!("HOST_LIBS") {
-            let dep = format!("-Ldependency={}", Path::new(host_libs).join("deps").display());
-            config.program.args.push(dep.into());
+            let deps_dir = Path::new(host_libs).join("deps");
+
+            if deps_dir.exists() {
+                let dep = format!("-Ldependency={}", deps_dir.display());
+                config.program.args.push(dep.into());
+            } else {
+                // If `/deps` does not exist, assume Cargo v2 build-dir layout
+                let build_dir = Path::new(host_libs).join("build");
+                let dependencies = discover_out_dirs(&build_dir);
+
+                for dep in dependencies {
+                    let dep = format!("-Ldependency={}", dep.display());
+                    config.program.args.push(dep.into());
+                }
+            }
         }
         if let Some(sysroot) = option_env!("TEST_SYSROOT") {
             config.program.args.push(format!("--sysroot={sysroot}").into());
@@ -505,7 +541,7 @@ impl DiagnosticCollector {
                 }
             }
 
-            let configs = clippy_config::get_configuration_metadata();
+            let configs = clippy_config::Conf::get_metadata();
             let mut metadata: Vec<LintMetadata> = LINTS
                 .iter()
                 .map(|lint| LintMetadata::new(lint, &applicabilities, &configs))
@@ -577,7 +613,7 @@ struct LintMetadata {
 }
 
 impl LintMetadata {
-    fn new(lint: &LintInfo, applicabilities: &HashMap<String, Applicability>, configs: &[ClippyConfiguration]) -> Self {
+    fn new(lint: &LintInfo, applicabilities: &HashMap<String, Applicability>, configs: &[ConfMetadata]) -> Self {
         let name = lint.name_lower();
         let applicability = applicabilities
             .get(&name)
@@ -647,4 +683,21 @@ impl LintMetadata {
             _ => panic!("needs to update this code"),
         }
     }
+}
+
+/// Gets all of the `out` dirs in a given Cargo `build-dir/<profile>/build` dir.
+fn discover_out_dirs(dir: &Path) -> Vec<PathBuf> {
+    if !dir.exists() {
+        return Vec::new();
+    }
+
+    let read_dir = |path: &Path| path.read_dir().ok().into_iter().flatten().filter_map(Result::ok);
+    dir.read_dir()
+        .unwrap_or_else(|e| panic!("Couldn't read {}: {}", dir.display(), e))
+        .map(|e| e.unwrap())
+        .flat_map(|e| read_dir(&e.path()))
+        .flat_map(|e| read_dir(&e.path()))
+        .map(|e| e.path())
+        .filter(|path| path.ends_with("out"))
+        .collect::<Vec<_>>()
 }

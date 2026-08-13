@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::macros::{FormatArgsStorage, format_args_inputs_span, root_macro_call_first_node};
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{contains_return, is_inside_always_const_context, peel_blocks, sym};
@@ -100,7 +100,7 @@ fn get_arg_root<'a>(cx: &LateContext<'_>, arg: &'a hir::Expr<'a>) -> &'a hir::Ex
 }
 
 fn contains_call<'a>(cx: &LateContext<'a>, arg: &'a hir::Expr<'a>) -> bool {
-    for_each_expr(cx, arg, |expr| {
+    for_each_expr(cx.tcx, arg, |expr| {
         if matches!(expr.kind, hir::ExprKind::MethodCall { .. } | hir::ExprKind::Call { .. })
             && !is_inside_always_const_context(cx.tcx, expr.hir_id)
         {

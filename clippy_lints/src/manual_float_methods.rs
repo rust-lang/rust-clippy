@@ -3,13 +3,13 @@ use clippy_utils::consts::ConstEvalCtxt;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::MaybeResPath;
-use clippy_utils::source::SpanRangeExt;
+use clippy_utils::res::MaybeResPath as _;
+use clippy_utils::source::SpanExt as _;
 use rustc_errors::Applicability;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BinOpKind, Constness, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, Lint, LintContext};
+use rustc_lint::{LateContext, LateLintPass, Lint, LintContext as _};
 use rustc_middle::ty::TyCtxt;
 use rustc_session::impl_lint_pass;
 
@@ -93,7 +93,7 @@ pub struct ManualFloatMethods {
 
 impl ManualFloatMethods {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -122,7 +122,6 @@ fn is_not_const(tcx: TyCtxt<'_>, def_id: DefId) -> bool {
         | DefKind::TyParam => true,
 
         DefKind::AnonConst
-        | DefKind::InlineConst
         | DefKind::Const { .. }
         | DefKind::ConstParam
         | DefKind::Static { .. }
@@ -157,7 +156,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualFloatMethods {
             // case somebody does that for some reason
             && (const_1.is_pos_infinity() && const_2.is_neg_infinity()
                 || const_1.is_neg_infinity() && const_2.is_pos_infinity())
-            && let Some(local_snippet) = first.span.get_source_text(cx)
+            && let Some(local_snippet) = first.span.get_text(cx)
         {
             let variant = match (kind.node, lhs_kind.node, rhs_kind.node) {
                 (BinOpKind::Or, BinOpKind::Eq, BinOpKind::Eq) => Variant::ManualIsInfinite,

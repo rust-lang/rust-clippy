@@ -1,4 +1,4 @@
-#![allow(non_upper_case_globals)]
+#![expect(non_upper_case_globals)]
 
 use rustc_span::symbol::PREDEFINED_SYMBOLS_COUNT;
 
@@ -40,6 +40,7 @@ generate! {
     AsyncReadExt,
     AsyncWriteExt,
     BACKSLASH_SINGLE_QUOTE: r"\'",
+    BITS,
     BTreeEntry,
     BTreeSet,
     Binary,
@@ -100,6 +101,7 @@ generate! {
     Path,
     PathBuf,
     PathLookup,
+    PhantomPinned,
     RangeBounds,
     RefCellRef,
     RefCellRefMut,
@@ -175,6 +177,8 @@ generate! {
     checked_sub,
     child_id,
     child_kill,
+    chunks_exact,
+    chunks_exact_mut,
     clamp,
     clippy_utils,
     clone_into,
@@ -202,6 +206,7 @@ generate! {
     cx,
     cycle,
     cyclomatic_complexity,
+    dbg_macro,
     de,
     debug_struct,
     deprecated_in_future,
@@ -280,7 +285,6 @@ generate! {
     from_days,
     from_fn,
     from_hours,
-    from_iter_fn,
     from_le_bytes,
     from_micros,
     from_millis,
@@ -360,6 +364,7 @@ generate! {
     into_bytes,
     into_ok,
     into_owned,
+    into_raw,
     intrinsics_unaligned_volatile_load,
     intrinsics_unaligned_volatile_store,
     io,
@@ -604,7 +609,6 @@ generate! {
     to_ne_bytes,
     to_os_string,
     to_owned,
-    to_owned_method,
     to_path_buf,
     to_string_method,
     to_uppercase,
@@ -649,6 +653,7 @@ generate! {
     warnings,
     wildcard_imports,
     with_capacity,
+    wrapping_neg,
     wrapping_offset,
     write,
     write_unaligned,

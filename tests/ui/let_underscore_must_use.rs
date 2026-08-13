@@ -1,5 +1,5 @@
 #![warn(clippy::let_underscore_must_use)]
-#![allow(clippy::unnecessary_wraps)]
+#![expect(clippy::unnecessary_wraps)]
 
 // Debug implementations can fire this lint,
 // so we shouldn't lint external macros
@@ -94,6 +94,9 @@ fn main() {
     //~^ let_underscore_must_use
 
     let _ = if true { Ok(()) } else { Err(()) };
+    //~^ let_underscore_must_use
+
+    let _: Result<(), ()> = if true { Ok(()) } else { Err(()) };
     //~^ let_underscore_must_use
 
     let a = Result::<(), ()>::Ok(());

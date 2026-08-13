@@ -3,11 +3,11 @@
 #![feature(rustc_private)]
 #![feature(unwrap_infallible)]
 #![recursion_limit = "512"]
-#![allow(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
+#![expect(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
 #![warn(
+    rust_2018_idioms,
     trivial_casts,
     trivial_numeric_casts,
-    rust_2018_idioms,
     unused_lifetimes,
     unused_qualifications,
     rustc::internal
@@ -75,9 +75,9 @@ use core::mem;
 use core::ops::ControlFlow;
 use std::collections::hash_map::Entry;
 use std::iter::{once, repeat_n, zip};
-use std::sync::{Mutex, MutexGuard, OnceLock};
+use std::sync::{Mutex, OnceLock};
 
-use itertools::Itertools;
+use itertools::Itertools as _;
 use rustc_abi::Integer;
 use rustc_ast::ast::{self, LitKind, RangeLimits};
 use rustc_ast::{LitIntType, join_path_syms};
@@ -88,42 +88,40 @@ use rustc_data_structures::unhash::UnindexMap;
 use rustc_hir::LangItem::{OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_hir::attrs::CfgEntry;
 use rustc_hir::def::{DefKind, Res};
-use rustc_hir::def_id::{DefId, LocalDefId, LocalModDefId};
+use rustc_hir::def_id::{DefId, LocalDefId, LocalModId};
 use rustc_hir::definitions::{DefPath, DefPathData};
-use rustc_hir::hir_id::{HirIdMap, HirIdSet};
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{
     self as hir, AnonConst, Arm, BindingMode, Block, BlockCheckMode, Body, ByRef, CRATE_HIR_ID, Closure, ConstArg,
     ConstArgKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, Destination, Expr, ExprField, ExprKind,
-    FieldDef, FnDecl, FnRetTy, GenericArg, GenericArgs, HirId, Impl, ImplItem, ImplItemKind, Item, ItemKind, LangItem,
-    LetStmt, MatchSource, Mutability, Node, OwnerId, OwnerNode, Param, Pat, PatExpr, PatExprKind, PatKind, Path,
-    PathSegment, QPath, Stmt, StmtKind, TraitFn, TraitItem, TraitItemKind, TraitRef, TyKind, UnOp, Variant, def,
-    find_attr,
+    FieldDef, FnDecl, FnRetTy, GenericArg, GenericArgs, HirId, HirIdMap, HirIdSet, Impl, ImplItem, ImplItemKind, Item,
+    ItemKind, LangItem, LetStmt, MatchSource, Mutability, Node, OwnerId, OwnerNode, Param, Pat, PatExpr, PatExprKind,
+    PatKind, Path, PathSegment, QPath, Stmt, StmtKind, TraitFn, TraitItem, TraitItemKind, TraitRef, TyKind, UnOp,
+    Variant, def, find_attr,
 };
 use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
-use rustc_lint::{LateContext, Level, Lint, LintContext};
+use rustc_lint::{LateContext, Level, Lint, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::PlaceBase;
-use rustc_middle::lint::LevelAndSource;
 use rustc_middle::mir::{AggregateKind, Operand, RETURN_PLACE, Rvalue, StatementKind, TerminatorKind};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, DerefAdjustKind, PointerCoercion};
-use rustc_middle::ty::layout::IntegerExt;
+use rustc_middle::ty::layout::IntegerExt as _;
 use rustc_middle::ty::{
     self as rustc_ty, Binder, BorrowKind, ClosureKind, EarlyBinder, GenericArgKind, GenericArgsRef, IntTy, Ty, TyCtxt,
-    TypeFlags, TypeVisitableExt, TypeckResults, UintTy, UpvarCapture,
+    TypeFlags, TypeVisitableExt as _, TypeckResults, UintTy, UpvarCapture,
 };
 use rustc_span::hygiene::{ExpnKind, MacroKind};
 use rustc_span::source_map::SourceMap;
 use rustc_span::symbol::{Ident, Symbol, kw};
 use rustc_span::{InnerSpan, Span, SyntaxContext};
-use source::{SpanRangeExt, walk_span_to_context};
+use source::{SpanExt as _, walk_span_to_context};
 use visitors::{Visitable, for_each_unconsumed_temporary};
 
 use crate::ast_utils::unordered_over;
-use crate::consts::{ConstEvalCtxt, Constant};
 use crate::higher::Range;
 use crate::msrvs::Msrv;
-use crate::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use crate::res::{MaybeDef as _, MaybeResPath as _};
+use crate::source::HasSourceMap;
 use crate::ty::{adt_and_variant_of_res, can_partially_move_ty, expr_sig, is_copy, is_recursively_primitive_type};
 use crate::visitors::for_each_expr_without_closures;
 
@@ -243,7 +241,10 @@ pub fn is_inside_always_const_context(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
     };
     match ctx {
         ConstFn => false,
-        Static(_) | Const { inline: _ } => true,
+        Static(_)
+        | Const {
+            allow_const_fn_promotion: _,
+        } => true,
     }
 }
 
@@ -297,13 +298,13 @@ pub fn is_lang_item_or_ctor(cx: &LateContext<'_>, did: DefId, item: LangItem) ->
 
 /// Checks is `expr` is `None`
 pub fn is_none_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    expr.res(cx).ctor_parent(cx).is_lang_item(cx, OptionNone)
+    expr.basic_res().ctor_parent(cx).is_lang_item(cx, OptionNone)
 }
 
 /// If `expr` is `Some(inner)`, returns `inner`
 pub fn as_some_expr<'tcx>(cx: &LateContext<'_>, expr: &'tcx Expr<'tcx>) -> Option<&'tcx Expr<'tcx>> {
     if let ExprKind::Call(e, [arg]) = expr.kind
-        && e.res(cx).ctor_parent(cx).is_lang_item(cx, OptionSome)
+        && e.basic_res().ctor_parent(cx).is_lang_item(cx, OptionSome)
     {
         Some(arg)
     } else {
@@ -469,19 +470,23 @@ pub fn trait_ref_of_method<'tcx>(cx: &LateContext<'tcx>, owner: OwnerId) -> Opti
 /// this method will return a tuple, composed of a `Vec`
 /// containing the `Expr`s for `v[0], v[0].a, v[0].a.b, v[0].a.b[x]`
 /// and an `Expr` for root of them, `v`
-fn projection_stack<'a, 'hir>(mut e: &'a Expr<'hir>) -> (Vec<&'a Expr<'hir>>, &'a Expr<'hir>) {
+fn projection_stack<'a, 'hir>(
+    mut e: &'a Expr<'hir>,
+    ctxt: SyntaxContext,
+) -> Option<(Vec<&'a Expr<'hir>>, &'a Expr<'hir>)> {
     let mut result = vec![];
     let root = loop {
         match e.kind {
-            ExprKind::Index(ep, _, _) | ExprKind::Field(ep, _) => {
+            ExprKind::Index(ep, _, _) | ExprKind::Field(ep, _) if e.span.ctxt() == ctxt => {
                 result.push(e);
                 e = ep;
             },
+            ExprKind::Index(..) | ExprKind::Field(..) => return None,
             _ => break e,
         }
     };
     result.reverse();
-    (result, root)
+    Some((result, root))
 }
 
 /// Gets the mutability of the custom deref adjustment, if any.
@@ -499,10 +504,14 @@ pub fn expr_custom_deref_adjustment(cx: &LateContext<'_>, e: &Expr<'_>) -> Optio
 
 /// Checks if two expressions can be mutably borrowed simultaneously
 /// and they aren't dependent on borrowing same thing twice
-pub fn can_mut_borrow_both(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>) -> bool {
-    let (s1, r1) = projection_stack(e1);
-    let (s2, r2) = projection_stack(e2);
-    if !eq_expr_value(cx, r1, r2) {
+pub fn can_mut_borrow_both(cx: &LateContext<'_>, ctxt: SyntaxContext, e1: &Expr<'_>, e2: &Expr<'_>) -> bool {
+    let Some((s1, r1)) = projection_stack(e1, ctxt) else {
+        return false;
+    };
+    let Some((s2, r2)) = projection_stack(e2, ctxt) else {
+        return false;
+    };
+    if !eq_expr_value(cx, ctxt, r1, r2) {
         return true;
     }
     if expr_custom_deref_adjustment(cx, r1).is_some() || expr_custom_deref_adjustment(cx, r2).is_some() {
@@ -518,11 +527,6 @@ pub fn can_mut_borrow_both(cx: &LateContext<'_>, e1: &Expr<'_>, e2: &Expr<'_>) -
             (ExprKind::Field(_, i1), ExprKind::Field(_, i2)) => {
                 if i1 != i2 {
                     return true;
-                }
-            },
-            (ExprKind::Index(_, i1, _), ExprKind::Index(_, i2, _)) => {
-                if !eq_expr_value(cx, i1, i2) {
-                    return false;
                 }
             },
             _ => return false,
@@ -1028,7 +1032,7 @@ pub fn method_calls<'tcx>(expr: &'tcx Expr<'tcx>, max_depth: usize) -> (Vec<Symb
 /// Matches an `Expr` against a chain of methods, and return the matched `Expr`s.
 ///
 /// For example, if `expr` represents the `.baz()` in `foo.bar().baz()`,
-/// `method_chain_args(expr, &["bar", "baz"])` will return a `Vec`
+/// `method_chain_args(expr, &[sym::bar, sym::baz])` will return a `Vec`
 /// containing the `Expr`s for
 /// `.bar()` and `.baz()`
 pub fn method_chain_args<'a>(expr: &'a Expr<'_>, methods: &[Symbol]) -> Option<Vec<(&'a Expr<'a>, &'a [Expr<'a>])>> {
@@ -1323,79 +1327,27 @@ pub fn is_else_clause_in_let_else(tcx: TyCtxt<'_>, expr: &Expr<'_>) -> bool {
     })
 }
 
-/// Checks whether the given `Expr` is a range equivalent to a `RangeFull`.
-///
-/// For the lower bound, this means that:
-/// - either there is none
-/// - or it is the smallest value that can be represented by the range's integer type
-///
-/// For the upper bound, this means that:
-/// - either there is none
-/// - or it is the largest value that can be represented by the range's integer type and is
-///   inclusive
-/// - or it is a call to some container's `len` method and is exclusive, and the range is passed to
-///   a method call on that same container (e.g. `v.drain(..v.len())`)
-///
-/// If the given `Expr` is not some kind of range, the function returns `false`.
-pub fn is_range_full(cx: &LateContext<'_>, expr: &Expr<'_>, container_path: Option<&Path<'_>>) -> bool {
-    let ty = cx.typeck_results().expr_ty(expr);
-    if let Some(Range { start, end, limits, .. }) = Range::hir(cx, expr) {
-        let start_is_none_or_min = start.is_none_or(|start| {
-            if let rustc_ty::Adt(_, subst) = ty.kind()
-                && let bnd_ty = subst.type_at(0)
-                && let Some(start_const) = ConstEvalCtxt::new(cx).eval(start)
-            {
-                start_const.is_numeric_min(cx.tcx, bnd_ty)
-            } else {
-                false
-            }
-        });
-        let end_is_none_or_max = end.is_none_or(|end| match limits {
-            RangeLimits::Closed => {
-                if let rustc_ty::Adt(_, subst) = ty.kind()
-                    && let bnd_ty = subst.type_at(0)
-                    && let Some(end_const) = ConstEvalCtxt::new(cx).eval(end)
+/// Checks whether the given `Expr` is a range over the entire container.
+pub fn is_full_collection_range(cx: &LateContext<'_>, container: Option<HirId>, expr: &Expr<'_>) -> bool {
+    if let Some(Range { start, end, ty, .. }) = Range::hir(cx, expr) {
+        start.is_none_or(|start| is_integer_literal(start, 0))
+            && end.is_none_or(|end| {
+                if ty.limits() == RangeLimits::HalfOpen
+                    && let Some(container) = container
+                    && let ExprKind::MethodCall(seg, recv, [], _) = end.kind
                 {
-                    end_const.is_numeric_max(cx.tcx, bnd_ty)
+                    seg.ident.name == sym::len && recv.res_local_id() == Some(container)
                 } else {
                     false
                 }
-            },
-            RangeLimits::HalfOpen => {
-                if let Some(container_path) = container_path
-                    && let ExprKind::MethodCall(name, self_arg, [], _) = end.kind
-                    && name.ident.name == sym::len
-                    && let ExprKind::Path(QPath::Resolved(None, path)) = self_arg.kind
-                {
-                    container_path.res == path.res
-                } else {
-                    false
-                }
-            },
-        });
-        return start_is_none_or_min && end_is_none_or_max;
+            })
+    } else {
+        false
     }
-    false
-}
-
-/// Checks whether the given expression is a constant integer of the given value.
-/// unlike `is_integer_literal`, this version does const folding
-pub fn is_integer_const(cx: &LateContext<'_>, e: &Expr<'_>, value: u128) -> bool {
-    if is_integer_literal(e, value) {
-        return true;
-    }
-    let enclosing_body = cx.tcx.hir_enclosing_body_owner(e.hir_id);
-    if let Some(Constant::Int(v)) =
-        ConstEvalCtxt::with_env(cx.tcx, cx.typing_env(), cx.tcx.typeck(enclosing_body)).eval(e)
-    {
-        return value == v;
-    }
-    false
 }
 
 /// Checks whether the given expression is a constant literal of the given value.
 pub fn is_integer_literal(expr: &Expr<'_>, value: u128) -> bool {
-    // FIXME: use constant folding
     if let ExprKind::Lit(spanned) = expr.kind
         && let LitKind::Int(v, _) = spanned.node
     {
@@ -1660,12 +1612,12 @@ pub fn fulfill_or_allowed(cx: &LateContext<'_>, lint: &'static Lint, ids: impl I
     let mut suppress_lint = false;
 
     for id in ids {
-        let LevelAndSource { level, lint_id, .. } = cx.tcx.lint_level_at_node(lint, id);
-        if let Some(expectation) = lint_id {
+        let level_spec = cx.tcx.lint_level_spec_at_node(lint, id);
+        if let Some(expectation) = level_spec.lint_id() {
             cx.fulfill_expectation(expectation);
         }
 
-        match level {
+        match level_spec.level() {
             Level::Allow | Level::Expect => suppress_lint = true,
             Level::Warn | Level::ForceWarn | Level::Deny | Level::Forbid => {},
         }
@@ -1682,7 +1634,7 @@ pub fn fulfill_or_allowed(cx: &LateContext<'_>, lint: &'static Lint, ids: impl I
 /// make sure to use `span_lint_hir` functions to emit the lint. This ensures that
 /// expectations at the checked nodes will be fulfilled.
 pub fn is_lint_allowed(cx: &LateContext<'_>, lint: &'static Lint, id: HirId) -> bool {
-    cx.tcx.lint_level_at_node(lint, id).level == Level::Allow
+    cx.tcx.lint_level_spec_at_node(lint, id).is_allow()
 }
 
 pub fn strip_pat_refs<'hir>(mut pat: &'hir Pat<'hir>) -> &'hir Pat<'hir> {
@@ -1744,12 +1696,7 @@ pub fn any_parent_has_attr(tcx: TyCtxt<'_>, node: HirId, symbol: Symbol) -> bool
 pub fn in_automatically_derived(tcx: TyCtxt<'_>, id: HirId) -> bool {
     tcx.hir_parent_owner_iter(id)
         .filter(|(_, node)| matches!(node, OwnerNode::Item(item) if matches!(item.kind, ItemKind::Impl(_))))
-        .any(|(id, _)| {
-            find_attr!(
-                tcx.hir_attrs(tcx.local_def_id_to_hir_id(id.def_id)),
-                AutomaticallyDerived(..)
-            )
-        })
+        .any(|(id, _)| find_attr!(tcx, id.def_id, AutomaticallyDerived))
 }
 
 /// Checks if the given `DefId` matches the `libc` item.
@@ -2111,11 +2058,11 @@ pub fn std_or_core(cx: &LateContext<'_>) -> Option<&'static str> {
 }
 
 pub fn is_no_std_crate(cx: &LateContext<'_>) -> bool {
-    find_attr!(cx.tcx, crate, NoStd(..))
+    find_attr!(cx.tcx, crate, NoStd)
 }
 
 pub fn is_no_core_crate(cx: &LateContext<'_>) -> bool {
-    find_attr!(cx.tcx, crate, NoCore(..))
+    find_attr!(cx.tcx, crate, NoCore)
 }
 
 /// Check if parent of a hir node is a trait implementation block.
@@ -2144,15 +2091,15 @@ pub fn is_trait_impl_item(cx: &LateContext<'_>, hir_id: HirId) -> bool {
 ///     for _ in 2i32 {}
 /// }
 /// ```
-pub fn fn_has_unsatisfiable_preds(cx: &LateContext<'_>, did: DefId) -> bool {
+pub fn fn_has_unsatisfiable_clauses(cx: &LateContext<'_>, did: DefId) -> bool {
     use rustc_trait_selection::traits;
-    let predicates = cx
+    let clauses = cx
         .tcx
-        .predicates_of(did)
-        .predicates
+        .clauses_of(did)
+        .clauses
         .iter()
         .filter_map(|(p, _)| if p.is_global() { Some(*p) } else { None });
-    traits::impossible_predicates(cx.tcx, traits::elaborate(cx.tcx, predicates).collect::<Vec<_>>())
+    traits::impossible_clauses(cx.tcx, traits::elaborate(cx.tcx, clauses).collect::<Vec<_>>())
 }
 
 /// Returns the `DefId` of the callee if the given expression is a function or method call.
@@ -2395,21 +2342,20 @@ pub fn is_hir_ty_cfg_dependant(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
     if let TyKind::Path(QPath::Resolved(_, path)) = ty.kind
         && let Res::Def(_, def_id) = path.res
     {
-        return find_attr!(cx.tcx, def_id, CfgTrace(..) | CfgAttrTrace);
+        return find_attr!(cx.tcx, def_id, CfgTrace(..) | CfgAttrTrace(..));
     }
     false
 }
 
-static TEST_ITEM_NAMES_CACHE: OnceLock<Mutex<FxHashMap<LocalModDefId, Vec<Symbol>>>> = OnceLock::new();
+static TEST_ITEM_NAMES_CACHE: OnceLock<Mutex<FxHashMap<LocalModId, Vec<Symbol>>>> = OnceLock::new();
 
-/// Apply `f()` to the set of test item names.
+/// Returns the names of the test items in the given module.
 /// The names are sorted using the default `Symbol` ordering.
-fn with_test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId, f: impl FnOnce(&[Symbol]) -> bool) -> bool {
+fn test_item_names(tcx: TyCtxt<'_>, module: LocalModId) -> Vec<Symbol> {
     let cache = TEST_ITEM_NAMES_CACHE.get_or_init(|| Mutex::new(FxHashMap::default()));
-    let mut map: MutexGuard<'_, FxHashMap<LocalModDefId, Vec<Symbol>>> = cache.lock().unwrap();
-    let value = map.entry(module);
-    match value {
-        Entry::Occupied(entry) => f(entry.get()),
+    let mut map = cache.lock().unwrap();
+    match map.entry(module) {
+        Entry::Occupied(entry) => entry.get().clone(),
         Entry::Vacant(entry) => {
             let mut names = Vec::new();
             for id in tcx.hir_module_free_items(module) {
@@ -2425,7 +2371,7 @@ fn with_test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId, f: impl FnOnce(&
                 }
             }
             names.sort_unstable();
-            f(entry.insert(names))
+            entry.insert(names).clone()
         },
     }
 }
@@ -2434,23 +2380,25 @@ fn with_test_item_names(tcx: TyCtxt<'_>, module: LocalModDefId, f: impl FnOnce(&
 ///
 /// Note: Add `//@compile-flags: --test` to UI tests with a `#[test]` function
 pub fn is_in_test_function(tcx: TyCtxt<'_>, id: HirId) -> bool {
-    with_test_item_names(tcx, tcx.parent_module(id), |names| {
-        let node = tcx.hir_node(id);
-        once((id, node))
-            .chain(tcx.hir_parent_iter(id))
-            // Since you can nest functions we need to collect all until we leave
-            // function scope
-            .any(|(_id, node)| {
-                if let Node::Item(item) = node
-                    && let ItemKind::Fn { ident, .. } = item.kind
-                {
-                    // Note that we have sorted the item names in the visitor,
-                    // so the binary_search gets the same as `contains`, but faster.
-                    return names.binary_search(&ident.name).is_ok();
-                }
-                false
-            })
-    })
+    let names = test_item_names(tcx, tcx.parent_module(id));
+    // Without `--test` there are no test items, so the parent walk can never match.
+    if names.is_empty() {
+        return false;
+    }
+    once((id, tcx.hir_node(id)))
+        .chain(tcx.hir_parent_iter(id))
+        // Since you can nest functions we need to collect all until we leave
+        // function scope
+        .any(|(_id, node)| {
+            if let Node::Item(item) = node
+                && let ItemKind::Fn { ident, .. } = item.kind
+            {
+                // Note that we have sorted the item names in the visitor,
+                // so the binary_search gets the same as `contains`, but faster.
+                return names.binary_search(&ident.name).is_ok();
+            }
+            false
+        })
 }
 
 /// Checks if `fn_def_id` has a `#[test]` attribute applied
@@ -2464,9 +2412,9 @@ pub fn is_test_function(tcx: TyCtxt<'_>, fn_def_id: LocalDefId) -> bool {
     if let Node::Item(item) = tcx.hir_node(id)
         && let ItemKind::Fn { ident, .. } = item.kind
     {
-        with_test_item_names(tcx, tcx.parent_module(id), |names| {
-            names.binary_search(&ident.name).is_ok()
-        })
+        test_item_names(tcx, tcx.parent_module(id))
+            .binary_search(&ident.name)
+            .is_ok()
     } else {
         false
     }
@@ -2895,8 +2843,8 @@ pub fn tokenize_with_text(s: &str) -> impl Iterator<Item = (TokenKind, &str, Inn
 
 /// Checks whether a given span has any comment token
 /// This checks for all types of comment: line "//", block "/**", doc "///" "//!"
-pub fn span_contains_comment(cx: &impl source::HasSession, span: Span) -> bool {
-    span.check_source_text(cx, |snippet| {
+pub fn span_contains_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> bool {
+    span.check_text(sm, |snippet| {
         tokenize(snippet, FrontmatterAllowed::No).any(|token| {
             matches!(
                 token.kind,
@@ -2910,8 +2858,8 @@ pub fn span_contains_comment(cx: &impl source::HasSession, span: Span) -> bool {
 /// token, including comments unless `skip_comments` is set.
 /// This is useful to determine if there are any actual code tokens in the span that are omitted in
 /// the late pass, such as platform-specific code.
-pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, skip_comments: bool) -> bool {
-    span.check_source_text(cx, |snippet| {
+pub fn span_contains_non_whitespace<'sm>(sm: impl HasSourceMap<'sm>, span: Span, skip_comments: bool) -> bool {
+    span.check_text(sm, |snippet| {
         tokenize_with_text(snippet).any(|(token, _, _)| match token {
             TokenKind::Whitespace => false,
             TokenKind::BlockComment { .. } | TokenKind::LineComment { .. } => !skip_comments,
@@ -2919,18 +2867,19 @@ pub fn span_contains_non_whitespace(cx: &impl source::HasSession, span: Span, sk
         })
     })
 }
+
 /// Returns all the comments a given span contains
 ///
 /// Comments are returned wrapped with their relevant delimiters
-pub fn span_extract_comment(cx: &impl source::HasSession, span: Span) -> String {
-    span_extract_comments(cx, span).join("\n")
+pub fn span_extract_comment<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> String {
+    span_extract_comments(sm, span).join("\n")
 }
 
 /// Returns all the comments a given span contains.
 ///
 /// Comments are returned wrapped with their relevant delimiters.
-pub fn span_extract_comments(cx: &impl source::HasSession, span: Span) -> Vec<String> {
-    span.with_source_text(cx, |snippet| {
+pub fn span_extract_comments<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Vec<String> {
+    span.with_source_text(sm, |snippet| {
         tokenize_with_text(snippet)
             .filter(|(t, ..)| matches!(t, TokenKind::BlockComment { .. } | TokenKind::LineComment { .. }))
             .map(|(_, s, _)| s.to_string())
@@ -3308,7 +3257,10 @@ fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args:
         | rustc_ty::RawPtr(_, _)
         | rustc_ty::Ref(..)
         | rustc_ty::Slice(_)
-        | rustc_ty::Tuple(_) => format!("<{}>", EarlyBinder::bind(ty).instantiate(tcx, args).skip_norm_wip()),
+        | rustc_ty::Tuple(_) => format!(
+            "<{}>",
+            EarlyBinder::bind(tcx, ty).instantiate(tcx, args).skip_norm_wip()
+        ),
         _ => ty.to_string(),
     }
 }
@@ -3455,6 +3407,19 @@ pub fn leaks_droppable_temporary_with_limited_lifetime<'tcx>(cx: &LateContext<'t
                 .walk()
                 .any(|arg| matches!(arg.kind(), GenericArgKind::Lifetime(re) if !re.is_static()))
         {
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
+        }
+    })
+    .is_break()
+}
+
+/// Returns true if `expr` creates any temporary that has a significant drop and does not consume
+/// it.
+pub fn leaks_droppable_temporary<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
+    for_each_unconsumed_temporary(cx, expr, |temporary_ty| {
+        if temporary_ty.has_significant_drop(cx.tcx, cx.typing_env()) {
             ControlFlow::Break(())
         } else {
             ControlFlow::Continue(())

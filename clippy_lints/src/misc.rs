@@ -4,7 +4,7 @@ use clippy_utils::{SpanlessEq, fulfill_or_allowed, get_parent_expr, in_automatic
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -238,7 +238,9 @@ fn used_underscore_binding<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
 /// of what it means for an expression to be "used".
 fn is_used(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     get_parent_expr(cx, expr).is_none_or(|parent| match parent.kind {
-        ExprKind::Assign(_, rhs, _) | ExprKind::AssignOp(_, _, rhs) => SpanlessEq::new(cx).eq_expr(rhs, expr),
+        ExprKind::Assign(_, rhs, _) | ExprKind::AssignOp(_, _, rhs) => {
+            SpanlessEq::new(cx).eq_expr(parent.span.ctxt(), rhs, expr)
+        },
         _ => is_used(cx, parent),
     })
 }

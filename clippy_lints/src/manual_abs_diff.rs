@@ -2,7 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher::If;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::peel_and_count_ty_refs;
 use clippy_utils::{eq_expr_value, peel_blocks, span_contains_comment, sym};
@@ -49,7 +49,7 @@ pub struct ManualAbsDiff {
 
 impl ManualAbsDiff {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -121,12 +121,12 @@ fn is_sub_expr(
     expected_b: &Expr<'_>,
     expected_ty: Ty<'_>,
 ) -> bool {
-    let expr = peel_blocks(expr).kind;
+    let expr = peel_blocks(expr);
 
     if let ty::Int(ty) = expected_ty.kind() {
         let unsigned = Ty::new_uint(cx.tcx, ty.to_unsigned());
 
-        return if let ExprKind::Cast(expr, cast_ty) = expr
+        return if let ExprKind::Cast(expr, cast_ty) = expr.kind
             && cx.typeck_results().node_type(cast_ty.hir_id) == unsigned
         {
             is_sub_expr(cx, expr, expected_a, expected_b, unsigned)
@@ -135,10 +135,11 @@ fn is_sub_expr(
         };
     }
 
-    if let ExprKind::Binary(op, a, b) = expr
+    let ctxt = expr.span.ctxt();
+    if let ExprKind::Binary(op, a, b) = expr.kind
         && let BinOpKind::Sub = op.node
-        && eq_expr_value(cx, a, expected_a)
-        && eq_expr_value(cx, b, expected_b)
+        && eq_expr_value(cx, ctxt, a, expected_a)
+        && eq_expr_value(cx, ctxt, b, expected_b)
     {
         true
     } else {

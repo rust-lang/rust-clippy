@@ -1,7 +1,7 @@
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::{MaybeDef, MaybeResPath};
+use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::usage::local_used_after_expr;
 use clippy_utils::visitors::{Descend, for_each_expr};
@@ -214,7 +214,7 @@ fn indirect_usage<'tcx>(
     }) = stmt.kind
     {
         let mut path_to_binding = None;
-        let _: Option<!> = for_each_expr(cx, init_expr, |e| {
+        let _: Option<!> = for_each_expr(cx.tcx, init_expr, |e| {
             if e.res_local_id() == Some(binding) {
                 path_to_binding = Some(e);
             }

@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::{paths, peel_blocks, sym};
 use hir::{ExprKind, HirId, PatKind};
 use rustc_hir as hir;
@@ -156,10 +156,7 @@ fn non_consuming_ok_arm<'a>(cx: &LateContext<'a>, arm: &hir::Arm<'a>) -> bool {
         return false;
     }
 
-    if is_ok_wild_or_dotdot_pattern(cx, arm.pat) {
-        return true;
-    }
-    false
+    is_ok_wild_or_dotdot_pattern(cx, arm.pat)
 }
 
 fn check_expr<'a>(cx: &LateContext<'a>, expr: &'a hir::Expr<'a>) {

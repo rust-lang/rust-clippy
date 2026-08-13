@@ -1,25 +1,24 @@
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::{If, IfLetOrMatch};
 use clippy_utils::msrvs::Msrv;
-use clippy_utils::res::{MaybeDef, MaybeResPath};
-use clippy_utils::source::{IntoSpan, SpanRangeExt, snippet};
+use clippy_utils::res::MaybeResPath as _;
+use clippy_utils::source::{IntoSpan as _, SpanExt as _, snippet};
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::is_local_used;
-use clippy_utils::{SpanlessEq, get_ref_operators, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators};
+use clippy_utils::{
+    SpanlessEq, get_ref_operators, is_none_pattern, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators,
+};
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
-use rustc_hir::LangItem::OptionNone;
-use rustc_hir::{Arm, Expr, ExprKind, HirId, HirIdSet, Pat, PatExpr, PatExprKind, PatKind};
+use rustc_hir::{Arm, Expr, ExprKind, HirId, HirIdSet, Pat, PatKind};
 use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
 use rustc_lint::LateContext;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
-use rustc_span::symbol::Ident;
-use rustc_span::{BytePos, Span};
-
-use crate::collapsible_if::{parens_around, peel_parens};
+use rustc_span::{BytePos, Ident, Span, SyntaxContext};
 
 use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
+use crate::collapsible_if::{parens_around, peel_parens};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
@@ -28,6 +27,7 @@ pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, ar
             let only_wildcards_after = last_non_wildcard.is_none_or(|lnw| idx >= lnw);
             check_arm(
                 cx,
+                arm.span.ctxt(),
                 true,
                 arm.pat,
                 expr,
@@ -43,18 +43,20 @@ pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, ar
 
 pub(super) fn check_if_let<'tcx>(
     cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
     pat: &'tcx Pat<'_>,
     body: &'tcx Expr<'_>,
     else_expr: Option<&'tcx Expr<'_>>,
     let_expr: &'tcx Expr<'_>,
     msrv: Msrv,
 ) {
-    check_arm(cx, false, pat, let_expr, body, None, else_expr, msrv, false);
+    check_arm(cx, ctxt, false, pat, let_expr, body, None, else_expr, msrv, false);
 }
 
 #[expect(clippy::too_many_arguments, clippy::too_many_lines)]
 fn check_arm<'tcx>(
     cx: &LateContext<'tcx>,
+    ctxt: SyntaxContext,
     outer_is_match: bool,
     outer_pat: &'tcx Pat<'tcx>,
     outer_cond: &'tcx Expr<'tcx>,
@@ -94,7 +96,7 @@ fn check_arm<'tcx>(
         && match (outer_else_body, inner_else_body) {
             (None, None) => true,
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
-            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
         // the binding must not be used in the if guard
         && outer_guard.is_none_or(|e| !is_local_used(cx, e, binding_id))
@@ -145,7 +147,7 @@ fn check_arm<'tcx>(
         && match (outer_else_body, inner.r#else) {
             (None, None) => true,
             (None, Some(e)) | (Some(e), None) => is_unit_expr(e),
-            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(a, b),
+            (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
         && !pat_bindings_moved_or_mutated(cx, outer_pat, inner.cond)
     {
@@ -156,18 +158,6 @@ fn check_arm<'tcx>(
             inner_expr.span,
             "this `if` can be collapsed into the outer `match`",
             |diag| {
-                let outer_then_open_bracket = outer_then_body
-                    .span
-                    .split_at(1)
-                    .0
-                    .with_leading_whitespace(cx)
-                    .into_span();
-                let outer_then_closing_bracket = {
-                    let end = outer_then_body.span.shrink_to_hi();
-                    end.with_lo(end.lo() - BytePos(1))
-                        .with_leading_whitespace(cx)
-                        .into_span()
-                };
                 let outer_arrow_end = if let Some(outer_guard) = outer_guard {
                     outer_guard.span.shrink_to_hi()
                 } else {
@@ -175,11 +165,25 @@ fn check_arm<'tcx>(
                 };
                 let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner_expr.span);
                 let inner_if = inner_if_span.split_at(2).0;
-                let mut sugg = vec![
-                    (inner.then.span.shrink_to_lo(), "=> ".to_string()),
-                    (outer_arrow_end.to(outer_then_open_bracket), String::new()),
-                    (outer_then_closing_bracket, String::new()),
-                ];
+                let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
+                if matches!(outer_then_body.kind, ExprKind::Block(..)) {
+                    let outer_then_open_bracket = outer_then_body
+                        .span
+                        .split_at(1)
+                        .0
+                        .with_leading_whitespace(cx)
+                        .into_span();
+                    let outer_then_closing_bracket = {
+                        let end = outer_then_body.span.shrink_to_hi();
+                        end.with_lo(end.lo() - BytePos(1))
+                            .with_leading_whitespace(cx)
+                            .into_span()
+                    };
+                    sugg.push((outer_arrow_end.to(outer_then_open_bracket), String::new()));
+                    sugg.push((outer_then_closing_bracket, String::new()));
+                } else {
+                    sugg.push((outer_arrow_end.until(inner_if), " ".to_string()));
+                }
 
                 if let Some(outer_guard) = outer_guard {
                     sugg.extend(parens_around(outer_guard));
@@ -213,18 +217,7 @@ fn arm_is_wild_like(cx: &LateContext<'_>, arm: &Arm<'_>) -> bool {
     if arm.guard.is_some() {
         return false;
     }
-    match arm.pat.kind {
-        PatKind::Binding(..) | PatKind::Wild => true,
-        PatKind::Expr(PatExpr {
-            kind: PatExprKind::Path(qpath),
-            hir_id,
-            ..
-        }) => cx
-            .qpath_res(qpath, *hir_id)
-            .ctor_parent(cx)
-            .is_lang_item(cx, OptionNone),
-        _ => false,
-    }
+    matches!(arm.pat.kind, PatKind::Binding(..) | PatKind::Wild) || is_none_pattern(cx, arm.pat)
 }
 
 fn find_pat_binding_and_is_innermost_parent_pat_struct(pat: &Pat<'_>, hir_id: HirId) -> (Option<(Ident, Span)>, bool) {

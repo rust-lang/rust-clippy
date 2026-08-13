@@ -1,7 +1,7 @@
 use super::EXPLICIT_ITER_LOOP;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::sym;
 use clippy_utils::ty::{
@@ -139,7 +139,7 @@ fn is_ref_iterable<'tcx>(
         }
 
         let res_ty = cx.tcx.erase_and_anonymize_regions(
-            EarlyBinder::bind(req_res_ty)
+            EarlyBinder::bind(cx.tcx, req_res_ty)
                 .instantiate(cx.tcx, typeck.node_args(call_expr.hir_id))
                 .skip_norm_wip(),
         );

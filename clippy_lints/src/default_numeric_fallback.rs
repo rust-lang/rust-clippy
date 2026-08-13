@@ -8,7 +8,7 @@ use rustc_hir::{
     Block, Body, ConstContext, Expr, ExprKind, FnRetTy, HirId, Lit, Pat, PatExpr, PatExprKind, PatKind, Stmt, StmtKind,
     StructTailExpr,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::{self, FloatTy, IntTy, PolyFnSig, Ty};
 use rustc_session::declare_lint_pass;
 use std::iter;
@@ -56,7 +56,11 @@ impl<'tcx> LateLintPass<'tcx> for DefaultNumericFallback {
         // Inline const supports type inference.
         let is_parent_const = matches!(
             cx.tcx.hir_body_const_context(cx.tcx.hir_body_owner_def_id(body.id())),
-            Some(ConstContext::Const { inline: false } | ConstContext::Static(_))
+            Some(
+                ConstContext::Const {
+                    allow_const_fn_promotion: true
+                } | ConstContext::Static(_)
+            )
         );
         let mut visitor = NumericFallbackVisitor::new(cx, is_parent_const);
         visitor.visit_body(body);
@@ -84,12 +88,12 @@ impl<'a, 'tcx> NumericFallbackVisitor<'a, 'tcx> {
 
     /// Check whether a passed literal has potential to cause fallback or not.
     fn check_lit(&self, lit: Lit, lit_ty: Ty<'tcx>, emit_hir_id: HirId) {
-        if !lit.span.in_external_macro(self.cx.sess().source_map())
-            && matches!(self.ty_bounds.last(), Some(ExplicitTyBound(false)))
+        if matches!(self.ty_bounds.last(), Some(ExplicitTyBound(false)))
             && matches!(
                 lit.node,
                 LitKind::Int(_, LitIntType::Unsuffixed) | LitKind::Float(_, LitFloatType::Unsuffixed)
             )
+            && !lit.span.in_external_macro(self.cx.sess().source_map())
         {
             let (suffix, is_float) = match lit_ty.kind() {
                 ty::Int(IntTy::I32) => ("i32", false),
@@ -133,7 +137,7 @@ impl<'tcx> Visitor<'tcx> for NumericFallbackVisitor<'_, 'tcx> {
                 if let Some(fn_sig) = self.cx.tcx.parent_hir_node(expr.hir_id).fn_sig()
                     && let FnRetTy::Return(_ty) = fn_sig.decl.output
                 {
-                    // We cannot check the exact type since it's a `hir::Ty`` which does not implement `is_numeric`
+                    // We cannot check the exact type since it's a `hir::Ty` which does not implement `is_numeric`
                     self.ty_bounds.push(ExplicitTyBound(true));
                     for stmt in *stmts {
                         self.visit_stmt(stmt);

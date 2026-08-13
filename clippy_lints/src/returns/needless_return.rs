@@ -8,9 +8,9 @@ use rustc_ast::MetaItemInner;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Expr, ExprKind, HirId, LangItem, MatchSource, StmtKind};
-use rustc_lint::{LateContext, Level, LintContext};
+use rustc_lint::{LateContext, Level, LintContext as _};
 use rustc_middle::ty::{self, Ty};
-use rustc_span::{BytePos, Pos, Span};
+use rustc_span::{BytePos, Pos as _, Span};
 use std::borrow::Cow;
 use std::fmt::Display;
 
@@ -181,7 +181,7 @@ fn check_final_expr<'tcx>(
             match cx.tcx.hir_attrs(expr.hir_id) {
                 [] => {},
                 [attr] => {
-                    if matches!(Level::from_attr(attr), Some((Level::Expect, _)))
+                    if matches!(Level::from_opt_symbol(attr.name()), Some(Level::Expect))
                         && let metas = attr.meta_item_list()
                         && let Some(lst) = metas
                         && let [MetaItemInner::MetaItem(meta_item), ..] = lst.as_slice()

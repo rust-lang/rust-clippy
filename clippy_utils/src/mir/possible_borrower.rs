@@ -8,7 +8,7 @@ use rustc_middle::mir::visit::Visitor as _;
 use rustc_middle::mir::{self, Mutability};
 use rustc_middle::ty::{self, TyCtxt, TypeVisitor};
 use rustc_mir_dataflow::impls::MaybeStorageLive;
-use rustc_mir_dataflow::{Analysis, ResultsCursor};
+use rustc_mir_dataflow::{Analysis as _, ResultsCursor};
 use std::borrow::Cow;
 use std::ops::ControlFlow;
 
@@ -155,7 +155,7 @@ fn rvalue_locals(rvalue: &mir::Rvalue<'_>, mut visit: impl FnMut(mir::Local)) {
     };
 
     match rvalue {
-        Use(op) | Repeat(op, _) | Cast(_, op, _) | UnaryOp(_, op) => visit_op(op),
+        Use(op, _) | Repeat(op, _) | Cast(_, op, _) | UnaryOp(_, op) => visit_op(op),
         Aggregate(_, ops) => ops.iter().for_each(visit_op),
         BinaryOp(_, box (lhs, rhs)) => {
             visit_op(lhs);

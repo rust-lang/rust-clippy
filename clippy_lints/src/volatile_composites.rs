@@ -1,10 +1,10 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::sym;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::layout::LayoutOf;
-use rustc_middle::ty::{self, Ty, TypeVisitableExt};
+use rustc_middle::ty::layout::LayoutOf as _;
+use rustc_middle::ty::{self, Ty, TypeVisitableExt as _};
 use rustc_session::declare_lint_pass;
 
 declare_clippy_lint! {
@@ -91,7 +91,7 @@ fn is_struct_repr_transparent<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> boo
         && let [fieldty] = adt_def
             .all_fields()
             .filter_map(|field| {
-                let fty = field.ty(cx.tcx, args);
+                let fty = field.ty(cx.tcx, args).skip_norm_wip();
                 if is_zero_sized_ty(cx, fty) { None } else { Some(fty) }
             })
             .collect::<Vec<_>>()

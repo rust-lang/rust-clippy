@@ -1,8 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::{MaybeDef, MaybeQPath};
+use clippy_utils::res::{MaybeDef as _, MaybeQPath as _};
 use clippy_utils::sugg::{Sugg, has_enclosing_paren};
-use clippy_utils::{SpanlessEq, sym};
+use clippy_utils::{eq_expr_value, sym};
 use rustc_ast::{BinOpKind, LitIntType, LitKind, UnOp};
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
@@ -33,6 +33,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
         && check_int_ty_and_feature(cx, cx.typeck_results().expr_ty(rhs))
         && msrv.meets(cx, msrvs::DIV_CEIL)
     {
+        let ctxt = expr.span.ctxt();
         match lhs.kind {
             ExprKind::Binary(inner_op, inner_lhs, inner_rhs) => {
                 // (x + (y - 1)) / y
@@ -40,7 +41,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
                     && inner_op.node == BinOpKind::Add
                     && sub_op.node == BinOpKind::Sub
                     && check_literal(sub_rhs)
-                    && check_eq_expr(cx, sub_lhs, rhs)
+                    && eq_expr_value(cx, ctxt, sub_lhs, rhs)
                 {
                     build_suggestion(cx, expr, inner_lhs, rhs, &mut applicability);
                     return;
@@ -51,7 +52,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
                     && inner_op.node == BinOpKind::Add
                     && sub_op.node == BinOpKind::Sub
                     && check_literal(sub_rhs)
-                    && check_eq_expr(cx, sub_lhs, rhs)
+                    && eq_expr_value(cx, ctxt, sub_lhs, rhs)
                 {
                     build_suggestion(cx, expr, inner_rhs, rhs, &mut applicability);
                     return;
@@ -62,7 +63,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
                     && inner_op.node == BinOpKind::Sub
                     && add_op.node == BinOpKind::Add
                     && check_literal(inner_rhs)
-                    && check_eq_expr(cx, add_rhs, rhs)
+                    && eq_expr_value(cx, ctxt, add_rhs, rhs)
                 {
                     build_suggestion(cx, expr, add_lhs, rhs, &mut applicability);
                 }
@@ -88,7 +89,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
             ExprKind::MethodCall(method, receiver, [next_multiple_of_arg], _)
                 if method.ident.name == sym::next_multiple_of
                     && check_int_ty(cx.typeck_results().expr_ty(receiver))
-                    && check_eq_expr(cx, next_multiple_of_arg, rhs) =>
+                    && eq_expr_value(cx, ctxt, next_multiple_of_arg, rhs) =>
             {
                 // x.next_multiple_of(Y) / Y
                 build_suggestion(cx, expr, receiver, rhs, &mut applicability);
@@ -100,7 +101,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
                     .assoc_fn_parent(cx)
                     .opt_impl_ty(cx)
                     && check_int_ty(impl_ty_binder.skip_binder())
-                    && check_eq_expr(cx, next_multiple_of_arg, rhs)
+                    && eq_expr_value(cx, ctxt, next_multiple_of_arg, rhs)
                 {
                     build_suggestion(cx, expr, receiver, rhs, &mut applicability);
                 }
@@ -151,10 +152,6 @@ fn check_literal(expr: &Expr<'_>) -> bool {
         return true;
     }
     false
-}
-
-fn check_eq_expr(cx: &LateContext<'_>, lhs: &Expr<'_>, rhs: &Expr<'_>) -> bool {
-    SpanlessEq::new(cx).eq_expr(lhs, rhs)
 }
 
 fn check_alternate_form(

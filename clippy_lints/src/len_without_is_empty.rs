@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
-use clippy_utils::res::MaybeDef;
+use clippy_utils::res::MaybeDef as _;
 use clippy_utils::{fulfill_or_allowed, get_parent_as_impl, sym};
+use rustc_data_structures::unord::UnordItems;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::{DefId, DefIdSet};
 use rustc_hir::{
@@ -130,7 +131,7 @@ fn check_trait_items(cx: &LateContext<'_>, visited_trait: &Item<'_>, ident: Iden
         fill_trait_set(visited_trait.owner_id.to_def_id(), &mut current_and_super_traits, cx);
         let is_empty_method_found = current_and_super_traits
             .items()
-            .flat_map(|&i| cx.tcx.associated_items(i).filter_by_name_unhygienic(sym::is_empty))
+            .flat_map(|&i| UnordItems::new(cx.tcx.associated_items(i).filter_by_name_unhygienic(sym::is_empty)))
             .any(|i| i.is_method() && cx.tcx.fn_sig(i.def_id).skip_binder().inputs().skip_binder().len() == 1);
 
         if !is_empty_method_found {
@@ -148,8 +149,14 @@ fn check_trait_items(cx: &LateContext<'_>, visited_trait: &Item<'_>, ident: Iden
 }
 
 fn extract_future_output<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<&'tcx PathSegment<'tcx>> {
-    if let ty::Alias(alias_ty) = ty.kind()
-        && let Some(Node::OpaqueTy(opaque)) = cx.tcx.hir_get_if_local(alias_ty.kind.def_id())
+    if let ty::Alias(
+        _,
+        ty::AliasTy {
+            kind: ty::Opaque { def_id },
+            ..
+        },
+    ) = *ty.kind()
+        && let Some(Node::OpaqueTy(opaque)) = cx.tcx.hir_get_if_local(def_id)
         && let OpaqueTyOrigin::AsyncFn { .. } = opaque.origin
         && let [GenericBound::Trait(trait_ref)] = &opaque.bounds
         && let Some(segment) = trait_ref.trait_ref.path.segments.last()
