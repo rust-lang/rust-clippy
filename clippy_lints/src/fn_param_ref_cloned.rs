@@ -44,6 +44,7 @@ pub struct FnParamRefCloned {
     candidates: Vec<(Candidate, CandidateRebinds)>,
 }
 
+/// Returns true if `ty` is `&T` where `T` implements any trait in `must_impl_trait`
 pub fn is_candidate_ty<'a>(cx: &LateContext<'a>, ty: Ty<'a>, must_impl_trait: &[DefId]) -> bool {
     if let Ref(_, ty_ref, mutability) = ty.kind() {
         must_impl_trait
