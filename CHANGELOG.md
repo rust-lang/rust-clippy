@@ -7095,6 +7095,7 @@ Released 2018-09-13
 [`drain_collect`]: https://clippy.rust-lang.org/main/index.html#drain_collect
 [`drop_bounds`]: https://clippy.rust-lang.org/main/index.html#drop_bounds
 [`drop_copy`]: https://clippy.rust-lang.org/main/index.html#drop_copy
+[`drop_for_static`]: https://clippy.rust-lang.org/main/index.html#drop_for_static
 [`drop_non_drop`]: https://clippy.rust-lang.org/main/index.html#drop_non_drop
 [`drop_ref`]: https://clippy.rust-lang.org/main/index.html#drop_ref
 [`duplicate_mod`]: https://clippy.rust-lang.org/main/index.html#duplicate_mod
