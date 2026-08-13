@@ -57,12 +57,11 @@ pub fn is_candidate_ty<'a>(cx: &LateContext<'a>, ty: Ty<'a>, must_impl_trait: &[
 }
 
 pub fn get_param_id_span(param: &rustc_hir::Param<'_>) -> Option<(rustc_hir::HirId, Span)> {
-    if let PatKind::Binding(_, hir_id, ident, _) = param.pat.kind {
-        if !ident.span.from_expansion() && !ident.is_reserved() {
-            Some((hir_id, param.ty_span))
-        } else {
-            None
-        }
+    if let PatKind::Binding(_, hir_id, ident, _) = param.pat.kind
+        && !ident.span.from_expansion()
+        && !ident.is_reserved()
+    {
+        Some((hir_id, param.ty_span))
     } else {
         None
     }
