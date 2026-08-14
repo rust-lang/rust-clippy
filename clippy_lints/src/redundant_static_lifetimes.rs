@@ -42,9 +42,7 @@ pub struct RedundantStaticLifetimes {
 
 impl RedundantStaticLifetimes {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: MsrvStack::new(conf.msrv),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -97,13 +95,13 @@ impl EarlyLintPass for RedundantStaticLifetimes {
         }
 
         if !item.span.from_expansion() {
-            if let ItemKind::Const(box ConstItem { ty: ref var_type, .. }) = item.kind {
+            if let ItemKind::Const(ConstItem { ty: ref var_type, .. }) = item.kind {
                 Self::visit_type(var_type, cx, "constants have by default a `'static` lifetime");
                 // Don't check associated consts because `'static` cannot be elided on those (issue
                 // #2438)
             }
 
-            if let ItemKind::Static(box StaticItem { ty: ref var_type, .. }) = item.kind {
+            if let ItemKind::Static(StaticItem { ty: ref var_type, .. }) = item.kind {
                 Self::visit_type(var_type, cx, "statics have by default a `'static` lifetime");
             }
         }

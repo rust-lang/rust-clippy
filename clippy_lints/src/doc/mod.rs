@@ -1,5 +1,3 @@
-#![allow(clippy::lint_without_lint_pass)]
-
 use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
@@ -346,12 +344,14 @@ declare_clippy_lint! {
     /// /// Returns a random number
     /// ///
     /// /// It was chosen by a fair dice roll
+    /// # fn foo() {}
     /// ```
     /// Use instead:
     /// ```no_run
     /// /// Returns a random number.
     /// ///
     /// /// It was chosen by a fair dice roll.
+    /// # fn foo() {}
     /// ```
     ///
     /// ### Terminal punctuation marks
@@ -728,14 +728,14 @@ impl_lint_pass!(Documentation => [
 ]);
 
 pub struct Documentation {
-    valid_idents: FxHashSet<String>,
+    valid_idents: &'static FxHashSet<String>,
     check_private_items: bool,
 }
 
 impl Documentation {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            valid_idents: conf.doc_valid_idents.iter().cloned().collect(),
+            valid_idents: &conf.doc_valid_idents,
             check_private_items: conf.check_private_items,
         }
     }
@@ -749,7 +749,7 @@ impl EarlyLintPass for Documentation {
 
 impl<'tcx> LateLintPass<'tcx> for Documentation {
     fn check_attributes(&mut self, cx: &LateContext<'tcx>, attrs: &'tcx [Attribute]) {
-        let Some(headers) = check_attrs(cx, &self.valid_idents, attrs) else {
+        let Some(headers) = check_attrs(cx, self.valid_idents, attrs) else {
             return;
         };
 

@@ -22,7 +22,8 @@ use rustc_ast::{
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_errors::SuggestionStyle::{CompletelyHidden, ShowCode};
-use rustc_hir::{Expr, ExprKind, LangItem, RustcVersion, find_attr};
+use rustc_hir::attrs::RustcVersion;
+use rustc_hir::{Expr, ExprKind, LangItem, find_attr};
 use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
 use rustc_middle::ty::{self, GenericArg, List, TraitRef, Ty, TyCtxt, Unnormalized, Upcast as _};
@@ -327,7 +328,7 @@ impl<'tcx> FormatArgs<'tcx> {
         let ty_msrv_map = make_ty_msrv_map(tcx);
         Self {
             format_args,
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
             ignore_mixed: conf.allow_mixed_uninlined_format_args,
             ty_msrv_map,
             has_derived_debug: FxHashMap::default(),

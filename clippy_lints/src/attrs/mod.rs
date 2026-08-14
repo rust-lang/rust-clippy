@@ -506,7 +506,7 @@ pub struct Attributes {
 
 impl Attributes {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -548,9 +548,7 @@ pub struct EarlyAttributes {
 
 impl EarlyAttributes {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: MsrvStack::new(conf.msrv),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
@@ -570,16 +568,13 @@ pub struct PostExpansionEarlyAttributes {
 
 impl PostExpansionEarlyAttributes {
     pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            msrv: MsrvStack::new(conf.msrv),
-        }
+        Self { msrv: conf.msrv.into() }
     }
 }
 
 impl EarlyLintPass for PostExpansionEarlyAttributes {
-    fn check_crate(&mut self, cx: &EarlyContext<'_>, krate: &ast::Crate) {
+    fn check_crate(&mut self, cx: &EarlyContext<'_>, _krate: &ast::Crate) {
         blanket_clippy_restriction_lints::check_command_line(cx);
-        duplicated_attributes::check(cx, &krate.attrs);
     }
 
     fn check_attribute(&mut self, cx: &EarlyContext<'_>, attr: &Attribute) {
@@ -635,8 +630,15 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
         }
 
         mixed_attributes_style::check(cx, item.span, &item.attrs);
-        duplicated_attributes::check(cx, &item.attrs);
     }
 
-    extract_msrv_attr!();
+    fn check_attributes(&mut self, cx: &EarlyContext<'_>, attrs: &[Attribute]) {
+        self.msrv.check_attributes(attrs);
+        duplicated_attributes::check(cx, attrs);
+        msrvs::check_attrs(cx.sess(), attrs);
+    }
+
+    fn check_attributes_post(&mut self, _cx: &EarlyContext<'_>, attrs: &[Attribute]) {
+        self.msrv.check_attributes_post(attrs);
+    }
 }
