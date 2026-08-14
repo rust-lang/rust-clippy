@@ -810,6 +810,16 @@ be filtering for common types.
 * [`manual_let_else`](https://rust-lang.github.io/rust-clippy/main/index.html#manual_let_else)
 
 
+## `max_cheap-copy-size`
+Maximum size in bytes for a `Copy` type to be considered cheap to copy.
+
+**Default Value:** `16`
+
+---
+**Affected lints:**
+* [`refcell_cell`](https://rust-lang.github.io/rust-clippy/main/index.html#refcell_cell)
+
+
 ## `max-fn-params-bools`
 The maximum number of bool parameters a function can have.
 Use `0` to lint on any function with a bool parameter.

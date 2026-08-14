@@ -1,7 +1,8 @@
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
-use clippy_utils::ty::{is_copy, ty_from_hir_ty};
+use clippy_utils::ty::{approx_ty_size, is_copy, ty_from_hir_ty};
 use clippy_utils::{is_trait_impl_item, qpath_generic_tys, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
@@ -12,7 +13,7 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
-use rustc_session::declare_lint_pass;
+use rustc_session::impl_lint_pass;
 use rustc_span::Span;
 use rustc_span::sym::RefCell;
 
@@ -22,7 +23,11 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// `RefCell` avoids cloning at the cost of additional memory usage and
-    /// instructions, which isn't worth it for `Copy` types.
+    /// instructions, which isn't worth it for **small** `Copy` types.
+    ///
+    /// ### Known problems
+    /// `RefCell` might be useful for **large** `Copy` types.
+    /// See <https://manishearth.github.io/blog/2015/05/27/wrapper-types-in-rust-choosing-your-guarantees/#cell-types> for details.
     ///
     /// ### Example
     /// ```no_run
@@ -48,12 +53,68 @@ declare_clippy_lint! {
     "using a `RefCell` for a `Copy` type"
 }
 
-declare_lint_pass!(RefcellCell => [REFCELL_CELL]);
+impl_lint_pass!(RefcellCell => [REFCELL_CELL]);
+
+pub struct RefcellCell {
+    max_cheap_copy_size: u64,
+}
+
+impl RefcellCell {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            max_cheap_copy_size: conf.max_cheap_copy_size,
+        }
+    }
+
+    fn emit_refcell_copy_def<'tcx>(&self, cx: &LateContext<'tcx>, hir_ty: &'tcx Ty<'tcx>) {
+        match hir_ty.kind {
+            TyKind::Array(hir_ty, _) | TyKind::Slice(hir_ty) => {
+                self.emit_refcell_copy_def(cx, hir_ty);
+            },
+            TyKind::Tup(hir_tys) => {
+                for hir_ty in hir_tys {
+                    self.emit_refcell_copy_def(cx, hir_ty);
+                }
+            },
+            TyKind::Path(qpath)
+                if let (None, Some(path)) = qpath.opt_res_path()
+                // RefCell<T>
+                && let [segment] = path.segments
+                && segment.res.is_diag_item(&cx.tcx, RefCell)
+                && let Some(args) = segment.args
+                && let [GenericArg::Type(hir_ty)] = args.args
+                // `T` is copyable and small
+                && {
+                    let ty = ty_from_hir_ty(cx, hir_ty.as_unambig_ty());
+                    is_copy(cx, ty) && approx_ty_size(cx, ty) <= self.max_cheap_copy_size
+                }
+                // Be conservative about macro
+                && !hir_ty.span.from_expansion() =>
+            {
+                let mut app = Applicability::MaybeIncorrect;
+                let sugg = {
+                    let hir_ty = snippet_with_applicability(cx, hir_ty.span, "_", &mut app);
+                    format!("Cell<{hir_ty}>")
+                };
+                span_lint_and_sugg(
+                    cx,
+                    REFCELL_CELL,
+                    path.span,
+                    "using a `RefCell` for a `Copy` type",
+                    "try",
+                    sugg,
+                    app,
+                );
+            },
+            _ => (),
+        }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for RefcellCell {
     fn check_field_def(&mut self, cx: &LateContext<'tcx>, def: &'tcx FieldDef<'tcx>) {
         if !def.span.from_expansion() {
-            emit_refcell_copy_def(cx, def.ty);
+            self.emit_refcell_copy_def(cx, def.ty);
         }
     }
 
@@ -68,10 +129,10 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
     ) {
         if !span.from_expansion() && !is_trait_impl_item(cx, cx.tcx.local_def_id_to_hir_id(def_id)) {
             for hir_ty in decl.inputs {
-                emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty);
             }
             if let FnRetTy::Return(hir_ty) = decl.output {
-                emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty);
             }
         }
     }
@@ -80,7 +141,7 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
         if let ImplItemKind::Type(hir_ty) = item.kind
             && !item.span.from_expansion()
         {
-            emit_refcell_copy_def(cx, hir_ty);
+            self.emit_refcell_copy_def(cx, hir_ty);
         }
     }
 
@@ -88,7 +149,7 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
         if let ItemKind::TyAlias(_, _, hir_ty) = item.kind
             && !item.span.from_expansion()
         {
-            emit_refcell_copy_def(cx, hir_ty);
+            self.emit_refcell_copy_def(cx, hir_ty);
         }
     }
 
@@ -97,10 +158,10 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
             && !item.span.from_expansion()
         {
             for hir_ty in sig.decl.inputs {
-                emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty);
             }
             if let FnRetTy::Return(hir_ty) = sig.decl.output {
-                emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty);
             }
         }
     }
@@ -109,11 +170,13 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
         if let StmtKind::Let(let_stmt) = stmt.kind
             && !stmt.span.from_expansion()
             && let Some(init) = let_stmt.init
-            // RefCell<T: Copy>
+            // RefCell<T>
             && let Some(ty) = cx.typeck_results().expr_ty_opt(init)
             && let ty::Adt(def, args) = ty.kind()
             && def.is_diag_item(&cx.tcx, RefCell)
+            // `T` is a small `Copy` type
             && is_copy(cx, args.type_at(0))
+            && approx_ty_size(cx, args.type_at(0)) <= self.max_cheap_copy_size
             // `init` is a constructor of `RefCell`
             && let ExprKind::Call(maybe_qpath, args) = init.kind
             && let Some(kind) = CtorKind::new(cx, maybe_qpath, args.len())
@@ -194,47 +257,6 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
                 app,
             );
         }
-    }
-}
-
-fn emit_refcell_copy_def<'tcx>(cx: &LateContext<'tcx>, hir_ty: &'tcx Ty<'tcx>) {
-    match hir_ty.kind {
-        TyKind::Array(hir_ty, _) | TyKind::Slice(hir_ty) => {
-            emit_refcell_copy_def(cx, hir_ty);
-        },
-        TyKind::Tup(hir_tys) => {
-            for hir_ty in hir_tys {
-                emit_refcell_copy_def(cx, hir_ty);
-            }
-        },
-        TyKind::Path(qpath)
-            if let (None, Some(path)) = qpath.opt_res_path()
-                // RefCell<T>
-                && let [segment] = path.segments
-                && segment.res.is_diag_item(&cx.tcx, RefCell)
-                && let Some(args) = segment.args
-                && let [GenericArg::Type(hir_ty)] = args.args
-                // T: Copy
-                && is_copy(cx, ty_from_hir_ty(cx, hir_ty.as_unambig_ty()))
-                // Be conservative about macro
-                && !hir_ty.span.from_expansion() =>
-        {
-            let mut app = Applicability::MaybeIncorrect;
-            let sugg = {
-                let hir_ty = snippet_with_applicability(cx, hir_ty.span, "_", &mut app);
-                format!("Cell<{hir_ty}>")
-            };
-            span_lint_and_sugg(
-                cx,
-                REFCELL_CELL,
-                path.span,
-                "using a `RefCell` for a `Copy` type",
-                "try",
-                sugg,
-                app,
-            );
-        },
-        _ => (),
     }
 }
 

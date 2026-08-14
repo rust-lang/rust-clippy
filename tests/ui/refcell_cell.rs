@@ -7,6 +7,7 @@ use std::hint::black_box;
 struct NameFieldStruct<T: Copy, U> {
     ng: RefCell<T>, //~ refcell_cell
     ok: RefCell<U>,
+    large_copy: RefCell<[i32; 16]>,
 }
 
 struct TupleStruct<T: Copy, U>(
@@ -78,7 +79,10 @@ fn main() {
     let _ = RefCell::new(1); //~ refcell_cell
     let _ = RefCell::<i32>::new(1); //~ refcell_cell
     let _ = RefCell::<_>::new(1); //~ refcell_cell
+    // non-`Copy` type
     let _ = RefCell::new(vec![1]);
+    // large `Copy` type
+    let _ = RefCell::new([1; 1024]);
 
     let _ = RefCell::from(1); //~ refcell_cell
     let _ = RefCell::<i32>::from(1); //~ refcell_cell

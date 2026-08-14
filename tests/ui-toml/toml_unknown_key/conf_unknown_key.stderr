@@ -65,6 +65,7 @@ LL | foobar = 42
            lint-commented-code
            literal-representation-threshold
            matches-for-let-else
+           max_cheap-copy-size
            max-fn-params-bools
            max-include-file-size
            max-struct-bools
