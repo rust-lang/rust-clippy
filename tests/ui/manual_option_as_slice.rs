@@ -59,6 +59,15 @@ fn check(x: Option<u32>) {
     _ = x.as_ref().map_or(&[42][..], std::slice::from_ref);
     _ = x.as_ref().map_or_else(|| &[42][..1], std::slice::from_ref);
     _ = x.as_ref().map(|f| std::slice::from_ref(f)).unwrap_or_default();
+
+    let _: &[&u32] = match x.as_ref() {
+        Some(ref f) => std::slice::from_ref(f),
+        None => &[],
+    };
+    let _: &[&u32] = match x.as_ref() {
+        Some(ref mut f) => std::slice::from_ref(f),
+        None => &[],
+    };
 }
 
 #[clippy::msrv = "1.74"]
