@@ -1,5 +1,4 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::is_from_proc_macro;
 use clippy_utils::source::{find_preceding_marked_line_comment, first_line_of_span, snippet_indent};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
@@ -55,20 +54,21 @@ impl<'tcx> LateLintPass<'tcx> for UndocumentedAsCasts {
                     true,
                 )
                 .is_none()
-                // Skip proc-macros; keep linting `from_expansion` cases at the call site.
-                && (from_expansion || !is_from_proc_macro(cx, expr))
             {
                 span_lint_and_then(
                     cx,
                     UNDOCUMENTED_AS_CASTS,
-                    expr.span,
-                    "`as` cast without a `// CAST:` explanation",
+                    comment_span,
+                    if from_expansion {
+                        "found `as` cast from a macro expansion without a `// CAST:` explanation at the call site"
+                    } else {
+                        "found `as` cast without a `// CAST:` explanation"
+                    },
                     |diag| {
                         let (span, sugg) = if from_expansion {
                             let line_start = line_info.sf.lines()[line_info.line].to_usize();
                             let col = (comment_span.lo() - line_info.sf.start_pos).to_usize();
                             let indent = src.get(line_start..col).unwrap_or_default();
-                            // Root ctxt so suggestions are not suppressed for external macros.
                             let sugg_span =
                                 Span::new(comment_span.lo(), comment_span.lo(), SyntaxContext::root(), None);
                             (sugg_span, format!("// CAST: <explanation>\n{indent}"))

@@ -17,11 +17,20 @@ fn external_macro() {
 }
 
 fn proc_macro() {
-    // Span-rewriting proc-macro expansions are ignored.
     with_span!(
-        span
+        span1
+        //~^ undocumented_as_casts
 
-        fn converting() {
+        fn converting1() {
+            let x = 0u32 as u64;
+        }
+    );
+
+    with_span!(
+        // CAST: explanation for the cast
+        span2
+
+        fn converting2() {
             let x = 0u32 as u64;
         }
     );
@@ -30,13 +39,12 @@ fn proc_macro() {
 fn declared_macro() {
     macro_rules! cast {
         ($x:expr, $t:ty) => {
-            // CAST: explanation in the macro body does not count
             $x as $t
-            //~^ undocumented_as_casts
         };
     }
 
     cast!(0u32, u64);
+    //~^ undocumented_as_casts
 
     // CAST: explanation for the cast
     cast!(0u32, u64);
@@ -48,11 +56,11 @@ fn declared_macro() {
         ($x:expr, $t:ty) => {
             // CAST: explanation in the macro body does not count
             $x as $t
-            //~^ undocumented_as_casts
         };
     }
 
     cast_with_comment_in_macro_body!(0u32, u64);
+    //~^ undocumented_as_casts
 
     macro_rules! add_one {
         ($x:expr) => {

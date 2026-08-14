@@ -1,4 +1,4 @@
-error: `as` cast without a `// CAST:` explanation
+error: found `as` cast from a macro expansion without a `// CAST:` explanation at the call site
   --> tests/ui/undocumented_as_casts.rs:12:5
    |
 LL |     external!(0u32 as u64);
@@ -6,42 +6,50 @@ LL |     external!(0u32 as u64);
    |
    = note: `-D clippy::undocumented-as-casts` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::undocumented_as_casts)]`
-   = note: this error originates in the macro `external` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: add a cast explanation on the line above
+   |
+LL ~     // CAST: <explanation>
+LL ~     external!(0u32 as u64);
+   |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:34:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:21:9
    |
-LL |             $x as $t
-   |             ^^^^^^^^
-...
+LL |         span1
+   |         ^^^^^
+   |
+help: add a cast explanation on the line above
+   |
+LL ~         // CAST: <explanation>
+LL ~         span1
+   |
+
+error: found `as` cast from a macro expansion without a `// CAST:` explanation at the call site
+  --> tests/ui/undocumented_as_casts.rs:46:5
+   |
 LL |     cast!(0u32, u64);
-   |     ---------------- in this macro invocation
+   |     ^^^^^^^^^^^^^^^^
    |
-   = note: this error originates in the macro `cast` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: add a cast explanation on the line above
    |
 LL ~     // CAST: <explanation>
 LL ~     cast!(0u32, u64);
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:50:13
+error: found `as` cast from a macro expansion without a `// CAST:` explanation at the call site
+  --> tests/ui/undocumented_as_casts.rs:62:5
    |
-LL |             $x as $t
-   |             ^^^^^^^^
-...
 LL |     cast_with_comment_in_macro_body!(0u32, u64);
-   |     ------------------------------------------- in this macro invocation
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: this error originates in the macro `cast_with_comment_in_macro_body` (in Nightly builds, run with -Z macro-backtrace for more info)
 help: add a cast explanation on the line above
    |
 LL ~     // CAST: <explanation>
 LL ~     cast_with_comment_in_macro_body!(0u32, u64);
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:164:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:172:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -52,8 +60,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:170:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:178:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -64,8 +72,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:176:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:184:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -76,8 +84,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:181:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:189:13
    |
 LL |     let _ = 0u32 as u64; // CAST: explanation
    |             ^^^^^^^^^^^
@@ -88,8 +96,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64; // CAST: explanation
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:188:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:196:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -100,8 +108,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:195:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:203:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -112,8 +120,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:202:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:210:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -124,8 +132,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:208:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:216:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -136,8 +144,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:214:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:222:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -148,8 +156,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:221:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:229:13
    |
 LL |     let _ = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -160,8 +168,8 @@ LL ~     // CAST: <explanation>
 LL ~     let _ = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:226:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:234:13
    |
 LL |     let x = 0u32 as u64;
    |             ^^^^^^^^^^^
@@ -172,8 +180,8 @@ LL ~     // CAST: <explanation>
 LL ~     let x = 0u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:237:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:245:13
    |
 LL |     let y = 1u32 as u64;
    |             ^^^^^^^^^^^
@@ -184,8 +192,8 @@ LL ~     // CAST: <explanation>
 LL ~     let y = 1u32 as u64;
    |
 
-error: `as` cast without a `// CAST:` explanation
-  --> tests/ui/undocumented_as_casts.rs:244:13
+error: found `as` cast without a `// CAST:` explanation
+  --> tests/ui/undocumented_as_casts.rs:252:13
    |
 LL |       let y = match x {
    |  _____________^
@@ -201,5 +209,5 @@ LL ~     // CAST: <explanation>
 LL ~     let y = match x {
    |
 
-error: aborting due to 16 previous errors
+error: aborting due to 17 previous errors
 
