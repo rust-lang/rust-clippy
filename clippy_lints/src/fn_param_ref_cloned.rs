@@ -1,6 +1,7 @@
 use clippy_utils::res::MaybeResPath as _;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::visitors::{Descend, for_each_expr};
+use rustc_data_structures::smallvec::SmallVec;
 use rustc_hir::PatKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{Ref, Ty};
@@ -34,9 +35,11 @@ declare_clippy_lint! {
 
 impl_lint_pass!(FnParamRefCloned => [FN_PARAM_REF_CLONED]);
 
+type Candidates = SmallVec<[((rustc_hir::HirId, Span), SmallVec<[(rustc_hir::HirId, Span); 32]>); 32]>;
+
 #[derive(Default)]
 pub struct FnParamRefCloned {
-    candidates: Vec<((rustc_hir::HirId, Span), Vec<(rustc_hir::HirId, Span)>)>,
+    candidates: Candidates,
 }
 
 /// Returns true if `ty` is `&T` where `T` implements any trait in `must_impl_trait`
@@ -96,7 +99,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                 if let Some((id, span)) = get_param_id_span(param)
                     && is_candidate_ty(cx, *ty, &must_impl_trait)
                 {
-                    Some(((id, span), Vec::default()))
+                    Some(((id, span), SmallVec::new()))
                 } else {
                     None
                 }
