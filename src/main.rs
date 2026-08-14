@@ -19,14 +19,13 @@ fn main() -> ExitCode {
         },
     };
 
-    if args.help {
-        return match anstream::stdout().write_all(HELP_MSG.as_bytes()) {
-            Ok(()) => ExitCode::SUCCESS,
-            Err(_) => ExitCode::FAILURE,
+    if args.help || args.version {
+        let msg = if args.help {
+            HELP_MSG
+        } else {
+            concat!("clippy ", env!("PKG_VERSION_STR"))
         };
-    }
-    if args.version {
-        return match writeln!(anstream::stdout(), "{}", rustc_tools_util::get_version_info!()) {
+        return match anstream::stdout().write_all(msg.as_bytes()) {
             Ok(()) => ExitCode::SUCCESS,
             Err(_) => ExitCode::FAILURE,
         };
