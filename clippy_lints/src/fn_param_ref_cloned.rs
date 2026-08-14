@@ -34,14 +34,9 @@ declare_clippy_lint! {
 
 impl_lint_pass!(FnParamRefCloned => [FN_PARAM_REF_CLONED]);
 
-type CandidateId = rustc_hir::HirId;
-type CandidateSpan = Span;
-type Candidate = (CandidateId, CandidateSpan);
-type CandidateRebinds = Vec<Candidate>;
-
 #[derive(Default)]
 pub struct FnParamRefCloned {
-    candidates: Vec<(Candidate, CandidateRebinds)>,
+    candidates: Vec<((rustc_hir::HirId, Span), Vec<(rustc_hir::HirId, Span)>)>,
 }
 
 /// Returns true if `ty` is `&T` where `T` implements any trait in `must_impl_trait`
