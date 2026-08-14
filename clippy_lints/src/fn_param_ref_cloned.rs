@@ -137,37 +137,46 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                     && let Some(hir_id) = qpath.res_local_id() =>
             {
                 self.candidates.iter().for_each(|(original_candidate, rebinds)| {
-                        if original_candidate.0 == hir_id {
-                            clippy_utils::diagnostics::span_lint_and_note(
-                                cx,
-                                FN_PARAM_REF_CLONED,
-                                span,
-                                "function gets a parameter by reference, but you later unconditionally clone it",
-                                Some(original_candidate.1),
-                                "consider passing the reference by value instead",
-                            );
-                        }
-
-                        for rebind in rebinds {
-                            if rebind.0 == hir_id {
-                                clippy_utils::diagnostics::span_lint_and_then(
-                                    cx,
-                                    FN_PARAM_REF_CLONED,
-                                    span,
-                                    "function gets a parameter by reference, but you later rebind and unconditionally clone it",
-                                    |diag| {
-                                        diag
-                                            .span_note(rebind.1, "you bind the parameter into a new binding here")
-                                            .span_note(original_candidate.1, "the parameter is passed by reference...");
-                                    },
-                                );
-                            }
-                        }
-                    });
+                    emit_lint(cx, span, original_candidate, rebinds, hir_id);
+                });
                 ControlFlow::<(), Descend>::Continue(Descend::Yes)
             },
 
             _ => ControlFlow::<(), Descend>::Continue(Descend::Yes),
         });
+    }
+}
+
+fn emit_lint(
+    cx: &LateContext<'_>,
+    span: Span,
+    original_candidate: &(rustc_hir::HirId, Span),
+    rebinds: &SmallVec<[(rustc_hir::HirId, Span); 32]>,
+    hir_id: rustc_hir::HirId,
+) {
+    if original_candidate.0 == hir_id {
+        clippy_utils::diagnostics::span_lint_and_note(
+            cx,
+            FN_PARAM_REF_CLONED,
+            span,
+            "function gets a parameter by reference, but you later unconditionally clone it",
+            Some(original_candidate.1),
+            "consider passing the reference by value instead",
+        );
+    }
+
+    for rebind in rebinds {
+        if rebind.0 == hir_id {
+            clippy_utils::diagnostics::span_lint_and_then(
+                cx,
+                FN_PARAM_REF_CLONED,
+                span,
+                "function gets a parameter by reference, but you later rebind and unconditionally clone it",
+                |diag| {
+                    diag.span_note(rebind.1, "you bind the parameter into a new binding here")
+                        .span_note(original_candidate.1, "the parameter is passed by reference...");
+                },
+            );
+        }
     }
 }
