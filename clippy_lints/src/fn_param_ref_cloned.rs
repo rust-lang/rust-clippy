@@ -1,5 +1,5 @@
 use clippy_utils::res::MaybeResPath as _;
-use clippy_utils::ty::implements_trait;
+use clippy_utils::ty::{implements_trait, ty_from_hir_ty};
 use clippy_utils::visitors::{Descend, for_each_expr};
 use rustc_data_structures::smallvec::SmallVec;
 use rustc_hir::PatKind;
@@ -70,10 +70,10 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
         &mut self,
         cx: &LateContext<'tcx>,
         fn_kind: rustc_hir::intravisit::FnKind<'tcx>,
-        _: &'tcx rustc_hir::FnDecl<'tcx>,
+        fn_decl: &'tcx rustc_hir::FnDecl<'tcx>,
         fn_body: &'tcx rustc_hir::Body<'tcx>,
         _: Span,
-        def_id: rustc_span::def_id::LocalDefId,
+        _: rustc_span::def_id::LocalDefId,
     ) {
         if let rustc_hir::intravisit::FnKind::Closure = fn_kind {
             return;
@@ -87,17 +87,13 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
 
         // Get all candidates of params that implement said traits and zip them with function signature
         // params
-        self.candidates = cx
-            .tcx
-            .fn_sig(def_id)
-            .instantiate_identity()
-            .skip_binder()
-            .inputs()
+        self.candidates = fn_decl
+            .inputs
             .iter()
             .zip(fn_body.params)
             .filter_map(|(ty, param)| {
                 if let Some((id, span)) = get_param_id_span(param)
-                    && is_candidate_ty(cx, *ty, &must_impl_trait)
+                    && is_candidate_ty(cx, ty_from_hir_ty(cx, ty), &must_impl_trait)
                 {
                     Some(((id, span), SmallVec::new()))
                 } else {
