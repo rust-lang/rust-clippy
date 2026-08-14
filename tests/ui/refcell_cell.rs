@@ -4,9 +4,11 @@
 use std::cell::{Cell, RefCell};
 use std::hint::black_box;
 
-struct NameFieldStruct<T: Copy, U> {
+struct NameFieldStruct<'a, T: Copy, U> {
     ng: RefCell<T>, //~ refcell_cell
     ok: RefCell<U>,
+    ng_ref: &'a RefCell<T>, //~ refcell_cell
+    ok_ref: &'a RefCell<U>,
     large_copy: RefCell<[i32; 16]>,
 }
 
@@ -53,12 +55,16 @@ impl<T: Copy, U> Trait<T, U> for Dummy {
     }
 }
 
-fn func<T: Copy, U>(
+fn func<'a, T: Copy, U>(
     ng: RefCell<T>, //~ refcell_cell
     ok: RefCell<U>,
+    ng_ref: &'a RefCell<T>, //~ refcell_cell
+    ok_ref: &'a RefCell<U>,
 ) -> (
     RefCell<T>, //~ refcell_cell
     RefCell<U>,
+    &'a RefCell<T>, // should be linted on definition site
+    &'a RefCell<U>,
 ) {
     todo!()
 }

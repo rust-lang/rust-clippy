@@ -66,15 +66,18 @@ impl RefcellCell {
         }
     }
 
-    fn emit_refcell_copy_def<'tcx>(&self, cx: &LateContext<'tcx>, hir_ty: &'tcx Ty<'tcx>) {
+    fn emit_refcell_copy_def<'tcx>(&self, cx: &LateContext<'tcx>, hir_ty: &'tcx Ty<'tcx>, no_ref: bool) {
         match hir_ty.kind {
             TyKind::Array(hir_ty, _) | TyKind::Slice(hir_ty) => {
-                self.emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty, no_ref);
             },
             TyKind::Tup(hir_tys) => {
                 for hir_ty in hir_tys {
-                    self.emit_refcell_copy_def(cx, hir_ty);
+                    self.emit_refcell_copy_def(cx, hir_ty, no_ref);
                 }
+            },
+            TyKind::Ref(_, mut_ty) if !no_ref => {
+                self.emit_refcell_copy_def(cx, mut_ty.ty, no_ref);
             },
             TyKind::Path(qpath)
                 if let (None, Some(path)) = qpath.opt_res_path()
@@ -114,7 +117,7 @@ impl RefcellCell {
 impl<'tcx> LateLintPass<'tcx> for RefcellCell {
     fn check_field_def(&mut self, cx: &LateContext<'tcx>, def: &'tcx FieldDef<'tcx>) {
         if !def.span.from_expansion() {
-            self.emit_refcell_copy_def(cx, def.ty);
+            self.emit_refcell_copy_def(cx, def.ty, false);
         }
     }
 
@@ -129,10 +132,10 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
     ) {
         if !span.from_expansion() && !is_trait_impl_item(cx, cx.tcx.local_def_id_to_hir_id(def_id)) {
             for hir_ty in decl.inputs {
-                self.emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty, false);
             }
             if let FnRetTy::Return(hir_ty) = decl.output {
-                self.emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty, true);
             }
         }
     }
@@ -141,7 +144,7 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
         if let ImplItemKind::Type(hir_ty) = item.kind
             && !item.span.from_expansion()
         {
-            self.emit_refcell_copy_def(cx, hir_ty);
+            self.emit_refcell_copy_def(cx, hir_ty, false);
         }
     }
 
@@ -149,7 +152,7 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
         if let ItemKind::TyAlias(_, _, hir_ty) = item.kind
             && !item.span.from_expansion()
         {
-            self.emit_refcell_copy_def(cx, hir_ty);
+            self.emit_refcell_copy_def(cx, hir_ty, false);
         }
     }
 
@@ -158,10 +161,10 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
             && !item.span.from_expansion()
         {
             for hir_ty in sig.decl.inputs {
-                self.emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty, false);
             }
             if let FnRetTy::Return(hir_ty) = sig.decl.output {
-                self.emit_refcell_copy_def(cx, hir_ty);
+                self.emit_refcell_copy_def(cx, hir_ty, true);
             }
         }
     }
