@@ -107,19 +107,21 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
             .collect();
 
         // Find all rebinds of param values in the function and add them to the original candidates (tuple)
-        if let rustc_hir::ExprKind::Block(block, _) = fn_body.value.kind {
-            for statement in block.stmts {
-                if let rustc_hir::StmtKind::Let(let_stmt) = statement.kind
-                    && let Some(expr) = let_stmt.init
-                    && let rustc_hir::ExprKind::Path(qpath) = expr.kind
-                    && let Some(hir_id) = qpath.res_local_id()
-                {
-                    self.candidates.iter_mut().for_each(|(cand, rebinds)| {
-                        if cand.0 == hir_id {
-                            rebinds.push((let_stmt.pat.hir_id, let_stmt.span));
-                        }
-                    });
-                }
+        let rustc_hir::ExprKind::Block(block, _) = fn_body.value.kind else {
+            return;
+        };
+
+        for statement in block.stmts {
+            if let rustc_hir::StmtKind::Let(let_stmt) = statement.kind
+                && let Some(expr) = let_stmt.init
+                && let rustc_hir::ExprKind::Path(qpath) = expr.kind
+                && let Some(hir_id) = qpath.res_local_id()
+            {
+                self.candidates.iter_mut().for_each(|(cand, rebinds)| {
+                    if cand.0 == hir_id {
+                        rebinds.push((let_stmt.pat.hir_id, let_stmt.span));
+                    }
+                });
             }
         }
 
