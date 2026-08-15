@@ -122,6 +122,11 @@ impl<'tcx> LateLintPass<'tcx> for MissingConstForThreadLocal {
             && let ExprKind::Block(block, _) = body.value.kind
             && let Some(unpeeled) = block.expr
             && let ret_expr = peel_blocks(unpeeled)
+            // The initializer is already a `const` block: there is nothing to suggest.
+            // On targets without `#[thread_local]` (e.g. x86_64-pc-windows-gnu), the
+            // generated init fn is not a `const fn` even for `const` initializers,
+            // so the `is_const_fn` check above does not cover this case.
+            && !matches!(ret_expr.kind, ExprKind::ConstBlock(_))
             // A common pattern around threadlocal! is to make the value unreachable
             // to force an initialization before usage
             // https://github.com/rust-lang/rust-clippy/issues/12637
