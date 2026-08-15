@@ -15,3 +15,5 @@ pedantic = { level = "warn", priority = -1 }
 style = { level = "warn", priority = 1 }
 similar_names = "allow"
 dbg_macro = { level = "warn", priority = 2 }
+
+[workspace]

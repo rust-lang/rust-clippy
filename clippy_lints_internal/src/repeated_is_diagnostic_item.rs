@@ -24,7 +24,7 @@ declare_tool_lint! {
     /// While the query is cached, it's still better to avoid calling it multiple times if possible.
     ///
     /// ### Example
-    /// ```no_run
+    /// ```ignore
     /// ty.is_diag_item(cx, sym::Option) || ty.is_diag_item(cx, sym::Result)
     /// cx.tcx.is_diagnostic_item(sym::Option, did) || cx.tcx.is_diagnostic_item(sym::Result, did)
     ///
@@ -63,7 +63,7 @@ declare_tool_lint! {
     /// }
     /// ```
     /// Use instead:
-    /// ```no_run
+    /// ```ignore
     /// matches!(ty.opt_diag_name(cx), Some(sym::Option | sym::Result))
     /// matches!(cx.tcx.get_diagnostic_name(did), Some(sym::Option | sym::Result))
     ///
