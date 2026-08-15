@@ -4,7 +4,7 @@ use clippy_utils::visitors::{Descend, for_each_expr};
 use rustc_hir::PatKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{Ref, Ty};
-use rustc_session::impl_lint_pass;
+use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 use rustc_span::def_id::DefId;
 use std::ops::ControlFlow;
@@ -32,12 +32,9 @@ declare_clippy_lint! {
     "you should pass by value instead of cloning a passed reference"
 }
 
-impl_lint_pass!(FnParamRefCloned => [FN_PARAM_REF_CLONED]);
+declare_lint_pass!(FnParamRefCloned => [FN_PARAM_REF_CLONED]);
 
-#[derive(Default)]
-pub struct FnParamRefCloned {
-    candidates: Vec<((rustc_hir::HirId, Span), Vec<(rustc_hir::HirId, Span)>)>,
-}
+    type Candidates = Vec<((rustc_hir::HirId, Span), Vec<(rustc_hir::HirId, Span)>)>;
 
 /// Returns true if `ty` is `&T` where `T` implements any trait in `must_impl_trait`
 pub fn is_candidate_ty<'a>(cx: &LateContext<'a>, ty: Ty<'a>, must_impl_trait: &[DefId]) -> bool {
@@ -72,6 +69,8 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
         _: Span,
         _: rustc_span::def_id::LocalDefId,
     ) {
+        let mut candidates: Candidates;
+
         if let rustc_hir::intravisit::FnKind::Closure = fn_kind {
             return;
         }
@@ -84,7 +83,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
 
         // Get all candidates of params that implement said traits and zip them with function signature
         // params
-        self.candidates = fn_decl
+        candidates = fn_decl
             .inputs
             .iter()
             .zip(fn_body.params)
@@ -110,7 +109,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                 && let rustc_hir::ExprKind::Path(qpath) = expr.kind
                 && let Some(hir_id) = qpath.res_local_id()
             {
-                self.candidates.iter_mut().for_each(|(cand, rebinds)| {
+                candidates.iter_mut().for_each(|(cand, rebinds)| {
                     if cand.0 == hir_id {
                         rebinds.push((let_stmt.pat.hir_id, let_stmt.span));
                     }
@@ -129,7 +128,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                     && let rustc_hir::ExprKind::Path(qpath) = receiver.kind
                     && let Some(hir_id) = qpath.res_local_id() =>
             {
-                self.candidates.iter().for_each(|(original_candidate, rebinds)| {
+                candidates.iter().for_each(|(original_candidate, rebinds)| {
                     emit_lint(cx, span, original_candidate, rebinds, hir_id);
                 });
                 ControlFlow::<(), Descend>::Continue(Descend::Yes)
