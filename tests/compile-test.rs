@@ -144,7 +144,6 @@ impl TestContext {
     }
 
     fn base_config(&self, test_dir: &str, mandatory_annotations: bool) -> Config {
-        let target_dir = PathBuf::from(var_os("CARGO_TARGET_DIR").unwrap_or_else(|| "target".into()));
         let mut config = Config {
             output_conflict_handling: error_on_output_conflict,
             // Pre-fill filters with TESTNAME; will be later extended with `self.args`.
@@ -165,7 +164,7 @@ impl TestContext {
             } else {
                 "cargo uibless".into()
             }),
-            out_dir: target_dir.join("ui_test"),
+            out_dir: Path::new(env!("CARGO_TARGET_TMPDIR")).join("clippy_ui_test"),
             ..Config::rustc(Path::new("tests").join(test_dir))
         };
         let defaults = config.comment_defaults.base();

@@ -37,13 +37,13 @@ declare_clippy_lint! {
     /// In other words, the `wait()` call must be unconditionally reachable after the spawn expression.
     ///
     /// ### Example
-    /// ```rust
+    /// ```rust,no_run
     /// use std::process::Command;
     ///
     /// let _child = Command::new("ls").spawn().expect("failed to execute child");
     /// ```
     /// Use instead:
-    /// ```rust
+    /// ```rust,no_run
     /// use std::process::Command;
     ///
     /// let mut child = Command::new("ls").spawn().expect("failed to execute child");

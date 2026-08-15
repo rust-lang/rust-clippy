@@ -21,8 +21,10 @@ out
 *Cargo.lock
 !/clippy_test_deps/Cargo.lock
 /target
+/clippy_dummy/target
 /clippy_lints/target
 /clippy_lints_internal/target
+/clippy_test_deps/target
 /clippy_utils/target
 /clippy_dev/target
 /lintcheck/target

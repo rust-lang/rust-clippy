@@ -1,5 +1,8 @@
 #![feature(macro_metavar_expr_concat, rustc_private)]
 
+#[expect(unused_extern_crates, reason = "required to link to rustc crates")]
+extern crate rustc_driver;
+
 extern crate rustc_lint;
 
 use rustc_lint::{Lint, LintId, LintStore};

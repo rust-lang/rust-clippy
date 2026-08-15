@@ -14,3 +14,5 @@ categories = ["development-tools", "development-tools::cargo-plugins"]
 
 [build-dependencies]
 term = "1"
+
+[workspace]
