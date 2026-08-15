@@ -21,7 +21,7 @@ pub(crate) fn check_assert<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         let ecx = ConstEvalCtxt::new(cx);
         let ctxt = macro_call.span.ctxt();
 
-        let has_const = is_float_const(&ecx, lhs, ctxt) || is_float_const(&ecx, rhs, ctxt);
+        let has_const = is_disallowed_float_const(&ecx, lhs, ctxt) || is_disallowed_float_const(&ecx, rhs, ctxt);
         if !has_const {
             return;
         }
@@ -37,9 +37,9 @@ pub(crate) fn check_assert<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
     }
 }
 
-fn is_float_const(ecx: &ConstEvalCtxt<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> bool {
+fn is_disallowed_float_const(ecx: &ConstEvalCtxt<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> bool {
     match ecx.eval_with_source(expr, ctxt) {
-        Some((c, s)) if !is_allowed(&c) => !s.is_local(),
+        Some((c, _)) => !is_allowed(&c),
         _ => false,
     }
 }
