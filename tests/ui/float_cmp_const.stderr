@@ -67,5 +67,29 @@ error: strict comparison of `f32` or `f64` constant arrays
 LL |     NON_ZERO_ARRAY == NON_ZERO_ARRAY2;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 11 previous errors
+error: strict comparison of `f32` or `f64` constant
+  --> tests/ui/float_cmp_const.rs:90:5
+   |
+LL |     assert_eq!(a, 2.0);
+   |     ^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` constant
+  --> tests/ui/float_cmp_const.rs:92:5
+   |
+LL |     assert_ne!(b, 3.0);
+   |     ^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` constant
+  --> tests/ui/float_cmp_const.rs:94:5
+   |
+LL |     assert_eq!(4.0, a);
+   |     ^^^^^^^^^^^^^^^^^^
+
+error: strict comparison of `f32` or `f64` constant
+  --> tests/ui/float_cmp_const.rs:96:5
+   |
+LL |     assert_ne!(5.0, b);
+   |     ^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 15 previous errors
 
