@@ -658,7 +658,6 @@ define_Conf! {
         from_over_into,
         if_then_some_else_none,
         implicit_saturating_sub,
-        improper_nonnull_from_box,
         index_refutable_slice,
         inefficient_to_string,
         io_other_error,

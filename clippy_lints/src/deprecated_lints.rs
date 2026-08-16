@@ -146,8 +146,6 @@ declare_with_version! { RENAMED(RENAMED_VERSION) = [
     #[clippy::version = ""]
     ("clippy::new_without_default_derive", "clippy::new_without_default"),
     #[clippy::version = ""]
-    ("clippy::nonnull_unchecked_on_box_ptr", "clippy::improper_nonnull_from_box"),
-    #[clippy::version = ""]
     ("clippy::option_and_then_some", "clippy::bind_instead_of_map"),
     #[clippy::version = ""]
     ("clippy::option_expect_used", "clippy::expect_used"),

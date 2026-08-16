@@ -1,4 +1,4 @@
-#![warn(clippy::improper_nonnull_from_box)]
+#![warn(clippy::nonnull_unchecked_on_box_ptr)]
 
 use std::ptr::NonNull;
 
@@ -42,14 +42,14 @@ fn lint() {
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
 
         let one = Box::new(1);
         let _ = Box::into_non_null(identity(one));
 
         let one = Box::new(1);
         let _ = Box::into_non_null(identity(one));
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
     }
 
     fn qualifiers() {
@@ -58,7 +58,7 @@ fn lint() {
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
 
         {
             use Box as Box2;
@@ -68,7 +68,7 @@ fn lint() {
 
             let one = Box::new(1);
             let _ = Box::into_non_null(one);
-            //~^ improper_nonnull_from_box
+            //~^ nonnull_unchecked_on_box_ptr
         }
 
         {
@@ -79,7 +79,7 @@ fn lint() {
 
             let one = Box::new(1);
             let _ = Box::into_non_null(one);
-            //~^ improper_nonnull_from_box
+            //~^ nonnull_unchecked_on_box_ptr
         }
     }
 
@@ -89,72 +89,72 @@ fn lint() {
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
 
         let one = Box::new(1);
         let _ = identity!(Box::into_non_null(one));
 
         let one = Box::new(1);
         let _ = identity!(Box::into_non_null(one));
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
 
         let one = Box::new(1);
         let _ = identity!(Box::into_non_null(one));
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
 
         let one = Box::new(1);
         let _ = Box::into_non_null(one);
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
 
         let one = Box::new(1);
         let _ = Box::into_non_null(weird!(one));
 
         let one = Box::new(1);
         let _ = Box::into_non_null(weird!(one));
-        //~^ improper_nonnull_from_box
+        //~^ nonnull_unchecked_on_box_ptr
     }
 
     fn keep_unsafe_block() {
         let one = Box::new(1);
         let _ = unsafe {
             Box::into_non_null(unsafe_identity(one))
-            //~^ improper_nonnull_from_box
+            //~^ nonnull_unchecked_on_box_ptr
         };
 
         let one = Box::new(1);
         let _ = unsafe {
             identity(Box::into_non_null(one))
-            //~^ improper_nonnull_from_box
+            //~^ nonnull_unchecked_on_box_ptr
         };
 
         let one = Box::new(1);
         let _ = unsafe {
             unsafe_identity(Box::into_non_null(one))
-            //~^ improper_nonnull_from_box
+            //~^ nonnull_unchecked_on_box_ptr
         };
 
         let _ = unsafe {
             Box::into_non_null(Box::new(std::num::NonZeroI32::new_unchecked(1)))
-            //~^ improper_nonnull_from_box
+            //~^ nonnull_unchecked_on_box_ptr
         };
 
         let _ = unsafe {
             let one = Box::new(1);
             Box::into_non_null(one)
-            //~^ improper_nonnull_from_box
+            //~^ nonnull_unchecked_on_box_ptr
         };
     }
 }
@@ -196,7 +196,7 @@ fn msrv_1_97() {
 
     let one = Box::new(1);
     let _ = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
-    //~^ improper_nonnull_from_box
+    //~^ nonnull_unchecked_on_box_ptr
 }
 
 #[clippy::msrv = "1.98"]
@@ -206,7 +206,7 @@ fn msrv_1_98() {
 
     let one = Box::new(1);
     let _ = Box::into_non_null(one);
-    //~^ improper_nonnull_from_box
+    //~^ nonnull_unchecked_on_box_ptr
 }
 
 fn main() {}

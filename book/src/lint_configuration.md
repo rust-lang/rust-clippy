@@ -952,7 +952,6 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`from_over_into`](https://rust-lang.github.io/rust-clippy/main/index.html#from_over_into)
 * [`if_then_some_else_none`](https://rust-lang.github.io/rust-clippy/main/index.html#if_then_some_else_none)
 * [`implicit_saturating_sub`](https://rust-lang.github.io/rust-clippy/main/index.html#implicit_saturating_sub)
-* [`improper_nonnull_from_box`](https://rust-lang.github.io/rust-clippy/main/index.html#improper_nonnull_from_box)
 * [`index_refutable_slice`](https://rust-lang.github.io/rust-clippy/main/index.html#index_refutable_slice)
 * [`inefficient_to_string`](https://rust-lang.github.io/rust-clippy/main/index.html#inefficient_to_string)
 * [`io_other_error`](https://rust-lang.github.io/rust-clippy/main/index.html#io_other_error)

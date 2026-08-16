@@ -160,7 +160,6 @@ mod implicit_return;
 mod implicit_saturating_add;
 mod implicit_saturating_sub;
 mod implied_bounds_in_impls;
-mod improper_nonnull_from_box;
 mod incompatible_msrv;
 mod inconsistent_struct_constructor;
 mod index_refutable_slice;
@@ -282,6 +281,7 @@ mod non_octal_unix_permissions;
 mod non_send_fields_in_send_ty;
 mod non_std_lazy_statics;
 mod non_zero_suggestions;
+mod nonnull_unchecked_on_box_ptr;
 mod nonstandard_macro_braces;
 mod octal_escapes;
 mod only_used_in_recursion;
@@ -869,8 +869,6 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
-        UnnecessaryNonzeroGet: unnecessary_nonzero_get::UnnecessaryNonzeroGet = unnecessary_nonzero_get::UnnecessaryNonzeroGet::new(conf),
-        ImproperNonnullFromBox: improper_nonnull_from_box::ImproperNonnullFromBox = improper_nonnull_from_box::ImproperNonnullFromBox::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

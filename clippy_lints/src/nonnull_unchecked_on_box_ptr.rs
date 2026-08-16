@@ -34,24 +34,24 @@ declare_clippy_lint! {
     /// let ptr = Box::into_non_null(one);
     /// ```
     #[clippy::version = "1.98.0"]
-    pub IMPROPER_NONNULL_FROM_BOX,
+    pub NONNULL_UNCHECKED_ON_BOX_PTR,
     complexity,
     "using `NonNull::new_unchecked` with `Box::into_raw` or `NonNull::from_mut` with `Box::leak`, while `Box::into_non_null` can be used instead"
 }
 
-impl_lint_pass!(ImproperNonnullFromBox => [IMPROPER_NONNULL_FROM_BOX]);
+impl_lint_pass!(NonnullUncheckedOnBoxPtr => [NONNULL_UNCHECKED_ON_BOX_PTR]);
 
-pub struct ImproperNonnullFromBox {
+pub struct NonnullUncheckedOnBoxPtr {
     msrv: Msrv,
 }
 
-impl ImproperNonnullFromBox {
+impl NonnullUncheckedOnBoxPtr {
     pub fn new(conf: &Conf) -> Self {
         Self { msrv: conf.msrv.into() }
     }
 }
 
-impl<'tcx> LateLintPass<'tcx> for ImproperNonnullFromBox {
+impl<'tcx> LateLintPass<'tcx> for NonnullUncheckedOnBoxPtr {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if !expr.span.from_expansion()
             && let ExprKind::Call(expr1, [arg]) = expr.kind
@@ -82,7 +82,7 @@ impl<'tcx> LateLintPass<'tcx> for ImproperNonnullFromBox {
 
                 span_lint_and_then(
                     cx,
-                    IMPROPER_NONNULL_FROM_BOX,
+                    NONNULL_UNCHECKED_ON_BOX_PTR,
                     span,
                     "use of `NonNull::new_unchecked` with `Box::into_raw`",
                     |diag| {
@@ -105,7 +105,7 @@ impl<'tcx> LateLintPass<'tcx> for ImproperNonnullFromBox {
             {
                 span_lint_and_then(
                     cx,
-                    IMPROPER_NONNULL_FROM_BOX,
+                    NONNULL_UNCHECKED_ON_BOX_PTR,
                     expr.span,
                     "use of `NonNull::from_mut` with `Box::leak`",
                     |diag| {
