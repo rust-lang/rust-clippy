@@ -167,23 +167,23 @@ fn check_arm<'tcx>(
                 let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
 
-                if matches!(outer_then_body.kind, ExprKind::Block(..)) {
+                if let ExprKind::Block(block, label) = outer_then_body.kind {
                     let block_span = outer_then_body.span;
-                    // The Block Span can start with a label so finding actual opening braces instead of assuming it's
-                    // first Byte
-                    let block_snippet = snippet(cx, block_span, "");
-
-                    let Some((_, _, brace_range)) = tokenize_with_text(&block_snippet)
+                    let search_start = if let Some(label) = label {
+                        label.ident.span.hi()
+                    } else {
+                        block_span.lo()
+                    };
+                    let gap_span = block_span.with_lo(search_start).with_hi(block.span.hi());
+                    let gap_snippet = snippet(cx, gap_span, "");
+                    let Some((_, _, brace_range)) = tokenize_with_text(&gap_snippet)
                         .find(|(token, _, _)| *token == rustc_lexer::TokenKind::OpenBrace)
                     else {
                         return;
                     };
-
                     let brace_offset = u32::try_from(brace_range.start).unwrap();
+                    let brace_pos = search_start + BytePos(brace_offset);
 
-                    let brace_pos = block_span.lo() + BytePos(brace_offset);
-
-                    let label_prefix = block_snippet.get(..brace_range.start).unwrap_or("").trim();
                     let outer_then_open_bracket = block_span
                         .with_lo(brace_pos)
                         .with_hi(brace_pos + BytePos(1))
@@ -198,6 +198,14 @@ fn check_arm<'tcx>(
                     sugg.push((outer_arrow_end.to(outer_then_open_bracket), String::new()));
                     sugg.push((outer_then_closing_bracket, String::new()));
 
+                    let prefix_start = if let Some(label) = label {
+                        label.ident.span.lo()
+                    } else {
+                        block_span.lo()
+                    };
+                    let label_prefix = snippet(cx, block_span.with_lo(prefix_start).with_hi(brace_pos), "")
+                        .trim()
+                        .to_string();
                     if !label_prefix.is_empty() {
                         sugg[0].1 = format!("=> {label_prefix} ");
                     }
