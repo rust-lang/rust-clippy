@@ -588,7 +588,7 @@ fn ident_difference_expr_with_base_location(
         (MethodCall(left, ..), MethodCall(right, ..)) => {
             // A method name is part of the expression's structure, not a
             // candidate for the identifier swap this lint is looking for.
-            if !eq_id(left.ident, right.ident) {
+            if !eq_id(left.seg.ident, right.seg.ident) {
                 return (IdentDifference::NonIdent, base);
             }
         },
