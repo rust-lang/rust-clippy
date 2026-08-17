@@ -7163,6 +7163,7 @@ Released 2018-09-13
 [`map_flatten`]: https://rust-lang.github.io/rust-clippy/main/index.html#map_flatten
 [`map_identity`]: https://rust-lang.github.io/rust-clippy/main/index.html#map_identity
 [`map_or_identity`]: https://rust-lang.github.io/rust-clippy/main/index.html#map_or_identity
+[`map_or_same_constant`]: https://rust-lang.github.io/rust-clippy/main/index.html#map_or_same_constant
 [`map_unwrap_or`]: https://rust-lang.github.io/rust-clippy/main/index.html#map_unwrap_or
 [`map_with_unused_argument_over_ranges`]: https://rust-lang.github.io/rust-clippy/main/index.html#map_with_unused_argument_over_ranges
 [`match_as_ref`]: https://rust-lang.github.io/rust-clippy/main/index.html#match_as_ref
