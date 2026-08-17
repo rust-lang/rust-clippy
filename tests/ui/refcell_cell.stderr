@@ -38,16 +38,22 @@ LL | type AliasNG = RefCell<i32>;
    |                ^^^^^^^^^^^^ help: try: `Cell<i32>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:39:13
+  --> tests/ui/refcell_cell.rs:38:15
    |
-LL |         ng: RefCell<T>,
-   |             ^^^^^^^^^^ help: try: `Cell<T>`
+LL |     fn ng(ng: RefCell<T>);
+   |               ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:42:9
+  --> tests/ui/refcell_cell.rs:40:20
    |
-LL |         RefCell<T>,
-   |         ^^^^^^^^^^ help: try: `Cell<T>`
+LL |     fn ng_ref(ng: &RefCell<T>);
+   |                    ^^^^^^^^^^ help: try: `Cell<T>`
+
+error: using a `RefCell` for a `Copy` type
+  --> tests/ui/refcell_cell.rs:42:20
+   |
+LL |     fn ng_ret() -> RefCell<T>;
+   |                    ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
   --> tests/ui/refcell_cell.rs:50:15
@@ -56,76 +62,100 @@ LL |     type NG = RefCell<T>;
    |               ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:59:9
+  --> tests/ui/refcell_cell.rs:70:9
    |
 LL |     ng: RefCell<T>,
    |         ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:61:17
+  --> tests/ui/refcell_cell.rs:72:17
    |
 LL |     ng_ref: &'a RefCell<T>,
    |                 ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:64:5
+  --> tests/ui/refcell_cell.rs:75:5
    |
 LL |     RefCell<T>,
    |     ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:74:13
+  --> tests/ui/refcell_cell.rs:85:13
    |
 LL |         ng: RefCell<T>,
    |             ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:77:9
+  --> tests/ui/refcell_cell.rs:88:9
    |
 LL |         RefCell<T>,
    |         ^^^^^^^^^^ help: try: `Cell<T>`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:85:13
+  --> tests/ui/refcell_cell.rs:98:17
    |
-LL |     let _ = RefCell::new(1);
-   |             ^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
+LL |         let _ = RefCell::new(1);
+   |                 ^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:86:13
+  --> tests/ui/refcell_cell.rs:99:17
    |
-LL |     let _ = RefCell::<i32>::new(1);
-   |             ^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::new(1)`
+LL |         let _ = RefCell::<i32>::new(1);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::new(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:87:13
+  --> tests/ui/refcell_cell.rs:100:17
    |
-LL |     let _ = RefCell::<_>::new(1);
-   |             ^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
+LL |         let _ = RefCell::<_>::new(1);
+   |                 ^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:93:13
+  --> tests/ui/refcell_cell.rs:106:17
    |
-LL |     let _ = RefCell::from(1);
-   |             ^^^^^^^^^^^^^^^^ help: try: `Cell::from(1)`
+LL |         let _ = RefCell::from(1);
+   |                 ^^^^^^^^^^^^^^^^ help: try: `Cell::from(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:94:13
+  --> tests/ui/refcell_cell.rs:107:17
    |
-LL |     let _ = RefCell::<i32>::from(1);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::from(1)`
+LL |         let _ = RefCell::<i32>::from(1);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::from(1)`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:96:12
+  --> tests/ui/refcell_cell.rs:109:16
    |
-LL |     let _: RefCell<i32> = Default::default();
-   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell<i32> = Cell::default();`
+LL |         let _: RefCell<i32> = Default::default();
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell<i32> = Cell::default();`
 
 error: using a `RefCell` for a `Copy` type
-  --> tests/ui/refcell_cell.rs:97:13
+  --> tests/ui/refcell_cell.rs:110:17
    |
-LL |     let _ = <RefCell<i32> as Default>::default();
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::default()`
+LL |         let _ = <RefCell<i32> as Default>::default();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::<i32>::default()`
 
-error: aborting due to 21 previous errors
+error: using a `RefCell` for a `Copy` type
+  --> tests/ui/refcell_cell.rs:151:21
+   |
+LL |             let x = RefCell::new(1);
+   |                     ^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
+
+error: using a `RefCell` for a `Copy` type
+  --> tests/ui/refcell_cell.rs:155:21
+   |
+LL |             let x = RefCell::new(1);
+   |                     ^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
+
+error: using a `RefCell` for a `Copy` type
+  --> tests/ui/refcell_cell.rs:189:21
+   |
+LL |             let x = RefCell::new(1);
+   |                     ^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
+
+error: using a `RefCell` for a `Copy` type
+  --> tests/ui/refcell_cell.rs:193:21
+   |
+LL |             let x = RefCell::new(1);
+   |                     ^^^^^^^^^^^^^^^ help: try: `Cell::new(1)`
+
+error: aborting due to 26 previous errors
 
