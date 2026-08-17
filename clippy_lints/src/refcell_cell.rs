@@ -190,8 +190,19 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
             // Be conservative about macro
             && ctor_args.iter().all(|e| !e.span.from_expansion())
         {
-            // This can be a false positive because trait bounds are not considered.
+            // Suggestion can be a false positive because trait bounds are not considered.
             let mut app = Applicability::MaybeIncorrect;
+
+            let init_str = {
+                let arg = ctor_args
+                    .first()
+                    .map_or_default(|arg| snippet_with_context(cx, arg.span, stmt.span.ctxt(), "..", &mut app).0);
+                match kind {
+                    CtorKind::New => format!("Cell::new({arg})"),
+                    CtorKind::From => format!("Cell::from({arg})"),
+                    CtorKind::Default => "Cell::default()".to_string(),
+                }
+            };
 
             let (span, sugg) = if let Some(annotation) = let_stmt.ty
                 && let TyKind::Path(qpath) = annotation.kind
@@ -200,54 +211,25 @@ impl<'tcx> LateLintPass<'tcx> for RefcellCell {
                 let sugg = {
                     let inner_ty = snippet_with_context(cx, inner_ty.span, stmt.span.ctxt(), "_", &mut app).0;
 
-                    let arg = ctor_args
-                        .first()
-                        .map_or_default(|arg| snippet_with_context(cx, arg.span, stmt.span.ctxt(), "..", &mut app).0);
-                    let init = match kind {
-                        CtorKind::New => format!("Cell::new({arg})"),
-                        CtorKind::From => format!("Cell::from({arg})"),
-                        CtorKind::Default => "Cell::default()".to_string(),
-                    };
-
-                    format!(/* let pat: */ "Cell<{inner_ty}> = {init};")
+                    format!(/* let pat: */ "Cell<{inner_ty}> = {init_str};")
                 };
 
                 (annotation.span.to(init.span), sugg)
             } else {
-                let sugg = {
-                    let arg = ctor_args
-                        .first()
-                        .map_or_default(|arg| snippet_with_context(cx, arg.span, stmt.span.ctxt(), "..", &mut app).0);
-                    let init = match kind {
-                        CtorKind::New => format!("Cell::new({arg})"),
-                        CtorKind::From => format!("Cell::from({arg})"),
-                        CtorKind::Default => "Cell::default()".to_string(),
-                    };
-
-                    let extract_ty = |qpath| {
-                        // <T>::ctor
-                        let ty = match qpath {
-                            QPath::Resolved(ty, _) => ty,
-                            QPath::TypeRelative(ty, _) => Some(ty),
-                        };
-
-                        if let Some(TyKind::Path(qpath)) = ty.map(|ty| ty.kind)
-                            && let Some(ty) = qpath_generic_tys(&qpath).next()
-                        {
-                            Some(ty)
-                        } else {
-                            None
-                        }
-                    };
-
-                    if let ExprKind::Path(qpath) = maybe_qpath.kind
-                        && let Some(ty) = extract_ty(qpath)
-                    {
-                        let ty = snippet_with_context(cx, ty.span, stmt.span.ctxt(), "_", &mut app).0;
-                        init.replacen("::", &format!("::<{ty}>::"), 1)
-                    } else {
-                        init
+                let sugg = if let ExprKind::Path(qpath) = maybe_qpath.kind
+                    // <..>::method -> <..>
+                    && let Some(ty) = match qpath {
+                        QPath::Resolved(ty, _) => ty,
+                        QPath::TypeRelative(ty, _) => Some(ty),
                     }
+                    // (..::)RefCell::<T> -> T
+                    && let TyKind::Path(qpath) = ty.kind
+                    && let Some(ty) = qpath_generic_tys(&qpath).next()
+                {
+                    let ty = snippet_with_context(cx, ty.span, stmt.span.ctxt(), "_", &mut app).0;
+                    init_str.replacen("::", &format!("::<{ty}>::"), 1)
+                } else {
+                    init_str
                 };
 
                 (init.span, sugg)
@@ -299,7 +281,7 @@ impl CtorKind {
 /// Trait bounds are not considered due to complexity (for now).
 fn callee_requires_refcell<'tcx>(cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>, init: &'tcx Expr<'tcx>) -> bool {
     for_each_local_use_after_expr(cx, pat.hir_id, init.hir_id, |expr| {
-        // attach `&`s as much as possible
+        // Ignore `&`s because we want to know whether `expr` is passed to a function.
         let expr = {
             let mut expr = expr;
             while let Some(p) = get_parent_expr(cx, expr) {
@@ -311,8 +293,7 @@ fn callee_requires_refcell<'tcx>(cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>, i
             expr
         };
 
-        let node = get_expr_use_site(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr);
-        let (def_id, i) = match node.use_node(cx) {
+        let (def_id, i) = match get_expr_use_site(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr).use_node(cx) {
             ExprUseNode::FnArg(path, i) if let Some(def_id) = path.res(cx).opt_def_id() => (def_id, i),
             ExprUseNode::MethodArg(hir_id, _, i)
                 if let Some(def_id) = cx.typeck_results().type_dependent_def_id(hir_id) =>
@@ -331,7 +312,6 @@ fn callee_requires_refcell<'tcx>(cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>, i
             .input(i)
             // Need early bound params but not late ones
             .skip_binder();
-
         if input_ty.peel_refs().is_diag_item(&cx.tcx, RefCell) {
             Break(())
         } else {

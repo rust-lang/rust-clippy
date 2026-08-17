@@ -1,8 +1,8 @@
-#![allow(clippy::refcell_cell)]
 #![warn(clippy::await_holding_refcell_ref)]
 
 use std::cell::RefCell;
 
+#[expect(clippy::refcell_cell, reason = "User may intentionally use `RefCell` over `Cell`.")]
 async fn bad(x: &RefCell<u32>) -> u32 {
     let b = x.borrow();
     //~^ await_holding_refcell_ref
@@ -10,6 +10,7 @@ async fn bad(x: &RefCell<u32>) -> u32 {
     baz().await
 }
 
+#[expect(clippy::refcell_cell, reason = "User may intentionally use `RefCell` over `Cell`.")]
 async fn bad_mut(x: &RefCell<u32>) -> u32 {
     let b = x.borrow_mut();
     //~^ await_holding_refcell_ref
@@ -17,6 +18,7 @@ async fn bad_mut(x: &RefCell<u32>) -> u32 {
     baz().await
 }
 
+#[expect(clippy::refcell_cell, reason = "User may intentionally use `RefCell` over `Cell`.")]
 async fn good(x: &RefCell<u32>) -> u32 {
     {
         let b = x.borrow_mut();
@@ -31,6 +33,7 @@ async fn baz() -> u32 {
     42
 }
 
+#[expect(clippy::refcell_cell, reason = "User may intentionally use `RefCell` over `Cell`.")]
 async fn also_bad(x: &RefCell<u32>) -> u32 {
     let first = baz().await;
 
@@ -44,6 +47,7 @@ async fn also_bad(x: &RefCell<u32>) -> u32 {
     first + second + third
 }
 
+#[expect(clippy::refcell_cell, reason = "User may intentionally use `RefCell` over `Cell`.")]
 async fn less_bad(x: &RefCell<u32>) -> u32 {
     let first = baz().await;
 
@@ -59,6 +63,7 @@ async fn less_bad(x: &RefCell<u32>) -> u32 {
     first + second + third
 }
 
+#[expect(clippy::refcell_cell, reason = "User may intentionally use `RefCell` over `Cell`.")]
 async fn not_good(x: &RefCell<u32>) -> u32 {
     let first = baz().await;
 
@@ -74,6 +79,7 @@ async fn not_good(x: &RefCell<u32>) -> u32 {
     first + second + third
 }
 
+#[expect(clippy::refcell_cell, reason = "User may intentionally use `RefCell` over `Cell`.")]
 #[allow(clippy::manual_async_fn)]
 fn block_bad(x: &RefCell<u32>) -> impl std::future::Future<Output = u32> + '_ {
     async move {
