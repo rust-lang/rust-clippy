@@ -57,11 +57,6 @@ jobs:
       run: cargo test
       working-directory: clippy_dev
 
-    - name: Test clippy-driver
-      run: .github/driver.sh
-      env:
-        OS: ${{ runner.os }}
-
   # We need to have the "conclusion" job also on PR CI, to make it possible
   # to add PRs to a merge queue.
   conclusion:
