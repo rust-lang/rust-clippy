@@ -6,7 +6,7 @@ use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::ty::{approx_ty_size, is_copy, ty_from_hir_ty};
 use clippy_utils::visitors::for_each_local_use_after_expr;
-use clippy_utils::{ExprUseNode, get_expr_use_site, get_parent_expr, is_trait_impl_item, qpath_generic_tys, sym};
+use clippy_utils::{ExprUseNode, expr_use_sites, is_trait_impl_item, qpath_generic_tys, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
@@ -281,19 +281,14 @@ impl CtorKind {
 /// Trait bounds are not considered due to complexity (for now).
 fn callee_requires_refcell<'tcx>(cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>, init: &'tcx Expr<'tcx>) -> bool {
     for_each_local_use_after_expr(cx, pat.hir_id, init.hir_id, |expr| {
-        // Ignore `&`s because we want to know whether `expr` is passed to a function.
-        let expr = {
-            let mut expr = expr;
-            while let Some(p) = get_parent_expr(cx, expr) {
-                match p.kind {
-                    ExprKind::AddrOf(..) => expr = p,
-                    _ => break,
-                }
-            }
-            expr
+        let Some(use_site) = expr_use_sites(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr)
+            // Ignore `&`s because we want to know whether `expr` is passed to a function.
+            .find(|use_site| !matches!(use_site.use_node(cx), ExprUseNode::AddrOf(..)))
+        else {
+            return Continue(());
         };
 
-        let (def_id, i) = match get_expr_use_site(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr).use_node(cx) {
+        let (def_id, i) = match use_site.use_node(cx) {
             ExprUseNode::FnArg(path, i) if let Some(def_id) = path.res(cx).opt_def_id() => (def_id, i),
             ExprUseNode::MethodArg(hir_id, _, i)
                 if let Some(def_id) = cx.typeck_results().type_dependent_def_id(hir_id) =>
