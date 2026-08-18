@@ -9,10 +9,6 @@ disallowed-trait-usage = [
     { trait = "std::string::String", types = ["i32"] },
     # `implements` entry exists but is a struct, not a trait
     { trait = "std::fmt::Debug", implements = ["std::string::String"] },
-    # `all-types` is redundant when combined with `types` / `implements`
-    { trait = "std::fmt::Pointer", all-types = "testing", types = ["i32"] },
-    # None of `types`, `implements` or `all-types` specified
-    { trait = "std::fmt::Debug" },
     # Invalid path, silenced by `allow-invalid`
     { trait = "std::fmt::Debug", types = [{ path = "std::nonexistent::Silenced", allow-invalid = true }] },
 ]

@@ -34,17 +34,5 @@ LL |     { trait = "std::fmt::Debug", implements = ["std::string::String"] },
    |
    = help: add `allow-invalid = true` to the entry to suppress this warning
 
-warning: `all-types` already covers `types` and `implements`, which are ignored
-  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:13:5
-   |
-LL |     { trait = "std::fmt::Pointer", all-types = "testing", types = ["i32"] },
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: at least one of `types`, `implements` or `all-types` must be specified
-  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:15:5
-   |
-LL |     { trait = "std::fmt::Debug" },
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-warning: 7 warnings emitted
+warning: 5 warnings emitted
 

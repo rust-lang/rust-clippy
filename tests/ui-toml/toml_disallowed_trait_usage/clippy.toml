@@ -1,27 +1,26 @@
-[[disallowed-trait-usage]]
-trait = "std::fmt::Debug"
-types = [
-    { path = "i32", reason = "Use Display formatting instead" },
-    { path = "std::path::PathBuf", reason = "Use path.display() instead" },
-    # Plain-string form, without a reason:
-    "std::path::Path",
+disallowed-trait-usage = [
+    {
+        trait = "std::fmt::Debug",
+        types = [
+            { path = "i32", reason = "Use Display formatting instead" },
+            { path = "std::path::PathBuf", reason = "Use path.display() instead" },
+            # Plain-string form, without a reason:
+            "std::path::Path",
+        ],
+        implements = [
+            { path = "std::error::Error", reason = "Use Display for errors" },
+            # A custom local trait, without a reason:
+            "disallowed_trait_usage::MyTrait",
+        ],
+    },
+    # An entry-wide `reason`, on top of the per-type one:
+    {
+        trait = "disallowed_trait_usage::MyTrait",
+        reason = "MyTrait is on its way out",
+        types = [{ path = "disallowed_trait_usage::MyStruct", reason = "Use a different approach" }],
+    },
+    # Disallowed for every type:
+    { trait = "std::fmt::Pointer", reason = "Addresses are not reproducible" },
+    # …and the plain-string form, without a reason:
+    "disallowed_trait_usage::MyOtherTrait",
 ]
-implements = [
-    { path = "std::error::Error", reason = "Use Display for errors" },
-    # A custom local trait, without a reason:
-    "disallowed_trait_usage::MyTrait",
-]
-
-[[disallowed-trait-usage]]
-trait = "disallowed_trait_usage::MyTrait"
-types = [{ path = "disallowed_trait_usage::MyStruct", reason = "Use a different approach" }]
-
-# Disallowed for every type:
-[[disallowed-trait-usage]]
-trait = "std::fmt::Pointer"
-all-types = "Addresses are not reproducible"
-
-# …and without a reason:
-[[disallowed-trait-usage]]
-trait = "disallowed_trait_usage::MyOtherTrait"
-all-types = ""

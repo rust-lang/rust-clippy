@@ -624,18 +624,20 @@ be used on.
 - `trait` (required): the fully qualified path to the disallowed trait (e.g. `"std::fmt::Debug"`)
 - `types` (optional): concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`)
 - `implements` (optional): traits whose implementors the trait is disallowed for
-- `all-types` (optional): disallows the trait for every type, with the given string as the reason
+- `reason` (optional): explanation why this trait usage is disallowed
 
 The entries of `types` and `implements` are either a plain path or a table with the same
-fields as [`disallowed-types`](#disallowed-types), minus `replacement`.
+fields as [`disallowed-types`](#disallowed-types), minus `replacement`. They can carry a
+`reason` of their own, in addition to the one of the entry.
 
-At least one of `types`, `implements` or `all-types` must be specified. `all-types` covers
-everything the other two can, so combining it with them warns.
+An entry with neither `types` nor `implements` disallows the trait for every type, and can
+be written as a plain path.
 
 ### Example
 ```toml
 [[disallowed-trait-usage]]
 trait = "std::fmt::Debug"
+reason = "Debug output is not meant for end users"
 # Forbid `Debug` formatting of specific types:
 types = [
     { path = "std::path::PathBuf", reason = "Use path.display() instead" },
@@ -646,10 +648,13 @@ implements = [
     { path = "std::error::Error", reason = "Use Display for errors" },
 ]
 
-# Forbid a trait outright:
+# Forbid a trait for every type:
 [[disallowed-trait-usage]]
 trait = "std::fmt::Pointer"
-all-types = "Do not print addresses"
+reason = "Do not print addresses"
+
+# …or, without a reason:
+disallowed-trait-usage = ["std::fmt::Pointer"]
 ```
 
 **Default Value:** `[]`
