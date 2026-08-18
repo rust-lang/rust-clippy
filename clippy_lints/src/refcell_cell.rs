@@ -278,7 +278,10 @@ impl CtorKind {
     }
 }
 
-/// Trait bounds are not considered due to complexity (for now).
+/// Checks whether the given local variable must be a `RefCell`.
+///
+/// This performs only simple analysis because a full analysis would be too expensive.
+/// Trait bounds and indirect uses are not considered.
 fn callee_requires_refcell<'tcx>(cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>, init: &'tcx Expr<'tcx>) -> bool {
     for_each_local_use_after_expr(cx, pat.hir_id, init.hir_id, |expr| {
         let Some(use_site) = expr_use_sites(cx.tcx, cx.typeck_results(), expr.span.ctxt(), expr)
@@ -303,14 +306,16 @@ fn callee_requires_refcell<'tcx>(cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>, i
         let Some(input_ty) = cx
             .tcx
             .fn_sig(def_id)
+            // Inspect the type as declared by the callee, without normalization.
             .instantiate_identity()
             .skip_norm_wip()
-            // Need early bound params but not late ones
             .skip_binder()
             .inputs()
             .get(i)
         else {
-            // This arm seems unreachable
+            // FIXME: This arm seems unreachable but is required to avoid a panic from
+            // an `Option::unwrap` inside `FnSig::input` when linting some crates on Linux.
+            // Why?
             return Break(());
         };
 

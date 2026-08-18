@@ -7723,7 +7723,7 @@ Released 2018-09-13
 [`lint-commented-code`]: https://doc.rust-lang.org/clippy/lint_configuration.html#lint-commented-code
 [`literal-representation-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#literal-representation-threshold
 [`matches-for-let-else`]: https://doc.rust-lang.org/clippy/lint_configuration.html#matches-for-let-else
-[`max_cheap-copy-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max_cheap-copy-size
+[`max-cheap-copy-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-cheap-copy-size
 [`max-fn-params-bools`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-fn-params-bools
 [`max-include-file-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-include-file-size
 [`max-struct-bools`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-struct-bools

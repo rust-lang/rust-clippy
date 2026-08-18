@@ -810,7 +810,7 @@ be filtering for common types.
 * [`manual_let_else`](https://rust-lang.github.io/rust-clippy/main/index.html#manual_let_else)
 
 
-## `max_cheap-copy-size`
+## `max-cheap-copy-size`
 Maximum size in bytes for a `Copy` type to be considered cheap to copy.
 
 **Default Value:** `16`

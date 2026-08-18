@@ -599,7 +599,7 @@ define_Conf! {
     matches_for_let_else("matches-for-let-else"): MatchLintBehaviour = MatchLintBehaviour::WellKnownTypes,
     /// Maximum size in bytes for a `Copy` type to be considered cheap to copy.
     #[lints(refcell_cell)]
-    max_cheap_copy_size("max_cheap-copy-size"): u64 = 16,
+    max_cheap_copy_size("max-cheap-copy-size"): u64 = 16,
     /// The maximum number of bool parameters a function can have.
     /// Use `0` to lint on any function with a bool parameter.
     #[lints(fn_params_excessive_bools)]
