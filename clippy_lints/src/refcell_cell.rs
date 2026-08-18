@@ -295,18 +295,25 @@ fn callee_requires_refcell<'tcx>(cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>, i
             {
                 (def_id, i)
             },
+            ExprUseNode::Callee => return Break(()),
             _ => return Continue(()),
         };
 
         // Does callee require `RefCell`?
-        let input_ty = cx
+        let Some(input_ty) = cx
             .tcx
             .fn_sig(def_id)
             .instantiate_identity()
-            .skip_normalization()
-            .input(i)
+            .skip_norm_wip()
             // Need early bound params but not late ones
-            .skip_binder();
+            .skip_binder()
+            .inputs()
+            .get(i)
+        else {
+            // This arm seems unreachable
+            return Break(());
+        };
+
         if input_ty.peel_refs().is_diag_item(&cx.tcx, RefCell) {
             Break(())
         } else {
