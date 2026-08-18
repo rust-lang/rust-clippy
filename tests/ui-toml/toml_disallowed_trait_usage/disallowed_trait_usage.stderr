@@ -45,6 +45,7 @@ LL |     my.do_thing();
    |        ^^^^^^^^
    |
    = note: Use a different approach
+   = note: MyTrait is on its way out
 
 error: use of `disallowed_trait_usage::MyStruct` via trait `disallowed_trait_usage::MyTrait` is disallowed
   --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:74:12
@@ -53,6 +54,7 @@ LL |     my_ref.do_thing();
    |            ^^^^^^^^
    |
    = note: Use a different approach
+   = note: MyTrait is on its way out
 
 error: use of implementor of `std::error::Error` via trait `std::fmt::Debug` is disallowed
   --> tests/ui-toml/toml_disallowed_trait_usage/disallowed_trait_usage.rs:92:15

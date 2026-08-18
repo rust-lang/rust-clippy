@@ -7,6 +7,7 @@ use clippy_utils::sym;
 use clippy_utils::ty::implements_trait;
 use rustc_ast::{FormatArgsPiece, FormatTrait};
 use rustc_data_structures::fx::FxHashMap;
+use rustc_errors::Diag;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_hir::{Expr, ExprKind, PrimTy};
@@ -33,6 +34,7 @@ declare_clippy_lint! {
     /// # clippy.toml
     /// [[disallowed-trait-usage]]
     /// trait = "std::fmt::Debug"
+    /// reason = "Debug output is not meant for end users"
     /// # Forbid `Debug` formatting of specific types:
     /// types = [
     ///     { path = "std::path::PathBuf", reason = "Use path.display() instead" },
@@ -43,10 +45,13 @@ declare_clippy_lint! {
     ///     { path = "std::error::Error", reason = "Use Display for errors" },
     /// ]
     ///
-    /// # Forbid a trait outright:
+    /// # Forbid a trait for every type:
     /// [[disallowed-trait-usage]]
     /// trait = "std::fmt::Pointer"
-    /// all-types = "Do not print addresses"
+    /// reason = "Do not print addresses"
+    ///
+    /// # …or, without a reason:
+    /// disallowed-trait-usage = ["std::fmt::Pointer"]
     /// ```
     ///
     /// ```rust,ignore
@@ -101,8 +106,8 @@ impl DisallowedTypes {
 
 /// Which types a trait is forbidden for.
 enum Forbidden {
-    /// Every type, from `all-types`.
-    All { reason: &'static str },
+    /// Every type, for an entry with neither `types` nor `implements`.
+    AllTypes,
 
     /// Only the configured types, from `types` and `implements`.
     Specific {
@@ -119,6 +124,9 @@ struct ResolvedEntry {
     trait_def_id: DefId,
     trait_path: &'static str,
     forbidden: Forbidden,
+
+    /// The `reason` of the entry, applying to everything it forbids.
+    reason: Option<&'static str>,
 }
 
 pub struct DisallowedTraitUsage {
@@ -213,20 +221,8 @@ impl DisallowedTraitUsage {
             .filter_map(|entry| {
                 let trait_def_id = resolve_trait_def_id(tcx, &entry.trait_path, entry.span);
 
-                let forbidden = if let Some(reason) = entry.all_types.as_deref() {
-                    if !entry.types.is_empty() || !entry.implements.is_empty() {
-                        tcx.sess.dcx().span_warn(
-                            entry.span,
-                            "`all-types` already covers `types` and `implements`, which are ignored",
-                        );
-                    }
-                    Forbidden::All { reason }
-                } else if entry.types.is_empty() && entry.implements.is_empty() {
-                    tcx.sess.dcx().span_warn(
-                        entry.span,
-                        "at least one of `types`, `implements` or `all-types` must be specified",
-                    );
-                    return None;
+                let forbidden = if entry.types.is_empty() && entry.implements.is_empty() {
+                    Forbidden::AllTypes
                 } else {
                     Forbidden::Specific {
                         types: resolve_types(tcx, &entry.types),
@@ -238,6 +234,7 @@ impl DisallowedTraitUsage {
                     trait_def_id: trait_def_id?,
                     trait_path: &entry.trait_path,
                     forbidden,
+                    reason: entry.reason.as_deref(),
                 })
             })
             .collect();
@@ -253,23 +250,26 @@ impl DisallowedTraitUsage {
                 trait_def_id: entry_trait_def_id,
                 trait_path,
                 forbidden,
+                reason,
             } = entry;
 
             if *entry_trait_def_id != trait_def_id {
                 continue;
             }
 
+            let note_reason = |diag: &mut Diag<'_, ()>| {
+                if let Some(reason) = reason {
+                    diag.note((*reason).to_owned());
+                }
+            };
+
             match forbidden {
-                Forbidden::All { reason } => span_lint_and_then(
+                Forbidden::AllTypes => span_lint_and_then(
                     cx,
                     DISALLOWED_TRAIT_USAGE,
                     span,
                     format!("use of trait `{trait_path}` is disallowed"),
-                    |diag| {
-                        if !reason.is_empty() {
-                            diag.note((*reason).to_owned());
-                        }
-                    },
+                    note_reason,
                 ),
                 Forbidden::Specific { types, implements } => {
                     if let Some(DisallowedPathEntry { path, disallowed_path }) = types.get(ty) {
@@ -278,7 +278,10 @@ impl DisallowedTraitUsage {
                             DISALLOWED_TRAIT_USAGE,
                             span,
                             format!("use of `{path}` via trait `{trait_path}` is disallowed"),
-                            disallowed_path.diag_amendment(span),
+                            |diag| {
+                                disallowed_path.diag_amendment(span)(diag);
+                                note_reason(diag);
+                            },
                         );
                     }
 
@@ -289,7 +292,10 @@ impl DisallowedTraitUsage {
                                 DISALLOWED_TRAIT_USAGE,
                                 span,
                                 format!("use of implementor of `{path}` via trait `{trait_path}` is disallowed"),
-                                disallowed_path.diag_amendment(span),
+                                |diag| {
+                                    disallowed_path.diag_amendment(span)(diag);
+                                    note_reason(diag);
+                                },
                             );
                         }
                     }

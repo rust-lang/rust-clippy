@@ -117,7 +117,7 @@ fn main() {
     // `implements = MyTrait` entry, but that entry only covers Debug, not MyTrait methods.
     other.do_thing();
 
-    // === `all-types` matching ===
+    // === Unscoped entries: every type ===
 
     // Should trigger: Pointer formatting is disallowed for every type
     println!("{:p}", &42_i32);

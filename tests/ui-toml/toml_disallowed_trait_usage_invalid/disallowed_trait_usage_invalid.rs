@@ -3,8 +3,6 @@
 //@error-in-other-file: expected a type, found a function
 //@error-in-other-file: expected a trait, found a struct
 //@error-in-other-file: expected a trait, found a struct
-//@error-in-other-file: `all-types` already covers `types` and `implements`, which are ignored
-//@error-in-other-file: at least one of `types`, `implements` or `all-types` must be specified
 
 #![warn(clippy::disallowed_trait_usage)]
 
