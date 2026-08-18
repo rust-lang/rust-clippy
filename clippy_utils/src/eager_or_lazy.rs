@@ -114,292 +114,286 @@ fn res_has_significant_drop(res: Res, ecx: &ConstEvalCtxt<'_>, e: &Expr<'_>) -> 
     }
 }
 
-#[expect(clippy::too_many_lines)]
-fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessSuggestion {
-    struct V<'tcx> {
-        ecx: ConstEvalCtxt<'tcx>,
-        eagerness: EagernessSuggestion,
-    }
+struct ExprEagernessVisitor<'tcx> {
+    ecx: ConstEvalCtxt<'tcx>,
+    eagerness: EagernessSuggestion,
+}
+impl<'tcx> Visitor<'tcx> for ExprEagernessVisitor<'tcx> {
+    type Result = ControlFlow<()>;
 
-    impl<'tcx> Visitor<'tcx> for V<'tcx> {
-        type Result = ControlFlow<()>;
-        fn visit_expr(&mut self, e: &'tcx Expr<'_>) -> Self::Result {
-            use EagernessSuggestion::{ForceNoChange, Lazy, NoChange};
+    #[expect(clippy::too_many_lines)]
+    fn visit_expr(&mut self, e: &'tcx Expr<'_>) -> Self::Result {
+        use EagernessSuggestion::{ForceNoChange, Lazy, NoChange};
 
-            // Autoderef through a user-defined `Deref` impl can have side-effects,
-            // so don't suggest changing it.
-            if self
-                .ecx
-                .typeck
-                .expr_adjustments(e)
-                .iter()
-                .any(|adj| matches!(adj.kind, Adjust::Deref(DerefAdjustKind::Overloaded(_))))
-            {
-                self.eagerness |= NoChange;
-            }
+        // Autoderef through a user-defined `Deref` impl can have side-effects,
+        // so don't suggest changing it.
+        if self
+            .ecx
+            .typeck
+            .expr_adjustments(e)
+            .iter()
+            .any(|adj| matches!(adj.kind, Adjust::Deref(DerefAdjustKind::Overloaded(_))))
+        {
+            self.eagerness |= NoChange;
+        }
 
-            match e.kind {
-                ExprKind::Call(
-                    &Expr {
-                        kind: ExprKind::Path(ref path),
-                        hir_id,
-                        ..
-                    },
-                    args,
-                ) => match self.ecx.typeck.qpath_res(path, hir_id) {
-                    res @ (Res::Def(DefKind::Ctor(..) | DefKind::Variant, _) | Res::SelfCtor(_)) => {
-                        if res_has_significant_drop(res, &self.ecx, e) {
-                            self.eagerness = ForceNoChange;
-                            return Break(());
-                        }
-                    },
-                    Res::Def(_, id) if self.ecx.tcx.is_promotable_const_fn(id) => (),
-                    // No need to walk the arguments here, `is_const_evaluatable` already did
-                    Res::Def(..) if is_const_evaluatable(self.ecx.tcx, self.ecx.typeck, e) => {
-                        self.eagerness |= NoChange;
-                        return Break(());
-                    },
-                    Res::Def(_, id) => match path {
-                        QPath::Resolved(_, p) => {
-                            self.eagerness |= fn_eagerness(
-                                self.ecx.tcx,
-                                id,
-                                p.segments.last().unwrap().ident.name,
-                                !args.is_empty(),
-                            );
-                        },
-                        QPath::TypeRelative(_, name) => {
-                            self.eagerness |= fn_eagerness(self.ecx.tcx, id, name.ident.name, !args.is_empty());
-                        },
-                    },
-                    _ => self.eagerness = Lazy,
+        match e.kind {
+            ExprKind::Call(
+                &Expr {
+                    kind: ExprKind::Path(ref path),
+                    hir_id,
+                    ..
                 },
+                args,
+            ) => match self.ecx.typeck.qpath_res(path, hir_id) {
+                res @ (Res::Def(DefKind::Ctor(..) | DefKind::Variant, _) | Res::SelfCtor(_)) => {
+                    if res_has_significant_drop(res, &self.ecx, e) {
+                        self.eagerness = ForceNoChange;
+                        return Break(());
+                    }
+                },
+                Res::Def(_, id) if self.ecx.tcx.is_promotable_const_fn(id) => (),
                 // No need to walk the arguments here, `is_const_evaluatable` already did
-                ExprKind::MethodCall(..) if is_const_evaluatable(self.ecx.tcx, self.ecx.typeck, e) => {
+                Res::Def(..) if is_const_evaluatable(self.ecx.tcx, self.ecx.typeck, e) => {
                     self.eagerness |= NoChange;
                     return Break(());
                 },
-                #[expect(clippy::match_same_arms)] // arm pattern can't be merged due to `ref`, see rust#105778
-                ExprKind::Struct(path, ..) => {
-                    if res_has_significant_drop(self.ecx.typeck.qpath_res(path, e.hir_id), &self.ecx, e) {
-                        self.eagerness = ForceNoChange;
-                        return Break(());
-                    }
+                Res::Def(_, id) => match path {
+                    QPath::Resolved(_, p) => {
+                        self.eagerness |= fn_eagerness(
+                            self.ecx.tcx,
+                            id,
+                            p.segments.last().unwrap().ident.name,
+                            !args.is_empty(),
+                        );
+                    },
+                    QPath::TypeRelative(_, name) => {
+                        self.eagerness |= fn_eagerness(self.ecx.tcx, id, name.ident.name, !args.is_empty());
+                    },
                 },
-                ExprKind::Path(ref path) => {
-                    if res_has_significant_drop(self.ecx.typeck.qpath_res(path, e.hir_id), &self.ecx, e) {
-                        self.eagerness = ForceNoChange;
-                        return Break(());
-                    }
-                },
-                ExprKind::MethodCall(name, ..) => {
-                    self.eagerness |= self
-                        .ecx
-                        .typeck
-                        .type_dependent_def_id(e.hir_id)
-                        .map_or(Lazy, |id| fn_eagerness(self.ecx.tcx, id, name.ident.name, true));
-                },
-                ExprKind::Index(_, e, _) => {
-                    let ty = self.ecx.typeck.expr_ty_adjusted(e);
-                    if self.ecx.tcx.type_is_copy_modulo_regions(self.ecx.typing_env, ty) && !ty.is_ref() {
-                        self.eagerness |= NoChange;
-                    } else {
-                        self.eagerness = Lazy;
-                    }
-                },
-
-                // Both binary and unary operations have cases which panic for integer types.
-                // For such cases we will only suggest eager evaluation if the overflow would be
-                // caught by rustc's `arithmetic_overflow` or `unconditional_panic` lints.
-                ExprKind::Unary(op, e) => {
-                    let ty = self.ecx.typeck.expr_ty(e).kind();
-                    let (deref_ty, deref) = match ty {
-                        &ty::Ref(_, ty, _) => {
-                            // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
-                            if op != UnOp::Deref {
-                                self.eagerness |= NoChange;
-                            }
-                            (ty.kind(), true)
-                        },
-                        ty => (ty, false),
-                    };
-                    match op {
-                        UnOp::Neg => match *deref_ty {
-                            ty::Int(_) => {
-                                if self.ecx.eval_deref(e, deref).is_some() {
-                                    return Continue(());
-                                }
-                                self.eagerness |= NoChange;
-                            },
-                            ty::Float(_) => {},
-                            _ => self.eagerness = Lazy,
-                        },
-                        UnOp::Deref => match *ty {
-                            ty::Adt(def, _) if def.is_box() => {},
-                            ty::Ref(..) => {},
-                            // Raw pointer dereferences have validity invariants which may not be
-                            // met if moved earlier. Everything else is a custom deref which should be
-                            // cheap, but we don't know for sure.
-                            _ => self.eagerness |= NoChange,
-                        },
-                        UnOp::Not => match *deref_ty {
-                            ty::Int(_) | ty::Uint(_) | ty::Bool => {},
-                            _ => self.eagerness |= NoChange,
-                        },
-                    }
-                },
-                ExprKind::Binary(op, lhs, rhs) => {
-                    let lhs_ty = self.ecx.typeck.expr_ty(lhs);
-                    let (lhs_ty, lhs_deref) = match *lhs_ty.kind() {
-                        ty::Ref(_, lhs_ty, _) => {
-                            // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
-                            self.eagerness |= NoChange;
-                            (lhs_ty, true)
-                        },
-                        _ => (lhs_ty, false),
-                    };
-                    let rhs_ty = self.ecx.typeck.expr_ty(rhs);
-                    let (rhs_ty, rhs_deref) = match *rhs_ty.kind() {
-                        ty::Ref(_, rhs_ty, _) => {
-                            // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
-                            self.eagerness |= NoChange;
-                            (rhs_ty, true)
-                        },
-                        _ => (rhs_ty, false),
-                    };
-                    let same_ty = lhs_ty == rhs_ty;
-                    match op.node {
-                        BinOpKind::Shl | BinOpKind::Shr => match (lhs_ty.kind(), rhs_ty.kind()) {
-                            (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) => {
-                                if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
-                                    return self.visit_expr(lhs);
-                                }
-                                // Possible over shift or negative shift.
-                                self.eagerness |= NoChange;
-                            },
-                            _ => self.eagerness = Lazy,
-                        },
-                        BinOpKind::Div | BinOpKind::Rem => match *lhs_ty.kind() {
-                            ty::Uint(_) if same_ty => {
-                                if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
-                                    return self.visit_expr(lhs);
-                                }
-                                // Possible division-by-zero.
-                                self.eagerness |= NoChange;
-                            },
-                            ty::Int(ty) if same_ty => {
-                                if let Some(rhs) = self.ecx.eval_deref(rhs, rhs_deref) {
-                                    if rhs.to_int(self.ecx.tcx, ty) == Some(-1) {
-                                        if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
-                                            return Continue(());
-                                        }
-                                        // Possible overflow.
-                                        self.eagerness |= NoChange;
-                                    }
-                                    return self.visit_expr(lhs);
-                                }
-                                // Possible division-by-zero.
-                                self.eagerness |= NoChange;
-                            },
-                            ty::Float(_) if same_ty => {},
-                            _ => self.eagerness = Lazy,
-                        },
-                        BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul => match *lhs_ty.kind() {
-                            ty::Int(_) | ty::Uint(_) if same_ty => {
-                                if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
-                                    return if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
-                                        Continue(())
-                                    } else {
-                                        // Possible overflow.
-                                        self.eagerness |= NoChange;
-                                        self.visit_expr(rhs)
-                                    };
-                                }
-                                // Possible overflow.
-                                self.eagerness |= NoChange;
-                            },
-                            ty::Float(_) if same_ty => {},
-                            _ => self.eagerness = Lazy,
-                        },
-                        BinOpKind::Or | BinOpKind::And | BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor => {
-                            match *lhs_ty.kind() {
-                                ty::Bool | ty::Int(_) | ty::Uint(_) if same_ty => {},
-                                _ => self.eagerness = Lazy,
-                            }
-                        },
-                        BinOpKind::Eq
-                        | BinOpKind::Ne
-                        | BinOpKind::Lt
-                        | BinOpKind::Le
-                        | BinOpKind::Gt
-                        | BinOpKind::Ge => {
-                            if lhs_deref == rhs_deref {
-                                let mut lhs_ty = lhs_ty;
-                                let mut rhs_ty = rhs_ty;
-                                while let ty::Ref(_, lhs, _) = *lhs_ty.kind()
-                                    && let ty::Ref(_, rhs, _) = *rhs_ty.kind()
-                                {
-                                    lhs_ty = lhs;
-                                    rhs_ty = rhs;
-                                }
-                                match *lhs_ty.kind() {
-                                    ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_)
-                                        if lhs_ty == rhs_ty => {},
-                                    ty::RawPtr(..) if rhs_ty.is_raw_ptr() => {},
-                                    _ => self.eagerness = Lazy,
-                                }
-                            } else {
-                                self.eagerness = Lazy;
-                            }
-                        },
-                    }
-                },
-
-                // Can't be moved into a closure
-                ExprKind::Break(..)
-                | ExprKind::Continue(_)
-                | ExprKind::Ret(_)
-                | ExprKind::Become(_)
-                | ExprKind::InlineAsm(_)
-                | ExprKind::Yield(..)
-                | ExprKind::Err(_) => {
+                _ => self.eagerness = Lazy,
+            },
+            // No need to walk the arguments here, `is_const_evaluatable` already did
+            ExprKind::MethodCall(..) if is_const_evaluatable(self.ecx.tcx, self.ecx.typeck, e) => {
+                self.eagerness |= NoChange;
+                return Break(());
+            },
+            #[expect(clippy::match_same_arms)] // arm pattern can't be merged due to `ref`, see rust#105778
+            ExprKind::Struct(path, ..) => {
+                if res_has_significant_drop(self.ecx.typeck.qpath_res(path, e.hir_id), &self.ecx, e) {
                     self.eagerness = ForceNoChange;
                     return Break(());
-                },
-
-                ExprKind::Loop(..) | ExprKind::Call(..) => {
+                }
+            },
+            ExprKind::Path(ref path) => {
+                if res_has_significant_drop(self.ecx.typeck.qpath_res(path, e.hir_id), &self.ecx, e) {
+                    self.eagerness = ForceNoChange;
+                    return Break(());
+                }
+            },
+            ExprKind::MethodCall(name, ..) => {
+                self.eagerness |= self
+                    .ecx
+                    .typeck
+                    .type_dependent_def_id(e.hir_id)
+                    .map_or(Lazy, |id| fn_eagerness(self.ecx.tcx, id, name.ident.name, true));
+            },
+            ExprKind::Index(_, e, _) => {
+                let ty = self.ecx.typeck.expr_ty_adjusted(e);
+                if self.ecx.tcx.type_is_copy_modulo_regions(self.ecx.typing_env, ty) && !ty.is_ref() {
+                    self.eagerness |= NoChange;
+                } else {
                     self.eagerness = Lazy;
-                },
+                }
+            },
 
-                ExprKind::ConstBlock(_)
-                | ExprKind::Array(_)
-                | ExprKind::Tup(_)
-                | ExprKind::Use(..)
-                | ExprKind::Lit(_)
-                | ExprKind::Cast(..)
-                | ExprKind::Type(..)
-                | ExprKind::DropTemps(_)
-                | ExprKind::Let(..)
-                | ExprKind::If(..)
-                | ExprKind::Match(..)
-                | ExprKind::Closure { .. }
-                | ExprKind::Field(..)
-                | ExprKind::AddrOf(..)
-                | ExprKind::Repeat(..)
-                | ExprKind::Block(Block { stmts: [], .. }, _)
-                | ExprKind::OffsetOf(..)
-                | ExprKind::UnsafeBinderCast(..) => (),
+            // Both binary and unary operations have cases which panic for integer types.
+            // For such cases we will only suggest eager evaluation if the overflow would be
+            // caught by rustc's `arithmetic_overflow` or `unconditional_panic` lints.
+            ExprKind::Unary(op, e) => {
+                let ty = self.ecx.typeck.expr_ty(e).kind();
+                let (deref_ty, deref) = match ty {
+                    &ty::Ref(_, ty, _) => {
+                        // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
+                        if op != UnOp::Deref {
+                            self.eagerness |= NoChange;
+                        }
+                        (ty.kind(), true)
+                    },
+                    ty => (ty, false),
+                };
+                match op {
+                    UnOp::Neg => match *deref_ty {
+                        ty::Int(_) => {
+                            if self.ecx.eval_deref(e, deref).is_some() {
+                                return Continue(());
+                            }
+                            self.eagerness |= NoChange;
+                        },
+                        ty::Float(_) => {},
+                        _ => self.eagerness = Lazy,
+                    },
+                    UnOp::Deref => match *ty {
+                        ty::Adt(def, _) if def.is_box() => {},
+                        ty::Ref(..) => {},
+                        // Raw pointer dereferences have validity invariants which may not be
+                        // met if moved earlier. Everything else is a custom deref which should be
+                        // cheap, but we don't know for sure.
+                        _ => self.eagerness |= NoChange,
+                    },
+                    UnOp::Not => match *deref_ty {
+                        ty::Int(_) | ty::Uint(_) | ty::Bool => {},
+                        _ => self.eagerness |= NoChange,
+                    },
+                }
+            },
+            ExprKind::Binary(op, lhs, rhs) => {
+                let lhs_ty = self.ecx.typeck.expr_ty(lhs);
+                let (lhs_ty, lhs_deref) = match *lhs_ty.kind() {
+                    ty::Ref(_, lhs_ty, _) => {
+                        // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
+                        self.eagerness |= NoChange;
+                        (lhs_ty, true)
+                    },
+                    _ => (lhs_ty, false),
+                };
+                let rhs_ty = self.ecx.typeck.expr_ty(rhs);
+                let (rhs_ty, rhs_deref) = match *rhs_ty.kind() {
+                    ty::Ref(_, rhs_ty, _) => {
+                        // TODO(@Jarcho): Allow eager evaluation starting with 1.99.
+                        self.eagerness |= NoChange;
+                        (rhs_ty, true)
+                    },
+                    _ => (rhs_ty, false),
+                };
+                let same_ty = lhs_ty == rhs_ty;
+                match op.node {
+                    BinOpKind::Shl | BinOpKind::Shr => match (lhs_ty.kind(), rhs_ty.kind()) {
+                        (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) => {
+                            if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
+                                return self.visit_expr(lhs);
+                            }
+                            // Possible over shift or negative shift.
+                            self.eagerness |= NoChange;
+                        },
+                        _ => self.eagerness = Lazy,
+                    },
+                    BinOpKind::Div | BinOpKind::Rem => match *lhs_ty.kind() {
+                        ty::Uint(_) if same_ty => {
+                            if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
+                                return self.visit_expr(lhs);
+                            }
+                            // Possible division-by-zero.
+                            self.eagerness |= NoChange;
+                        },
+                        ty::Int(ty) if same_ty => {
+                            if let Some(rhs) = self.ecx.eval_deref(rhs, rhs_deref) {
+                                if rhs.to_int(self.ecx.tcx, ty) == Some(-1) {
+                                    if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
+                                        return Continue(());
+                                    }
+                                    // Possible overflow.
+                                    self.eagerness |= NoChange;
+                                }
+                                return self.visit_expr(lhs);
+                            }
+                            // Possible division-by-zero.
+                            self.eagerness |= NoChange;
+                        },
+                        ty::Float(_) if same_ty => {},
+                        _ => self.eagerness = Lazy,
+                    },
+                    BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul => match *lhs_ty.kind() {
+                        ty::Int(_) | ty::Uint(_) if same_ty => {
+                            if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
+                                return if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
+                                    Continue(())
+                                } else {
+                                    // Possible overflow.
+                                    self.eagerness |= NoChange;
+                                    self.visit_expr(rhs)
+                                };
+                            }
+                            // Possible overflow.
+                            self.eagerness |= NoChange;
+                        },
+                        ty::Float(_) if same_ty => {},
+                        _ => self.eagerness = Lazy,
+                    },
+                    BinOpKind::Or | BinOpKind::And | BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor => {
+                        match *lhs_ty.kind() {
+                            ty::Bool | ty::Int(_) | ty::Uint(_) if same_ty => {},
+                            _ => self.eagerness = Lazy,
+                        }
+                    },
+                    BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge => {
+                        if lhs_deref == rhs_deref {
+                            let mut lhs_ty = lhs_ty;
+                            let mut rhs_ty = rhs_ty;
+                            while let ty::Ref(_, lhs, _) = *lhs_ty.kind()
+                                && let ty::Ref(_, rhs, _) = *rhs_ty.kind()
+                            {
+                                lhs_ty = lhs;
+                                rhs_ty = rhs;
+                            }
+                            match *lhs_ty.kind() {
+                                ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) if lhs_ty == rhs_ty => {},
+                                ty::RawPtr(..) if rhs_ty.is_raw_ptr() => {},
+                                _ => self.eagerness = Lazy,
+                            }
+                        } else {
+                            self.eagerness = Lazy;
+                        }
+                    },
+                }
+            },
 
-                // Assignment might be to a local defined earlier, so don't eagerly evaluate.
-                // Blocks with multiple statements might be expensive, so don't eagerly evaluate.
-                // TODO: Actually check if either of these are true here.
-                ExprKind::Assign(..) | ExprKind::AssignOp(..) | ExprKind::Block(..) => self.eagerness |= NoChange,
-            }
-            walk_expr(self, e)
+            // Can't be moved into a closure
+            ExprKind::Break(..)
+            | ExprKind::Continue(_)
+            | ExprKind::Ret(_)
+            | ExprKind::Become(_)
+            | ExprKind::InlineAsm(_)
+            | ExprKind::Yield(..)
+            | ExprKind::Err(_) => {
+                self.eagerness = ForceNoChange;
+                return Break(());
+            },
+
+            ExprKind::Loop(..) | ExprKind::Call(..) => {
+                self.eagerness = Lazy;
+            },
+
+            ExprKind::ConstBlock(_)
+            | ExprKind::Array(_)
+            | ExprKind::Tup(_)
+            | ExprKind::Use(..)
+            | ExprKind::Lit(_)
+            | ExprKind::Cast(..)
+            | ExprKind::Type(..)
+            | ExprKind::DropTemps(_)
+            | ExprKind::Let(..)
+            | ExprKind::If(..)
+            | ExprKind::Match(..)
+            | ExprKind::Closure { .. }
+            | ExprKind::Field(..)
+            | ExprKind::AddrOf(..)
+            | ExprKind::Repeat(..)
+            | ExprKind::Block(Block { stmts: [], .. }, _)
+            | ExprKind::OffsetOf(..)
+            | ExprKind::UnsafeBinderCast(..) => (),
+
+            // Assignment might be to a local defined earlier, so don't eagerly evaluate.
+            // Blocks with multiple statements might be expensive, so don't eagerly evaluate.
+            // TODO: Actually check if either of these are true here.
+            ExprKind::Assign(..) | ExprKind::AssignOp(..) | ExprKind::Block(..) => self.eagerness |= NoChange,
         }
+        walk_expr(self, e)
     }
+}
 
-    let mut v = V {
+fn expr_eagerness<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> EagernessSuggestion {
+    let mut v = ExprEagernessVisitor {
         ecx: ConstEvalCtxt::new(cx),
         eagerness: EagernessSuggestion::Eager,
     };
