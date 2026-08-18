@@ -656,7 +656,7 @@ all-types = "Do not print addresses"
 
 ---
 **Affected lints:**
-* [`disallowed_trait_usage`](https://rust-lang.github.io/rust-clippy/master/index.html#disallowed_trait_usage)
+* [`disallowed_trait_usage`](https://rust-lang.github.io/rust-clippy/main/index.html#disallowed_trait_usage)
 
 
 ## `disallowed-types`
