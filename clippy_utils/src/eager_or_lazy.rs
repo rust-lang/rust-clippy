@@ -137,6 +137,7 @@ impl<'tcx> ExprEagernessVisitor<'tcx> {
             UnOp::Neg => match *deref_ty {
                 ty::Int(_) => {
                     if self.ecx.eval_deref(e, deref).is_some() {
+                        // rustc's `arithmetic_overflow` lint will catch this case.
                         return Continue(());
                     }
                     // Possible overflow.
@@ -182,85 +183,73 @@ impl<'tcx> ExprEagernessVisitor<'tcx> {
             },
             _ => (rhs_ty, false),
         };
-        let same_ty = lhs_ty == rhs_ty;
-        match op {
-            BinOpKind::Shl | BinOpKind::Shr => match (lhs_ty.kind(), rhs_ty.kind()) {
-                (ty::Int(_) | ty::Uint(_), ty::Int(_) | ty::Uint(_)) => {
-                    if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
-                        return self.visit_expr(lhs);
-                    }
-                    // Possible over shift or negative shift.
-                    self.eagerness |= NoChange;
-                },
-                _ => self.eagerness = Lazy,
-            },
-            BinOpKind::Div | BinOpKind::Rem => match *lhs_ty.kind() {
-                ty::Uint(_) if same_ty => {
-                    if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
-                        return self.visit_expr(lhs);
-                    }
-                    // Possible division-by-zero.
-                    self.eagerness |= NoChange;
-                },
-                ty::Int(ty) if same_ty => {
-                    if let Some(rhs) = self.ecx.eval_deref(rhs, rhs_deref) {
-                        if rhs.to_int(self.ecx.tcx, ty) == Some(-1) {
-                            if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
-                                return Continue(());
-                            }
-                            // Possible overflow.
-                            self.eagerness |= NoChange;
-                        }
-                        return self.visit_expr(lhs);
-                    }
-                    // Possible division-by-zero.
-                    self.eagerness |= NoChange;
-                },
-                ty::Float(_) if same_ty => {},
-                _ => self.eagerness = Lazy,
-            },
-            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul => match *lhs_ty.kind() {
-                ty::Int(_) | ty::Uint(_) if same_ty => {
-                    if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
-                        return if self.ecx.eval_deref(rhs, rhs_deref).is_some() {
-                            Continue(())
-                        } else {
-                            // Possible overflow.
-                            self.eagerness |= NoChange;
-                            self.visit_expr(rhs)
-                        };
-                    }
-                    // Possible overflow.
-                    self.eagerness |= NoChange;
-                },
-                ty::Float(_) if same_ty => {},
-                _ => self.eagerness = Lazy,
-            },
-            BinOpKind::Or | BinOpKind::And | BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor => {
+
+        if let BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge = op {
+            if lhs_deref == rhs_deref {
+                let mut lhs_ty = lhs_ty;
+                let mut rhs_ty = rhs_ty;
+                while let ty::Ref(_, lhs, _) = *lhs_ty.kind()
+                    && let ty::Ref(_, rhs, _) = *rhs_ty.kind()
+                {
+                    lhs_ty = lhs;
+                    rhs_ty = rhs;
+                }
                 match *lhs_ty.kind() {
-                    ty::Bool | ty::Int(_) | ty::Uint(_) if same_ty => {},
+                    ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) if lhs_ty == rhs_ty => {},
+                    ty::RawPtr(..) if rhs_ty.is_raw_ptr() => {},
                     _ => self.eagerness = Lazy,
                 }
+            } else {
+                self.eagerness = Lazy;
+            }
+        } else if let Some((is_signed, ty)) = match (lhs_ty.kind(), rhs_ty.kind()) {
+            // If both sides are an integer type then we can assume either the types are
+            // the same, or we have a shift operator. Since we don't care about the types
+            // in that case just take the lhs's type.
+            (&ty::Int(ty), ty::Int(_) | ty::Uint(_)) => Some((true, ty)),
+            (&ty::Uint(ty), ty::Int(_) | ty::Uint(_)) => Some((false, ty.to_signed())),
+            (ty::Float(_), ty::Float(_)) | (ty::Bool, ty::Bool) => None,
+            _ => {
+                self.eagerness = Lazy;
+                None
             },
-            BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge => {
-                if lhs_deref == rhs_deref {
-                    let mut lhs_ty = lhs_ty;
-                    let mut rhs_ty = rhs_ty;
-                    while let ty::Ref(_, lhs, _) = *lhs_ty.kind()
-                        && let ty::Ref(_, rhs, _) = *rhs_ty.kind()
-                    {
-                        lhs_ty = lhs;
-                        rhs_ty = rhs;
+        } {
+            // For operators which can panic we will only suggest eager evaluation if the
+            // expression would be caught by rustc's `arithmetic_overflow` or
+            // `unconditional_panic` lints.
+            match (op, is_signed) {
+                (BinOpKind::Div | BinOpKind::Rem, true) if let Some(rhs_val) = self.ecx.eval_deref(rhs, rhs_deref) => {
+                    if rhs_val.to_int(self.ecx.tcx, ty) == Some(-1) {
+                        if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
+                            return Continue(());
+                        }
+                        // Possible overflow.
+                        self.eagerness |= NoChange;
                     }
-                    match *lhs_ty.kind() {
-                        ty::Bool | ty::Char | ty::Int(_) | ty::Uint(_) | ty::Float(_) if lhs_ty == rhs_ty => {},
-                        ty::RawPtr(..) if rhs_ty.is_raw_ptr() => {},
-                        _ => self.eagerness = Lazy,
-                    }
-                } else {
-                    self.eagerness = Lazy;
-                }
-            },
+                    return self.visit_expr(rhs);
+                },
+                (BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul, _)
+                    if self.ecx.eval_deref(rhs, rhs_deref).is_some() =>
+                {
+                    return if self.ecx.eval_deref(lhs, lhs_deref).is_some() {
+                        Continue(())
+                    } else {
+                        // Possible overflow.
+                        self.eagerness |= NoChange;
+                        self.visit_expr(lhs)
+                    };
+                },
+                (BinOpKind::Div | BinOpKind::Rem, false) | (BinOpKind::Shl | BinOpKind::Shr, _)
+                    if self.ecx.eval_deref(rhs, rhs_deref).is_some() =>
+                {
+                    return self.visit_expr(lhs);
+                },
+                (BinOpKind::Or | BinOpKind::And | BinOpKind::BitAnd | BinOpKind::BitOr | BinOpKind::BitXor, _) => {},
+                _ => {
+                    // Possible division-by-zero, overflow, or over/negative shift.
+                    self.eagerness |= NoChange;
+                },
+            }
         }
         (lhs, rhs).visit(self)
     }
@@ -354,9 +343,6 @@ impl<'tcx> Visitor<'tcx> for ExprEagernessVisitor<'tcx> {
                 }
             },
 
-            // Both binary and unary operations have cases which panic for integer types.
-            // For such cases we will only suggest eager evaluation if the overflow would be
-            // caught by rustc's `arithmetic_overflow` or `unconditional_panic` lints.
             ExprKind::Unary(op, e) => return self.visit_unary(op, e),
             ExprKind::Binary(op, lhs, rhs) => return self.visit_binary(op.node, lhs, rhs),
 
