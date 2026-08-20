@@ -1,0 +1,92 @@
+error: both branches of `map_or` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:9:13
+   |
+LL |     let _ = opt.map_or(false, |_| false);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or` always evaluates to the same value, regardless of the `Option` variant
+   = note: `-D clippy::map-or-same-constant` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::map_or_same_constant)]`
+
+error: both branches of `map_or` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:11:13
+   |
+LL |     let _ = opt.map_or(true, |_| true);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or` always evaluates to the same value, regardless of the `Option` variant
+
+error: both branches of `map_or` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:13:13
+   |
+LL |     let _ = opt.map_or(0, |_| 0);
+   |             ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or` always evaluates to the same value, regardless of the `Option` variant
+
+error: both branches of `map_or` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:15:13
+   |
+LL |     let _ = opt.map_or("foo", |_| "foo");
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or` always evaluates to the same value, regardless of the `Option` variant
+
+error: both branches of `map_or` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:19:13
+   |
+LL |     let _ = res.map_or(false, |_| false);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or` always evaluates to the same value, regardless of the `Result` variant
+
+error: both branches of `map_or` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:21:13
+   |
+LL |     let _ = res.map_or(true, |_| true);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or` always evaluates to the same value, regardless of the `Result` variant
+
+error: both branches of `map_or` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:23:13
+   |
+LL |     let _ = res.map_or(123, |_| 123);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or` always evaluates to the same value, regardless of the `Result` variant
+
+error: both branches of `map_or_else` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:27:13
+   |
+LL |     let _ = opt.map_or_else(|| true, |_| true);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or_else` always evaluates to the same value, regardless of the `Option` variant
+
+error: both branches of `map_or_else` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:29:13
+   |
+LL |     let _ = opt.map_or_else(|| 0, |_| 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or_else` always evaluates to the same value, regardless of the `Option` variant
+
+error: both branches of `map_or_else` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:33:13
+   |
+LL |     let _ = res.map_or_else(|_| false, |_| false);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or_else` always evaluates to the same value, regardless of the `Result` variant
+
+error: both branches of `map_or_else` return the same constant value
+  --> tests/ui/map_or_same_constant.rs:35:13
+   |
+LL |     let _ = res.map_or_else(|_| "same", |_| "same");
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this `map_or_else` always evaluates to the same value, regardless of the `Result` variant
+
+error: aborting due to 11 previous errors
+

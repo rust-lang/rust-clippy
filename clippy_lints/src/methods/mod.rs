@@ -77,6 +77,7 @@ mod map_err_ignore;
 mod map_flatten;
 mod map_identity;
 mod map_or_identity;
+mod map_or_same_constant;
 mod map_unwrap_or;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
@@ -2437,6 +2438,32 @@ declare_clippy_lint! {
     pub MAP_OR_IDENTITY,
     complexity,
     "using an identity function when mapping with `.map_or(|err| ..., |x| x)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calls to `Option::map_or`, `Result::map_or`, or their `map_or_else` variants
+    /// where both branches return the same constant value.
+    ///
+    /// ### Why is this bad?
+    /// If both branches return the same constant value, the expression always evaluates to
+    /// that constant regardless of the `Option` or `Result` variant. This is likely a typo
+    /// or copy-paste error.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let res: Result<u32, ()> = Ok(1);
+    /// let _ = res.map_or(false, |_| false);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let res: Result<u32, ()> = Ok(1);
+    /// let _ = res.is_ok();
+    /// ```
+    #[clippy::version = "1.99.0"]
+    pub MAP_OR_SAME_CONSTANT,
+    suspicious,
+    "checks for `map_or` or `map_or_else` where both branches return the same constant value"
 }
 
 declare_clippy_lint! {
@@ -5023,6 +5050,7 @@ impl_lint_pass!(Methods => [
     MAP_FLATTEN,
     MAP_IDENTITY,
     MAP_OR_IDENTITY,
+    MAP_OR_SAME_CONSTANT,
     MAP_UNWRAP_OR,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     MUT_MUTEX_LOCK,
@@ -5660,10 +5688,12 @@ impl Methods {
                     option_map_or_none::check(cx, expr, recv, def, map);
                     manual_ok_or::check(cx, expr, recv, def, map);
                     unnecessary_map_or::check(cx, expr, recv, def, map, span, self.msrv);
+                    map_or_same_constant::check(cx, expr, recv, def, map, false);
                 },
                 (sym::map_or_else, [def, map]) => {
                     result_map_or_else_none::check(cx, expr, recv, def, map);
                     unnecessary_map_or_else::check(cx, expr, recv, def, map, call_span);
+                    map_or_same_constant::check(cx, expr, recv, def, map, true);
                 },
                 (sym::next, []) => {
                     if let Some((name2, recv2, args2, _, _)) = method_call(recv) {
