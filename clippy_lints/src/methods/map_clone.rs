@@ -32,9 +32,18 @@ fn should_run_lint(cx: &LateContext<'_>, e: &hir::Expr<'_>, method_parent_id: De
         return false;
     }
     // We check if the previous method call is `as_ref`.
-    if let hir::ExprKind::MethodCall(path1, receiver, _, _) = &e.kind
+    if let hir::ExprKind::MethodCall(path1, receiver, args, _) = &e.kind
         && let hir::ExprKind::MethodCall(path2, _, _, _) = &receiver.kind
     {
+        if path2.ident.name == sym::as_ref && path1.ident.name == sym::map
+            // https://github.com/rust-lang/rust-clippy/issues/16529
+            && let Some(arg) = args.first()
+            && let hir::ExprKind::Path(path) = arg.kind
+            && let Some(ty) = method_parent_id.opt_impl_ty(cx)
+            && matches!(ty.opt_diag_name(cx), Some(sym::Result))
+        {
+            return cx.tcx.lang_items().get(LangItem::CloneFn) == cx.qpath_res(&path, e.hir_id).opt_def_id();
+        }
         return path2.ident.name != sym::as_ref || path1.ident.name != sym::map;
     }
 
