@@ -42,7 +42,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.86.0"]
     pub NON_STD_LAZY_STATICS,
     pedantic,
-    "lazy static that could be replaced by `std::sync::LazyLock`"
+    "lazy static that could be replaced by `std::sync::LazyLock`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.80 and the crate uses `std`, because it suggests `std::sync::LazyLock`."
 }
 
 impl_lint_pass!(NonStdLazyStatic => [NON_STD_LAZY_STATICS]);

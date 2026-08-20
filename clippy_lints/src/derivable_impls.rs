@@ -53,7 +53,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.57.0"]
     pub DERIVABLE_IMPLS,
     complexity,
-    "manual implementation of the `Default` trait which is equal to a derive"
+    "manual implementation of the `Default` trait which is equal to a derive",
+    @msrv_behavior = "Manual `Default` implementations for structs can be linted on all configured MSRVs. Enum implementations are only linted when the configured MSRV is at least 1.62, because `#[default]` on enum variants is available from that version."
 }
 
 impl_lint_pass!(DerivableImpls => [DERIVABLE_IMPLS]);

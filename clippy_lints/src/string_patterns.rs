@@ -37,7 +37,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.81.0"]
     pub MANUAL_PATTERN_CHAR_COMPARISON,
     style,
-    "manual char comparison in string patterns"
+    "manual char comparison in string patterns",
+    @msrv_behavior = "This lint only suggests character arrays for string patterns when the configured MSRV is at least 1.58."
 }
 
 declare_clippy_lint! {

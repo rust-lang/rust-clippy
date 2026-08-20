@@ -36,7 +36,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.70.0"]
     pub MANUAL_SLICE_SIZE_CALCULATION,
     complexity,
-    "manual slice size calculation"
+    "manual slice size calculation",
+    @msrv_behavior = "This lint can be emitted outside const contexts on all configured MSRVs. In const contexts, it is only emitted when the configured MSRV is at least 1.85, because it suggests const-stable `size_of_val`."
 }
 
 impl_lint_pass!(ManualSliceSizeCalculation => [MANUAL_SLICE_SIZE_CALCULATION]);

@@ -45,7 +45,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.67.0"]
     pub MANUAL_LET_ELSE,
     pedantic,
-    "manual implementation of a let...else statement"
+    "manual implementation of a let...else statement",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.65, because it suggests `let...else`."
 }
 
 impl<'tcx> QuestionMark {

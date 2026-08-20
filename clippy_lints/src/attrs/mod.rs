@@ -56,7 +56,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.70.0"]
     pub ALLOW_ATTRIBUTES,
     restriction,
-    "`#[allow]` will not trigger if a warning isn't found. `#[expect]` triggers if there are no warnings."
+    "`#[allow]` will not trigger if a warning isn't found. `#[expect]` triggers if there are no warnings.",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.81, because it suggests `#[expect]`, which was stabilized in that version."
 }
 
 declare_clippy_lint! {
@@ -79,7 +80,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.61.0"]
     pub ALLOW_ATTRIBUTES_WITHOUT_REASON,
     restriction,
-    "ensures that all `allow` and `expect` attributes have a reason"
+    "ensures that all `allow` and `expect` attributes have a reason",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.81, because the `reason` argument to lint attributes requires that version."
 }
 
 declare_clippy_lint! {
@@ -133,7 +135,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.32.0"]
     pub DEPRECATED_CFG_ATTR,
     complexity,
-    "usage of `cfg_attr(rustfmt)` instead of tool attributes"
+    "usage of `cfg_attr(rustfmt)` instead of tool attributes",
+    @msrv_behavior = "`cfg_attr(rustfmt, rustfmt_skip)` is only linted when the configured MSRV is at least 1.30. Other deprecated `cargo-clippy` cfg checks are not MSRV-gated."
 }
 
 declare_clippy_lint! {
@@ -364,7 +367,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.85.0"]
     pub REPR_PACKED_WITHOUT_ABI,
     suspicious,
-    "ensures that `repr(packed)` always comes with a qualified ABI"
+    "ensures that `repr(packed)` always comes with a qualified ABI",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.74, because it may suggest explicit `repr(Rust, packed)`."
 }
 
 declare_clippy_lint! {

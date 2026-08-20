@@ -31,7 +31,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.60.0"]
     pub MANUAL_BITS,
     style,
-    "manual implementation of `size_of::<T>() * 8` can be simplified with `T::BITS`"
+    "manual implementation of `size_of::<T>() * 8` can be simplified with `T::BITS`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.53, because it suggests integer `BITS` associated constants."
 }
 
 impl_lint_pass!(ManualBits => [MANUAL_BITS]);

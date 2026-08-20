@@ -42,7 +42,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.83.0"]
     pub UNUSED_TRAIT_NAMES,
     restriction,
-    "use items that import a trait but only use it anonymously"
+    "use items that import a trait but only use it anonymously",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.33, because it suggests underscore imports."
 }
 
 impl_lint_pass!(UnusedTraitNames => [UNUSED_TRAIT_NAMES]);

@@ -30,7 +30,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.70.0"]
     pub MANUAL_MAIN_SEPARATOR_STR,
     complexity,
-    "`&std::path::MAIN_SEPARATOR.to_string()` can be replaced by `std::path::MAIN_SEPARATOR_STR`"
+    "`&std::path::MAIN_SEPARATOR.to_string()` can be replaced by `std::path::MAIN_SEPARATOR_STR`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.68, because it suggests `std::path::MAIN_SEPARATOR_STR`."
 }
 
 impl_lint_pass!(ManualMainSeparatorStr => [MANUAL_MAIN_SEPARATOR_STR]);

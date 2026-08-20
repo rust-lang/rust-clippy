@@ -104,6 +104,7 @@ pub struct LintInfo {
     pub lint: &'static Lint,
     pub category: LintCategory,
     pub explanation: &'static str,
+    pub msrv_behavior: Option<&'static str>,
     /// e.g. `clippy_lints/src/absolute_paths.rs#43`
     pub location: &'static str,
     pub version: &'static str,
@@ -118,6 +119,17 @@ impl LintInfo {
     }
 }
 
+#[doc(hidden)]
+#[macro_export]
+macro_rules! __clippy_lint_optional_msrv_behavior {
+    () => {
+        None
+    };
+    ($msrv_behavior:literal) => {
+        Some(concat!($msrv_behavior, "\n"))
+    };
+}
+
 #[macro_export]
 macro_rules! declare_clippy_lint_inner {
     (
@@ -127,6 +139,7 @@ macro_rules! declare_clippy_lint_inner {
         $level:ident,
         $category:ident,
         $desc:literal
+        $(, @msrv_behavior = $msrv_behavior:literal)?
         $(, @eval_always = $eval_always:literal)?
     ) => {
         $crate::rustc_session::declare_tool_lint! {
@@ -143,6 +156,7 @@ macro_rules! declare_clippy_lint_inner {
             lint: $lint_name,
             category: $crate::LintCategory::$category,
             explanation: concat!($($docs,"\n",)*),
+            msrv_behavior: $crate::__clippy_lint_optional_msrv_behavior!($($msrv_behavior)?),
             location: concat!(file!(), "#L", line!()),
             version: $version,
         };

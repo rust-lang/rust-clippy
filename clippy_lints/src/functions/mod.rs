@@ -430,7 +430,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.49.0"]
     pub RESULT_UNIT_ERR,
     style,
-    "public function returning `Result` with an `Err` type of `()`"
+    "public function returning `Result` with an `Err` type of `()`",
+    @msrv_behavior = "In `no_std` crates, this lint is only emitted when the configured MSRV is at least 1.81, because `Error` is available in `core` from that version."
 }
 
 declare_clippy_lint! {

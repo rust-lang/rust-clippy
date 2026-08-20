@@ -77,7 +77,8 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub UNNECESSARY_UNWRAP,
     complexity,
-    "checks for calls of `unwrap[_err]()` that cannot fail"
+    "checks for calls of `unwrap[_err]()` that cannot fail",
+    @msrv_behavior = "When the crate uses Rust 2024 edition and the configured MSRV is at least 1.88, this lint may suggest `if let` chains in help text. Otherwise it suggests `match` for those cases."
 }
 
 impl_lint_pass!(Unwrap => [PANICKING_UNWRAP, UNNECESSARY_UNWRAP]);

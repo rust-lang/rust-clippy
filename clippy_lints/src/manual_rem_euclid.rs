@@ -32,7 +32,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.64.0"]
     pub MANUAL_REM_EUCLID,
     complexity,
-    "manually reimplementing `rem_euclid`"
+    "manually reimplementing `rem_euclid`",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.38, because it suggests `rem_euclid`. In const contexts, it requires at least 1.52."
 }
 
 impl_lint_pass!(ManualRemEuclid => [MANUAL_REM_EUCLID]);

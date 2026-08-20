@@ -50,7 +50,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.78.0"]
     pub ASSIGNING_CLONES,
     pedantic,
-    "assigning the result of cloning may be inefficient"
+    "assigning the result of cloning may be inefficient",
+    @msrv_behavior = "This lint always checks assignments from `Clone::clone`. It only checks assignments from `ToOwned::to_owned` when the configured MSRV is at least 1.63, because that case suggests `clone_into()`."
 }
 
 impl_lint_pass!(AssigningClones => [ASSIGNING_CLONES]);

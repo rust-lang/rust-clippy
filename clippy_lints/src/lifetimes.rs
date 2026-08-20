@@ -121,7 +121,8 @@ declare_clippy_lint! {
     pub NEEDLESS_LIFETIMES,
     complexity,
     "using explicit lifetimes for references in function arguments when elision rules \
-     would allow omitting them"
+     would allow omitting them",
+    @msrv_behavior = "This lint keeps explicit self type lifetimes before Rust 1.81, where eliding them could be rejected."
 }
 
 impl_lint_pass!(Lifetimes => [

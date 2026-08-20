@@ -39,7 +39,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.77.0"]
     pub MISSING_CONST_FOR_THREAD_LOCAL,
     perf,
-    "suggest using `const` in `thread_local!` macro"
+    "suggest using `const` in `thread_local!` macro",
+    @msrv_behavior = "This lint is only emitted when the configured MSRV is at least 1.59 and the initializer can be evaluated as a const expression for the configured MSRV."
 }
 
 impl_lint_pass!(MissingConstForThreadLocal => [MISSING_CONST_FOR_THREAD_LOCAL]);

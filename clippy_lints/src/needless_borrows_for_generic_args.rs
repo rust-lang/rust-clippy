@@ -54,7 +54,8 @@ declare_clippy_lint! {
     #[clippy::version = "1.74.0"]
     pub NEEDLESS_BORROWS_FOR_GENERIC_ARGS,
     style,
-    "taking a reference that is going to be automatically dereferenced"
+    "taking a reference that is going to be automatically dereferenced",
+    @msrv_behavior = "This lint avoids suggestions that rely on array `IntoIterator` by value before Rust 1.53."
 }
 
 impl_lint_pass!(NeedlessBorrowsForGenericArgs<'_> => [
