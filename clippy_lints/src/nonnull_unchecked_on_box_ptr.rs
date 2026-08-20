@@ -12,27 +12,31 @@ use rustc_session::impl_lint_pass;
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for unsafe usage of `NonNull::new_unchecked(Box::into_raw(x))`, and suggests calling `NonNull::from_mut(Box::leak(x))` instead.
+    /// Checks for unsafe usage of `NonNull::new_unchecked(Box::into_raw(x))` or dangerous usage of `NonNull::from_mut(Box::leak(x))` and suggests calling `Box::into_non_null(x)` instead.
     ///
     /// ### Why is this bad?
-    /// `NonNull::new_unchecked` is an unsafe function, which we don't need to call at all if we can instead use a mutable reference.
+    /// First, `NonNull::new_unchecked` is an unsafe function, which we don't need to call at all. Second, at the time of writing, whether or not you are allowed to reconstruct the `Box` from the mutable reference returned by `Box::leak` is an [open question](https://doc.rust-lang.org/std/boxed/struct.Box.html#method.leak). Thus, this lint helps prevent future dangerous calls to `Box::from_non_null`.
     ///
     /// ### Example
     /// ```no_run
     /// use std::ptr::NonNull;
     /// let one = Box::new(1);
     /// let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
+    /// let one = Box::new(1);
+    /// let ptr = NonNull::from_mut(Box::leak(one));
     /// ```
     /// Use instead:
     /// ```no_run
     /// use std::ptr::NonNull;
     /// let one = Box::new(1);
-    /// let ptr = NonNull::from_mut(Box::leak(one));
+    /// let ptr = Box::into_non_null(one);
+    /// let one = Box::new(1);
+    /// let ptr = Box::into_non_null(one);
     /// ```
     #[clippy::version = "1.98.0"]
     pub NONNULL_UNCHECKED_ON_BOX_PTR,
     complexity,
-    "using `NonNull::new_unchecked` with `Box::into_raw`, while `NonNull::from_mut` with `Box::leak` can be used instead"
+    "using `NonNull::new_unchecked` with `Box::into_raw` or `NonNull::from_mut` with `Box::leak`, while `Box::into_non_null` can be used instead"
 }
 
 impl_lint_pass!(NonnullUncheckedOnBoxPtr => [NONNULL_UNCHECKED_ON_BOX_PTR]);
@@ -50,49 +54,77 @@ impl NonnullUncheckedOnBoxPtr {
 impl<'tcx> LateLintPass<'tcx> for NonnullUncheckedOnBoxPtr {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if !expr.span.from_expansion()
-            && let ExprKind::Call(nonnull_new_unchecked, [arg]) = expr.kind
-            && let ExprKind::Call(box_into_raw, [arg]) = arg.kind
-            && nonnull_new_unchecked
+            && let ExprKind::Call(expr1, [arg]) = expr.kind
+            && let ExprKind::Call(expr2, [arg]) = arg.kind
+        {
+            if expr1
                 .ty_rel_def_if_named(cx, sym::new_unchecked)
                 .opt_parent(cx)
                 .opt_impl_ty(cx)
                 .is_diag_item(cx, sym::NonNull)
-            && box_into_raw
-                .ty_rel_def_if_named(cx, sym::into_raw)
+                && expr2
+                    .ty_rel_def_if_named(cx, sym::into_raw)
+                    .opt_parent(cx)
+                    .opt_impl_ty(cx)
+                    .is_lang_item(cx, LangItem::OwnedBox)
+                && self.msrv.meets(cx, msrvs::BOX_INTO_NON_NULL)
+            {
+                let ctxt = expr.span.ctxt();
+                let span = match cx.tcx.parent_hir_node(expr.hir_id) {
+                    Node::Block(&Block {
+                        rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
+                        span: unsafe_span,
+                        stmts,
+                        ..
+                    }) if unsafe_span.ctxt() == ctxt && !is_expr_unsafe(cx, arg) && stmts.is_empty() => unsafe_span,
+                    _ => expr.span,
+                };
+
+                span_lint_and_then(
+                    cx,
+                    NONNULL_UNCHECKED_ON_BOX_PTR,
+                    span,
+                    "use of `NonNull::new_unchecked` with `Box::into_raw`",
+                    |diag| {
+                        let mut app = Applicability::MachineApplicable;
+                        let arg_name = snippet_with_context(cx, arg.span, ctxt, "_", &mut app).0;
+
+                        diag.span_suggestion(span, "try", format!("Box::into_non_null({arg_name})"), app);
+                    },
+                );
+            } else if expr1
+                .ty_rel_def_if_named(cx, sym::from_mut)
                 .opt_parent(cx)
                 .opt_impl_ty(cx)
-                .is_lang_item(cx, LangItem::OwnedBox)
-            && self.msrv.meets(cx, msrvs::BOX_LEAK)
-        {
-            let ctxt = expr.span.ctxt();
-            let span = match cx.tcx.parent_hir_node(expr.hir_id) {
-                Node::Block(&Block {
-                    rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
-                    span: unsafe_span,
-                    stmts,
-                    ..
-                }) if unsafe_span.ctxt() == ctxt && !is_expr_unsafe(cx, arg) && stmts.is_empty() => unsafe_span,
-                _ => expr.span,
-            };
+                .is_diag_item(cx, sym::NonNull)
+                && expr2
+                    .ty_rel_def_if_named(cx, sym::leak)
+                    .opt_parent(cx)
+                    .opt_impl_ty(cx)
+                    .is_lang_item(cx, LangItem::OwnedBox)
+            {
+                span_lint_and_then(
+                    cx,
+                    NONNULL_UNCHECKED_ON_BOX_PTR,
+                    expr.span,
+                    "use of `NonNull::from_mut` with `Box::leak`",
+                    |diag| {
+                        let ctxt = expr.span.ctxt();
+                        let mut app = Applicability::MachineApplicable;
+                        let arg_name = snippet_with_context(cx, arg.span, ctxt, "_", &mut app).0;
 
-            span_lint_and_then(
-                cx,
-                NONNULL_UNCHECKED_ON_BOX_PTR,
-                span,
-                "use of `NonNull::new_unchecked` with `Box::into_raw`",
-                |diag| {
-                    let mut app = Applicability::MachineApplicable;
-                    let arg_name = snippet_with_context(cx, arg.span, ctxt, "_", &mut app).0;
+                        let sugg = if self.msrv.meets(cx, msrvs::BOX_INTO_NON_NULL) {
+                            format!("Box::into_non_null({arg_name})")
+                        } else {
+                            // No MSRV check here, since the MSRV for `NonNull::from_mut` satisfies
+                            // `NonNull::new_unchecked` and `Box::into_raw`.
+                            format!("unsafe {{ NonNull::new_unchecked(Box::into_raw({arg_name})) }}")
+                        };
 
-                    let sugg = if self.msrv.meets(cx, msrvs::NONNULL_FROM_MUT) {
-                        format!("NonNull::from_mut(Box::leak({arg_name}))")
-                    } else {
-                        format!("NonNull::from(Box::leak({arg_name}))")
-                    };
-
-                    diag.span_suggestion(span, "try", sugg, app);
-                },
-            );
+                        diag.span_suggestion(expr.span, "try", sugg, app);
+                    },
+                );
+            }
         }
     }
 }
