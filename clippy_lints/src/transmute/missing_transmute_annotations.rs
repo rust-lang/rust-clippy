@@ -83,6 +83,20 @@ pub(super) fn check<'tcx>(
             let from_ty_no_name = ty_cannot_be_named(from_ty);
             let to_ty_no_name = ty_cannot_be_named(to_ty);
             if from_ty_no_name || to_ty_no_name {
+                if cx.tcx.features().pattern_types()
+                    && let (Some(from_str), Some(to_str)) = (
+                        try_format_pat_ty(from_ty).or_else(|| (!from_ty_no_name).then_some(from_ty.to_string())),
+                        try_format_pat_ty(to_ty).or_else(|| (!to_ty_no_name).then_some(to_ty.to_string())),
+                    )
+                {
+                    diag.span_suggestion(
+                        span,
+                        "consider adding missing annotations",
+                        format!("{}::<{from_str}, {to_str}>", last.ident),
+                        Applicability::MaybeIncorrect,
+                    );
+                    return;
+                }
                 let to_name = match (from_ty_no_name, to_ty_no_name) {
                     (true, false) => maybe_name_by_expr(cx, arg.span, "the origin type"),
                     (false, true) => "the destination type".into(),
@@ -113,7 +127,7 @@ fn ty_cannot_be_named(ty: Ty<'_>) -> bool {
                 kind: ty::Opaque { .. } | ty::Inherent { .. },
                 ..
             }
-        )
+        ) | ty::Pat(..)
     )
 }
 
@@ -123,4 +137,13 @@ fn maybe_name_by_expr<'a>(cx: &LateContext<'_>, span: Span, default: &'a str) ->
     })
     .flatten()
     .unwrap_or(default.into())
+}
+
+/// Tries to render a `ty::Pat` type as a valid `pattern_type!(...)` macro invocation,
+fn try_format_pat_ty(ty: Ty<'_>) -> Option<String> {
+    let ty::Pat(base, pat) = ty.kind() else { return None };
+    if matches!(base.kind(), ty::Pat(..)) {
+        unreachable!("base of a ty::Pat cannot be a ty::Pat");
+    }
+    Some(format!("pattern_type!({base} is {pat:?})"))
 }

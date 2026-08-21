@@ -10,7 +10,7 @@ use std::pat::pattern_type;
 // Only suggest if the pattern_type feature is active.
 fn pattern_type_transmute(val: u32) -> Option<pattern_type!(u32 is 1..)> {
     if let 1.. = val {
-        Some(unsafe { std::mem::transmute(val) })
+        Some(unsafe { std::mem::transmute::<u32, pattern_type!(u32 is 1..)>(val) })
         //~^ missing_transmute_annotations
     } else {
         None
