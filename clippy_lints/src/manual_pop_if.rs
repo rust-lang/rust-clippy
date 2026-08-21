@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet_with_context;
-use clippy_utils::visitors::{for_each_expr_without_closures, is_local_used};
+use clippy_utils::visitors::{for_each_expr, for_each_expr_without_closures, is_local_used};
 use clippy_utils::{eq_expr_value, is_else_clause, is_lang_item_or_ctor, span_contains_non_whitespace, sym};
 use rustc_ast::LitKind;
 use rustc_errors::{Applicability, MultiSpan};
@@ -159,15 +159,30 @@ struct ManualPopIfPattern<'tcx> {
     spans: MultiSpan,
 
     suggestion_kind: SuggestionKind,
+
+    /// Where the predicate captures the collection, if it does.
+    collection_use_span: Option<Span>,
+}
+
+fn collection_use_span<'tcx>(
+    cx: &LateContext<'tcx>,
+    predicate: &'tcx Expr<'tcx>,
+    collection_id: HirId,
+) -> Option<Span> {
+    for_each_expr(cx.tcx, predicate, |expr| {
+        if expr.res_local_id() == Some(collection_id) {
+            ControlFlow::Break(expr.span)
+        } else {
+            ControlFlow::Continue(())
+        }
+    })
 }
 
 #[derive(Clone, Copy)]
 enum SuggestionKind {
     Automatic,
     Manual,
-    NonDefaultBinding,
-    CapturedCollection,
-    ComplexCollection,
+    Unavailable,
 }
 
 impl ManualPopIfPattern<'_> {
@@ -193,23 +208,16 @@ impl ManualPopIfPattern<'_> {
                     SuggestionKind::Manual => {
                         diag.help(format!("try refactoring the code using `{sugg}`"));
                     },
-                    SuggestionKind::NonDefaultBinding => {
-                        diag.help(format!(
-                            "consider using {}; an automatic rewrite is unavailable for this parameter binding pattern",
-                            self.kind
-                        ));
-                    },
-                    SuggestionKind::CapturedCollection => {
-                        diag.help(format!(
-                            "consider using {} after rewriting the predicate so it does not borrow the collection",
-                            self.kind
-                        ));
-                    },
-                    SuggestionKind::ComplexCollection => {
-                        diag.help(format!(
-                            "consider using {}; an automatic rewrite is unavailable for this collection expression",
-                            self.kind
-                        ));
+                    SuggestionKind::Unavailable => {
+                        if let Some(span) = self.collection_use_span {
+                            diag.span_label(span, "the predicate borrows the collection here");
+                            diag.help(format!(
+                                "consider using {} after rewriting the predicate so it does not borrow the collection",
+                                self.kind
+                            ));
+                        } else {
+                            diag.help(format!("consider using {}", self.kind));
+                        }
                     },
                 }
             },
@@ -222,16 +230,6 @@ fn simple_binding_pat(pat: &Pat<'_>) -> Option<(HirId, BindingMode)> {
         Some((binding_id, binding_mode))
     } else {
         None
-    }
-}
-
-fn suggestion_kind(suggestable: bool, binding_mode: BindingMode) -> SuggestionKind {
-    if binding_mode != BindingMode::NONE {
-        SuggestionKind::NonDefaultBinding
-    } else if suggestable {
-        SuggestionKind::Automatic
-    } else {
-        SuggestionKind::Manual
     }
 }
 
@@ -270,7 +268,14 @@ fn check_is_some_and_pattern<'tcx>(
             param_pat: param.pat,
             if_span: if_expr_span,
             spans: MultiSpan::from(vec![if_expr_span.with_hi(cond.span.hi()), pop_span]),
-            suggestion_kind: suggestion_kind(suggestable, binding_mode),
+            suggestion_kind: if binding_mode == BindingMode::NONE && suggestable {
+                SuggestionKind::Automatic
+            } else if binding_mode == BindingMode::NONE {
+                SuggestionKind::Manual
+            } else {
+                SuggestionKind::Unavailable
+            },
+            collection_use_span: None,
         });
     }
 
@@ -334,7 +339,14 @@ fn check_if_let_pattern<'tcx>(
                         inner_if.span.with_hi(inner_cond.span.hi()),
                         pop_span,
                     ]),
-                    suggestion_kind: suggestion_kind(suggestable, binding_mode),
+                    suggestion_kind: if binding_mode == BindingMode::NONE && suggestable {
+                        SuggestionKind::Automatic
+                    } else if binding_mode == BindingMode::NONE {
+                        SuggestionKind::Manual
+                    } else {
+                        SuggestionKind::Unavailable
+                    },
+                    collection_use_span: None,
                 });
             }
         }
@@ -383,7 +395,14 @@ fn check_let_chain_pattern<'tcx>(
                 param_pat: binding_pat,
                 if_span: if_expr_span,
                 spans: MultiSpan::from(vec![if_expr_span.with_hi(cond.span.hi()), pop_span]),
-                suggestion_kind: suggestion_kind(suggestable, binding_mode),
+                suggestion_kind: if binding_mode == BindingMode::NONE && suggestable {
+                    SuggestionKind::Automatic
+                } else if binding_mode == BindingMode::NONE {
+                    SuggestionKind::Manual
+                } else {
+                    SuggestionKind::Unavailable
+                },
+                collection_use_span: None,
             });
         }
     }
@@ -430,7 +449,14 @@ fn check_map_unwrap_or_pattern<'tcx>(
             param_pat: param.pat,
             if_span: if_expr_span,
             spans: MultiSpan::from(vec![if_expr_span.with_hi(cond.span.hi()), pop_span]),
-            suggestion_kind: suggestion_kind(suggestable, binding_mode),
+            suggestion_kind: if binding_mode == BindingMode::NONE && suggestable {
+                SuggestionKind::Automatic
+            } else if binding_mode == BindingMode::NONE {
+                SuggestionKind::Manual
+            } else {
+                SuggestionKind::Unavailable
+            },
+            collection_use_span: None,
         });
     }
 
@@ -527,9 +553,12 @@ impl<'tcx> LateLintPass<'tcx> for ManualPopIf {
                 && self.msrv_compatible(cx, kind)
             {
                 pattern.suggestion_kind = match pattern.collection_expr.res_local_id() {
-                    Some(id) if is_local_used(cx, pattern.predicate, id) => SuggestionKind::CapturedCollection,
+                    Some(id) if is_local_used(cx, pattern.predicate, id) => {
+                        pattern.collection_use_span = collection_use_span(cx, pattern.predicate, id);
+                        SuggestionKind::Unavailable
+                    },
                     Some(_) => pattern.suggestion_kind,
-                    None => SuggestionKind::ComplexCollection,
+                    None => SuggestionKind::Unavailable,
                 };
 
                 if in_else_clause && matches!(pattern.suggestion_kind, SuggestionKind::Automatic) {

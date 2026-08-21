@@ -55,7 +55,9 @@ error: manual implementation of `Vec::pop_if`
   --> tests/ui/manual_pop_if_unfixable.rs:44:5
    |
 LL |     if vec.last().is_some_and(|x| vec.len() > 1 && *x > 10) {
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^---^^^^^^^^^^^^^^^^^^^^^^
+   |                                   |
+   |                                   the predicate borrows the collection here
 LL |         vec.pop().unwrap();
    |         ^^^^^^^^^^^^^^^^^^
    |
@@ -69,7 +71,7 @@ LL |     if vec.last().is_some_and(|ref x| **x > 10) {
 LL |         vec.pop().unwrap();
    |         ^^^^^^^^^^^^^^^^^^
    |
-   = help: consider using `Vec::pop_if`; an automatic rewrite is unavailable for this parameter binding pattern
+   = help: consider using `Vec::pop_if`
 
 error: manual implementation of `Vec::pop_if`
   --> tests/ui/manual_pop_if_unfixable.rs:54:5
@@ -82,7 +84,7 @@ LL | |     }) {
 LL |           vec.pop().unwrap();
    |           ^^^^^^^^^^^^^^^^^^
    |
-   = help: consider using `Vec::pop_if`; an automatic rewrite is unavailable for this parameter binding pattern
+   = help: consider using `Vec::pop_if`
 
 error: manual implementation of `Vec::pop_if`
   --> tests/ui/manual_pop_if_unfixable.rs:64:5
@@ -139,7 +141,9 @@ error: manual implementation of `Vec::pop_if`
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 LL |         if vec.len() > 1 && *x > 10 {
-   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |         ^^^---^^^^^^^^^^^^^^^^^^^^^
+   |            |
+   |            the predicate borrows the collection here
 LL |             vec.pop().unwrap();
    |             ^^^^^^^^^^^^^^^^^^
    |
@@ -198,7 +202,9 @@ error: manual implementation of `Vec::pop_if`
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && (vec.len() > 1 && *x > 10)
-   | |_____________________________________^
+   | |_____________---_____________________^
+   |               |
+   |               the predicate borrows the collection here
 LL |       {
 LL |           vec.pop().unwrap();
    |           ^^^^^^^^^^^^^^^^^^
@@ -250,7 +256,9 @@ error: manual implementation of `Vec::pop_if`
   --> tests/ui/manual_pop_if_unfixable.rs:167:5
    |
 LL |     if vec.last().map(|x| vec.len() > 1 && *x > 10).unwrap_or(false) {
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     ^^^^^^^^^^^^^^^^^^^^^^---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                           |
+   |                           the predicate borrows the collection here
 LL |         vec.pop().unwrap();
    |         ^^^^^^^^^^^^^^^^^^
    |
@@ -264,7 +272,7 @@ LL |     if wrapper.vec.last().is_some_and(|x| *x > 10) {
 LL |         wrapper.vec.pop().unwrap();
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: consider using `Vec::pop_if`; an automatic rewrite is unavailable for this collection expression
+   = help: consider using `Vec::pop_if`
 
 error: aborting due to 24 previous errors
 
