@@ -1,0 +1,11 @@
+error: transmute used without annotations
+  --> tests/ui/transmute_pattern_type.rs:10:33
+   |
+LL |         Some(unsafe { std::mem::transmute(val) })
+   |                                 ^^^^^^^^^ help: consider adding missing annotations: `transmute::<u32, (u32) is 1..>`
+   |
+   = note: `-D clippy::missing-transmute-annotations` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_transmute_annotations)]`
+
+error: aborting due to 1 previous error
+

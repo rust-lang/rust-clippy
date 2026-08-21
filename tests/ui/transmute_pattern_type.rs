@@ -1,0 +1,23 @@
+//@no-rustfix
+#![feature(pattern_types, pattern_type_macro)]
+use std::pat::pattern_type;
+
+// rust-lang/rust's `niche_types.rs`-style pattern: transmuting into/out of a
+// pattern type was producing incorrect clippy suggestion to add a `(<type>) is <pattern>` instead
+// of `<pattern_type!(<type> is <pattern>)` argument which is not valid rust syntax.
+//
+// Now produces the correct syntax when suggesting.
+//
+// Only suggest if the pattern_type feature is active.
+fn pattern_type_transmute(val: u32) -> Option<pattern_type!(u32 is 1..)> {
+    if let 1.. = val {
+        Some(unsafe { std::mem::transmute(val) })
+        //~^ missing_transmute_annotations
+    } else {
+        None
+    }
+}
+
+fn pattern_type_transmute_back(val: pattern_type!(u32 is 1..)) -> u32 {
+    unsafe { std::mem::transmute(val) }
+}
