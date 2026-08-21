@@ -19,41 +19,53 @@ error: using `chunks_exact_mut` with a constant chunk size
 LL |     for chunk in arr.chunks_exact_mut(4).take(2) {
    |                      ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<4>().0.iter_mut()`
 
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:15:9
+   |
+LL |     arr.chunks_exact_mut(2).for_each(|chunk| chunk[0] = 2);
+   |         ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<2>().0.iter_mut()`
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:18:10
+   |
+LL |         .chunks_exact_mut(2)
+   |          ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<2>().0.iter_mut()`
+
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:17:18
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:28:18
    |
 LL |     for _ in arr.chunks_exact(1 + 1) {}
    |                  ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ 1 + 1 }>().0`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:20:18
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:31:18
    |
 LL |     for _ in arr.chunks_exact(CHUNK_SIZE + 1) {}
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ CHUNK_SIZE + 1 }>().0`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:22:18
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:33:18
    |
 LL |     for _ in arr.chunks_exact(size_of::<u32>()) {}
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ size_of::<u32>() }>().0`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:24:18
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:35:18
    |
 LL |     for _ in arr.chunks_exact(const { 1 }) {}
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ const { 1 } }>().0`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:26:18
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:37:18
    |
 LL |     for _ in arr.chunks_exact(unsafe { 1 }) {}
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ unsafe { 1 } }>().0`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:32:18
+  --> tests/ui/chunks_exact_to_as_chunks_fixable.rs:43:18
    |
 LL |     for _ in arr.chunks_exact(A::A) {}
    |                  ^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ A::A }>().0`
 
-error: aborting due to 9 previous errors
+error: aborting due to 11 previous errors
 
