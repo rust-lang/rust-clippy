@@ -1,0 +1,26 @@
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:10:5
+   |
+LL |     #[deprecated]
+   |     ^^^^^^^^^^^^^ help: add a version: `#[deprecated(since = /* version */)]`
+   |
+note: the lint level is defined here
+  --> tests/ui/deprecated_attributes_without_since.rs:3:9
+   |
+LL | #![deny(clippy::deprecated_attributes_without_since)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:14:5
+   |
+LL |     #[deprecated(note = "I don't feel like maintaining this anymore, sorry")]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "I don't feel like maintaining this anymore, sorry", since = /* version */)]`
+
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:18:5
+   |
+LL |     #[deprecated = "probably a bad idea to use this"]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "probably a bad idea to use this", since = /* version */)]`
+
+error: aborting due to 3 previous errors
+
