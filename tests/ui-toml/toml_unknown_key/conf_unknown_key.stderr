@@ -78,6 +78,7 @@ LL | foobar = 42
            module-items-ordered-within-groupings
            msrv
            pass-by-value-size-limit
+           profiles
            pub-underscore-fields-behavior
            recursive-self-in-type-definitions
            semicolon-inside-block-ignore-singleline
