@@ -8,6 +8,7 @@
 
 #![warn(clippy::missing_const_for_fn)]
 #![feature(type_alias_impl_trait)]
+#![feature(const_trait_impl)]
 
 extern crate helper;
 extern crate proc_macros;
@@ -304,5 +305,34 @@ mod issue14091 {
 
     fn smart_destructure(v: &mut Wrap<(i32, i32)>) {
         let (ref mut _head, ref mut _tail) = **v;
+    }
+}
+
+// Do not lint functions inside inherent `impl const` blocks
+mod const_inherent_impl {
+    struct Bobs;
+
+    const impl Bobs {
+        fn bobs() -> usize {
+            1234
+        }
+
+        fn bats() -> usize {
+            0
+        }
+    }
+}
+
+mod const_inherent_impl_generic {
+    const trait Bits {
+        fn bits() -> usize;
+    }
+
+    struct Bobs<T>(T);
+
+    const impl<T: [const] Bits> Bobs<T> {
+        fn bobs() -> usize {
+            1234
+        }
     }
 }
