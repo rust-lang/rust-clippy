@@ -1,6 +1,7 @@
 mod allow_attributes;
 mod allow_attributes_without_reason;
 mod blanket_clippy_restriction_lints;
+mod deprecated_attributes_without_note;
 mod deprecated_attributes_without_since;
 mod deprecated_cfg_attr;
 mod deprecated_semver;
@@ -103,6 +104,30 @@ declare_clippy_lint! {
     pub BLANKET_CLIPPY_RESTRICTION_LINTS,
     suspicious,
     "enabling the complete restriction group"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for attributes that deprecate items without a `note` field.
+    ///
+    /// ### Why restrict this?
+    /// This is typically used to provide an explanation about the deprecation
+    /// and preferred alternatives.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #[deprecated]
+    /// pub fn foo() { /* ... */ }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// #[deprecated(note = "foo was rarely used. Users should instead use bar")]
+    /// pub fn foo() { /* ... */ }
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub DEPRECATED_ATTRIBUTES_WITHOUT_NOTE,
+    restriction,
+    "ensures that all `deprecated` attributes have a `note` field"
 }
 
 declare_clippy_lint! {
@@ -505,6 +530,7 @@ declare_clippy_lint! {
 }
 
 impl_lint_pass!(Attributes => [
+    DEPRECATED_ATTRIBUTES_WITHOUT_NOTE,
     DEPRECATED_ATTRIBUTES_WITHOUT_SINCE,
     INLINE_ALWAYS,
     REPR_PACKED_WITHOUT_ABI,
@@ -637,6 +663,7 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
             && !attr.span.in_external_macro(cx.sess().source_map())
             && !is_from_proc_macro(cx, attr)
         {
+            deprecated_attributes_without_note::check(cx, attr.meta_item_list().as_deref(), attr);
             deprecated_attributes_without_since::check(cx, attr.meta_item_list().as_deref(), attr);
         }
 
