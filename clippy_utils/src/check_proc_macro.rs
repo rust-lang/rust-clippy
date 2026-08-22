@@ -13,19 +13,17 @@
 //! if the span is not from a `macro_rules` based macro.
 
 use rustc_abi::ExternAbi;
-use rustc_ast as ast;
-use rustc_ast::AttrStyle;
 use rustc_ast::ast::{
     AttrKind, Attribute, BindingMode, GenericArgs, IntTy, LitIntType, LitKind, StrStyle, TraitObjectSyntax, UintTy,
 };
 use rustc_ast::token::CommentKind;
+use rustc_ast::{self as ast, AttrStyle, Block, BlockCheckMode};
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
-    Block, BlockCheckMode, Body, BoundConstness, BoundPolarity, Closure, Destination, Expr, ExprKind, FieldDef,
-    FnHeader, FnRetTy, HirId, Impl, ImplItem, ImplItemImplKind, ImplItemKind, IsAuto, Item, ItemKind, Lit, LoopSource,
-    MatchSource, MutTy, Node, PatExpr, PatExprKind, PatKind, Path, PolyTraitRef, QPath, Safety, TraitBoundModifiers,
-    TraitImplHeader, TraitItem, TraitItemKind, TraitRef, Ty, TyKind, UnOp, UnsafeSource, Variant, VariantData,
-    YieldSource,
+    Body, BoundConstness, BoundPolarity, Closure, Destination, Expr, ExprKind, FieldDef, FnHeader, FnRetTy, HirId,
+    Impl, ImplItem, ImplItemImplKind, ImplItemKind, IsAuto, Item, ItemKind, Lit, LoopSource, MatchSource, MutTy, Node,
+    PatExpr, PatExprKind, PatKind, Path, PolyTraitRef, QPath, Safety, TraitBoundModifiers, TraitImplHeader, TraitItem,
+    TraitItemKind, TraitRef, Ty, TyKind, UnOp, UnsafeSource, Variant, VariantData, YieldSource,
 };
 use rustc_lint::{EarlyContext, LateContext, LintContext};
 use rustc_middle::ty::TyCtxt;
@@ -209,8 +207,8 @@ fn expr_search_pat(tcx: TyCtxt<'_>, e: &Expr<'_>) -> (Pat, Pat) {
                 expr_search_pat_inner(tcx, tcx.hir_body(body).value, outer_span).1,
             ),
             ExprKind::Block(
-                Block {
-                    rules: BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
+                rustc_hir::Block {
+                    rules: rustc_hir::BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
                     ..
                 },
                 None,
@@ -293,6 +291,17 @@ fn item_search_pat(item: &Item<'_>) -> (Pat, Pat) {
         (start_pat, end_pat)
     } else {
         (Pat::Str("pub"), end_pat)
+    }
+}
+
+fn block_search_pat(block: &Block) -> (Pat, Pat) {
+    if matches!(
+        block.rules,
+        BlockCheckMode::Unsafe(rustc_ast::UnsafeSource::UserProvided)
+    ) {
+        (Pat::Str("unsafe"), Pat::Str("}"))
+    } else {
+        (Pat::Str("{"), Pat::Str("}"))
     }
 }
 
@@ -718,6 +727,7 @@ impl_with_search_pat!((cx: LateContext<'tcx>, self: rustc_hir::Pat<'_>) => pat_s
 
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: Attribute) => attr_search_pat(self));
 impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: ast::Ty) => ast_ty_search_pat(self));
+impl_with_search_pat!((_cx: EarlyContext<'tcx>, self: Block) => block_search_pat(self));
 
 impl<'cx> WithSearchPat<'cx> for (&FnKind<'cx>, &Body<'cx>, HirId, Span) {
     type Context = LateContext<'cx>;
