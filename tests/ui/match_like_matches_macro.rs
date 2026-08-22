@@ -297,3 +297,139 @@ fn issue16015<T: 'static, U: 'static>() -> bool {
     if let _ = typeid!(U) { true } else { false }
     //~^ match_like_matches_macro
 }
+
+mod issue17503 {
+    enum MatchType {
+        A(String),
+        B(String, String),
+        C,
+    }
+
+    fn matches(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(_str1) => true,
+            MatchType::B(_str1, _str2) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn match_check_pass(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(_str1) => true,
+            MatchType::B(_str1, _str2) => false,
+            MatchType::C => true,
+        }
+    }
+
+    fn different_binding_names(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(a) => true,
+            MatchType::B(b, c) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn different_binding_names_2(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(r#match) => true,
+            MatchType::B(very_long_name_in_snake_case, __very_strange_name__) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    enum MatchType2 {
+        A,
+        B,
+        C,
+    }
+
+    fn matches2(match_type2: MatchType2) -> bool {
+        match match_type2 {
+            MatchType2::A => true,
+            MatchType2::B => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn tuple_binding_names(v: (Option<u8>, Option<u8>)) -> bool {
+        match v {
+            (Some(left), _) => true,
+            (_, Some(right)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    // FIXME: Erasing bindings in struct shorthand patterns (`Foo { a, .. }`)
+    // requires rewriting them as `Foo { a: _, .. }`. Replacing only the binding
+    // span currently produces invalid syntax (`Foo { _, .. }`).
+    // ```rs
+    // struct TestBindingNames {
+    //     a: u8,
+    //     b: u8,
+    // }
+    // fn struct_binding_names(x: TestBindingNames) -> bool {
+    //     match x {
+    //         TestBindingNames { a, .. } => true,
+    //         TestBindingNames { b, .. } => true,
+    //         _ => false,
+    //     }
+    // }
+    // ```
+
+    enum NestedTupleInEnum {
+        A((u8, u8)),
+        B((u8, u8)),
+    }
+
+    fn nested_tuple(e: NestedTupleInEnum) -> bool {
+        match e {
+            NestedTupleInEnum::A((x, y)) => true,
+            NestedTupleInEnum::B((a, b)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    enum Inner {
+        X(u8),
+    }
+
+    enum Outer {
+        A(Inner),
+        B(Inner),
+    }
+
+    fn nested_enum(o: Outer) -> bool {
+        match o {
+            Outer::A(Inner::X(x)) => true,
+            Outer::B(Inner::X(y)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    // FIXME: Avoid invalid suggestions for `@` bindings.
+    // ```rs
+    // fn at_binding(v: Option<u8>) -> bool {
+    //     match v {
+    //         Some(x @ 0) => true,
+    //         Some(y @ 1) => true,
+    //         _ => false,
+    //     }
+    // }
+    // ```
+
+    fn slice_binding(v: &[u8]) -> bool {
+        match v {
+            [first, ..] => true,
+            [_, last] => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+}
