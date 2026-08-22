@@ -5,8 +5,8 @@ use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::{as_some_pattern, is_none_pattern, msrvs, peel_hir_expr_refs, sym};
 use rustc_errors::Applicability;
-use rustc_hir::{Arm, Expr, ExprKind, Pat, PatKind, QPath, is_range_literal};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_hir::{Arm, ByRef, Expr, ExprKind, Pat, PatKind, QPath, is_range_literal};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol};
 
@@ -143,7 +143,13 @@ fn check_as_ref(cx: &LateContext<'_>, expr: &Expr<'_>, span: Span, msrv: Msrv) {
 
 fn extract_ident_from_some_pat(cx: &LateContext<'_>, pat: &Pat<'_>) -> Option<Symbol> {
     if let Some([binding]) = as_some_pattern(cx, pat)
-        && let PatKind::Binding(_mode, _hir_id, ident, _inner_pat) = binding.kind
+        && let PatKind::Binding(_, hir_id, ident, _inner_pat) = binding.kind
+        && matches!(
+            cx.typeck_results()
+                .extract_binding_mode(cx.sess(), hir_id, binding.span)
+                .0,
+            ByRef::No
+        )
     {
         Some(ident.name)
     } else {
