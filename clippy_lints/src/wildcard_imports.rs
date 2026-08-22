@@ -1,7 +1,7 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::is_in_test;
 use clippy_utils::source::{snippet, snippet_with_applicability};
+use clippy_utils::{in_automatically_derived, is_from_proc_macro, is_in_test};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
@@ -118,7 +118,18 @@ impl WildcardImports {
 
 impl LateLintPass<'_> for WildcardImports {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
-        if cx.sess().is_test_crate() || item.span.in_external_macro(cx.sess().source_map()) {
+        let ItemKind::Use(use_path, UseKind::Glob) = &item.kind else {
+            return;
+        };
+
+        if cx.sess().is_test_crate()
+            || item.span.in_external_macro(cx.sess().source_map())
+            || use_path
+                .segments
+                .first()
+                .is_some_and(|segment| is_from_proc_macro(cx, &segment.ident))
+            || in_automatically_derived(cx.tcx, item.hir_id())
+        {
             return;
         }
 
@@ -126,8 +137,7 @@ impl LateLintPass<'_> for WildcardImports {
         if cx.tcx.local_visibility(item.owner_id.def_id) != ty::Visibility::Restricted(module) && !self.warn_on_all {
             return;
         }
-        if let ItemKind::Use(use_path, UseKind::Glob) = &item.kind
-            && (self.warn_on_all || !self.check_exceptions(cx, item, use_path.segments))
+        if (self.warn_on_all || !self.check_exceptions(cx, item, use_path.segments))
             && let Some(used_imports) = cx.tcx.resolutions(()).glob_map.get(&item.owner_id.def_id)
             && !used_imports.is_empty() // Already handled by `unused_imports`
             && !used_imports.contains(&kw::Underscore)
