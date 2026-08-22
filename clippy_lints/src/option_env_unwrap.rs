@@ -17,13 +17,13 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```rust,no_run
-    /// let _ = option_env!("HOME").unwrap();
+    /// let _ = option_env!("CARGO").unwrap();
     /// ```
     ///
     /// Is better expressed as:
     ///
     /// ```rust,no_run
-    /// let _ = env!("HOME");
+    /// let _ = env!("CARGO");
     /// ```
     #[clippy::version = "1.43.0"]
     pub OPTION_ENV_UNWRAP,

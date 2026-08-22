@@ -15,10 +15,11 @@
 )]
 #![expect(clippy::missing_panics_doc)]
 
-extern crate rustc_arena;
-extern crate rustc_data_structures;
 #[expect(unused_extern_crates, reason = "required to link to rustc crates")]
 extern crate rustc_driver;
+
+extern crate rustc_arena;
+extern crate rustc_data_structures;
 extern crate rustc_lexer;
 
 pub mod dogfood;
