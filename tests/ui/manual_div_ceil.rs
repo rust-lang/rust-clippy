@@ -144,6 +144,13 @@ fn issue_16219() {
     let _ = z.next_multiple_of(8) / 8;
 }
 
+fn issue_16940(a: u32, b: u32) {
+    let _ = (a - 1) / b + 1;
+    //~^ manual_div_ceil
+    let _ = 1 + (a - 1) / b;
+    //~^ manual_div_ceil
+}
+
 fn side_effects() {
     use core::hint::black_box;
 
