@@ -6966,6 +6966,7 @@ Released 2018-09-13
 [`default_trait_access`]: https://rust-lang.github.io/rust-clippy/main/index.html#default_trait_access
 [`default_union_representation`]: https://rust-lang.github.io/rust-clippy/main/index.html#default_union_representation
 [`definition_in_module_root`]: https://rust-lang.github.io/rust-clippy/main/index.html#definition_in_module_root
+[`deprecated_attributes_without_note`]: https://rust-lang.github.io/rust-clippy/main/index.html#deprecated_attributes_without_note
 [`deprecated_attributes_without_since`]: https://rust-lang.github.io/rust-clippy/main/index.html#deprecated_attributes_without_since
 [`deprecated_cfg_attr`]: https://rust-lang.github.io/rust-clippy/main/index.html#deprecated_cfg_attr
 [`deprecated_clippy_cfg_attr`]: https://rust-lang.github.io/rust-clippy/main/index.html#deprecated_clippy_cfg_attr

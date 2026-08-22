@@ -1,0 +1,20 @@
+error: `deprecated` attribute without note
+  --> tests/ui/deprecated_attributes_without_note.rs:10:5
+   |
+LL |     #[deprecated]
+   |     ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+   |
+note: the lint level is defined here
+  --> tests/ui/deprecated_attributes_without_note.rs:3:9
+   |
+LL | #![deny(clippy::deprecated_attributes_without_note)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `deprecated` attribute without note
+  --> tests/ui/deprecated_attributes_without_note.rs:14:5
+   |
+LL |     #[deprecated(since = "1.42.100")]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a note: `#[deprecated(since = "1.42.100", note = /* note */)]`
+
+error: aborting due to 2 previous errors
+
