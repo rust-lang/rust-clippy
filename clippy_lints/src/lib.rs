@@ -154,6 +154,7 @@ mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
 mod ifs;
+mod ignored_result_err;
 mod ignored_unit_patterns;
 mod impl_hash_with_borrow_str_and_bytes;
 mod implicit_hasher;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        IgnoredResultErr: ignored_result_err::IgnoredResultErr = ignored_result_err::IgnoredResultErr::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
