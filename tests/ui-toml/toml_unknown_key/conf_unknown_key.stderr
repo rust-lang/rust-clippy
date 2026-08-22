@@ -18,6 +18,7 @@ LL | foobar = 42
            allow-large-stack-frames-in-tests
            allow-mixed-uninlined-format-args
            allow-one-hash-in-raw-strings
+           allow-panic-in-result-fn-in-tests
            allow-panic-in-tests
            allow-print-in-tests
            allow-private-module-inception

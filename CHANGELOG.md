@@ -7794,6 +7794,7 @@ Released 2018-09-13
 [`allow-large-stack-frames-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-large-stack-frames-in-tests
 [`allow-mixed-uninlined-format-args`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-mixed-uninlined-format-args
 [`allow-one-hash-in-raw-strings`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-one-hash-in-raw-strings
+[`allow-panic-in-result-fn-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-panic-in-result-fn-in-tests
 [`allow-panic-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-panic-in-tests
 [`allow-print-in-tests`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-print-in-tests
 [`allow-private-module-inception`]: https://doc.rust-lang.org/clippy/lint_configuration.html#allow-private-module-inception
