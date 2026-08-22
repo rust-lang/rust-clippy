@@ -8,6 +8,7 @@ use clippy_utils::ty::{
 use clippy_utils::{
     DefinedTy, ExprUseNode, get_expr_use_site, get_parent_expr, is_block_like, is_from_proc_macro, is_lint_allowed, sym,
 };
+use rustc_ast::BinOpKind;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_data_structures::fx::FxIndexMap;
 use rustc_errors::Applicability;
@@ -1029,6 +1030,61 @@ fn ty_contains_field(ty: Ty<'_>, name: Symbol) -> bool {
     }
 }
 
+// Returns true if the expression is in a position where replacing it with &expr would create a ref
+// to a pattern binding that doesn't live long enough
+fn is_in_pattern_branch_tail(tcx: TyCtxt<'_>, mut id: HirId) -> bool {
+    loop {
+        match tcx.parent_hir_node(id) {
+            Node::Arm(arm) => return arm.body.hir_id == id,
+            Node::Block(block) if block.expr.is_some_and(|e| e.hir_id == id) => {
+                id = block.hir_id;
+            },
+            Node::Expr(expr) => match expr.kind {
+                ExprKind::Block(..) | ExprKind::DropTemps(_) => {
+                    id = expr.hir_id;
+                },
+                ExprKind::If(cond, then_expr, else_expr) => {
+                    if then_expr.hir_id == id {
+                        if contains_let_expr(cond) {
+                            return true;
+                        }
+                        // Bubble up for normal if branch
+                        id = expr.hir_id;
+                    } else if else_expr.is_some_and(|e| e.hir_id == id) {
+                        // Bubble up for normal else branch
+                        id = expr.hir_id;
+                    } else {
+                        return false;
+                    }
+                },
+
+                // break x or break { x }
+                ExprKind::Break(_, Some(break_expr)) if break_expr.hir_id == id => {
+                    return true;
+                },
+
+                _ => return false,
+            },
+
+            _ => return false,
+        }
+    }
+}
+
+fn contains_let_expr(cond: &Expr<'_>) -> bool {
+    match cond.kind {
+        ExprKind::Let(_) => true,
+        // let _ = if cond && Some(ref x) = opt {
+        //     x
+        // }
+        ExprKind::Binary(op, lhs, rhs) if matches!(op.node, BinOpKind::And) => {
+            contains_let_expr(lhs) || contains_let_expr(rhs)
+        },
+        ExprKind::DropTemps(expr) => contains_let_expr(expr),
+        _ => false,
+    }
+}
+
 impl<'tcx> Dereferencing<'tcx> {
     fn in_deref_impl(&self) -> bool {
         self.outermost_deref_impl.is_some()
@@ -1069,21 +1125,33 @@ impl<'tcx> Dereferencing<'tcx> {
                     pat.replacements.push((span, snip.into()));
                 },
                 Some(parent) if !parent.span.from_expansion() => {
-                    // Double reference might be needed at this point.
-                    if cx.precedence(parent) == ExprPrecedence::Unambiguous {
-                        // Parentheses would be needed here, don't lint.
+                    // If the expression is in the tail position of a match arm, suggesting
+                    // `&x` would create a reference to a local binding that doesn't live
+                    // long enough.
+                    if is_in_pattern_branch_tail(cx.tcx, e.hir_id)
+                        // If parentheses would be needed here, don't lint.
+                        || cx.precedence(parent) == ExprPrecedence::Unambiguous
+                    {
                         *outer_pat = None;
                     } else {
+                        // Double reference might be needed at this point.
                         pat.always_deref = false;
                         let snip = snippet_with_context(cx, e.span, parent.span.ctxt(), "..", &mut pat.app).0;
                         pat.replacements.push((e.span, format!("&{snip}")));
                     }
                 },
                 _ if !e.span.from_expansion() => {
-                    // Double reference might be needed at this point.
-                    pat.always_deref = false;
-                    let snip = snippet_with_applicability(cx, e.span, "..", &mut pat.app);
-                    pat.replacements.push((e.span, format!("&{snip}")));
+                    // If the expression is in the tail position of a match arm, suggesting
+                    // `&x` would create a reference to a local binding that doesn't live
+                    // long enough.
+                    if is_in_pattern_branch_tail(cx.tcx, e.hir_id) {
+                        *outer_pat = None;
+                    } else {
+                        // Double reference might be needed at this point.
+                        pat.always_deref = false;
+                        let snip = snippet_with_applicability(cx, e.span, "..", &mut pat.app);
+                        pat.replacements.push((e.span, format!("&{snip}")));
+                    }
                 },
                 // Edge case for macros. The span of the identifier will usually match the context of the
                 // binding, but not if the identifier was created in a macro. e.g. `concat_idents` and proc
