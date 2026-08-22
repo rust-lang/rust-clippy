@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{get_parent_expr, span_contains_cfg, span_contains_comment};
+use clippy_utils::{get_parent_expr, is_from_proc_macro, span_contains_cfg, span_contains_comment};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
@@ -40,6 +40,7 @@ impl<'tcx> LateLintPass<'tcx> for ByteCharSlice {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if !expr.span.from_expansion()
             && let Some((has_ref, slice)) = is_byte_char_slices(cx, expr)
+            && !is_from_proc_macro(cx, expr)
         {
             span_lint_and_then(
                 cx,
