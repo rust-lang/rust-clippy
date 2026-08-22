@@ -4,13 +4,10 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL |     bad1: Arc<String>,
    |           ^^^^^^^^^^^
    |
+   = help: consider using `str` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
    = note: `-D clippy::rc-buffer` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::rc_buffer)]`
-help: try
-   |
-LL -     bad1: Arc<String>,
-LL +     bad1: Arc<str>,
-   |
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:11:11
@@ -18,11 +15,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL |     bad2: Arc<PathBuf>,
    |           ^^^^^^^^^^^^
    |
-help: try
-   |
-LL -     bad2: Arc<PathBuf>,
-LL +     bad2: Arc<std::path::Path>,
-   |
+   = help: consider using `std::path::Path` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:13:11
@@ -30,11 +24,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL |     bad3: Arc<Vec<u8>>,
    |           ^^^^^^^^^^^^
    |
-help: try
-   |
-LL -     bad3: Arc<Vec<u8>>,
-LL +     bad3: Arc<[u8]>,
-   |
+   = help: consider using `[u8]` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:15:11
@@ -42,11 +33,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL |     bad4: Arc<OsString>,
    |           ^^^^^^^^^^^^^
    |
-help: try
-   |
-LL -     bad4: Arc<OsString>,
-LL +     bad4: Arc<std::ffi::OsStr>,
-   |
+   = help: consider using `std::ffi::OsStr` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:22:17
@@ -54,11 +42,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL | fn func_bad1(_: Arc<String>) {}
    |                 ^^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad1(_: Arc<String>) {}
-LL + fn func_bad1(_: Arc<str>) {}
-   |
+   = help: consider using `str` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:24:17
@@ -66,11 +51,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL | fn func_bad2(_: Arc<PathBuf>) {}
    |                 ^^^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad2(_: Arc<PathBuf>) {}
-LL + fn func_bad2(_: Arc<std::path::Path>) {}
-   |
+   = help: consider using `std::path::Path` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:26:17
@@ -78,11 +60,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL | fn func_bad3(_: Arc<Vec<u8>>) {}
    |                 ^^^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad3(_: Arc<Vec<u8>>) {}
-LL + fn func_bad3(_: Arc<[u8]>) {}
-   |
+   = help: consider using `[u8]` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:28:17
@@ -90,11 +69,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL | fn func_bad4(_: Arc<OsString>) {}
    |                 ^^^^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad4(_: Arc<OsString>) {}
-LL + fn func_bad4(_: Arc<std::ffi::OsStr>) {}
-   |
+   = help: consider using `std::ffi::OsStr` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: usage of `Arc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer_arc.rs:34:15
@@ -102,11 +78,8 @@ error: usage of `Arc<T>` when `T` is a buffer type
 LL |     fn foo(_: std::sync::Arc<Vec<u8>>) {}
    |               ^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: try
-   |
-LL -     fn foo(_: std::sync::Arc<Vec<u8>>) {}
-LL +     fn foo(_: std::sync::Arc<[u8]>) {}
-   |
+   = help: consider using `[u8]` if you do not need to mutate the inner buffer
+   = note: changing the type may require reallocating or copying the buffer
 
 error: aborting due to 9 previous errors
 
