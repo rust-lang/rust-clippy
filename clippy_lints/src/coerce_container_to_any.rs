@@ -43,7 +43,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.89.0"]
     pub COERCE_CONTAINER_TO_ANY,
-    nursery,
+    suspicious,
     "coercing to `&dyn Any` when dereferencing could produce a `dyn Any` without coercion is usually not intended"
 }
 
