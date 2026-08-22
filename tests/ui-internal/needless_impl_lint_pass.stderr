@@ -1,0 +1,58 @@
+error: `impl_lint_pass!` on a lint pass struct without fields
+  --> tests/ui-internal/needless_impl_lint_pass.rs:15:5
+   |
+LL |     struct WithoutFields;
+   |     --------------------- struct defined here
+LL |
+LL |     impl_lint_pass!(WithoutFields => []);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::needless-impl-lint-pass` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_impl_lint_pass)]`
+help: use `declare_lint_pass!`
+   |
+LL ~     use rustc_session::declare_lint_pass;
+LL ~     use super::*;
+LL |
+LL ~     declare_lint_pass!(WithoutFields => []);
+   |
+
+error: `impl_lint_pass!` on a lint pass struct without fields
+  --> tests/ui-internal/needless_impl_lint_pass.rs:24:5
+   |
+LL |     struct WithoutFields {}
+   |     ----------------------- struct defined here
+LL |
+LL |     impl_lint_pass!(WithoutFields => []);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `declare_lint_pass!`
+   |
+LL ~     use rustc_session::declare_lint_pass;
+LL ~     use super::*;
+LL |
+LL ~     declare_lint_pass!(WithoutFields => []);
+   |
+
+error: `impl_lint_pass!` on a lint pass struct without fields
+  --> tests/ui-internal/needless_impl_lint_pass.rs:31:5
+   |
+LL |     impl_lint_pass!(WithoutFields => []);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     struct WithoutFields;
+   |     --------------------- struct defined here
+   |
+help: use `declare_lint_pass!`
+   |
+LL ~     use rustc_session::declare_lint_pass;
+LL ~     use super::*;
+LL |
+LL ~     declare_lint_pass!(WithoutFields => []);
+LL |
+LL |
+LL ~     }
+   |
+
+error: aborting due to 3 previous errors
+
