@@ -1,11 +1,14 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::res::{MaybeDef as _, MaybeQPath as _};
-use clippy_utils::{is_from_proc_macro, is_inside_let_else};
+use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath};
+use clippy_utils::usage::local_used_after_expr;
+use clippy_utils::visitors::for_each_expr_without_closures;
+use clippy_utils::{higher, is_from_proc_macro, is_inside_let_else};
 use rustc_errors::Applicability;
 use rustc_hir::attrs::lang_items::LangItem::ResultErr;
 use rustc_hir::{Expr, ExprKind, HirId, MatchSource, Node, Stmt, StmtKind};
 use rustc_lint::{LateContext, LintContext as _};
 use rustc_middle::ty::adjustment::Adjust;
+use std::ops::ControlFlow;
 
 use super::NEEDLESS_RETURN_WITH_QUESTION_MARK;
 
@@ -31,6 +34,51 @@ pub(super) fn check_stmt<'tcx>(cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) {
         && !is_from_proc_macro(cx, expr)
         && !stmt_needs_never_type(cx, stmt.hir_id)
     {
+        // get the hir id of parent of return statement
+        for (_hir_id, node) in cx.tcx.hir_parent_iter(expr.hir_id) {
+            if let Node::Expr(parent_expr) = node {
+                if let Some(if_let_or_match) = higher::IfLetOrMatch::parse(cx, parent_expr) {
+                    if let higher::IfLetOrMatch::IfLet(_, pat, ..) = if_let_or_match {
+                        // get the pattern of the if let and check if it uses ref keyword if it does we do lint.
+                        let explicit_ref = pat.contains_explicit_ref_binding();
+                        if explicit_ref.is_none() {
+                            let scrutinee = if_let_or_match.scrutinee();
+                            if let Some(local_id) = scrutinee.res_local_id()
+                                && local_used_after_expr(cx, local_id, parent_expr)
+                            {
+                                return;
+                            }
+                        }
+                    };
+                    if let higher::IfLetOrMatch::Match(_, arms, ..) = if_let_or_match {
+                        for arm in arms {
+                            //check each arms binding and then same as code above to see if local used after expr
+                            let found_it = for_each_expr_without_closures(arm.body, |e| {
+                                if e.hir_id == expr.hir_id {
+                                    ControlFlow::Break(())
+                                } else {
+                                    ControlFlow::Continue(())
+                                }
+                            })
+                            .is_some();
+                            if found_it {
+                                // check if the pattern of the arm uses ref keyword if it does we do lint.
+                                let explicit_ref = arm.pat.contains_explicit_ref_binding();
+                                if explicit_ref.is_none() {
+                                    let scrutinee = if_let_or_match.scrutinee();
+                                    if let Some(local_id) = scrutinee.res_local_id()
+                                        && local_used_after_expr(cx, local_id, parent_expr)
+                                    {
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         span_lint_and_sugg(
             cx,
             NEEDLESS_RETURN_WITH_QUESTION_MARK,
