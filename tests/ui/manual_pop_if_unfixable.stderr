@@ -1,5 +1,5 @@
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:10:12
+  --> tests/ui/manual_pop_if_unfixable.rs:15:12
    |
 LL |     } else if vec.last().is_some_and(|x| *x > 2) {
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -11,7 +11,7 @@ LL |         vec.pop().unwrap();
    = help: to override `-D warnings` add `#[allow(clippy::manual_pop_if)]`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:16:5
+  --> tests/ui/manual_pop_if_unfixable.rs:21:5
    |
 LL |     if vec.last().is_some_and(|x| *x > 2) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -21,7 +21,7 @@ LL |         let val = vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:22:5
+  --> tests/ui/manual_pop_if_unfixable.rs:27:5
    |
 LL |     if vec.last().is_some_and(|x| *x > 2) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -31,7 +31,7 @@ LL |         println!("Popped: {}", vec.pop().unwrap());
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:27:5
+  --> tests/ui/manual_pop_if_unfixable.rs:32:5
    |
 LL |     if vec.last().is_some_and(|x| *x > 2) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -42,7 +42,7 @@ LL |         vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:33:5
+  --> tests/ui/manual_pop_if_unfixable.rs:38:5
    |
 LL |     if vec.last().is_some_and(|x| *x > 2) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -52,7 +52,42 @@ LL |         vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:41:5
+  --> tests/ui/manual_pop_if_unfixable.rs:44:5
+   |
+LL |     if vec.last().is_some_and(|x| vec.len() > 1 && *x > 10) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^---^^^^^^^^^^^^^^^^^^^^^^
+   |                                   |
+   |                                   the predicate borrows the collection here
+LL |         vec.pop().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Vec::pop_if` after rewriting the predicate so it does not borrow the collection
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:49:5
+   |
+LL |     if vec.last().is_some_and(|ref x| **x > 10) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         vec.pop().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Vec::pop_if`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:54:5
+   |
+LL | /     if vec.last().is_some_and(|mut x| {
+LL | |         x = &20;
+LL | |         *x > 10
+LL | |     }) {
+   | |______^
+LL |           vec.pop().unwrap();
+   |           ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Vec::pop_if`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:64:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -64,7 +99,7 @@ LL |             let val = vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:49:5
+  --> tests/ui/manual_pop_if_unfixable.rs:72:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,7 +111,7 @@ LL |             println!("Popped: {}", vec.pop().unwrap());
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:56:5
+  --> tests/ui/manual_pop_if_unfixable.rs:79:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -89,7 +124,7 @@ LL |             vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:64:5
+  --> tests/ui/manual_pop_if_unfixable.rs:87:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -101,7 +136,21 @@ LL |             vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:74:5
+  --> tests/ui/manual_pop_if_unfixable.rs:95:5
+   |
+LL |     if let Some(x) = vec.last() {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         if vec.len() > 1 && *x > 10 {
+   |         ^^^---^^^^^^^^^^^^^^^^^^^^^
+   |            |
+   |            the predicate borrows the collection here
+LL |             vec.pop().unwrap();
+   |             ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Vec::pop_if` after rewriting the predicate so it does not borrow the collection
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:104:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -113,7 +162,7 @@ LL |           let val = vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:82:5
+  --> tests/ui/manual_pop_if_unfixable.rs:112:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -125,7 +174,7 @@ LL |           println!("Popped: {}", vec.pop().unwrap());
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:89:5
+  --> tests/ui/manual_pop_if_unfixable.rs:119:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -137,7 +186,7 @@ LL |           vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:97:5
+  --> tests/ui/manual_pop_if_unfixable.rs:127:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -149,7 +198,21 @@ LL |           vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:107:5
+  --> tests/ui/manual_pop_if_unfixable.rs:135:5
+   |
+LL | /     if let Some(x) = vec.last()
+LL | |         && (vec.len() > 1 && *x > 10)
+   | |_____________---_____________________^
+   |               |
+   |               the predicate borrows the collection here
+LL |       {
+LL |           vec.pop().unwrap();
+   |           ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Vec::pop_if` after rewriting the predicate so it does not borrow the collection
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:144:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -159,7 +222,7 @@ LL |         let val = vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:113:5
+  --> tests/ui/manual_pop_if_unfixable.rs:150:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -169,7 +232,7 @@ LL |         println!("Popped: {}", vec.pop().unwrap());
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:118:5
+  --> tests/ui/manual_pop_if_unfixable.rs:155:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -180,7 +243,7 @@ LL |         vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:124:5
+  --> tests/ui/manual_pop_if_unfixable.rs:161:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -189,5 +252,27 @@ LL |         vec.pop().unwrap();
    |
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
-error: aborting due to 17 previous errors
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:167:5
+   |
+LL |     if vec.last().map(|x| vec.len() > 1 && *x > 10).unwrap_or(false) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^---^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |                           |
+   |                           the predicate borrows the collection here
+LL |         vec.pop().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Vec::pop_if` after rewriting the predicate so it does not borrow the collection
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:174:5
+   |
+LL |     if wrapper.vec.last().is_some_and(|x| *x > 10) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         wrapper.vec.pop().unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `Vec::pop_if`
+
+error: aborting due to 24 previous errors
 
