@@ -1650,15 +1650,15 @@ pub fn int_bits(tcx: TyCtxt<'_>, ity: IntTy) -> u64 {
     Integer::from_int_ty(&tcx, ity).size().bits()
 }
 
-#[expect(clippy::cast_possible_wrap)]
 /// Turn a constant int byte representation into an i128
+#[expect(clippy::cast_possible_wrap)]
 pub fn sext(tcx: TyCtxt<'_>, u: u128, ity: IntTy) -> i128 {
     let amt = 128 - int_bits(tcx, ity);
     ((u as i128) << amt) >> amt
 }
 
-#[expect(clippy::cast_sign_loss)]
 /// clip unused bytes
+#[expect(clippy::cast_sign_loss)]
 pub fn unsext(tcx: TyCtxt<'_>, u: i128, ity: IntTy) -> u128 {
     let amt = 128 - int_bits(tcx, ity);
     ((u as u128) << amt) >> amt
