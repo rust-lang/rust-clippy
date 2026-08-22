@@ -84,6 +84,7 @@ LL | foobar = 42
            semicolon-outside-block-ignore-multiline
            single-char-binding-names-threshold
            source-item-ordering
+           stack-array-size-threshold
            stack-size-threshold
            standard-macro-braces
            struct-field-name-threshold
