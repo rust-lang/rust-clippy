@@ -11,7 +11,7 @@ use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Expr, ExprKind, HirId, MatchSource, StmtKind};
 use rustc_lint::{LateContext, Level, LintContext as _};
 use rustc_middle::ty::{self, Ty};
-use rustc_span::{BytePos, Pos as _, Span};
+use rustc_span::{BytePos, DesugaringKind, ExpnKind, Pos as _, Span};
 use std::borrow::Cow;
 use std::fmt::Display;
 
@@ -60,6 +60,13 @@ pub(super) fn check_fn<'tcx>(cx: &LateContext<'tcx>, kind: FnKind<'tcx>, body: &
     if sp.from_expansion() {
         return;
     }
+    // Hackish workaround for async fn.
+    if body.value.span.from_expansion()
+        && let expn = body.value.span.ctxt().outer_expn_data()
+        && (!matches!(expn.kind, ExpnKind::Desugaring(DesugaringKind::Async)) || expn.call_site.from_expansion())
+    {
+        return;
+    }
 
     match kind {
         FnKind::Closure => {
@@ -83,7 +90,9 @@ fn check_block_return<'tcx>(cx: &LateContext<'tcx>, expr_kind: &ExprKind<'tcx>, 
     if let ExprKind::Block(block, _) = expr_kind {
         if let Some(block_expr) = block.expr {
             check_final_expr(cx, block_expr, semi_spans, RetReplacement::Empty, None);
-        } else if let Some(stmt) = block.stmts.last() {
+        } else if let Some(stmt) = block.stmts.last()
+            && !stmt.span.from_expansion()
+        {
             if span_contains_cfg(
                 cx,
                 Span::between(
