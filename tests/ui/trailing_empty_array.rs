@@ -187,12 +187,23 @@ struct TwoGenericParams<T, const N: usize> {
     last: [T; N],
 }
 
+macro_rules! trailing_zero_macro {
+    () => {{
+        struct MacroTrailingZero {
+            tz: [usize; 0],
+        }
+    }};
+}
+
 type A = ConstParamZeroDefault;
 type B = ConstParamZeroDefault<0>;
 type C = ConstParamNoDefault<0>;
 type D = ConstParamNonZeroDefault<0>;
 
-fn main() {}
+fn main() {
+    //Don't lint
+    trailing_zero_macro!();
+}
 
 #[cfg(test)]
 mod tests {
