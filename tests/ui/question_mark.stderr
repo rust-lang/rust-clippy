@@ -168,11 +168,9 @@ LL | |     };
    |
 help: try instead
    |
-LL ~     {
-LL +         let val = f()?;
-LL +         println!("{val}");
-LL +         val
-LL ~     };
+LL ~     let val = f()?;
+LL +     println!("{val}");
+LL ~     val;
    |
 
 error: this block may be rewritten with the `?` operator
@@ -492,10 +490,8 @@ LL | |     }
    |
 help: try instead
    |
-LL ~     {
-LL +         let n = v?;
-LL +         if n > 10 { Some(42) } else { None }
-LL +     }
+LL ~     let n = v?;
+LL +     if n > 10 { Some(42) } else { None }
    |
 
 error: this `match` expression can be replaced with `?`
@@ -510,11 +506,85 @@ LL | |     }
    |
 help: try instead
    |
-LL ~     {
-LL +         let x = opt?;
-LL +         (a, b) = x
-LL +     }
+LL ~     let x = opt?;
+LL +     (a, b) = x;
    |
 
-error: aborting due to 47 previous errors
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:728:5
+   |
+LL | /     if let Some(w) = Some(1) { todo!() } else {
+LL | |
+LL | |         return None;
+LL | |     }
+   | |_____^
+   |
+help: replace it with
+   |
+LL ~     let w = Some(1)?;
+LL +     todo!();
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:733:5
+   |
+LL | /     if let Some(x) = Some(1) {
+LL | |
+LL | |         todo!()
+LL | |     } else {
+LL | |         return None;
+LL | |     }
+   | |_____^
+   |
+help: replace it with
+   |
+LL ~     let x = Some(1)?;
+LL +
+LL +     todo!();
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:740:9
+   |
+LL |       _ = if let Some(y) = Some(1) {
+   |  _________^
+LL | |
+LL | |         println!("{y}");
+LL | |         todo!()
+LL | |     } else {
+LL | |         return None;
+LL | |     };
+   | |_____^
+   |
+help: replace it with
+   |
+LL ~     _ = {
+LL +         let y = Some(1)?;
+LL +
+LL +         println!("{y}");
+LL +         todo!()
+LL ~     };
+   |
+
+error: this block may be rewritten with the `?` operator
+  --> tests/ui/question_mark.rs:749:5
+   |
+LL | /     if let Some(x) = Some(1) {
+LL | |
+LL | |         todo!()
+LL | |     } else {
+LL | |         return None;
+LL | |     };
+   | |_____^
+   |
+help: replace it with
+   |
+LL ~     {
+LL +         let x = Some(1)?;
+LL +
+LL +         todo!()
+LL ~     };
+   |
+
+error: aborting due to 51 previous errors
 
