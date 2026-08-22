@@ -1,4 +1,5 @@
 #![feature(never_type)]
+#![expect(clippy::static_mut_vars)]
 #![warn(clippy::must_use_candidate)]
 use std::rc::Rc;
 use std::sync::Arc;
