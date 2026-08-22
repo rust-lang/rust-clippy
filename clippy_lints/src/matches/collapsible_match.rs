@@ -168,6 +168,9 @@ fn check_arm<'tcx>(
                 let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
 
                 if let ExprKind::Block(block, label) = outer_then_body.kind {
+                    if label.is_some() && outer_then_body.span.from_expansion() {
+                        return;
+                    }
                     let block_span = outer_then_body.span;
                     let search_start = if let Some(label) = label {
                         label.ident.span.hi()
