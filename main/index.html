@@ -7080,6 +7080,11 @@ assert!(sad_people.is_empty(), "there are sad people: {:?}", sad_people);
 <h3>Why is this bad?</h3>
 <p><code>assert_{eq,ne}!</code> and <code>debug_assert_{eq,ne}!</code> achieves the same goal, and provides some
 additional debug information</p>
+<h3>Known problems</h3>
+<p>This lint cannot determine how large the <code>Debug</code> output of the compared values will be.
+To avoid producing excessively large assertion output, it ignores comparisons involving
+byte-slice-like types. These include byte slices and types that dereference to a byte slice
+or implement <code>AsRef&lt;[u8]&gt;</code> without also implementing <code>AsRef&lt;str&gt;</code>.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">assert!(2 * 2 == 4);
 assert!(2 * 2 != 5);
@@ -7092,7 +7097,7 @@ assert_ne!(2 * 2, 5);
 debug_assert_eq!(2 * 2, 4);
 debug_assert_ne!(2 * 2, 5);
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.97.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_assert_eq">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/manual_assert_eq.rs#L12">View Source</a></div></div></article><article id="manual_async_fn"><input id="label-manual_async_fn" type="checkbox"><label for="label-manual_async_fn"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_async_fn">manual_async_fn
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.97.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+manual_assert_eq">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/manual_assert_eq.rs#L13">View Source</a></div></div></article><article id="manual_async_fn"><input id="label-manual_async_fn" type="checkbox"><label for="label-manual_async_fn"><h2 class="lint-title"><div class="panel-title-name" id="lint-manual_async_fn">manual_async_fn
 <a href="#manual_async_fn" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>It checks for manual implementations of <code>async</code> functions.</p>
 <h3>Why is this bad?</h3>
