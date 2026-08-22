@@ -12,6 +12,17 @@ fn main() {
         //~^ chunks_exact_to_as_chunks
         chunk[0] += 1; // mutate chunks
     }
+    arr.chunks_exact_mut(2).for_each(|chunk| chunk[0] = 2);
+    //~^ chunks_exact_to_as_chunks
+    let chunks = arr
+        .chunks_exact_mut(2)
+        //~^ chunks_exact_to_as_chunks
+        .map(|chunk| {
+            chunk[0] += 1;
+            chunk[0]
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(chunks.len(), 4);
 
     // All const expressions should produce valid Rust code
     for _ in arr.chunks_exact(1 + 1) {}
