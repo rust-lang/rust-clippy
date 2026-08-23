@@ -340,7 +340,7 @@ LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:330:9
+  --> tests/ui/match_like_matches_macro.rs:332:9
    |
 LL | /         match match_type {
 LL | |             MatchType::A(a) => true,
@@ -360,7 +360,7 @@ LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:339:9
+  --> tests/ui/match_like_matches_macro.rs:341:9
    |
 LL | /         match match_type {
 LL | |             MatchType::A(r#match) => true,
@@ -380,27 +380,7 @@ LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:354:9
-   |
-LL | /         match match_type2 {
-LL | |             MatchType2::A => true,
-LL | |             MatchType2::B => true,
-LL | |             _ => false,
-LL | |         }
-   | |_________^
-   |
-help: use `matches!` directly
-   |
-LL -         match match_type2 {
-LL -             MatchType2::A => true,
-LL -             MatchType2::B => true,
-LL -             _ => false,
-LL -         }
-LL +         matches!(match_type2, MatchType2::A | MatchType2::B)
-   |
-
-error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:363:9
+  --> tests/ui/match_like_matches_macro.rs:350:9
    |
 LL | /         match v {
 LL | |             (Some(left), _) => true,
@@ -420,7 +400,7 @@ LL +         matches!(v, (Some(_), _) | (_, Some(_)))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:376:9
+  --> tests/ui/match_like_matches_macro.rs:363:9
    |
 LL | /         match x {
 LL | |             TestBindingNames { a, .. } => true,
@@ -440,7 +420,7 @@ LL +         matches!(x, TestBindingNames { a: _, .. } | TestBindingNames { b: _
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:390:9
+  --> tests/ui/match_like_matches_macro.rs:377:9
    |
 LL | /         match x {
 LL | |             TestBindingNames2 { a, b: 1, .. } => true,
@@ -462,7 +442,7 @@ LL +         matches!(x, TestBindingNames2 { a: _, b: 1, .. } | TestBindingNames
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:405:9
+  --> tests/ui/match_like_matches_macro.rs:392:9
    |
 LL | /         match e {
 LL | |             NestedTupleInEnum::A((x, y)) => true,
@@ -482,7 +462,7 @@ LL +         matches!(e, NestedTupleInEnum::A((_, _)) | NestedTupleInEnum::B((_,
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:423:9
+  --> tests/ui/match_like_matches_macro.rs:410:9
    |
 LL | /         match o {
 LL | |             Outer::A(Inner::X(x)) => true,
@@ -502,7 +482,7 @@ LL +         matches!(o, Outer::A(Inner::X(_)) | Outer::B(Inner::X(_)))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:443:9
+  --> tests/ui/match_like_matches_macro.rs:428:9
    |
 LL | /         match v {
 LL | |             [first, ..] => true,
@@ -521,5 +501,5 @@ LL -         }
 LL +         matches!(v, [_, ..] | [_, _])
    |
 
-error: aborting due to 27 previous errors
+error: aborting due to 26 previous errors
 

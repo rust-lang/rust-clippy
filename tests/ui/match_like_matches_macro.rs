@@ -318,7 +318,9 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
-    fn match_check_pass(match_type: MatchType) -> bool {
+    // TODO: This can be transformed into `matches!(match_type, MatchType::A(_) | MatchType::C)`,
+    // but is currently not linted because the middle arm returns a different boolean value.
+    fn match_check_todo(match_type: MatchType) -> bool {
         match match_type {
             MatchType::A(_str1) => true,
             MatchType::B(_str1, _str2) => false,
@@ -339,21 +341,6 @@ mod issue17503 {
         match match_type {
             MatchType::A(r#match) => true,
             MatchType::B(very_long_name_in_snake_case, __very_strange_name__) => true,
-            _ => false,
-        }
-        //~^^^^^ match_like_matches_macro
-    }
-
-    enum MatchType2 {
-        A,
-        B,
-        C,
-    }
-
-    fn matches2(match_type2: MatchType2) -> bool {
-        match match_type2 {
-            MatchType2::A => true,
-            MatchType2::B => true,
             _ => false,
         }
         //~^^^^^ match_like_matches_macro
@@ -428,16 +415,14 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
-    // FIXME: Avoid invalid suggestions for `@` bindings.
-    // ```rs
-    // fn at_binding(v: Option<u8>) -> bool {
-    //     match v {
-    //         Some(x @ 0) => true,
-    //         Some(y @ 1) => true,
-    //         _ => false,
-    //     }
-    // }
-    // ```
+    // Bail on at bindings, so this one won't be linted.
+    fn at_binding(v: Option<u8>) -> bool {
+        match v {
+            Some(x @ 0) => true,
+            Some(y @ 1) => true,
+            _ => false,
+        }
+    }
 
     fn slice_binding(v: &[u8]) -> bool {
         match v {

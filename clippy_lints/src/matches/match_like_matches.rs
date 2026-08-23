@@ -145,6 +145,9 @@ pub(super) fn check_match<'tcx>(
 
         for arm in arms_without_last {
             let pat = arm.pat;
+            if has_at_binding(pat) {
+                return false;
+            }
             if !is_lint_allowed(cx, REDUNDANT_PATTERN_MATCHING, pat.hir_id) && is_some_wild(pat.kind) {
                 return false;
             }
@@ -275,4 +278,17 @@ fn is_some_wild(pat_kind: PatKind<'_>) -> bool {
         },
         _ => false,
     }
+}
+
+/// Bails on `@` bindings.
+fn has_at_binding(pat: &Pat<'_>) -> bool {
+    let mut found_at_binding = false;
+
+    pat.walk_always(|p| {
+        if matches!(p.kind, PatKind::Binding(_, _, _, Some(_))) {
+            found_at_binding = true;
+        }
+    });
+
+    found_at_binding
 }
