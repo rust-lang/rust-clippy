@@ -13,59 +13,77 @@ error: use of `%` has been disallowed in this context
 LL |         Self(self.0 % rhs.0)
    |              ^^^^^^^^^^^^^^
 
+error: use of `div_ceil` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:24:15
+   |
+LL |     let _ = x.div_ceil(3);
+   |               ^^^^^^^^^^^
+
+error: use of `wrapping_div` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:27:15
+   |
+LL |     let _ = x.wrapping_div(3);
+   |               ^^^^^^^^^^^^^^^
+
+error: use of `checked_rem` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:30:15
+   |
+LL |     let _ = x.checked_rem(3);
+   |               ^^^^^^^^^^^^^^
+
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:26:13
+  --> tests/ui/integer_division_remainder_used.rs:41:13
    |
 LL |     let c = a / b;
    |             ^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:28:13
+  --> tests/ui/integer_division_remainder_used.rs:43:13
    |
 LL |     let d = a % b;
    |             ^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:30:13
+  --> tests/ui/integer_division_remainder_used.rs:45:13
    |
 LL |     let e = &a / b;
    |             ^^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:32:13
+  --> tests/ui/integer_division_remainder_used.rs:47:13
    |
 LL |     let f = a % &b;
    |             ^^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:34:13
+  --> tests/ui/integer_division_remainder_used.rs:49:13
    |
 LL |     let g = &a / &b;
    |             ^^^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:36:13
+  --> tests/ui/integer_division_remainder_used.rs:51:13
    |
 LL |     let h = &10 % b;
    |             ^^^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:38:13
+  --> tests/ui/integer_division_remainder_used.rs:53:13
    |
 LL |     let i = a / &4;
    |             ^^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:43:5
+  --> tests/ui/integer_division_remainder_used.rs:58:5
    |
 LL |     j /= 2;
    |     ^^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:45:5
+  --> tests/ui/integer_division_remainder_used.rs:60:5
    |
 LL |     j %= 3;
    |     ^^^^^^
 
-error: aborting due to 11 previous errors
+error: aborting due to 14 previous errors
 

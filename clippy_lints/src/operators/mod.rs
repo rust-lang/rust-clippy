@@ -1088,6 +1088,9 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 );
                 manual_div_ceil::check(cx, e, op.node, lhs, rhs, self.msrv);
             },
+            ExprKind::MethodCall(path, receiver, _args, span) => {
+                integer_division_remainder_used::check_method_call(cx, path.ident.name.as_str(), receiver, span);
+            },
             ExprKind::AssignOp(op, lhs, rhs) => {
                 let bin_op = op.node.into();
                 if !e.span.from_expansion() {
