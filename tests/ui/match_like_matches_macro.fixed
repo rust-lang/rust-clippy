@@ -1,5 +1,9 @@
 #![warn(clippy::match_like_matches_macro)]
-#![allow(irrefutable_let_patterns, clippy::redundant_guards)]
+#![allow(
+    irrefutable_let_patterns,
+    clippy::redundant_guards,
+    clippy::unneeded_wildcard_pattern
+)]
 #![expect(clippy::needless_borrowed_reference)]
 
 fn main() {
@@ -294,22 +298,24 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
-    // FIXME: Erasing bindings in struct shorthand patterns (`Foo { a, .. }`)
-    // requires rewriting them as `Foo { a: _, .. }`. Replacing only the binding
-    // span currently produces invalid syntax (`Foo { _, .. }`).
-    // ```rs
-    // struct TestBindingNames {
-    //     a: u8,
-    //     b: u8,
-    // }
-    // fn struct_binding_names(x: TestBindingNames) -> bool {
-    //     match x {
-    //         TestBindingNames { a, .. } => true,
-    //         TestBindingNames { b, .. } => true,
-    //         _ => false,
-    //     }
-    // }
-    // ```
+    struct TestBindingNames {
+        a: u8,
+        b: u8,
+    }
+    fn struct_binding_names(x: TestBindingNames) -> bool {
+        matches!(x, TestBindingNames { a: _, .. } | TestBindingNames { b: _, .. })
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct TestBindingNames2 {
+        a: u8,
+        b: u8,
+        c: u8,
+    }
+    fn struct_binding_names2(x: TestBindingNames2) -> bool {
+        matches!(x, TestBindingNames2 { a: _, b: 1, .. } | TestBindingNames2 { a: _, b: 2, .. } | TestBindingNames2 { a: 3, b: 4, .. })
+        //~^^^^^^ match_like_matches_macro
+    }
 
     enum NestedTupleInEnum {
         A((u8, u8)),

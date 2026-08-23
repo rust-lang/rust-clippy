@@ -163,18 +163,36 @@ pub(super) fn check_match<'tcx>(
                     // Only erase bindings when actually merging multiple arms into an or-pattern (#17503)
                     if !middle_arms.is_empty() {
                         let mut binding_spans: Vec<Span> = Vec::new();
+                        let mut binding_spans_with_struct: Vec<(Span, String)> = Vec::new();
 
                         arm.pat.walk_always(|p| {
                             if let PatKind::Binding(_, _, ident, _) = p.kind {
                                 binding_spans.push(ident.span);
                             }
+
+                            if let PatKind::Struct(_, pat_fields, _) = p.kind {
+                                for field in pat_fields {
+                                    if field.is_shorthand {
+                                        binding_spans_with_struct.push((field.span, format!("{}: _", field.ident)));
+                                    }
+                                }
+                            }
                         });
 
-                        for span in binding_spans.iter().rev() {
-                            let start = (span.lo() - arm.pat.span.lo()).0 as usize;
-                            let end = (span.hi() - arm.pat.span.lo()).0 as usize;
+                        if binding_spans_with_struct.is_empty() {
+                            for span in binding_spans.iter().rev() {
+                                let start = (span.lo() - arm.pat.span.lo()).0 as usize;
+                                let end = (span.hi() - arm.pat.span.lo()).0 as usize;
 
-                            s.replace_range(start..end, "_");
+                                s.replace_range(start..end, "_");
+                            }
+                        } else {
+                            for (span, replacement) in binding_spans_with_struct.iter().rev() {
+                                let start = (span.lo() - arm.pat.span.lo()).0 as usize;
+                                let end = (span.hi() - arm.pat.span.lo()).0 as usize;
+
+                                s.replace_range(start..end, replacement);
+                            }
                         }
                     }
 
