@@ -160,7 +160,8 @@ pub(super) fn check_match<'tcx>(
                 .map(|arm| {
                     let mut s = snippet_with_applicability(cx, arm.pat.span, "..", &mut applicability).into_owned();
 
-                    // Only erase bindings when actually merging multiple arms into an or-pattern (#17503)
+                    // rust requires every match arm to have the same bindings
+                    // we thus need to change bindings to `_` for this suggestion to compile
                     if !middle_arms.is_empty() {
                         let mut binding_spans: Vec<Span> = Vec::new();
                         let mut binding_spans_with_struct: Vec<(Span, String)> = Vec::new();
