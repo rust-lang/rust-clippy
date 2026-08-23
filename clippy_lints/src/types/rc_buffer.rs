@@ -25,9 +25,9 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &Ty<'_>, qpath: &QPath<'_>, de
             format!("usage of `{rc}<T>` when `T` is a buffer type"),
             |diag| {
                 diag.help(format!(
-                    "consider using `{alternate}` if you do not need to mutate the inner buffer"
+                    "consider using `{alternate}` if length-changing mutations are not needed"
                 ));
-                diag.note("changing the type may require reallocating or copying the buffer");
+                diag.note("changing the type requires reallocating the buffer");
             },
         );
         true

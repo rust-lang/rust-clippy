@@ -201,19 +201,20 @@ declare_clippy_lint! {
     /// Checks for `Rc<T>` and `Arc<T>` when `T` is a mutable buffer type such as `String` or `Vec`.
     ///
     /// ### Why restrict this?
-    /// `Rc<str>` can use less memory than `Rc<String>` when the inner buffer is never mutated:
-    /// it does not store spare capacity, avoids a separate allocation for the buffer contents,
-    /// and implements `Borrow<str>`.
-    ///
-    /// If mutations need to be visible through every shared owner, an interior mutable container
-    /// (such as `RefCell` or `Mutex`) can be used instead.
+    /// `Rc<str>` can use less memory than `Rc<String>` because the string data is stored in the same
+    /// allocation as the reference counts. `Rc<String>` stores the `String` separately, requiring
+    /// another allocation and an extra level of indirection. The same applies to the other buffer
+    /// types handled by this lint and to `Arc`.
     ///
     /// ### Known problems
-    /// Constructing `Rc<str>` from an existing `String` can require allocating and copying the
-    /// buffer, while constructing `Rc<String>` can move the `String` without copying its contents.
-    /// Owning the buffer also allows mutation through `Rc::get_mut` or `Rc::make_mut`. The same
-    /// tradeoffs apply to the other buffer types and to `Arc`, so this pattern can be desirable
-    /// for copy-on-write data or to avoid the overhead of an interior mutable container.
+    /// Constructing the unsized form from an existing owned buffer requires a new allocation and
+    /// copying the buffer contents. This can be significant for large buffers or when many `Rc`s or
+    /// `Arc`s are constructed.
+    ///
+    /// Unsized buffer types cannot perform mutations that change the buffer length. Length-preserving
+    /// mutations are still possible through `Rc::get_mut` or `Rc::make_mut`; for example,
+    /// `str::make_ascii_uppercase` works with `Rc<str>`. Keeping the owned buffer type can therefore
+    /// be useful when length-changing mutations are needed.
     ///
     /// ### Example
     /// ```rust,ignore
