@@ -13,62 +13,182 @@ error: use of `%` has been disallowed in this context
 LL |         Self(self.0 % rhs.0)
    |              ^^^^^^^^^^^^^^
 
+error: use of `checked_div` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:26:15
+   |
+LL |     let _ = x.checked_div(3);
+   |               ^^^^^^^^^^^^^^
+
+error: use of `checked_div_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:28:15
+   |
+LL |     let _ = x.checked_div_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^^
+
+error: use of `checked_rem` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:30:15
+   |
+LL |     let _ = x.checked_rem(3);
+   |               ^^^^^^^^^^^^^^
+
+error: use of `checked_rem_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:32:15
+   |
+LL |     let _ = x.checked_rem_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^^
+
+error: use of `div_ceil` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:34:15
+   |
+LL |     let _ = x.div_ceil(3);
+   |               ^^^^^^^^^^^
+
+error: use of `div_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:36:15
+   |
+LL |     let _ = x.div_euclid(3);
+   |               ^^^^^^^^^^^^^
+
+error: use of `overflowing_div` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:38:15
+   |
+LL |     let _ = x.overflowing_div(3);
+   |               ^^^^^^^^^^^^^^^^^^
+
+error: use of `overflowing_div_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:40:15
+   |
+LL |     let _ = x.overflowing_div_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: use of `overflowing_rem` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:42:15
+   |
+LL |     let _ = x.overflowing_rem(3);
+   |               ^^^^^^^^^^^^^^^^^^
+
+error: use of `overflowing_rem_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:44:15
+   |
+LL |     let _ = x.overflowing_rem_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: use of `rem_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:46:15
+   |
+LL |     let _ = x.rem_euclid(3);
+   |               ^^^^^^^^^^^^^
+
+error: use of `strict_div` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:48:15
+   |
+LL |     let _ = x.strict_div(3);
+   |               ^^^^^^^^^^^^^
+
+error: use of `strict_div_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:50:15
+   |
+LL |     let _ = x.strict_div_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+error: use of `saturating_div` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:52:15
+   |
+LL |     let _ = x.saturating_div(3);
+   |               ^^^^^^^^^^^^^^^^^
+
+error: use of `strict_rem` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:54:15
+   |
+LL |     let _ = x.strict_rem(3);
+   |               ^^^^^^^^^^^^^
+
+error: use of `strict_rem_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:56:15
+   |
+LL |     let _ = x.strict_rem_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^
+
+error: use of `wrapping_div` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:58:15
+   |
+LL |     let _ = x.wrapping_div(3);
+   |               ^^^^^^^^^^^^^^^
+
+error: use of `wrapping_div_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:60:15
+   |
+LL |     let _ = x.wrapping_div_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^^^
+
+error: use of `wrapping_rem` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:62:15
+   |
+LL |     let _ = x.wrapping_rem(3);
+   |               ^^^^^^^^^^^^^^^
+
+error: use of `wrapping_rem_euclid` has been disallowed in this context
+  --> tests/ui/integer_division_remainder_used.rs:64:15
+   |
+LL |     let _ = x.wrapping_rem_euclid(3);
+   |               ^^^^^^^^^^^^^^^^^^^^^^
+
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:27:13
+  --> tests/ui/integer_division_remainder_used.rs:77:13
    |
 LL |     let c = a / b;
    |             ^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:29:13
+  --> tests/ui/integer_division_remainder_used.rs:79:13
    |
 LL |     let d = a % b;
    |             ^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:31:13
+  --> tests/ui/integer_division_remainder_used.rs:81:13
    |
 LL |     let e = &a / b;
    |             ^^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:33:13
+  --> tests/ui/integer_division_remainder_used.rs:83:13
    |
 LL |     let f = a % &b;
    |             ^^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:35:13
+  --> tests/ui/integer_division_remainder_used.rs:85:13
    |
 LL |     let g = &a / &b;
    |             ^^^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:37:13
+  --> tests/ui/integer_division_remainder_used.rs:87:13
    |
 LL |     let h = &10 % b;
    |             ^^^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:39:13
+  --> tests/ui/integer_division_remainder_used.rs:89:13
    |
 LL |     let i = a / &4;
    |             ^^^^^^
 
 error: use of `/` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:44:5
+  --> tests/ui/integer_division_remainder_used.rs:94:5
    |
 LL |     j /= 2;
    |     ^^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:46:5
+  --> tests/ui/integer_division_remainder_used.rs:96:5
    |
 LL |     j %= 3;
    |     ^^^^^^
 
 error: use of `%` has been disallowed in this context
-  --> tests/ui/integer_division_remainder_used.rs:60:13
+  --> tests/ui/integer_division_remainder_used.rs:110:13
    |
 LL |             $a % $b
    |             ^^^^^^^
@@ -78,5 +198,5 @@ LL |     let issue17048 = mac!(a, b);
    |
    = note: this error originates in the macro `mac` (in Nightly builds, run with -Z macro-backtrace for more info)
 
-error: aborting due to 12 previous errors
+error: aborting due to 32 previous errors
 
