@@ -14,18 +14,14 @@
     rustc::internal
 )]
 
-// FIXME: switch to something more ergonomic here, once available.
-// (Currently there is no way to opt into sysroot crates without `extern crate`.)
+#[expect(unused_extern_crates, reason = "required to link to rustc crates")]
+extern crate rustc_driver;
+
 extern crate rustc_abi;
 extern crate rustc_ast;
 extern crate rustc_attr_parsing;
 extern crate rustc_const_eval;
 extern crate rustc_data_structures;
-#[expect(
-    unused_extern_crates,
-    reason = "The `rustc_driver` crate seems to be required in order to use the `rust_ast` crate."
-)]
-extern crate rustc_driver;
 extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_hir_analysis;
