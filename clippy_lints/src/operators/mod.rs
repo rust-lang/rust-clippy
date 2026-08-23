@@ -10,6 +10,7 @@ mod eq_op;
 mod erasing_op;
 mod float_cmp;
 mod float_equality_without_abs;
+mod identity_assign_op;
 mod identity_op;
 mod integer_division;
 mod integer_division_remainder_used;
@@ -31,7 +32,7 @@ pub(crate) mod arithmetic_side_effects;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
-use rustc_hir::{Body, Expr, ExprKind, UnOp};
+use rustc_hir::{Body, Expr, ExprKind, Stmt, StmtKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_session::impl_lint_pass;
 
@@ -516,6 +517,29 @@ declare_clippy_lint! {
     pub FLOAT_EQUALITY_WITHOUT_ABS,
     suspicious,
     "float equality check without `.abs()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for assignment operations with identity operands.
+    ///
+    /// ### Why is this bad?
+    /// These operations have no effect and can be removed for clarity.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let mut x = 1;
+    /// x += 0;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let mut x = 1;
+    /// x;
+    /// ```
+    #[clippy::version = "1.97.0"]
+    pub IDENTITY_ASSIGN_OP,
+    pedantic,
+    "assignment operation with an identity operand"
 }
 
 declare_clippy_lint! {
@@ -1007,6 +1031,7 @@ impl_lint_pass!(Operators => [
     FLOAT_CMP,
     FLOAT_CMP_CONST,
     FLOAT_EQUALITY_WITHOUT_ABS,
+    IDENTITY_ASSIGN_OP,
     IDENTITY_OP,
     IMPOSSIBLE_COMPARISONS,
     INEFFECTIVE_BIT_MASK,
@@ -1111,6 +1136,16 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
             },
             _ => (),
         }
+    }
+
+    fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) {
+        let StmtKind::Semi(e) = stmt.kind else { return };
+        let ExprKind::AssignOp(op, lhs, rhs) = e.kind else {
+            return;
+        };
+
+        let bin_op = op.node.into();
+        identity_assign_op::check(cx, stmt, e, bin_op, lhs, rhs);
     }
 
     fn check_expr_post(&mut self, _: &LateContext<'_>, e: &Expr<'_>) {
