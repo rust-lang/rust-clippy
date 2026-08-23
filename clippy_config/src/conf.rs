@@ -1,12 +1,13 @@
 use crate::ConfMetadata;
 use crate::de::{DeserializeOrDefault, DiagCtxt, FromDefault, create_value_list_msg, find_closest_match};
 use crate::types::{
-    DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
-    PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering, SourceItemOrderingModuleItemGroupings,
-    SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
+    DisallowedPath, DisallowedPathWithoutReplacement, DisallowedProfile, InherentImplLintScope, MacroMatcher,
+    MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering,
+    SourceItemOrderingModuleItemGroupings, SourceItemOrderingTraitAssocItemKinds,
+    SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
 };
 use rustc_attr_parsing::parse_version;
-use rustc_data_structures::fx::FxHashSet;
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
 use rustc_hir::attrs::RustcVersion;
 use rustc_session::Session;
@@ -729,6 +730,21 @@ define_Conf! {
     /// The minimum size (in bytes) to consider a type for passing by reference instead of by value.
     #[lints(large_types_passed_by_value)]
     pass_by_value_size_limit("pass-by-value-size-limit"): u64 = 256,
+    /// Named profiles of disallowed items (unrelated to Cargo build profiles).
+    ///
+    /// #### Example
+    ///
+    /// ```toml
+    /// [profiles.persistent]
+    /// disallowed-methods = [{ path = "std::env::temp_dir" }]
+    /// disallowed-types = [{ path = "std::time::Instant", reason = "use our custom time API" }]
+    ///
+    /// [profiles.single_threaded]
+    /// disallowed-methods = [{ path = "std::thread::spawn" }]
+    /// ```
+    #[default_text = "{}"]
+    #[lints(disallowed_methods, disallowed_types)]
+    profiles("profiles"): FxHashMap<String, DisallowedProfile>,
     /// Lint "public" fields in a struct that are prefixed with an underscore based on their
     /// exported visibility, or whether they are marked as "pub".
     #[lints(pub_underscore_fields)]
