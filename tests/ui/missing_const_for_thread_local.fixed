@@ -69,6 +69,14 @@ fn issue_12637() {
     println!("{}", STATE_12637_UNREACHABLE.get());
 }
 
+fn issue_17566() {
+    // On targets without native `#[thread_local]`, a `const` initializer expands to a
+    // non-`const` init fn, which used to slip past the `is_const_fn` guard and lint here.
+    thread_local! {
+        static STATE_17566: Cell<Option<u8>> = const { Cell::new(None) };
+    }
+}
+
 #[clippy::msrv = "1.58"]
 fn f() {
     thread_local! {
