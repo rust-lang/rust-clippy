@@ -12,7 +12,7 @@ LL |     struct ShouldLint;
    = help: move the items to before the test module was defined
 
 error: items after a test module
-  --> tests/ui/items_after_test_module/after_derive.rs:26:5
+  --> tests/ui/items_after_test_module/after_derive.rs:27:5
    |
 LL |     mod tests {
    |     ^^^^^^^^^
@@ -26,7 +26,7 @@ LL |     fn should_also_lint() {}
    = help: move the items to before the test module was defined
 
 error: items after a test module
-  --> tests/ui/items_after_test_module/after_derive.rs:42:5
+  --> tests/ui/items_after_test_module/after_derive.rs:44:5
    |
 LL |     mod tests {
    |     ^^^^^^^^^
