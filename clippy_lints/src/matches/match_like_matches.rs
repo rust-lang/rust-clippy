@@ -148,6 +148,9 @@ pub(super) fn check_match<'tcx>(
             if has_at_binding(pat) {
                 return false;
             }
+            if arm.pat.span.from_expansion() {
+                return false;
+            }
             if !is_lint_allowed(cx, REDUNDANT_PATTERN_MATCHING, pat.hir_id) && is_some_wild(pat.kind) {
                 return false;
             }

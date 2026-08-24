@@ -432,4 +432,19 @@ mod issue17503 {
         }
         //~^^^^^ match_like_matches_macro
     }
+
+    macro_rules! mk_pat {
+        ($name:ident) => {
+            Some($name)
+        };
+    }
+
+    // ok
+    fn from_expansion(v: Option<u8>) -> bool {
+        match v {
+            mk_pat!(a) => true,
+            mk_pat!(b) => true,
+            _ => false,
+        }
+    }
 }
