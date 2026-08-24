@@ -284,11 +284,12 @@ fn is_some_wild(pat_kind: PatKind<'_>) -> bool {
 fn has_at_binding(pat: &Pat<'_>) -> bool {
     let mut found_at_binding = false;
 
-    pat.walk_always(|p| {
+    pat.walk_short(|p| {
         if matches!(p.kind, PatKind::Binding(_, _, _, Some(_))) {
             found_at_binding = true;
+            return false;
         }
+        true
     });
-
     found_at_binding
 }
