@@ -86,6 +86,7 @@ mod tests {
     }
 }
 
+#[expect(clippy::test_without_assertions)]
 #[test]
 fn test_with_disallowed_name() {
     let foo = 0;

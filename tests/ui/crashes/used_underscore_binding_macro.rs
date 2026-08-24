@@ -10,6 +10,7 @@ struct MacroAttributesTest {
     _foo: u32,
 }
 
+#[expect(clippy::test_without_assertions)]
 #[test]
 fn macro_attributes_test() {
     let _ = MacroAttributesTest { _foo: 0 };

@@ -1,0 +1,41 @@
+error: test function without assertions or other potential failure sites
+  --> tests/ui/test_without_assertions.rs:7:5
+   |
+LL |     fn empty() {}
+   |     ^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::test-without-assertions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::test_without_assertions)]`
+
+error: test function without assertions or other potential failure sites
+  --> tests/ui/test_without_assertions.rs:11:5
+   |
+LL | /     fn empty_with_comment() {
+LL | |         // This is still an empty body.
+LL | |     }
+   | |_____^
+
+error: test function without assertions or other potential failure sites
+  --> tests/ui/test_without_assertions.rs:19:5
+   |
+LL | /     fn no_failure_site() {
+LL | |         let _ = 1 + 1;
+LL | |     }
+   | |_____^
+
+error: test function without assertions or other potential failure sites
+  --> tests/ui/test_without_assertions.rs:26:5
+   |
+LL | /     fn only_returns_unit() {
+LL | |         ()
+LL | |     }
+   | |_____^
+
+error: test function without assertions or other potential failure sites
+  --> tests/ui/test_without_assertions.rs:33:5
+   |
+LL |     fn empty_should_panic() {}
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 5 previous errors
+
