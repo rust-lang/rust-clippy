@@ -145,10 +145,10 @@ pub(super) fn check_match<'tcx>(
 
         for arm in arms_without_last {
             let pat = arm.pat;
-            if has_at_binding(pat) {
+            if pat.span.from_expansion() {
                 return false;
             }
-            if arm.pat.span.from_expansion() {
+            if has_at_binding(pat) {
                 return false;
             }
             if !is_lint_allowed(cx, REDUNDANT_PATTERN_MATCHING, pat.hir_id) && is_some_wild(pat.kind) {
@@ -169,38 +169,7 @@ pub(super) fn check_match<'tcx>(
                     // rust requires every match arm to have the same bindings
                     // we thus need to change bindings to `_` for this suggestion to compile
                     if !middle_arms.is_empty() {
-                        let mut binding_spans: Vec<Span> = Vec::new();
-                        let mut binding_spans_with_struct: Vec<(Span, String)> = Vec::new();
-
-                        arm.pat.walk_always(|p| {
-                            if let PatKind::Binding(_, _, ident, _) = p.kind {
-                                binding_spans.push(ident.span);
-                            }
-
-                            if let PatKind::Struct(_, pat_fields, _) = p.kind {
-                                for field in pat_fields {
-                                    if field.is_shorthand {
-                                        binding_spans_with_struct.push((field.span, format!("{}: _", field.ident)));
-                                    }
-                                }
-                            }
-                        });
-
-                        if binding_spans_with_struct.is_empty() {
-                            for span in binding_spans.iter().rev() {
-                                let start = (span.lo() - arm.pat.span.lo()).0 as usize;
-                                let end = (span.hi() - arm.pat.span.lo()).0 as usize;
-
-                                s.replace_range(start..end, "_");
-                            }
-                        } else {
-                            for (span, replacement) in binding_spans_with_struct.iter().rev() {
-                                let start = (span.lo() - arm.pat.span.lo()).0 as usize;
-                                let end = (span.hi() - arm.pat.span.lo()).0 as usize;
-
-                                s.replace_range(start..end, replacement);
-                            }
-                        }
+                        s = replace_bindings_with_wildcard(arm.pat, s);
                     }
 
                     s
@@ -295,4 +264,40 @@ fn has_at_binding(pat: &Pat<'_>) -> bool {
         true
     });
     found_at_binding
+}
+
+/// Replace bindings in a pattern's snippet with `_`, so multiple arms with
+/// different binding names can be merged into a single `matches!` pattern.
+fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
+    let mut binding_spans: Vec<Span> = Vec::new();
+    let mut binding_spans_with_struct: Vec<(Span, String)> = Vec::new();
+
+    arm_pat.walk_always(|p| {
+        if let PatKind::Binding(_, _, ident, _) = p.kind {
+            binding_spans.push(ident.span);
+        }
+        if let PatKind::Struct(_, pat_fields, _) = p.kind {
+            for field in pat_fields {
+                if field.is_shorthand {
+                    binding_spans_with_struct.push((field.span, format!("{}: _", field.ident)));
+                }
+            }
+        }
+    });
+
+    if binding_spans_with_struct.is_empty() {
+        for span in binding_spans.iter().rev() {
+            let start = (span.lo() - arm_pat.span.lo()).0 as usize;
+            let end = (span.hi() - arm_pat.span.lo()).0 as usize;
+            s.replace_range(start..end, "_");
+        }
+    } else {
+        for (span, replacement) in binding_spans_with_struct.iter().rev() {
+            let start = (span.lo() - arm_pat.span.lo()).0 as usize;
+            let end = (span.hi() - arm_pat.span.lo()).0 as usize;
+            s.replace_range(start..end, replacement);
+        }
+    }
+
+    s
 }
