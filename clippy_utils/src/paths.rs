@@ -197,47 +197,51 @@ pub fn lookup_path(tcx: TyCtxt<'_>, ns: PathNS, path: &[Symbol]) -> Vec<DefId> {
     out
 }
 
-/// Finds the crates called `name`, may be multiple due to multiple major versions.
-pub fn find_crates(tcx: TyCtxt<'_>, name: Symbol) -> &'static [DefId] {
-    static BY_NAME: OnceLock<FxHashMap<Symbol, Vec<DefId>>> = OnceLock::new();
-    let map = BY_NAME.get_or_init(|| {
-        let mut map = FxHashMap::default();
-        map.insert(tcx.crate_name(LOCAL_CRATE), vec![LOCAL_CRATE.as_def_id()]);
-        for &num in tcx.crates(()) {
-            map.entry(tcx.crate_name(num)).or_default().push(num.as_def_id());
-        }
+fn collect_crates_by_name(tcx: TyCtxt<'_>) -> FxHashMap<Symbol, Vec<DefId>> {
+    let mut map = FxHashMap::default();
+    map.insert(tcx.crate_name(LOCAL_CRATE), vec![LOCAL_CRATE.as_def_id()]);
+    for &num in tcx.crates(()) {
+        map.entry(tcx.crate_name(num)).or_default().push(num.as_def_id());
+    }
 
-        let mut extern_names_by_path: FxHashMap<&Path, Vec<Symbol>> = FxHashMap::default();
-        for (name, entry) in tcx.sess.opts.externs.iter().filter(|(_, entry)| entry.add_prelude) {
-            let Some(files) = entry.files() else {
+    // Match prelude-visible `--extern` aliases to loaded crates by source path. An alias replaces a
+    // colliding canonical name to mirror path resolution in source code.
+    let mut extern_names_by_path: FxHashMap<&Path, Vec<Symbol>> = FxHashMap::default();
+    for (name, entry) in tcx.sess.opts.externs.iter().filter(|(_, entry)| entry.add_prelude) {
+        let Some(files) = entry.files() else {
+            continue;
+        };
+        for file in files {
+            extern_names_by_path
+                .entry(file.canonicalized())
+                .or_default()
+                .push(Symbol::intern(name));
+        }
+    }
+    let mut matched_extern_names = FxHashSet::default();
+    for &num in tcx.crates(()) {
+        for path in tcx.used_crate_source(num).paths() {
+            let Some(names) = extern_names_by_path.get(path.as_path()) else {
                 continue;
             };
-            for file in files {
-                extern_names_by_path
-                    .entry(file.canonicalized())
-                    .or_default()
-                    .push(Symbol::intern(name));
-            }
-        }
-        let mut matched_extern_names = FxHashSet::default();
-        for &num in tcx.crates(()) {
-            for path in tcx.used_crate_source(num).paths() {
-                let Some(names) = extern_names_by_path.get(path.as_path()) else {
-                    continue;
-                };
-                for &name in names {
-                    if matched_extern_names.insert(name) {
-                        map.remove(&name);
-                    }
-                    let def_ids = map.entry(name).or_default();
-                    if !def_ids.contains(&num.as_def_id()) {
-                        def_ids.push(num.as_def_id());
-                    }
+            for &name in names {
+                if matched_extern_names.insert(name) {
+                    map.remove(&name);
+                }
+                let def_ids = map.entry(name).or_default();
+                if !def_ids.contains(&num.as_def_id()) {
+                    def_ids.push(num.as_def_id());
                 }
             }
         }
-        map
-    });
+    }
+    map
+}
+
+/// Finds the crates called `name`, may be multiple due to multiple major versions.
+pub fn find_crates(tcx: TyCtxt<'_>, name: Symbol) -> &'static [DefId] {
+    static BY_NAME: OnceLock<FxHashMap<Symbol, Vec<DefId>>> = OnceLock::new();
+    let map = BY_NAME.get_or_init(|| collect_crates_by_name(tcx));
     match map.get(&name) {
         Some(def_ids) => def_ids,
         None => &[],
