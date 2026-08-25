@@ -50,6 +50,32 @@ fn is_some_and_pattern_positive(mut vec: Vec<i32>, mut deque: VecDeque<i32>, mut
     if heap.peek().is_some_and(|x| *x > 2) {
         heap.pop().unwrap();
     }
+
+    // The popped value is discarded, which is exactly what `pop_if` does
+    //~v manual_pop_if
+    if vec.last().is_some_and(|x| *x > 2) {
+        vec.pop();
+    }
+
+    //~v manual_pop_if
+    if vec.last().is_some_and(|x| *x > 2) {
+        let _ = vec.pop();
+    }
+
+    //~v manual_pop_if
+    if deque.back().is_some_and(|x| *x > 2) {
+        deque.pop_back();
+    }
+
+    //~v manual_pop_if
+    if deque.front().is_some_and(|x| *x > 2) {
+        deque.pop_front();
+    }
+
+    //~v manual_pop_if
+    if heap.peek().is_some_and(|x| *x > 2) {
+        heap.pop();
+    }
 }
 
 fn is_some_and_pattern_negative(mut vec: Vec<i32>, mut deque: VecDeque<i32>) {
@@ -59,10 +85,37 @@ fn is_some_and_pattern_negative(mut vec: Vec<i32>, mut deque: VecDeque<i32>) {
         vec2.pop().unwrap();
     }
 
+    // Do not lint, different vectors
+    if vec.last().is_some_and(|x| *x > 2) {
+        vec2.pop();
+    }
+
+    // Do not lint, the popped value is bound and used, so it is not discarded
+    if vec.last().is_some_and(|x| *x > 2) {
+        let popped = vec.pop();
+        println!("{popped:?}");
+    }
+
+    // Do not lint, dropping the `let` would drop a type annotation that may be what
+    // pins down the element type of the collection
+    if vec.last().is_some_and(|x| *x > 2) {
+        let _: Option<i32> = vec.pop();
+    }
+
+    // Do not lint, `pop` is in value position and carries no "not empty" intent
+    if vec.last().is_some_and(|x| *x > 2) {
+        while vec.pop().is_some() {}
+    }
+
     // Do not lint, non-Vec type
     let mut fake_vec: FakeVec<i32> = FakeVec(PhantomData);
     if fake_vec.last().is_some_and(|x| *x > 2) {
         fake_vec.pop().unwrap();
+    }
+
+    // Do not lint, non-Vec type
+    if fake_vec.last().is_some_and(|x| *x > 2) {
+        fake_vec.pop();
     }
 
     // Do not lint, else block
@@ -113,6 +166,34 @@ fn if_let_pattern_positive(mut vec: Vec<i32>, mut deque: VecDeque<i32>, mut heap
     if let Some(x) = heap.peek() {
         if *x > 2 {
             heap.pop().unwrap();
+        }
+    }
+
+    //~v manual_pop_if
+    if let Some(x) = vec.last() {
+        if *x > 2 {
+            vec.pop();
+        }
+    }
+
+    //~v manual_pop_if
+    if let Some(x) = deque.back() {
+        if *x > 2 {
+            deque.pop_back();
+        }
+    }
+
+    //~v manual_pop_if
+    if let Some(x) = deque.front() {
+        if *x > 2 {
+            deque.pop_front();
+        }
+    }
+
+    //~v manual_pop_if
+    if let Some(x) = heap.peek() {
+        if *x > 2 {
+            heap.pop();
         }
     }
 }
@@ -185,6 +266,30 @@ fn let_chain_pattern_positive(mut vec: Vec<i32>, mut deque: VecDeque<i32>, mut h
     {
         heap.pop().unwrap();
     }
+
+    if let Some(x) = vec.last() //~ manual_pop_if
+        && *x > 2
+    {
+        vec.pop();
+    }
+
+    if let Some(x) = deque.back() //~ manual_pop_if
+        && *x > 2
+    {
+        deque.pop_back();
+    }
+
+    if let Some(x) = deque.front() //~ manual_pop_if
+        && *x > 2
+    {
+        deque.pop_front();
+    }
+
+    if let Some(x) = heap.peek() //~ manual_pop_if
+        && *x > 2
+    {
+        heap.pop();
+    }
 }
 
 fn let_chain_pattern_negative(mut vec: Vec<i32>) {
@@ -243,6 +348,26 @@ fn map_unwrap_or_pattern_positive(mut vec: Vec<i32>, mut deque: VecDeque<i32>, m
     if heap.peek().map(|x| *x > 2).unwrap_or(false) {
         heap.pop().unwrap();
     }
+
+    //~v manual_pop_if
+    if vec.last().map(|x| *x > 2).unwrap_or(false) {
+        vec.pop();
+    }
+
+    //~v manual_pop_if
+    if deque.back().map(|x| *x > 2).unwrap_or(false) {
+        deque.pop_back();
+    }
+
+    //~v manual_pop_if
+    if deque.front().map(|x| *x > 2).unwrap_or(false) {
+        deque.pop_front();
+    }
+
+    //~v manual_pop_if
+    if heap.peek().map(|x| *x > 2).unwrap_or(false) {
+        heap.pop();
+    }
 }
 
 fn map_unwrap_or_pattern_negative(mut vec: Vec<i32>) {
@@ -288,6 +413,10 @@ fn handle_macro_in_closure(mut vec: Vec<Vec<i32>>) {
 fn msrv_too_low_vec(mut vec: Vec<i32>) {
     if vec.last().is_some_and(|x| *x > 2) {
         vec.pop().unwrap();
+    }
+
+    if vec.last().is_some_and(|x| *x > 2) {
+        vec.pop();
     }
 }
 

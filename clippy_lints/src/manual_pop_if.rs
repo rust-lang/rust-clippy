@@ -8,7 +8,7 @@ use clippy_utils::{eq_expr_value, is_else_clause, is_lang_item_or_ctor, span_con
 use rustc_ast::LitKind;
 use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::attrs::lang_items::LangItem;
-use rustc_hir::{BlockCheckMode, Expr, ExprKind, PatKind, StmtKind, UnsafeSource};
+use rustc_hir::{BlockCheckMode, Expr, ExprKind, PatKind, Stmt, StmtKind, UnsafeSource};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{BytePos, Span, Symbol};
@@ -41,6 +41,9 @@ declare_clippy_lint! {
     /// if deque.front().is_some_and(|x| *x > 5) {
     ///     deque.pop_front().unwrap();
     /// }
+    /// if vec.last().is_some_and(|x| *x > 9) {
+    ///     vec.pop();
+    /// }
     /// ```
     /// Use instead:
     /// ```no_run
@@ -50,6 +53,7 @@ declare_clippy_lint! {
     /// vec.pop_if(|x| *x > 5);
     /// deque.pop_back_if(|x| *x > 5);
     /// deque.pop_front_if(|x| *x > 5);
+    /// vec.pop_if(|x| *x > 9);
     /// ```
     #[clippy::version = "1.96.0"]
     pub MANUAL_POP_IF,
@@ -211,7 +215,7 @@ fn check_is_some_and_pattern<'tcx>(
         && kind.is_diag_item(cx, collection_expr)
         && let ExprKind::Closure(closure) = closure_arg.kind
         && let body = cx.tcx.hir_body(closure.body)
-        && let Some((pop_collection, pop_span, suggestable)) = check_pop_unwrap(cx, then_block, pop_method)
+        && let Some((pop_collection, pop_span, suggestable)) = check_pop(cx, then_block, pop_method)
         && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
         && let Some(param) = body.params.first()
         && let Some(ident) = param.pat.simple_ident()
@@ -273,7 +277,7 @@ fn check_if_let_pattern<'tcx>(
 
             if let ExprKind::If(inner_cond, inner_then, None) = inner_if.kind
                 && is_local_used(cx, inner_cond, binding_id)
-                && let Some((pop_collection, pop_span, suggestable)) = check_pop_unwrap(cx, inner_then, pop_method)
+                && let Some((pop_collection, pop_span, suggestable)) = check_pop(cx, inner_then, pop_method)
                 && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
             {
                 return Some(ManualPopIfPattern {
@@ -326,7 +330,7 @@ fn check_let_chain_pattern<'tcx>(
             && path.ident.name == peek_method
             && kind.is_diag_item(cx, collection_expr)
             && is_local_used(cx, right, binding_id)
-            && let Some((pop_collection, pop_span, suggestable)) = check_pop_unwrap(cx, then_block, pop_method)
+            && let Some((pop_collection, pop_span, suggestable)) = check_pop(cx, then_block, pop_method)
             && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
         {
             return Some(ManualPopIfPattern {
@@ -371,7 +375,7 @@ fn check_map_unwrap_or_pattern<'tcx>(
         && let ExprKind::Closure(closure) = closure_arg.kind
         && let body = cx.tcx.hir_body(closure.body)
         && cx.typeck_results().expr_ty(body.value).is_bool()
-        && let Some((pop_collection, pop_span, suggestable)) = check_pop_unwrap(cx, then_block, pop_method)
+        && let Some((pop_collection, pop_span, suggestable)) = check_pop(cx, then_block, pop_method)
         && eq_expr_value(cx, if_expr_span.ctxt(), collection_expr, pop_collection)
         && let Some(param) = body.params.first()
         && let Some(ident) = param.pat.simple_ident()
@@ -390,11 +394,13 @@ fn check_map_unwrap_or_pattern<'tcx>(
     None
 }
 
-/// Checks for `collection.<pop_method>().unwrap()` or `collection.<pop_method>().expect(..)`
-/// and returns the collection expression and the span of the pop+unwrap call.
-/// If the pop+unwrap is the only statement in the block, the result is marked as
+/// Checks for a `collection.<pop_method>()` call whose result is either unwrapped
+/// (`.unwrap()`, `.expect(..)` or `.unwrap_unchecked()`) or discarded
+/// (`collection.pop();` or `let _ = collection.pop();`), and returns the collection
+/// expression and the span of the call.
+/// If the call is the only statement in the block, the result is marked as
 /// suggestable (we can provide an automatic fix).
-fn check_pop_unwrap<'tcx>(
+fn check_pop<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
     pop_method: Symbol,
@@ -403,14 +409,23 @@ fn check_pop_unwrap<'tcx>(
         return None;
     };
 
+    let as_pop = |expr: &Expr<'tcx>| -> Option<(&'tcx Expr<'tcx>, Span)> {
+        if let ExprKind::MethodCall(pop_path, collection_expr, [], _) = expr.kind
+            && pop_path.ident.name == pop_method
+        {
+            Some((collection_expr, expr.span))
+        } else {
+            None
+        }
+    };
+
     let as_pop_unwrap = |expr: &Expr<'tcx>| -> Option<(&'tcx Expr<'tcx>, Span)> {
         if let ExprKind::MethodCall(unwrap_path, receiver, _, _) = expr.kind
             && matches!(
                 unwrap_path.ident.name,
                 sym::unwrap | sym::unwrap_unchecked | sym::expect
             )
-            && let ExprKind::MethodCall(pop_path, collection_expr, [], _) = receiver.kind
-            && pop_path.ident.name == pop_method
+            && let Some((collection_expr, _)) = as_pop(receiver)
         {
             Some((collection_expr, expr.span))
         } else {
@@ -431,18 +446,48 @@ fn check_pop_unwrap<'tcx>(
         }
     };
 
-    // Check for single statement with the pop unwrap (not in a macro or other expression)
+    // A statement that pops and throws the value away: `collection.pop();` or
+    // `let _ = collection.pop();`. Unlike a bare `collection.pop()` in value position,
+    // this is exactly what `pop_if` does, so it is worth linting on its own.
+    //
+    // An annotated `let _: Option<i32> = collection.pop();` is left alone: the whole
+    // statement is replaced by the suggestion, and the annotation may be what pins down
+    // the element type of the collection.
+    let as_discarded_pop = |stmt: &Stmt<'tcx>| -> Option<(&'tcx Expr<'tcx>, Span)> {
+        match stmt.kind {
+            StmtKind::Semi(stmt_expr) if !stmt_expr.span.from_expansion() => as_pop(stmt_expr),
+            StmtKind::Let(let_stmt)
+                if matches!(let_stmt.pat.kind, PatKind::Wild)
+                    && let_stmt.ty.is_none()
+                    && !stmt.span.from_expansion() =>
+            {
+                let_stmt.init.and_then(&as_pop)
+            },
+            _ => None,
+        }
+    };
+
+    // Returns the pop call of a statement, along with the position the replaced code
+    // starts at (which is the start of the statement itself, as e.g. the `let _ =` of a
+    // discarded pop is replaced as well).
+    let as_pop_stmt = |stmt: &Stmt<'tcx>| -> Option<(&'tcx Expr<'tcx>, Span, BytePos)> {
+        if let StmtKind::Semi(stmt_expr) | StmtKind::Expr(stmt_expr) = stmt.kind
+            && !stmt_expr.span.from_expansion()
+            && let Some((collection_expr, span)) = as_pop_unwrap(peel_unsafe(stmt_expr))
+        {
+            Some((collection_expr, span, stmt_expr.span.lo()))
+        } else {
+            as_discarded_pop(stmt).map(|(collection_expr, span)| (collection_expr, span, stmt.span.lo()))
+        }
+    };
+
+    // Check for single statement with the pop (not in a macro or other expression)
     // and that there are no comments or other text before or after the pop call.
     if let [stmt] = block.stmts
         && block.expr.is_none()
-        && let StmtKind::Semi(stmt_expr) | StmtKind::Expr(stmt_expr) = &stmt.kind
-        && !stmt_expr.span.from_expansion()
-        && let Some((collection_expr, span)) = as_pop_unwrap(peel_unsafe(stmt_expr))
+        && let Some((collection_expr, span, stmt_lo)) = as_pop_stmt(stmt)
     {
-        let span_before = block
-            .span
-            .with_lo(block.span.lo() + BytePos(1))
-            .with_hi(stmt_expr.span.lo());
+        let span_before = block.span.with_lo(block.span.lo() + BytePos(1)).with_hi(stmt_lo);
         let span_after = stmt.span.shrink_to_hi().with_hi(block.span.hi() - BytePos(1));
         let suggestable = !span_contains_non_whitespace(cx, span_before, false)
             && !span_contains_non_whitespace(cx, span_after, false);
@@ -450,12 +495,22 @@ fn check_pop_unwrap<'tcx>(
     }
 
     // Check if the pop unwrap is present at all
-    for_each_expr_without_closures(block, |expr| {
+    let pop_unwrap = for_each_expr_without_closures(block, |expr| {
         if let Some((collection_expr, span)) = as_pop_unwrap(expr) {
             ControlFlow::Break((collection_expr, span, false))
         } else {
             ControlFlow::Continue(())
         }
+    });
+
+    // Otherwise, look for a discarded pop among the statements of the block. This is
+    // deliberately not a full expression walk: a `collection.pop()` in value position
+    // carries none of the "the collection is not empty" intent that `.unwrap()` does.
+    pop_unwrap.or_else(|| {
+        block
+            .stmts
+            .iter()
+            .find_map(|stmt| as_discarded_pop(stmt).map(|(collection_expr, span)| (collection_expr, span, false)))
     })
 }
 
