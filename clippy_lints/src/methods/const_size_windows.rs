@@ -10,11 +10,10 @@ use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
-use rustc_hir::{Expr, ExprKind, ImplItemKind, Item, ItemKind, Node, QPath, TraitFn, TraitItemKind, UnOp};
+use rustc_hir::{Expr, ExprKind, QPath, UnOp};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{AssocTag, EarlyBinder, Ty, Unnormalized};
 use rustc_span::{Span, Symbol};
-use std::ops::Not as _;
 
 const ARRAY_WINDOWS: Symbol = sym::array_windows;
 const WINDOWS: Symbol = sym::windows;
@@ -162,8 +161,11 @@ fn compute_suggestion<'tcx>(
 
 fn build_destructured_array(cx: &LateContext<'_>, size_arg: &Expr<'_>) -> Option<DestructuredArray> {
     const MAX_HINTED_DESTRUCTURED_ARRAY_LENGTH: u128 = 5;
-    let containing_fn = get_containing_fn(cx, size_arg)?;
-    let is_unused_name = |name: &&str| !contains_name(Symbol::intern(name), containing_fn, cx);
+    let containing_body = cx
+        .tcx
+        .hir_body_owned_by(cx.tcx.hir_enclosing_body_owner(size_arg.hir_id))
+        .value;
+    let is_unused_name = |name: &&str| !contains_name(Symbol::intern(name), containing_body, cx);
 
     let destructured_array = if let ExprKind::Lit(lit) = size_arg.kind
         && let LitKind::Int(Pu128(length), _) = lit.node
@@ -207,9 +209,7 @@ fn expr_needs_braces_in_const_arg(expr: &Expr<'_>) -> bool {
     expr.span.from_expansion()
         || match &expr.kind {
             ExprKind::Lit(_) => false,
-            ExprKind::Path(QPath::Resolved(None, path)) => {
-                path.segments.len() != 1 || path.segments[0].args.is_none().not()
-            },
+            ExprKind::Path(QPath::Resolved(None, path)) => path.segments.len() != 1 || path.segments[0].args.is_some(),
             _ => true,
         }
 }
@@ -241,28 +241,6 @@ fn trait_declares_array_windows(cx: &LateContext<'_>, trait_def_id: DefId) -> bo
         .associated_items(trait_def_id)
         .filter_by_name_unhygienic(ARRAY_WINDOWS)
         .any(|item| item.tag() == AssocTag::Fn)
-}
-
-fn get_containing_fn<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>) -> Option<&'tcx Expr<'tcx>> {
-    let parent_item = cx.tcx.hir_get_parent_item(expr.hir_id);
-
-    let body_id = match cx.tcx.hir_node_by_def_id(parent_item.def_id) {
-        Node::Item(Item {
-            kind: ItemKind::Fn { body, .. },
-            ..
-        })
-        | Node::ImplItem(rustc_hir::ImplItem {
-            kind: ImplItemKind::Fn(_, body),
-            ..
-        })
-        | Node::TraitItem(rustc_hir::TraitItem {
-            kind: TraitItemKind::Fn(_, TraitFn::Provided(body)),
-            ..
-        }) => Some(*body),
-        _ => None,
-    };
-
-    Some(cx.tcx.hir_body(body_id?).value)
 }
 
 /// Attempt to produce a snippet of type &T by removing/adding `&` and `*` operators.
