@@ -26,6 +26,14 @@ fn main() {
     };
     //~^^^^ redundant_pattern_matching
 
+    // Lint when the more specific lint is explicitly allowed.
+    #[allow(clippy::redundant_pattern_matching)]
+    let _allowed = match x {
+        Some(_) => true,
+        _ => false,
+    };
+    //~^^^^ match_like_matches_macro
+
     // Lint
     let _zz = match x {
         Some(r) if r == 0 => false,
@@ -91,20 +99,30 @@ fn main() {
     {
         // no lint
         let _ans = match x {
+            E::A(_) => true,
+            E::B(_) => true,
+            _ => true,
+        };
+    }
+    {
+        // lint
+        let _ans = match x {
             E::A(_) => false,
             E::B(_) => false,
             E::C => true,
             _ => true,
         };
+        //~^^^^^^ match_like_matches_macro
     }
     {
-        // no lint
+        // lint
         let _ans = match x {
             E::A(_) => true,
             E::B(_) => false,
             E::C => false,
             _ => true,
         };
+        //~^^^^^^ match_like_matches_macro
     }
     {
         // no lint
@@ -131,11 +149,37 @@ fn main() {
         };
     }
     {
-        // no lint
+        // lint
         let _ans = match x {
             E::A(_) => false,
             E::B(_) => true,
             _ => false,
+        };
+        //~^^^^^ match_like_matches_macro
+    }
+    {
+        enum MatchType {
+            A(u32),
+            B(u32, u32),
+            C,
+        }
+
+        // lint: the matching result is split by an arm returning `false`
+        let _ans = match MatchType::A(0) {
+            MatchType::A(_) => true,
+            MatchType::B(_, _) => false,
+            MatchType::C => true,
+        };
+        //~^^^^^ match_like_matches_macro
+    }
+    {
+        #![allow(clippy::match_overlapping_arm)]
+
+        // no lint: moving the second arm into an or-pattern would change the result for 5..=10
+        let _ans = match 7 {
+            0..=10 => true,
+            5..=15 => false,
+            _ => true,
         };
     }
 

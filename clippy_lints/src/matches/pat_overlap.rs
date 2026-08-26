@@ -8,6 +8,11 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{ByteSymbol, ErrorGuaranteed, Symbol};
 
+pub(super) fn patterns_overlap(cx: &LateContext<'_>, lhs: &Pat<'_>, rhs: &Pat<'_>) -> bool {
+    let arena = DroplessArena::default();
+    NormalizedPat::from_pat(cx, &arena, lhs).has_overlapping_values(&NormalizedPat::from_pat(cx, &arena, rhs))
+}
+
 #[derive(Clone, Copy)]
 pub(super) enum NormalizedPat<'a> {
     Wild,

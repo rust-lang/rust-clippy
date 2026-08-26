@@ -297,7 +297,11 @@ pub enum RangeTy {
     RangeToInclusive,
 }
 
-#[expect(clippy::match_same_arms, reason = "regularity over density")]
+#[expect(
+    clippy::match_like_matches_macro,
+    clippy::match_same_arms,
+    reason = "regularity over density"
+)]
 impl RangeTy {
     /// Returns whether this type implements [`IntoIterator`] — that is, whether it is iterable —
     /// presuming that its element type implements the `Step` trait.
