@@ -177,7 +177,7 @@ LL +     heap.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:131:5
+  --> tests/ui/manual_pop_if.rs:130:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -197,7 +197,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:138:5
+  --> tests/ui/manual_pop_if.rs:137:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -217,7 +217,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:145:5
+  --> tests/ui/manual_pop_if.rs:144:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -237,7 +237,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_back_if`
-  --> tests/ui/manual_pop_if.rs:152:5
+  --> tests/ui/manual_pop_if.rs:151:5
    |
 LL |     if let Some(x) = deque.back() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -257,7 +257,7 @@ LL +     deque.pop_back_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_front_if`
-  --> tests/ui/manual_pop_if.rs:159:5
+  --> tests/ui/manual_pop_if.rs:158:5
    |
 LL |     if let Some(x) = deque.front() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -277,7 +277,7 @@ LL +     deque.pop_front_if(|x| *x > 2);
    |
 
 error: manual implementation of `BinaryHeap::pop_if`
-  --> tests/ui/manual_pop_if.rs:166:5
+  --> tests/ui/manual_pop_if.rs:165:5
    |
 LL |     if let Some(x) = heap.peek() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -297,7 +297,7 @@ LL +     heap.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:173:5
+  --> tests/ui/manual_pop_if.rs:172:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -317,7 +317,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_back_if`
-  --> tests/ui/manual_pop_if.rs:180:5
+  --> tests/ui/manual_pop_if.rs:179:5
    |
 LL |     if let Some(x) = deque.back() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -337,7 +337,7 @@ LL +     deque.pop_back_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_front_if`
-  --> tests/ui/manual_pop_if.rs:187:5
+  --> tests/ui/manual_pop_if.rs:186:5
    |
 LL |     if let Some(x) = deque.front() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -357,7 +357,7 @@ LL +     deque.pop_front_if(|x| *x > 2);
    |
 
 error: manual implementation of `BinaryHeap::pop_if`
-  --> tests/ui/manual_pop_if.rs:194:5
+  --> tests/ui/manual_pop_if.rs:193:5
    |
 LL |     if let Some(x) = heap.peek() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -377,7 +377,7 @@ LL +     heap.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:234:5
+  --> tests/ui/manual_pop_if.rs:233:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -397,7 +397,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:240:5
+  --> tests/ui/manual_pop_if.rs:239:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -417,7 +417,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:246:5
+  --> tests/ui/manual_pop_if.rs:245:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -437,7 +437,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_back_if`
-  --> tests/ui/manual_pop_if.rs:252:5
+  --> tests/ui/manual_pop_if.rs:251:5
    |
 LL | /     if let Some(x) = deque.back()
 LL | |         && *x > 2
@@ -457,7 +457,7 @@ LL +     deque.pop_back_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_front_if`
-  --> tests/ui/manual_pop_if.rs:258:5
+  --> tests/ui/manual_pop_if.rs:257:5
    |
 LL | /     if let Some(x) = deque.front()
 LL | |         && *x > 2
@@ -477,7 +477,7 @@ LL +     deque.pop_front_if(|x| *x > 2);
    |
 
 error: manual implementation of `BinaryHeap::pop_if`
-  --> tests/ui/manual_pop_if.rs:264:5
+  --> tests/ui/manual_pop_if.rs:263:5
    |
 LL | /     if let Some(x) = heap.peek()
 LL | |         && *x > 2
@@ -497,7 +497,7 @@ LL +     heap.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:270:5
+  --> tests/ui/manual_pop_if.rs:269:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -517,7 +517,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_back_if`
-  --> tests/ui/manual_pop_if.rs:276:5
+  --> tests/ui/manual_pop_if.rs:275:5
    |
 LL | /     if let Some(x) = deque.back()
 LL | |         && *x > 2
@@ -537,7 +537,7 @@ LL +     deque.pop_back_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_front_if`
-  --> tests/ui/manual_pop_if.rs:282:5
+  --> tests/ui/manual_pop_if.rs:281:5
    |
 LL | /     if let Some(x) = deque.front()
 LL | |         && *x > 2
@@ -557,7 +557,7 @@ LL +     deque.pop_front_if(|x| *x > 2);
    |
 
 error: manual implementation of `BinaryHeap::pop_if`
-  --> tests/ui/manual_pop_if.rs:288:5
+  --> tests/ui/manual_pop_if.rs:287:5
    |
 LL | /     if let Some(x) = heap.peek()
 LL | |         && *x > 2
@@ -577,7 +577,7 @@ LL +     heap.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:323:5
+  --> tests/ui/manual_pop_if.rs:322:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -593,7 +593,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:328:5
+  --> tests/ui/manual_pop_if.rs:327:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -609,7 +609,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:333:5
+  --> tests/ui/manual_pop_if.rs:332:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -625,7 +625,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_back_if`
-  --> tests/ui/manual_pop_if.rs:338:5
+  --> tests/ui/manual_pop_if.rs:337:5
    |
 LL |     if deque.back().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -641,7 +641,7 @@ LL +     deque.pop_back_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_front_if`
-  --> tests/ui/manual_pop_if.rs:343:5
+  --> tests/ui/manual_pop_if.rs:342:5
    |
 LL |     if deque.front().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -657,7 +657,7 @@ LL +     deque.pop_front_if(|x| *x > 2);
    |
 
 error: manual implementation of `BinaryHeap::pop_if`
-  --> tests/ui/manual_pop_if.rs:348:5
+  --> tests/ui/manual_pop_if.rs:347:5
    |
 LL |     if heap.peek().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -673,7 +673,7 @@ LL +     heap.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:353:5
+  --> tests/ui/manual_pop_if.rs:352:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -689,7 +689,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_back_if`
-  --> tests/ui/manual_pop_if.rs:358:5
+  --> tests/ui/manual_pop_if.rs:357:5
    |
 LL |     if deque.back().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -705,7 +705,7 @@ LL +     deque.pop_back_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_front_if`
-  --> tests/ui/manual_pop_if.rs:363:5
+  --> tests/ui/manual_pop_if.rs:362:5
    |
 LL |     if deque.front().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -721,7 +721,7 @@ LL +     deque.pop_front_if(|x| *x > 2);
    |
 
 error: manual implementation of `BinaryHeap::pop_if`
-  --> tests/ui/manual_pop_if.rs:368:5
+  --> tests/ui/manual_pop_if.rs:367:5
    |
 LL |     if heap.peek().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -737,7 +737,7 @@ LL +     heap.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:407:5
+  --> tests/ui/manual_pop_if.rs:406:5
    |
 LL |     if vec.last().is_some_and(|e| *e == vec![1]) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -753,7 +753,7 @@ LL +     vec.pop_if(|e| *e == vec![1]);
    |
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if.rs:437:5
+  --> tests/ui/manual_pop_if.rs:436:5
    |
 LL |     if vec.last().is_some_and(|x| *x > 2) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -769,7 +769,7 @@ LL +     vec.pop_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_back_if`
-  --> tests/ui/manual_pop_if.rs:445:5
+  --> tests/ui/manual_pop_if.rs:444:5
    |
 LL |     if deque.back().is_some_and(|x| *x > 2) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -785,7 +785,7 @@ LL +     deque.pop_back_if(|x| *x > 2);
    |
 
 error: manual implementation of `VecDeque::pop_front_if`
-  --> tests/ui/manual_pop_if.rs:450:5
+  --> tests/ui/manual_pop_if.rs:449:5
    |
 LL |     if deque.front().is_some_and(|x| *x > 2) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

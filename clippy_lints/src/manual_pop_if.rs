@@ -394,10 +394,10 @@ fn check_map_unwrap_or_pattern<'tcx>(
     None
 }
 
-/// Checks for a `collection.<pop_method>()` call whose result is either unwrapped
-/// (`.unwrap()`, `.expect(..)` or `.unwrap_unchecked()`) or discarded
-/// (`collection.pop();` or `let _ = collection.pop();`), and returns the collection
-/// expression and the span of the call.
+/// Checks for a `collection.<pop_method>()` call.
+/// Returns the collection expression and the span of the call.
+/// The result must be unwrapped with `.unwrap()`, `.expect(..)` or `.unwrap_unchecked()`.
+/// It can also be discarded with `collection.pop()` or `let _ = collection.pop()`.
 /// If the call is the only statement in the block, the result is marked as
 /// suggestable (we can provide an automatic fix).
 fn check_pop<'tcx>(
@@ -446,13 +446,16 @@ fn check_pop<'tcx>(
         }
     };
 
-    // A statement that pops and throws the value away: `collection.pop();` or
-    // `let _ = collection.pop();`. Unlike a bare `collection.pop()` in value position,
-    // this is exactly what `pop_if` does, so it is worth linting on its own.
+    // Matches a statement that pops and throws the value away.
+    // That is `collection.pop()` or `let _ = collection.pop()`.
+    // This is exactly what `pop_if` does.
     //
-    // An annotated `let _: Option<i32> = collection.pop();` is left alone: the whole
-    // statement is replaced by the suggestion, and the annotation may be what pins down
-    // the element type of the collection.
+    // A pop in value position is not matched.
+    // Unlike `.unwrap()`, it does not claim that the collection is non-empty.
+    //
+    // A pop with a type annotation is not matched either.
+    // The suggestion replaces the whole statement.
+    // The annotation may be the only thing pinning down the element type.
     let as_discarded_pop = |stmt: &Stmt<'tcx>| -> Option<(&'tcx Expr<'tcx>, Span)> {
         match stmt.kind {
             StmtKind::Semi(stmt_expr) if !stmt_expr.span.from_expansion() => as_pop(stmt_expr),
@@ -467,31 +470,30 @@ fn check_pop<'tcx>(
         }
     };
 
-    // Returns the pop call of a statement, along with the position the replaced code
-    // starts at (which is the start of the statement itself, as e.g. the `let _ =` of a
-    // discarded pop is replaced as well).
-    let as_pop_stmt = |stmt: &Stmt<'tcx>| -> Option<(&'tcx Expr<'tcx>, Span, BytePos)> {
-        if let StmtKind::Semi(stmt_expr) | StmtKind::Expr(stmt_expr) = stmt.kind
+    // Check for single statement with the pop (not in a macro or other expression)
+    // and that there are no comments or other text before or after the pop call.
+    if let [stmt] = block.stmts
+        && block.expr.is_none()
+    {
+        // `stmt_lo` is where the replaced code starts.
+        // The suggestion replaces the whole statement.
+        // For `let _ = collection.pop()` that includes the `let _ =` part.
+        let pop = if let StmtKind::Semi(stmt_expr) | StmtKind::Expr(stmt_expr) = stmt.kind
             && !stmt_expr.span.from_expansion()
             && let Some((collection_expr, span)) = as_pop_unwrap(peel_unsafe(stmt_expr))
         {
             Some((collection_expr, span, stmt_expr.span.lo()))
         } else {
             as_discarded_pop(stmt).map(|(collection_expr, span)| (collection_expr, span, stmt.span.lo()))
-        }
-    };
+        };
 
-    // Check for single statement with the pop (not in a macro or other expression)
-    // and that there are no comments or other text before or after the pop call.
-    if let [stmt] = block.stmts
-        && block.expr.is_none()
-        && let Some((collection_expr, span, stmt_lo)) = as_pop_stmt(stmt)
-    {
-        let span_before = block.span.with_lo(block.span.lo() + BytePos(1)).with_hi(stmt_lo);
-        let span_after = stmt.span.shrink_to_hi().with_hi(block.span.hi() - BytePos(1));
-        let suggestable = !span_contains_non_whitespace(cx, span_before, false)
-            && !span_contains_non_whitespace(cx, span_after, false);
-        return Some((collection_expr, span, suggestable));
+        if let Some((collection_expr, span, stmt_lo)) = pop {
+            let span_before = block.span.with_lo(block.span.lo() + BytePos(1)).with_hi(stmt_lo);
+            let span_after = stmt.span.shrink_to_hi().with_hi(block.span.hi() - BytePos(1));
+            let suggestable = !span_contains_non_whitespace(cx, span_before, false)
+                && !span_contains_non_whitespace(cx, span_after, false);
+            return Some((collection_expr, span, suggestable));
+        }
     }
 
     // Check if the pop unwrap is present at all
@@ -503,9 +505,8 @@ fn check_pop<'tcx>(
         }
     });
 
-    // Otherwise, look for a discarded pop among the statements of the block. This is
-    // deliberately not a full expression walk: a `collection.pop()` in value position
-    // carries none of the "the collection is not empty" intent that `.unwrap()` does.
+    // Otherwise look for a discarded pop among the statements of the block.
+    // Only the statements are checked, not every expression.
     pop_unwrap.or_else(|| {
         block
             .stmts

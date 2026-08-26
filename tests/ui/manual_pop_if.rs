@@ -51,7 +51,7 @@ fn is_some_and_pattern_positive(mut vec: Vec<i32>, mut deque: VecDeque<i32>, mut
         heap.pop().unwrap();
     }
 
-    // The popped value is discarded, which is exactly what `pop_if` does
+    // The popped value is discarded, which is what `pop_if` does
     //~v manual_pop_if
     if vec.last().is_some_and(|x| *x > 2) {
         vec.pop();
@@ -90,19 +90,18 @@ fn is_some_and_pattern_negative(mut vec: Vec<i32>, mut deque: VecDeque<i32>) {
         vec2.pop();
     }
 
-    // Do not lint, the popped value is bound and used, so it is not discarded
+    // Do not lint, the popped value is bound and used
     if vec.last().is_some_and(|x| *x > 2) {
         let popped = vec.pop();
         println!("{popped:?}");
     }
 
-    // Do not lint, dropping the `let` would drop a type annotation that may be what
-    // pins down the element type of the collection
+    // Do not lint, the type annotation may pin down the element type
     if vec.last().is_some_and(|x| *x > 2) {
         let _: Option<i32> = vec.pop();
     }
 
-    // Do not lint, `pop` is in value position and carries no "not empty" intent
+    // Do not lint, the pop is in value position
     if vec.last().is_some_and(|x| *x > 2) {
         while vec.pop().is_some() {}
     }
