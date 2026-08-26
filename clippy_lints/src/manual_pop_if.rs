@@ -394,10 +394,8 @@ fn check_map_unwrap_or_pattern<'tcx>(
     None
 }
 
-/// Checks for a `collection.<pop_method>()` call.
-/// Returns the collection expression and the span of the call.
-/// The result must be unwrapped with `.unwrap()`, `.expect(..)` or `.unwrap_unchecked()`.
-/// It can also be discarded with `collection.pop()` or `let _ = collection.pop()`.
+/// Checks for a `collection.<pop_method>()` call and returns the collection
+/// expression and the span of the call.
 /// If the call is the only statement in the block, the result is marked as
 /// suggestable (we can provide an automatic fix).
 fn check_pop<'tcx>(
@@ -446,16 +444,11 @@ fn check_pop<'tcx>(
         }
     };
 
-    // Matches a statement that pops and throws the value away.
-    // That is `collection.pop()` or `let _ = collection.pop()`.
-    // This is exactly what `pop_if` does.
-    //
-    // A pop in value position is not matched.
-    // Unlike `.unwrap()`, it does not claim that the collection is non-empty.
-    //
-    // A pop with a type annotation is not matched either.
-    // The suggestion replaces the whole statement.
-    // The annotation may be the only thing pinning down the element type.
+    // Matches a statement that pops and throws the value away, which is exactly what
+    // `pop_if` does. A pop in value position is not matched, as unlike `.unwrap()` it
+    // does not claim that the collection is non-empty. A pop with a type annotation is
+    // not matched either, as the annotation may be the only thing pinning down the
+    // element type.
     let as_discarded_pop = |stmt: &Stmt<'tcx>| -> Option<(&'tcx Expr<'tcx>, Span)> {
         match stmt.kind {
             StmtKind::Semi(stmt_expr) if !stmt_expr.span.from_expansion() => as_pop(stmt_expr),
@@ -475,9 +468,8 @@ fn check_pop<'tcx>(
     if let [stmt] = block.stmts
         && block.expr.is_none()
     {
-        // `stmt_lo` is where the replaced code starts.
-        // The suggestion replaces the whole statement.
-        // For `let _ = collection.pop()` that includes the `let _ =` part.
+        // `stmt_lo` is where the replaced code starts. The suggestion replaces the whole
+        // statement, so for `let _ = collection.pop()` that includes the `let _ =` part.
         let pop = if let StmtKind::Semi(stmt_expr) | StmtKind::Expr(stmt_expr) = stmt.kind
             && !stmt_expr.span.from_expansion()
             && let Some((collection_expr, span)) = as_pop_unwrap(peel_unsafe(stmt_expr))
@@ -505,8 +497,8 @@ fn check_pop<'tcx>(
         }
     });
 
-    // Otherwise look for a discarded pop among the statements of the block.
-    // Only the statements are checked, not every expression.
+    // Otherwise look for a discarded pop among the statements of the block. Only the
+    // statements are checked, not every expression.
     pop_unwrap.or_else(|| {
         block
             .stmts
