@@ -2,7 +2,7 @@ use crate::utils::{StrBuf, VecBuf};
 use crate::{DiagCx, SourceFile, Span};
 use core::{ptr, slice};
 use rustc_arena::DroplessArena;
-use rustc_lexer::{self as lex, DocStyle, LiteralKind, Token, TokenKind};
+use rustc_lexer::{self as lex, DocStyle, LiteralKind, Token, TokenKind, is_whitespace};
 
 /// A token pattern used for searching and matching by the [`Cursor`].
 ///
@@ -99,6 +99,7 @@ decl_ident_pats! {
     RENAMED,
     RENAMED_VERSION,
     clippy,
+    r#for = "for",
     r#pub = "pub",
     version,
 }
@@ -169,6 +170,17 @@ impl<'txt> Cursor<'txt> {
     #[must_use]
     pub fn pos(&self) -> u32 {
         self.pos
+    }
+
+    /// Checks whether the current token is a whitespace token with multiple line breaks.
+    #[must_use]
+    pub fn at_multi_line_break(&self) -> bool {
+        let is_whitespace = |c| is_whitespace(c) && c != '\n';
+
+        self.peek_text()
+            .trim_start_matches(is_whitespace)
+            .strip_prefix('\n')
+            .is_some_and(|s| s.trim_start_matches(is_whitespace).starts_with('\n'))
     }
 
     /// Advances the cursor to the next token. If the stream is exhausted this will set
