@@ -420,9 +420,10 @@ use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::is_lint_pass_required;
 use rustc_middle::ty::TyCtxt;
+use std::process::ExitCode;
 use utils::attr_collector::AttrStorage;
 
-pub fn explain(name: &str) -> i32 {
+pub fn explain(name: &str) -> ExitCode {
     let target = format!("clippy::{name}");
     if let Some(info) = declared_lints::LINTS.iter().find(|info| info.lint.name == target) {
         println!("{}", sanitize_explanation(info.explanation));
@@ -436,10 +437,10 @@ pub fn explain(name: &str) -> i32 {
                 println!("{conf}");
             }
         }
-        0
+        ExitCode::SUCCESS
     } else {
         println!("unknown lint: {name}");
-        1
+        ExitCode::FAILURE
     }
 }
 
