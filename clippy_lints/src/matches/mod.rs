@@ -16,6 +16,7 @@ mod match_wild_enum;
 mod match_wild_err_arm;
 mod needless_match;
 mod overlapping_arms;
+mod pat_overlap;
 mod redundant_guards;
 mod redundant_pattern_match;
 mod rest_pat_in_fully_bound_struct;
