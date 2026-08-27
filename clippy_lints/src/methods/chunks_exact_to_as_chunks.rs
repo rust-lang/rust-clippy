@@ -11,6 +11,23 @@ use rustc_lint::LateContext;
 use rustc_middle::ty;
 use rustc_span::{DesugaringKind, ExpnKind, Span, Symbol};
 
+/// Checks constant-sized `chunks_exact` calls and suggests equivalent `as_chunks` usage.
+///
+/// # Examples
+///
+/// ```
+/// let chunks = bytes.chunks_exact(4);
+/// // Prefer: `bytes.as_chunks::<4>()`.
+/// ```
+///
+/// # Arguments
+///
+/// * `recv` - The slice reference on which the chunking method is called.
+/// * `arg` - The constant chunk size.
+/// * `expr` - The complete chunking expression.
+/// * `call_span` - The source span of the method call.
+/// * `method_name` - The chunking method being checked.
+/// * `msrv` - The minimum supported Rust version used to gate the suggestion.
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     recv: &'tcx Expr<'tcx>,
