@@ -7092,6 +7092,7 @@ Released 2018-09-13
 [`double_must_use`]: https://clippy.rust-lang.org/main/index.html#double_must_use
 [`double_neg`]: https://clippy.rust-lang.org/main/index.html#double_neg
 [`double_parens`]: https://clippy.rust-lang.org/main/index.html#double_parens
+[`double_rev_map`]: https://clippy.rust-lang.org/main/index.html#double_rev_map
 [`drain_collect`]: https://clippy.rust-lang.org/main/index.html#drain_collect
 [`drop_bounds`]: https://clippy.rust-lang.org/main/index.html#drop_bounds
 [`drop_copy`]: https://clippy.rust-lang.org/main/index.html#drop_copy
