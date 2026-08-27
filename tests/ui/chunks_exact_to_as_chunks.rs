@@ -1,6 +1,6 @@
 //@no-rustfix: rewriting `chunks_exact` to `as_chunks` changes `Item` from `&[T]` to `&[T; N]`
 #![warn(clippy::chunks_exact_to_as_chunks)]
-#![allow(unused, clippy::redundant_closure_call, clippy::deref_addrof)]
+#![allow(unused, clippy::deref_addrof, clippy::redundant_closure_call)]
 
 fn main() {
     let slice = [1, 2, 3, 4, 5, 6, 7, 8];
