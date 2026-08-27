@@ -1,0 +1,17 @@
+error: the calls to `rev` cancel each other, so `map` runs in the original order
+  --> tests/ui/double_rev_map.rs:43:21
+   |
+LL |     let _: Vec<_> = (0..3).rev().map(|x| x + 1).rev().collect();
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if `map` should run in reverse order, collect after the first `rev` and then reverse the collection
+   = note: `-D clippy::double-rev-map` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::double_rev_map)]`
+help: remove both calls to `rev`
+   |
+LL -     let _: Vec<_> = (0..3).rev().map(|x| x + 1).rev().collect();
+LL +     let _: Vec<_> = (0..3).map(|x| x + 1).collect();
+   |
+
+error: aborting due to 1 previous error
+
