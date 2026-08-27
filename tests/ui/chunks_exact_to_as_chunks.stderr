@@ -1,11 +1,11 @@
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks.rs:8:24
+  --> tests/ui/chunks_exact_to_as_chunks.rs:9:24
    |
 LL |     let mut it = slice.chunks_exact(4);
    |                        ^^^^^^^^^^^^^^^
    |
 help: consider using `as_chunks::<4>()` instead
-  --> tests/ui/chunks_exact_to_as_chunks.rs:8:24
+  --> tests/ui/chunks_exact_to_as_chunks.rs:9:24
    |
 LL |     let mut it = slice.chunks_exact(4);
    |                        ^^^^^^^^^^^^^^^
@@ -14,58 +14,58 @@ LL |     let mut it = slice.chunks_exact(4);
    = help: to override `-D warnings` add `#[allow(clippy::chunks_exact_to_as_chunks)]`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks.rs:14:24
+  --> tests/ui/chunks_exact_to_as_chunks.rs:15:24
    |
 LL |     let mut it = slice.chunks_exact(CHUNK_SIZE);
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider using `as_chunks::<CHUNK_SIZE>()` instead
-  --> tests/ui/chunks_exact_to_as_chunks.rs:14:24
+  --> tests/ui/chunks_exact_to_as_chunks.rs:15:24
    |
 LL |     let mut it = slice.chunks_exact(CHUNK_SIZE);
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^
    = note: you can access the chunks using `it.0.iter()`, and the remainder using `it.1`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks.rs:24:24
+  --> tests/ui/chunks_exact_to_as_chunks.rs:25:24
    |
 LL |     let mut it = slice.chunks_exact(3);
    |                        ^^^^^^^^^^^^^^^
    |
 help: consider using `as_chunks::<3>()` instead
-  --> tests/ui/chunks_exact_to_as_chunks.rs:24:24
+  --> tests/ui/chunks_exact_to_as_chunks.rs:25:24
    |
 LL |     let mut it = slice.chunks_exact(3);
    |                        ^^^^^^^^^^^^^^^
    = note: you can access the chunks using `it.0.iter()`, and the remainder using `it.1`
 
 error: using `chunks_exact_mut` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks.rs:31:22
+  --> tests/ui/chunks_exact_to_as_chunks.rs:32:22
    |
 LL |     let mut it = arr.chunks_exact_mut(4);
    |                      ^^^^^^^^^^^^^^^^^^^
    |
 help: consider using `as_chunks_mut::<4>()` instead
-  --> tests/ui/chunks_exact_to_as_chunks.rs:31:22
+  --> tests/ui/chunks_exact_to_as_chunks.rs:32:22
    |
 LL |     let mut it = arr.chunks_exact_mut(4);
    |                      ^^^^^^^^^^^^^^^^^^^
    = note: you can access the chunks using `it.0.iter_mut()`, and the remainder using `it.1`
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks.rs:47:23
+  --> tests/ui/chunks_exact_to_as_chunks.rs:48:23
    |
 LL |         let _ = slice.chunks_exact(N);
    |                       ^^^^^^^^^^^^^^^
    |
 help: consider using `as_chunks::<N>()` instead
-  --> tests/ui/chunks_exact_to_as_chunks.rs:47:23
+  --> tests/ui/chunks_exact_to_as_chunks.rs:48:23
    |
 LL |         let _ = slice.chunks_exact(N);
    |                       ^^^^^^^^^^^^^^^
 
 error: using `chunks_exact` with a constant chunk size
-  --> tests/ui/chunks_exact_to_as_chunks.rs:49:23
+  --> tests/ui/chunks_exact_to_as_chunks.rs:50:23
    |
 LL |           let _ = slice.chunks_exact({
    |  _______________________^
@@ -84,7 +84,7 @@ help: consider using `as_chunks::<{
                   }
                   bar::<5>()
               }>()` instead
-  --> tests/ui/chunks_exact_to_as_chunks.rs:49:23
+  --> tests/ui/chunks_exact_to_as_chunks.rs:50:23
    |
 LL |           let _ = slice.chunks_exact({
    |  _______________________^
@@ -96,5 +96,83 @@ LL | |             bar::<5>()
 LL | |         });
    | |__________^
 
-error: aborting due to 6 previous errors
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:89:18
+   |
+LL |     for _ in arr.chunks_exact(4) {}
+   |                  ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<4>().0`
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:91:18
+   |
+LL |     for _ in arr.chunks_exact_mut(4) {}
+   |                  ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<4>().0`
+
+error: using `chunks_exact_mut` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:93:22
+   |
+LL |     for chunk in arr.chunks_exact_mut(4).take(2) {
+   |                      ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks_mut` instead: `as_chunks_mut::<4>().0.iter_mut()`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:99:18
+   |
+LL |     for _ in arr.chunks_exact(1 + 1) {}
+   |                  ^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ 1 + 1 }>().0`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:101:18
+   |
+LL |     for _ in arr.chunks_exact(CHUNK_SIZE + 1) {}
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ CHUNK_SIZE + 1 }>().0`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:103:18
+   |
+LL |     for _ in arr.chunks_exact(size_of::<u32>()) {}
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ size_of::<u32>() }>().0`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:105:18
+   |
+LL |     for _ in arr.chunks_exact(const { 1 }) {}
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ const { 1 } }>().0`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:107:18
+   |
+LL |     for _ in arr.chunks_exact(unsafe { 1 }) {}
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ unsafe { 1 } }>().0`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:113:18
+   |
+LL |     for _ in arr.chunks_exact(B::B) {}
+   |                  ^^^^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<{ B::B }>().0`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:123:24
+   |
+LL |     let chunks = slice.chunks_exact(4).collect::<Vec<&[u8]>>();
+   |                        ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<4>().0.iter()`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:127:19
+   |
+LL |     let _ = slice.chunks_exact(8).map(std::str::from_utf8);
+   |                   ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<8>().0.iter()`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:130:11
+   |
+LL |     slice.chunks_exact(2).for_each(|x: &[u8]| {
+   |           ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<2>().0.iter()`
+
+error: using `chunks_exact` with a constant chunk size
+  --> tests/ui/chunks_exact_to_as_chunks.rs:136:24
+   |
+LL |     for chunk in slice.chunks_exact(4) {
+   |                        ^^^^^^^^^^^^^^^ help: consider using `as_chunks` instead: `as_chunks::<4>().0`
+
+error: aborting due to 19 previous errors
 

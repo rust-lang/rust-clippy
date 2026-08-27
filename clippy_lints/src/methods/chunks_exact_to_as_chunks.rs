@@ -41,6 +41,11 @@ pub(super) fn check<'tcx>(
         if expr_needs_braces_for_const(arg) {
             arg_str = std::borrow::Cow::Owned(format!("{{ {arg_str} }}"));
         }
+        // `as_chunks` yields `&[T; N]`, not `&[T]`. Downstream uses that pin the item
+        // type (e.g. `collect::<Vec<&[T]>>()`, `map(from_utf8)`) would fail after `--fix`.
+        if applicability != Applicability::HasPlaceholders {
+            applicability = Applicability::MaybeIncorrect;
+        }
 
         let as_chunks = format_args!("{suggestion_method}::<{arg_str}>()");
 
