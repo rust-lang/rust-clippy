@@ -152,7 +152,7 @@ impl Id<'_> {
     }
 
     fn get_local_def(self, cx: &LateContext<'_>, e: &Expr<'_>, name: Symbol) -> Option<(HirId, Span)> {
-        let id = match self {
+        let id: LocalDefId = match self {
             Self::Binding(id) if let Node::Pat(p) = cx.tcx.hir_node(id) => return Some((id, p.span)),
             Self::LocalDef(id) => id,
             Self::TyRel => cx.typeck_results().type_dependent_def_id(e.hir_id)?.as_local()?,

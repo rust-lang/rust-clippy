@@ -50,7 +50,6 @@ extern crate clippy_utils;
 #[macro_use]
 extern crate declare_clippy_lint;
 
-// begin lints modules, do not remove this comment, it's used in `update_lints`
 mod absolute_paths;
 mod almost_complete_range;
 mod approx_const;
@@ -405,7 +404,6 @@ mod zero_div_zero;
 mod zero_repeat_side_effects;
 mod zero_sized_map_values;
 mod zombie_processes;
-// end lints modules, do not remove this comment, it's used in `update_lints`
 
 mod combined_early_pass;
 mod combined_late_pass;
