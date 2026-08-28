@@ -115,3 +115,9 @@ fn issue13158_msrv_1_80(_: &dyn std::error::Error) {}
 #[clippy::msrv = "1.81"]
 fn issue13158_msrv_1_81(_: &dyn core::error::Error) {}
 //~^ std_instead_of_core
+
+fn issue17602() {
+    // `Bound` is defined in `core::ops` and only reachable from `std::collections` through a
+    // legacy re-export, so replacing `std` with `core` would name a module that does not exist.
+    use std::collections::Bound;
+}
