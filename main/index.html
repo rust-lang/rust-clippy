@@ -1235,7 +1235,7 @@ readable.</p>
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.52.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+bytes_nth">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/methods/mod.rs#L265">View Source</a></div></div></article><article id="cargo_common_metadata"><input id="label-cargo_common_metadata" type="checkbox"><label for="label-cargo_common_metadata"><h2 class="lint-title"><div class="panel-title-name" id="lint-cargo_common_metadata">cargo_common_metadata
 <a href="#cargo_common_metadata" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-cargo">cargo</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Checks to see if all common metadata is defined in
+<p>Checks to see if common metadata is defined in
 <code>Cargo.toml</code>. See: <a href="https://rust-lang.github.io/api-guidelines/documentation.html#cargotoml-includes-all-common-metadata-c-metadata">https://rust-lang.github.io/api-guidelines/documentation.html#cargotoml-includes-all-common-metadata-c-metadata</a></p>
 <h3>Why is this bad?</h3>
 <p>It will be more difficult for users to discover the
@@ -1245,7 +1245,6 @@ purpose of the crate, and key information related to it.</p>
 name = "clippy"
 version = "0.0.212"
 repository = "https://github.com/rust-lang/rust-clippy"
-readme = "README.md"
 license = "MIT OR Apache-2.0"
 keywords = ["clippy", "lint", "plugin"]
 categories = ["development-tools", "development-tools::cargo-plugins"]
@@ -1256,7 +1255,6 @@ name = "clippy"
 version = "0.0.212"
 description = "A bunch of helpful lints to avoid common pitfalls in Rust"
 repository = "https://github.com/rust-lang/rust-clippy"
-readme = "README.md"
 license = "MIT OR Apache-2.0"
 keywords = ["clippy", "lint", "plugin"]
 categories = ["development-tools", "development-tools::cargo-plugins"]
@@ -6902,7 +6900,7 @@ similar_names = "allow"
 pedantic = { level = "warn", priority = -1 }
 similar_names = "allow"
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.78.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+lint_groups_priority">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L58">View Source</a></div></div></article><article id="literal_string_with_formatting_args"><input id="label-literal_string_with_formatting_args" type="checkbox"><label for="label-literal_string_with_formatting_args"><h2 class="lint-title"><div class="panel-title-name" id="lint-literal_string_with_formatting_args">literal_string_with_formatting_args
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.78.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+lint_groups_priority">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L56">View Source</a></div></div></article><article id="literal_string_with_formatting_args"><input id="label-literal_string_with_formatting_args" type="checkbox"><label for="label-literal_string_with_formatting_args"><h2 class="lint-title"><div class="panel-title-name" id="lint-literal_string_with_formatting_args">literal_string_with_formatting_args
 <a href="#literal_string_with_formatting_args" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-nursery">nursery</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks if string literals have formatting arguments outside of macros
 using them (like <code>format!</code>).</p>
@@ -9886,7 +9884,7 @@ ansi_term = "=0.11.0"
 <p>(default: <code>[]</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+multiple_crate_versions">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L95">View Source</a></div></div></article><article id="multiple_inherent_impl"><input id="label-multiple_inherent_impl" type="checkbox"><label for="label-multiple_inherent_impl"><h2 class="lint-title"><div class="panel-title-name" id="lint-multiple_inherent_impl">multiple_inherent_impl
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+multiple_crate_versions">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L93">View Source</a></div></div></article><article id="multiple_inherent_impl"><input id="label-multiple_inherent_impl" type="checkbox"><label for="label-multiple_inherent_impl"><h2 class="lint-title"><div class="panel-title-name" id="lint-multiple_inherent_impl">multiple_inherent_impl
 <a href="#multiple_inherent_impl" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for multiple inherent implementations of a struct</p>
 <p>The config option controls the scope in which multiple inherent <code>impl</code> blocks for the same
@@ -11082,7 +11080,7 @@ abc = []
 def = []
 
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.57.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+negative_feature_names">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L124">View Source</a></div></div></article><article id="never_loop"><input id="label-never_loop" type="checkbox"><label for="label-never_loop"><h2 class="lint-title"><div class="panel-title-name" id="lint-never_loop">never_loop
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.57.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+negative_feature_names">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L122">View Source</a></div></div></article><article id="never_loop"><input id="label-never_loop" type="checkbox"><label for="label-never_loop"><h2 class="lint-title"><div class="panel-title-name" id="lint-never_loop">never_loop
 <a href="#never_loop" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-correctness">correctness</span> <span class="label lint-level level-deny">deny</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for loops that will always <code>break</code>, <code>return</code> or
 <code>continue</code> an outer loop.</p>
@@ -13134,7 +13132,7 @@ abc = []
 def = []
 ghi = []
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.57.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_feature_names">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L154">View Source</a></div></div></article><article id="redundant_field_names"><input id="label-redundant_field_names" type="checkbox"><label for="label-redundant_field_names"><h2 class="lint-title"><div class="panel-title-name" id="lint-redundant_field_names">redundant_field_names
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.57.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+redundant_feature_names">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L152">View Source</a></div></div></article><article id="redundant_field_names"><input id="label-redundant_field_names" type="checkbox"><label for="label-redundant_field_names"><h2 class="lint-title"><div class="panel-title-name" id="lint-redundant_field_names">redundant_field_names
 <a href="#redundant_field_names" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for fields in struct literals where shorthands
 could be used.</p>
@@ -18464,7 +18462,7 @@ some_crate_1 = "~1.2.3"
 
 some_crate_2 = "=1.2.3"
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.32.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+wildcard_dependencies">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L186">View Source</a></div></div></article><article id="wildcard_enum_match_arm"><input id="label-wildcard_enum_match_arm" type="checkbox"><label for="label-wildcard_enum_match_arm"><h2 class="lint-title"><div class="panel-title-name" id="lint-wildcard_enum_match_arm">wildcard_enum_match_arm
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.32.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+wildcard_dependencies">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/cargo/mod.rs#L184">View Source</a></div></div></article><article id="wildcard_enum_match_arm"><input id="label-wildcard_enum_match_arm" type="checkbox"><label for="label-wildcard_enum_match_arm"><h2 class="lint-title"><div class="panel-title-name" id="lint-wildcard_enum_match_arm">wildcard_enum_match_arm
 <a href="#wildcard_enum_match_arm" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for wildcard enum matches using <code>_</code>.</p>
 <h3>Why restrict this?</h3>
