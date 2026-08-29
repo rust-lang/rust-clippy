@@ -1,11 +1,11 @@
-mod builtin_type_shadow;
-mod literal_suffix;
-mod mixed_case_hex_literals;
-mod redundant_at_rest_pattern;
-mod redundant_pattern;
-mod unneeded_field_pattern;
-mod unneeded_wildcard_pattern;
-mod zero_prefixed_literal;
+pub mod builtin_type_shadow;
+pub mod literal_suffix;
+pub mod mixed_case_hex_literals;
+pub mod redundant_at_rest_pattern;
+pub mod redundant_pattern;
+pub mod unneeded_field_pattern;
+pub mod unneeded_wildcard_pattern;
+pub mod zero_prefixed_literal;
 
 use clippy_utils::source::snippet_opt;
 use rustc_ast::ast::{Expr, ExprKind, Generics, LitFloatType, LitIntType, LitKind, Pat};

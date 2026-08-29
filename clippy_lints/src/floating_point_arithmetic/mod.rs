@@ -1,14 +1,14 @@
-mod custom_abs;
-mod expm1;
-mod hypot;
-mod lib;
-mod ln1p;
-mod log_base;
-mod log_division;
-mod mul_add;
-mod powf;
-mod powi;
-mod radians;
+pub mod custom_abs;
+pub mod expm1;
+pub mod hypot;
+pub mod lib;
+pub mod ln1p;
+pub mod log_base;
+pub mod log_division;
+pub mod mul_add;
+pub mod powf;
+pub mod powi;
+pub mod radians;
 
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{is_in_const_context, is_no_std_crate, sym};

@@ -182,7 +182,7 @@ pub struct AwaitHolding {
 }
 
 impl AwaitHolding {
-    pub(crate) fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
+    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {
         let (def_ids, _) = create_disallowed_map(
             tcx,
             &conf.await_holding_invalid_types,

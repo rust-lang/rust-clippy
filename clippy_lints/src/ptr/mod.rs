@@ -1,7 +1,7 @@
-mod cmp_null;
-mod mut_from_ref;
-mod ptr_arg;
-mod ptr_eq;
+pub mod cmp_null;
+pub mod mut_from_ref;
+pub mod ptr_arg;
+pub mod ptr_eq;
 
 use rustc_hir::{BinOpKind, Body, Expr, ExprKind, ImplItemKind, ItemKind, Node, TraitFn, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};

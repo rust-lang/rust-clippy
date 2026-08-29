@@ -1,7 +1,7 @@
-mod branches_sharing_code;
-mod if_same_then_else;
-mod ifs_same_cond;
-mod same_functions_in_if_cond;
+pub mod branches_sharing_code;
+pub mod if_same_then_else;
+pub mod ifs_same_cond;
+pub mod same_functions_in_if_cond;
 
 use clippy_config::Conf;
 use clippy_utils::ty::InteriorMut;

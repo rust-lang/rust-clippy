@@ -348,16 +348,6 @@ fn uplift_update_fn<'a>(
         let mut cursor = Cursor::new(src);
         while let Some(ident) = cursor.find_capture_ident() {
             match cursor.get_text(ident) {
-                "mod" if remove_mod && cursor.eat_ident(old_name) && cursor.eat_semi() => {
-                    dst.push_str(&src[copy_pos as usize..ident.pos as usize]);
-                    dst.push_str(new_name);
-                    copy_pos = cursor.pos();
-                    if src[copy_pos as usize..].starts_with('\n') {
-                        copy_pos += 1;
-                    }
-                    changed = true;
-                    remove_mod = false;
-                },
                 "pub" if remove_mod && cursor.eat_ident("mod") && cursor.eat_ident(old_name) && cursor.eat_semi() => {
                     dst.push_str(&src[copy_pos as usize..ident.pos as usize]);
                     dst.push_str(new_name);

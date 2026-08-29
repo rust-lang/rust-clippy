@@ -377,10 +377,10 @@ impl ModPos {
 
     fn insertion_text(self, mod_name: &str) -> [&str; 3] {
         match self.kind {
-            PosKind::NewList if self.pos == 0 => ["mod ", mod_name, ";\n\n"],
-            PosKind::NewList => ["\n\nmod ", mod_name, ";"],
-            PosKind::Name => [mod_name, ";\nmod ", ""],
-            PosKind::End => ["\nmod ", mod_name, ";"],
+            PosKind::NewList if self.pos == 0 => ["pub mod ", mod_name, ";\n\n"],
+            PosKind::NewList => ["\n\npub mod ", mod_name, ";"],
+            PosKind::Name => [mod_name, ";\npub mod ", ""],
+            PosKind::End => ["\npub mod ", mod_name, ";"],
         }
     }
 }
@@ -444,7 +444,7 @@ fn find_mod_decl_after(cursor: &mut Cursor<'_>, mod_name: &str) -> ModPos {
                         take_next_line_comment = true;
                         lead_end = cursor.pos();
                     },
-                    "mod" => break,
+                    "pub" if cursor.eat_ident("mod") => break,
                     _ => return ModPos::new_list(lead_end),
                 }
                 continue;
@@ -465,7 +465,7 @@ fn find_mod_decl_after(cursor: &mut Cursor<'_>, mod_name: &str) -> ModPos {
             };
         }
         let end = cursor.pos();
-        if cursor.at_multi_line_break() || !cursor.eat_ident("mod") {
+        if cursor.at_multi_line_break() || !cursor.eat_ident("pub") || !cursor.eat_ident("mod") {
             return ModPos {
                 pos: end,
                 kind: PosKind::End,

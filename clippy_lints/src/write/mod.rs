@@ -1,7 +1,7 @@
-mod empty_string;
-mod literal;
-mod use_debug;
-mod with_newline;
+pub mod empty_string;
+pub mod literal;
+pub mod use_debug;
+pub mod with_newline;
 
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;

@@ -1,14 +1,15 @@
-mod borrowed_box;
-mod box_collection;
-mod linked_list;
-mod option_option;
-mod owned_cow;
-mod rc_buffer;
-mod rc_mutex;
-mod redundant_allocation;
-mod type_complexity;
+pub mod borrowed_box;
+pub mod box_collection;
+pub mod linked_list;
+pub mod option_option;
+pub mod owned_cow;
+pub mod rc_buffer;
+pub mod rc_mutex;
+pub mod redundant_allocation;
+pub mod type_complexity;
+pub mod vec_box;
+
 mod utils;
-mod vec_box;
 
 use clippy_config::Conf;
 use rustc_hir as hir;

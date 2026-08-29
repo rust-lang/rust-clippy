@@ -11,7 +11,7 @@ use rustc_middle::ty;
 use rustc_span::{Span, sym};
 use std::ops::ControlFlow;
 
-pub fn check(
+pub(super) fn check(
     cx: &LateContext<'_>,
     owner_id: OwnerId,
     sig: FnSig<'_>,

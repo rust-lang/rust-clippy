@@ -5,7 +5,7 @@ use clippy_utils::tokenize_with_text;
 use rustc_lexer::TokenKind;
 use rustc_lint::LateContext;
 
-pub fn check(cx: &LateContext<'_>, text: &str, offset: usize, fragments: Fragments<'_>) {
+pub(super) fn check(cx: &LateContext<'_>, text: &str, offset: usize, fragments: Fragments<'_>) {
     if !text.contains("#[test]") {
         return;
     }
