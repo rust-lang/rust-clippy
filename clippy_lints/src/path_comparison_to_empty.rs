@@ -61,7 +61,7 @@ impl LateLintPass<'_> for PathComparisonToEmpty {
             let cmp_expr = if right_path_new_empty_string { left } else { right };
             let cmp_ty = cx.typeck_results().expr_ty(cmp_expr).peel_refs();
 
-            if !(cmp_ty.is_diag_item(cx, sym::Path) || cmp_ty.is_diag_item(cx, sym::PathBuf)) {
+            if !matches!(cmp_ty.opt_diag_name(cx), Some(sym::Path | sym::PathBuf)) {
                 return;
             }
 
