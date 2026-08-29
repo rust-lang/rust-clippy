@@ -16,12 +16,14 @@ declare_clippy_lint! {
     /// using `is_empty()` is more performant
     /// ### Example
     /// ```no_run
+    /// # use std::path::{Path};
     /// if path == Path::new("") {
     ///         return Ok(());
     /// }
     /// ```
     /// Use instead:
     /// ```no_run
+    ///  # use std::path::{Path};
     /// if path.is_empty() {
     ///        return Ok(());
     /// }
