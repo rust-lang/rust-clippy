@@ -1,5 +1,5 @@
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:16:13
+  --> tests/ui/nonminimal_bool.rs:18:13
    |
 LL |     let _ = !true;
    |             ^^^^^
@@ -13,7 +13,7 @@ LL +     let _ = false;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:19:13
+  --> tests/ui/nonminimal_bool.rs:21:13
    |
 LL |     let _ = !false;
    |             ^^^^^^
@@ -25,7 +25,7 @@ LL +     let _ = true;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:22:13
+  --> tests/ui/nonminimal_bool.rs:24:13
    |
 LL |     let _ = !!a;
    |             ^^^
@@ -37,7 +37,7 @@ LL +     let _ = a;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:25:13
+  --> tests/ui/nonminimal_bool.rs:27:13
    |
 LL |     let _ = false || a;
    |             ^^^^^^^^^^
@@ -49,7 +49,7 @@ LL +     let _ = a;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:31:13
+  --> tests/ui/nonminimal_bool.rs:33:13
    |
 LL |     let _ = !(!a && b);
    |             ^^^^^^^^^^
@@ -61,7 +61,7 @@ LL +     let _ = a || !b;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:34:13
+  --> tests/ui/nonminimal_bool.rs:36:13
    |
 LL |     let _ = !(!a || b);
    |             ^^^^^^^^^^
@@ -73,7 +73,7 @@ LL +     let _ = a && !b;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:37:13
+  --> tests/ui/nonminimal_bool.rs:39:13
    |
 LL |     let _ = !a && !(b && c);
    |             ^^^^^^^^^^^^^^^
@@ -85,7 +85,7 @@ LL +     let _ = !(a || b && c);
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:46:13
+  --> tests/ui/nonminimal_bool.rs:48:13
    |
 LL |     let _ = a == b && c == 5 && a == b;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -100,7 +100,7 @@ LL +     let _ = a == b && c == 5;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:49:13
+  --> tests/ui/nonminimal_bool.rs:51:13
    |
 LL |     let _ = a == b || c == 5 || a == b;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -115,7 +115,7 @@ LL +     let _ = a == b || c == 5;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:52:13
+  --> tests/ui/nonminimal_bool.rs:54:13
    |
 LL |     let _ = a == b && c == 5 && b == a;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -130,7 +130,7 @@ LL +     let _ = a == b && c == 5;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:55:13
+  --> tests/ui/nonminimal_bool.rs:57:13
    |
 LL |     let _ = a != b || !(a != b || c == d);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -145,7 +145,7 @@ LL +     let _ = a != b || c != d;
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:58:13
+  --> tests/ui/nonminimal_bool.rs:60:13
    |
 LL |     let _ = a != b && !(a != b && c == d);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -159,20 +159,8 @@ LL -     let _ = a != b && !(a != b && c == d);
 LL +     let _ = a != b && c != d;
    |
 
-error: this `if` guard returns a bool literal and is followed by another
-  --> tests/ui/nonminimal_bool.rs:65:5
-   |
-LL | /     if a < THRESHOLD && b >= THRESHOLD || a >= THRESHOLD && b < THRESHOLD {
-LL | |         return false;
-LL | |     }
-LL | |     true
-   | |________^ help: you can reduce it to: `!(a < THRESHOLD && b >= THRESHOLD || a >= THRESHOLD && b < THRESHOLD)`
-   |
-   = note: `-D clippy::needless-bool` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::needless_bool)]`
-
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:90:8
+  --> tests/ui/nonminimal_bool.rs:91:8
    |
 LL |     if matches!(true, true) && true {
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -184,43 +172,34 @@ LL +     if matches!(true, true) {
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:171:8
+  --> tests/ui/nonminimal_bool.rs:172:8
    |
 LL |     if !(12 == a) {}
    |        ^^^^^^^^^^ help: try: `(12 != a)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:173:8
+  --> tests/ui/nonminimal_bool.rs:174:8
    |
 LL |     if !(a == 12) {}
    |        ^^^^^^^^^^ help: try: `(a != 12)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:175:8
+  --> tests/ui/nonminimal_bool.rs:176:8
    |
 LL |     if !(12 != a) {}
    |        ^^^^^^^^^^ help: try: `(12 == a)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:177:8
+  --> tests/ui/nonminimal_bool.rs:178:8
    |
 LL |     if !(a != 12) {}
    |        ^^^^^^^^^^ help: try: `(a == 12)`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:182:8
+  --> tests/ui/nonminimal_bool.rs:183:8
    |
 LL |     if !b == true {}
    |        ^^^^^^^^^^ help: try: `b != true`
-
-error: equality checks against true are unnecessary
-  --> tests/ui/nonminimal_bool.rs:182:8
-   |
-LL |     if !b == true {}
-   |        ^^^^^^^^^^ help: try: `!b`
-   |
-   = note: `-D clippy::bool-comparison` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::bool_comparison)]`
 
 error: this boolean expression can be simplified
   --> tests/ui/nonminimal_bool.rs:185:8
@@ -228,50 +207,32 @@ error: this boolean expression can be simplified
 LL |     if !b != true {}
    |        ^^^^^^^^^^ help: try: `b == true`
 
-error: inequality checks against true can be replaced by a negation
-  --> tests/ui/nonminimal_bool.rs:185:8
-   |
-LL |     if !b != true {}
-   |        ^^^^^^^^^^ help: try: `b`
-
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:188:8
+  --> tests/ui/nonminimal_bool.rs:187:8
    |
 LL |     if true == !b {}
    |        ^^^^^^^^^^ help: try: `true != b`
 
-error: equality checks against true are unnecessary
-  --> tests/ui/nonminimal_bool.rs:188:8
-   |
-LL |     if true == !b {}
-   |        ^^^^^^^^^^ help: try: `!b`
-
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:191:8
+  --> tests/ui/nonminimal_bool.rs:189:8
    |
 LL |     if true != !b {}
    |        ^^^^^^^^^^ help: try: `true == b`
 
-error: inequality checks against true can be replaced by a negation
-  --> tests/ui/nonminimal_bool.rs:191:8
-   |
-LL |     if true != !b {}
-   |        ^^^^^^^^^^ help: try: `b`
-
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:194:8
+  --> tests/ui/nonminimal_bool.rs:191:8
    |
 LL |     if !b == !c {}
    |        ^^^^^^^^ help: try: `b == c`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:196:8
+  --> tests/ui/nonminimal_bool.rs:193:8
    |
 LL |     if !b != !c {}
    |        ^^^^^^^^ help: try: `b != c`
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:212:8
+  --> tests/ui/nonminimal_bool.rs:209:8
    |
 LL |     if !(a < 2.0 && !b) {
    |        ^^^^^^^^^^^^^^^^
@@ -283,7 +244,7 @@ LL +     if a >= 2.0 || b {
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:231:12
+  --> tests/ui/nonminimal_bool.rs:228:12
    |
 LL |         if !(matches!(ty, TyKind::Ref(_, _, _)) && !is_mutable(&expr)) {
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -295,16 +256,10 @@ LL +         if !matches!(ty, TyKind::Ref(_, _, _)) || is_mutable(&expr) {
    |
 
 error: this boolean expression can be simplified
-  --> tests/ui/nonminimal_bool.rs:251:8
+  --> tests/ui/nonminimal_bool.rs:246:8
    |
 LL |     if !S != true {}
    |        ^^^^^^^^^^ help: try: `S == true`
 
-error: inequality checks against true can be replaced by a negation
-  --> tests/ui/nonminimal_bool.rs:251:8
-   |
-LL |     if !S != true {}
-   |        ^^^^^^^^^^ help: try: `!!S`
-
-error: aborting due to 32 previous errors
+error: aborting due to 26 previous errors
 
