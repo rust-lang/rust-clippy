@@ -1,0 +1,71 @@
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:15:13
+   |
+LL |     let _ = s_98 == Path::new("");
+   |             ^^^^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `s_98.is_empty()`
+   |
+   = note: `-D clippy::path-comparison-to-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::path_comparison_to_empty)]`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:27:13
+   |
+LL |     let _ = s == Path::new("");
+   |             ^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `s.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:29:13
+   |
+LL |     let _ = s != Path::new("");
+   |             ^^^^^^^^^^^^^^^^^^ help: using `!is_empty` is clearer and more explicit: `!s.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:31:13
+   |
+LL |     let _ = Path::new("") == s;
+   |             ^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `s.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:35:13
+   |
+LL |     let _ = std::path::Path::new("") == r;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `r.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:42:8
+   |
+LL |     if s == Path::new("") {
+   |        ^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `s.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:45:8
+   |
+LL |     if p != Path::new("") {
+   |        ^^^^^^^^^^^^^^^^^^ help: using `!is_empty` is clearer and more explicit: `!p.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:48:9
+   |
+LL |     if !(s == Path::new("")) {
+   |         ^^^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `s.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:51:8
+   |
+LL |     if s == Path::new("") && p == Path::new("abcd") {
+   |        ^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `s.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:61:13
+   |
+LL |     let _ = s == PathBuf::new();
+   |             ^^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `s.is_empty()`
+
+error: path comparison to new empty initialized path
+  --> tests/ui/path_comparison_to_empty.rs:63:13
+   |
+LL |     let _ = b == PathBuf::new();
+   |             ^^^^^^^^^^^^^^^^^^^ help: using `is_empty` is clearer and more explicit: `b.is_empty()`
+
+error: aborting due to 11 previous errors
+

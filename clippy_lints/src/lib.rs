@@ -296,6 +296,7 @@ mod partial_pub_fields;
 mod partialeq_ne_impl;
 mod partialeq_to_none;
 mod pass_by_ref_or_value;
+mod path_comparison_to_empty;
 mod pathbuf_init_then_push;
 mod pattern_type_mismatch;
 mod permissions_set_readonly_false;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        PathComparisonToEmpty: path_comparison_to_empty::PathComparisonToEmpty = path_comparison_to_empty::PathComparisonToEmpty::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

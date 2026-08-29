@@ -1,0 +1,65 @@
+#![warn(clippy::path_comparison_to_empty)]
+#![allow(unused, clippy::needless_ifs)]
+
+use std::path::{Path, PathBuf};
+
+#[clippy::msrv = "1.97"]
+fn msrv_1_97() {
+    let s_97 = Path::new("a");
+    let _ = s_97 == Path::new("");
+}
+
+#[clippy::msrv = "1.98"]
+fn msrv_1_98() {
+    let s_98 = Path::new("a");
+    let _ = s_98.is_empty();
+    //~^ path_comparison_to_empty
+}
+
+fn main() {
+    let p = Path::new("abcd");
+    let r = Path::new("abcde");
+    let s = Path::new("");
+
+    let _ = p == s;
+    let _ = r == s;
+
+    let _ = s.is_empty();
+    //~^ path_comparison_to_empty
+    let _ = !s.is_empty();
+    //~^ path_comparison_to_empty
+    let _ = s.is_empty();
+    //~^ path_comparison_to_empty
+    let _ = Path::new("") == Path::new("");
+
+    let _ = r.is_empty();
+    //~^ path_comparison_to_empty
+
+    let _ = s == Path::new("1234");
+    let _ = Path::new("2234") == s;
+    let _ = Path::new("");
+
+    if s.is_empty() {
+        //~^ path_comparison_to_empty
+    }
+    if !p.is_empty() {
+        //~^ path_comparison_to_empty
+    }
+    if !s.is_empty() {
+        //~^ path_comparison_to_empty
+    }
+    if s.is_empty() && p == Path::new("abcd") {
+        //~^ path_comparison_to_empty
+    }
+
+    if Some("123") == Path::new("").to_str() {}
+
+    if Path::new("").to_str().unwrap() == "" {}
+
+    let mut b = PathBuf::new();
+
+    let _ = s.is_empty();
+    //~^ path_comparison_to_empty
+    let _ = b.is_empty();
+    //~^ path_comparison_to_empty
+}

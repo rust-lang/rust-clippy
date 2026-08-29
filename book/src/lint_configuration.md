@@ -999,6 +999,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`nonnull_unchecked_on_box_ptr`](https://rust-lang.github.io/rust-clippy/main/index.html#nonnull_unchecked_on_box_ptr)
 * [`option_as_ref_deref`](https://rust-lang.github.io/rust-clippy/main/index.html#option_as_ref_deref)
 * [`or_fun_call`](https://rust-lang.github.io/rust-clippy/main/index.html#or_fun_call)
+* [`path_comparison_to_empty`](https://rust-lang.github.io/rust-clippy/main/index.html#path_comparison_to_empty)
 * [`ptr_as_ptr`](https://rust-lang.github.io/rust-clippy/main/index.html#ptr_as_ptr)
 * [`question_mark`](https://rust-lang.github.io/rust-clippy/main/index.html#question_mark)
 * [`redundant_field_names`](https://rust-lang.github.io/rust-clippy/main/index.html#redundant_field_names)
