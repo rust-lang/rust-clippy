@@ -154,4 +154,23 @@ proc_macros::external! {
     }
 }
 
+// Regression test for <https://github.com/rust-lang/rust-clippy/issues/14968>: the ident of a
+// macro-generated item can come from the macro call site while the rest of the item comes from the
+// macro definition. Combining the two produced a nonsensical span crashing the diagnostic emitter.
+mod issue_14968 {
+    mod inner {
+        crate::issue_14968::macros::mac!(some_function_name);
+    }
+
+    mod macros {
+        macro_rules! mac_impl {
+            ($name:ident) => {
+                pub fn $name() {}
+                //~^ redundant_pub_crate
+            };
+        }
+        pub(crate) use mac_impl as mac;
+    }
+}
+
 fn main() {}

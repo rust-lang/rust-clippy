@@ -118,4 +118,30 @@ mod issue_14980 {
     }
 }
 
+mod macro_ident_from_call_site {
+    fn before() {}
+
+    // The ident of a macro-generated item can come from the macro call site while the rest of
+    // the item comes from the macro definition. Combining the two produced a nonsensical span
+    // for the "the attribute applies to this item" label (same root cause as #14968).
+    //~v empty_line_after_outer_attr
+    crate::macro_ident_from_call_site::macros::mac! {
+        {
+            #[allow(dead_code)]
+            #[allow(unused)]
+        }
+        some_function_name
+    }
+
+    mod macros {
+        macro_rules! mac_impl {
+            ({$($attr:tt)*} $name:ident) => {
+                $($attr)*
+                fn $name() {}
+            };
+        }
+        pub(crate) use mac_impl as mac;
+    }
+}
+
 fn main() {}
