@@ -17,16 +17,14 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// # use std::path::{Path};
-    /// if path == Path::new("") {
-    ///         return Ok(());
-    /// }
+    /// let path = Path::new("123");
+    /// let _ = path == Path::new("");
     /// ```
     /// Use instead:
     /// ```no_run
     ///  # use std::path::{Path};
-    /// if path.is_empty() {
-    ///        return Ok(());
-    /// }
+    /// let path = Path::new("123");
+    /// let _ = path.is_empty();
     /// ```
     #[clippy::version = "1.100.0"]
     pub PATH_COMPARISON_TO_EMPTY,
