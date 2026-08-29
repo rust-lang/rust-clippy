@@ -120,4 +120,12 @@ fn issue17602() {
     // `Bound` is defined in `core::ops` and only reachable from `std::collections` through a
     // legacy re-export, so replacing `std` with `core` would name a module that does not exist.
     use std::collections::Bound;
+    use std::collections::Bound::{Excluded, Included};
+
+    // The very same items are still linted through the path they are actually defined at, both
+    // as a type and as a value.
+    use std::ops::Bound as OpsBound;
+    //~^ std_instead_of_core
+    use std::ops::Bound::Unbounded;
+    //~^ std_instead_of_core
 }
