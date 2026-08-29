@@ -52,6 +52,7 @@ pub fn create(clippy_version: Version, pass: &str, name: &str, group: &str, has_
         let version = cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display());
         let mut lint_data = ActiveLintData {
             decl_range: 0..0,
+            name_upper,
             docs: if group == "restriction" {
                 RESTRICTION_DESC
             } else {

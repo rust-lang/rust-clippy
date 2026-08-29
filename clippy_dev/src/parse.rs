@@ -292,7 +292,8 @@ impl<'cx> ParseCxImpl<'cx> {
                         cursor.mk_unexpected_err(expected).emit(&mut self.dcx, file);
                     } else if let [docs, version, name, group_comments, group, desc] = captures
                         && let name_sp = name.mk_sp(file)
-                        && let name = self.str_buf.alloc_ascii_lower(self.arena, cursor.get_text(name))
+                        && let name_upper = cursor.get_text(name)
+                        && let name = self.str_buf.alloc_ascii_lower(self.arena, name_upper)
                         && let (Some(e), Some(version)) = (
                             self.get_vacant_lint(&mut data.lints, name, name_sp),
                             self.parse_version(cursor.get_text(version), version.mk_sp(file)),
@@ -303,6 +304,7 @@ impl<'cx> ParseCxImpl<'cx> {
                             version,
                             data: LintData::Active(ActiveLintData {
                                 decl_range: mac_name.pos..cursor.pos(),
+                                name_upper,
                                 docs: cursor.get_text(docs),
                                 group_comments: cursor.get_text(group_comments),
                                 group: cursor.get_text(group),

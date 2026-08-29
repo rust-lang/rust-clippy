@@ -40,7 +40,7 @@ impl ParsedLints<'_> {
         let mut renamed = Vec::with_capacity(lints.len() / 8);
         for &(name, lint) in &lints {
             match &lint.data {
-                LintData::Active(_) => active.push((name, lint.name_sp.file.path_as_krate_mod())),
+                LintData::Active(data) => active.push((data.name_upper, lint.name_sp.file.path_as_krate_mod())),
                 LintData::Deprecated(data) => deprecated.push((name, lint.version, data.reason)),
                 LintData::Renamed(data) => renamed.push((name, lint.version, data.new_name)),
             }
@@ -147,17 +147,12 @@ impl ParsedLints<'_> {
                 &mut |_, src, dst| {
                     dst.push_str(GENERATED_FILE_COMMENT);
                     dst.push_str("pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[\n");
-                    let mut buf = String::new();
                     for &(name, (_, mod_path)) in lints {
                         dst.push_str("    crate::");
                         for part in mod_path.split(path::MAIN_SEPARATOR) {
-                            dst.push_str(part);
-                            dst.push_str("::");
+                            dst.extend([part, "::"]);
                         }
-                        buf.clear();
-                        buf.push_str(name);
-                        buf.make_ascii_uppercase();
-                        let _ = writeln!(dst, "{buf}_INFO,");
+                        dst.extend([name, "_INFO,\n"]);
                     }
                     dst.push_str("];\n");
                     UpdateStatus::from_changed(src != dst)
@@ -171,14 +166,13 @@ impl ActiveLint<'_, '_> {
     pub fn gen_mac(&self, dst: &mut String) {
         dst.push_str("declare_clippy_lint! {");
         write_comment_lines(self.data.docs, "\n    ", dst);
-        dst.extend(["\n    #[clippy::version = \"", self.version, "\"]\n    pub "]);
-
-        // Lint names are stored in lower case, but the declaration needs to be upper case.
-        let name_pos = dst.len();
-        dst.push_str(self.name);
-        dst[name_pos..].make_ascii_uppercase();
-        dst.push(',');
-
+        dst.extend([
+            "\n    #[clippy::version = \"",
+            self.version,
+            "\"]\n    pub ",
+            self.data.name_upper,
+            ",",
+        ]);
         write_comment_lines(self.data.group_comments, "\n    ", dst);
         dst.extend(["\n    ", self.data.group, ",\n    ", self.data.desc]);
         if !self.data.opts.is_empty() {

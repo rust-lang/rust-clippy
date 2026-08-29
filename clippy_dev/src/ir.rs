@@ -63,6 +63,8 @@ impl Display for LintName<'_> {
 pub struct ActiveLintData<'cx> {
     /// The entire range of the `declare_clippy_lint` macro call.
     pub decl_range: Range<u32>,
+    /// The uppercase form of the lint name.
+    pub name_upper: &'cx str,
     /// The raw text of the documentation comments. May include leading/trailing
     /// whitespace and empty lines.
     pub docs: &'cx str,
