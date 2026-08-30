@@ -49,3 +49,17 @@ fn issue16759(bytes: [u32; 3]) {
     takes_array_ref_ref(&&[b'a', b'b']);
     //~^ byte_char_slices
 }
+
+fn takes_mut_array_ref(_: &mut [u8; 2]) {}
+
+fn issue17627() {
+    // a byte string literal is immutable, so a mutable borrow has to point at a copy of it
+    let mutable = &mut [b'a', b'b'];
+    //~^ byte_char_slices
+    takes_mut_array_ref(&mut [b'a', b'b']);
+    //~^ byte_char_slices
+    unsafe {
+        let _ = std::str::from_utf8_unchecked_mut(&mut [b'c', b'l', b'i', b'p', b'p', b'y']);
+        //~^ byte_char_slices
+    }
+}
