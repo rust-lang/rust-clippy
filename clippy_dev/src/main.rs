@@ -27,7 +27,7 @@ fn main() {
         } => dogfood::dogfood(fix, allow_dirty, allow_staged, allow_no_vcs),
         DevCommand::Fmt { check } => fmt::run(UpdateMode::from_check(check)),
         DevCommand::UpdateLints { check } => new_parse_cx(|cx| {
-            let data = cx.parse_lint_decls();
+            let mut data = cx.parse_lint_decls();
             cx.dcx.exit_on_err();
             data.gen_decls(UpdateMode::from_check(check));
         }),

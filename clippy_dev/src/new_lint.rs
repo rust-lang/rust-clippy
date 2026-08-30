@@ -134,7 +134,11 @@ pub fn create(clippy_version: Version, pass: &str, name: &str, group: &str, has_
                 );
             });
             updater.change_file("clippy_lints/src/lib.rs", |src, dst| {
-                add_lint_pass(src, dst, name_snake, name_pascal, new_pass, has_msrv);
+                let mod_pos = find_mod_decl_after(&mut Cursor::new(src), name_snake);
+                let (pre, post) = src.split_at(mod_pos.pos as usize);
+                dst.push_str(pre);
+                dst.extend(mod_pos.insertion_text(name_snake));
+                dst.push_str(post);
             });
         }
 
@@ -316,35 +320,6 @@ impl ", pass_ty, pass_lt, " for ", pass_name, "{
     // TODO: implement lint logic", extract_msrv, "
 }
 "]);
-}
-
-fn add_lint_pass(
-    src: &str,
-    dst: &mut String,
-    name_snake: &str,
-    name_pascal: &str,
-    new_pass: LintPassKind,
-    has_msrv: bool,
-) {
-    let mod_pos = find_mod_decl_after(&mut Cursor::new(src), name_snake);
-    let (pre, src) = src.split_at(mod_pos.pos as usize);
-    dst.push_str(pre);
-    dst.extend(mod_pos.insertion_text(name_snake));
-
-    let comment = match new_pass {
-        LintPassKind::Early => "// add early passes here, used by `cargo dev new_lint`",
-        LintPassKind::Late => "// add late passes here, used by `cargo dev new_lint`",
-    };
-    let ctor_call = if has_msrv { "::new(conf)" } else { "" };
-    let pos = src.find(comment).unwrap_or_else(|| panic!("failed to find: {comment}"));
-    let (start, end) = src.split_at(pos);
-    #[rustfmt::skip]
-    dst.extend([
-        start,
-        name_pascal, ": ", name_snake, "::", name_pascal, " = ",
-        name_snake, "::", name_pascal, ctor_call, ",\n        ",
-        end,
-    ]);
 }
 
 struct ModPos {

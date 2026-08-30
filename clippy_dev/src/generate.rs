@@ -1,6 +1,10 @@
-use crate::ir::{ActiveLint, ConfDef, LintData, LintPass, ParsedLints};
+use crate::ir::{
+    ActiveLint, ConfDef, LintData, LintPass, LintPassCtor, LintPassCtorArg, LintPassCtorArgs, LintPasses, ParsedLints,
+};
 use crate::parse::cursor::Cursor;
-use crate::utils::{FileUpdater, UpdateMode, UpdateStatus, VecBuf, slice_groups, update_text_region_fn};
+use crate::utils::{
+    FileUpdater, UpdateMode, UpdateStatus, VecBuf, path_as_crate_mod, slice_groups, update_text_region_fn,
+};
 use core::range::Range;
 use itertools::Itertools as _;
 use std::collections::HashSet;
@@ -15,8 +19,10 @@ const DOCS_LINK: &str = "https://rust-lang.github.io/rust-clippy/main/index.html
 
 impl ParsedLints<'_> {
     #[expect(clippy::too_many_lines)]
-    pub fn gen_decls(&self, update_mode: UpdateMode) {
+    pub fn gen_decls(&mut self, update_mode: UpdateMode) {
         let mut updater = FileUpdater::default();
+        self.lint_passes
+            .sort_by_key(|pass| path_as_crate_mod(pass.decl_sp.file.path.get()));
 
         let mut lints: Vec<_> = self.lints.iter().map(|(&x, y)| (x, y)).collect();
         lints.sort_by_key(|&(x, _)| x);
@@ -40,7 +46,9 @@ impl ParsedLints<'_> {
         let mut renamed = Vec::with_capacity(lints.len() / 8);
         for &(name, lint) in &lints {
             match &lint.data {
-                LintData::Active(data) => active.push((data.name_upper, lint.name_sp.file.path_as_krate_mod())),
+                LintData::Active(data) => {
+                    active.push((data.name_upper, path_as_crate_mod(lint.name_sp.file.path.get())));
+                },
                 LintData::Deprecated(data) => deprecated.push((name, lint.version, data.reason)),
                 LintData::Renamed(data) => renamed.push((name, lint.version, data.new_name)),
             }
@@ -135,7 +143,6 @@ impl ParsedLints<'_> {
                 UpdateStatus::from_changed(src != dst)
             },
         );
-
         for lints in slice_groups(&active, |(_, (head, _)), tail| {
             tail.iter().take_while(|(_, (x, _))| head == x).count()
         }) {
@@ -159,7 +166,207 @@ impl ParsedLints<'_> {
                 },
             );
         }
+        active.sort_unstable_by_key(|&(name, _)| name);
+        updater.update_file_checked(
+            "cargo dev update_lints",
+            update_mode,
+            "src/combined_passes.rs",
+            &mut |_, src, dst| {
+                gen_combined_lints_file(dst, &active, &self.lint_passes);
+                UpdateStatus::from_changed(src != dst)
+            },
+        );
     }
+}
+
+#[expect(clippy::elidable_lifetime_names, clippy::too_many_lines)]
+fn gen_combined_lints_file<'cx>(
+    dst: &mut String,
+    active_lints: &[(&str, (&str, &str))],
+    lint_passes: &LintPasses<'cx>,
+) {
+    let write_lint_list = |dst: &mut String, lints: &[&str], indent: &str| {
+        let [lint, ..] = lints else { return };
+        let start = active_lints
+            .binary_search_by_key(lint, |&(x, _)| x)
+            .unwrap_or_else(|_| panic!("missing lint `{lint}`"));
+        let mut active = active_lints[start..].iter();
+        for &lint in lints {
+            let (_, (krate, mod_path)) = active
+                .find(|&&(name, _)| lint == name)
+                .unwrap_or_else(|| panic!("missing lint `{lint}`"));
+            dst.extend(["\n", indent, "::", krate, "::"]);
+            for part in mod_path.split(path::MAIN_SEPARATOR) {
+                dst.extend([part, "::"]);
+            }
+            dst.extend([lint, ","]);
+        }
+    };
+
+    let (early_passes, late_passes) = lint_passes.split_early_late_passes();
+    let mut lints_buf: Vec<&str> = Vec::with_capacity(active_lints.len());
+
+    dst.push_str(GENERATED_FILE_COMMENT);
+    dst.push_str(
+        "\
+#![rustfmt::skip]
+#![expect(
+    non_snake_case,
+    non_upper_case_globals,
+    clippy::too_many_lines,
+    rustc::lint_pass_impl_without_macro,
+)]
+
+use clippy_config::Conf;
+use clippy_utils::macros::FormatArgsStorage;
+use clippy_lints::utils::attr_collector::AttrStorage;
+use rustc_data_structures::unord::UnordSet;
+use rustc_lint::{
+    EarlyContext, EarlyLintPass, LateContext, LateLintPass, Lint, LintId, LintPass, LintVec, early_lint_methods,
+    late_lint_methods,
+};
+use rustc_middle::ty::TyCtxt;
+
+fn is_lint_pass_required(skippable: &UnordSet<LintId>, lints: &[&'static Lint]) -> bool {
+    let skippable = !lints.is_empty() && lints.iter().all(|lint| skippable.contains(&LintId::of(lint)));
+    !skippable
+}
+
+",
+    );
+    for &pass in &late_passes {
+        dst.extend(["static ", pass.name, "_LINTS: &[&Lint] = &["]);
+        lints_buf.clear();
+        lints_buf.extend(pass.lints.iter().map(|&l| l.rsplit_once("::").unwrap_or(("", l)).1));
+        lints_buf.sort_unstable();
+        write_lint_list(dst, &lints_buf, "    ");
+        dst.push_str("\n];\n");
+    }
+    dst.push_str(
+        "
+pub struct CombinedClippyEarlyPass {",
+    );
+    for pass in &early_passes {
+        dst.push_str("\n    ");
+        pass.gen_struct_field(dst);
+    }
+    dst.push_str(
+        "
+}
+impl CombinedClippyEarlyPass {
+    pub fn new(conf: &'static Conf, fmt_args: &FormatArgsStorage, attrs: &AttrStorage) -> Self {
+        Self {",
+    );
+    for pass in &early_passes {
+        dst.push_str("\n            ");
+        pass.gen_struct_init(dst);
+    }
+    dst.push_str(
+        "
+        }
+    }
+}
+impl LintPass for CombinedClippyEarlyPass {
+    fn name(&self) -> &'static str {
+        \"CombinedClippyEarlyPass\"
+    }
+    fn get_lints(&self) -> LintVec {
+        vec![",
+    );
+    lints_buf.clear();
+    for &pass in &early_passes {
+        lints_buf.extend(pass.lints.iter().map(|&l| l.rsplit_once("::").unwrap_or(("", l)).1));
+    }
+    lints_buf.sort_unstable();
+    lints_buf.dedup();
+    write_lint_list(dst, &lints_buf, "            ");
+    dst.push_str(
+        "
+        ]
+    }
+}
+macro_rules! expand_early_methods {
+    ((), [$(fn $name:ident($($param:ident: $param_ty:ty),*);)*]) => {
+        impl EarlyLintPass for CombinedClippyEarlyPass {$(
+            fn $name(&mut self, cx: &EarlyContext<'_>, $($param: $param_ty),*) {",
+    );
+    for pass in &early_passes {
+        dst.extend([
+            "\n                EarlyLintPass::$name(&mut self.",
+            pass.name,
+            ", cx, $($param),*);",
+        ]);
+    }
+    dst.push_str(
+        "
+            }
+        )*}
+    }
+}
+early_lint_methods!(expand_early_methods, ());
+
+pub struct CombinedClippyLatePass<'tcx> {",
+    );
+    for pass in &late_passes {
+        dst.push_str("\n    ");
+        pass.gen_opt_struct_field(dst);
+    }
+    dst.push_str(
+        "
+}
+impl<'tcx> CombinedClippyLatePass<'tcx> {
+    pub fn new(tcx: TyCtxt<'tcx>, conf: &'static Conf, fmt_args: &FormatArgsStorage, attrs: &AttrStorage) -> Self {
+        let skippable_lints = tcx.skippable_lints(());
+        Self {",
+    );
+    for pass in &late_passes {
+        dst.push_str("\n            ");
+        pass.gen_opt_struct_init(dst);
+    }
+    dst.push_str(
+        "
+        }
+    }
+}
+impl LintPass for CombinedClippyLatePass<'_> {
+    fn name(&self) -> &'static str {
+        \"CombinedClippyLatePass\"
+    }
+    fn get_lints(&self) -> LintVec {
+        vec![",
+    );
+    lints_buf.clear();
+    for &pass in &late_passes {
+        lints_buf.extend(pass.lints.iter().map(|&l| l.rsplit_once("::").unwrap_or(("", l)).1));
+    }
+    lints_buf.sort_unstable();
+    lints_buf.dedup();
+    write_lint_list(dst, &lints_buf, "            ");
+    dst.push_str(
+        "
+        ]
+    }
+}
+macro_rules! expand_late_methods {
+    ((), [$(fn $name:ident($($param:ident: $param_ty:ty),*);)*]) => {
+        impl<'tcx> LateLintPass<'tcx> for CombinedClippyLatePass<'tcx> {$(
+            fn $name(&mut self, cx: &LateContext<'tcx>, $($param: $param_ty),*) {",
+    );
+    for pass in &late_passes {
+        dst.extend([
+            "\n                if let Some(pass) = &mut self.",
+            pass.name,
+            " { LateLintPass::$name(pass, cx, $($param),*); }",
+        ]);
+    }
+    dst.push_str(
+        "
+            }
+        )*}
+    }
+}
+late_lint_methods!(expand_late_methods, ());",
+    );
 }
 
 impl ActiveLint<'_, '_> {
@@ -179,6 +386,24 @@ impl ActiveLint<'_, '_> {
             dst.extend([",\n    ", self.data.opts]);
         }
         dst.push_str("\n}");
+    }
+}
+
+impl LintPassCtorArgs {
+    fn gen_args_list(self, dst: &mut String) {
+        let mut first = true;
+        for &arg in &self {
+            if !first {
+                dst.push_str(", ");
+            }
+            first = false;
+            dst.push_str(match arg {
+                LintPassCtorArg::TyCtxt => "tcx",
+                LintPassCtorArg::Conf => "conf",
+                LintPassCtorArg::FmtArgs => "fmt_args.clone()",
+                LintPassCtorArg::Attrs => "attrs.clone()",
+            });
+        }
     }
 }
 
@@ -209,6 +434,60 @@ impl LintPass<'_> {
             dst.push_str(list_multi_end);
         }
         dst.push_str(end);
+    }
+
+    pub fn gen_full_path(&self, dst: &mut String) {
+        self.decl_sp.file.write_path_as_rust_path(dst);
+        dst.extend(["::", self.name]);
+    }
+
+    fn gen_opt_struct_field(&self, dst: &mut String) {
+        dst.extend([self.name, ": Option<"]);
+        self.gen_full_path(dst);
+        dst.push_str(if self.lt.is_some() { "<'tcx>>," } else { ">," });
+    }
+
+    fn gen_struct_field(&self, dst: &mut String) {
+        dst.extend([self.name, ": "]);
+        self.gen_full_path(dst);
+        dst.push_str(if self.lt.is_some() { "<'tcx>," } else { "," });
+    }
+
+    fn gen_struct_init(&self, dst: &mut String) {
+        dst.extend([self.name, ": "]);
+        self.gen_full_path(dst);
+        match self.ctor {
+            LintPassCtor::Unit => dst.push(','),
+            LintPassCtor::Default => dst.push_str("::default(),"),
+            LintPassCtor::New(args) => {
+                dst.push_str("::new(");
+                args.gen_args_list(dst);
+                dst.push_str("),");
+            },
+        }
+    }
+
+    fn gen_opt_struct_init(&self, dst: &mut String) {
+        dst.extend([self.name, ": is_lint_pass_required(skippable_lints, ", self.name]);
+        match self.ctor {
+            LintPassCtor::Unit => {
+                dst.push_str("_LINTS).then_some(");
+                self.gen_full_path(dst);
+                dst.push_str("),");
+            },
+            LintPassCtor::Default => {
+                dst.push_str("_LINTS).then(");
+                self.gen_full_path(dst);
+                dst.push_str("::default),");
+            },
+            LintPassCtor::New(args) => {
+                dst.push_str("_LINTS).then(|| ");
+                self.gen_full_path(dst);
+                dst.push_str("::new(");
+                args.gen_args_list(dst);
+                dst.push_str(")),");
+            },
+        }
     }
 }
 

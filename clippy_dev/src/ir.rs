@@ -329,6 +329,25 @@ impl<'cx> LintPasses<'cx> {
         let post = self[i + 1..].iter().take_while(|&x| x.decl_sp.file == file).count();
         &mut self[i - pre..i + 1 + post]
     }
+
+    #[must_use]
+    pub fn split_early_late_passes<'s>(&'s self) -> (Vec<&'s LintPass<'cx>>, Vec<&'s LintPass<'cx>>) {
+        let mut early_passes = Vec::with_capacity(100);
+        let mut late_passes = Vec::with_capacity(self.len());
+        for pass in self.iter() {
+            // HACK: These are pre-expansion passes, but we detect them as early passes.
+            if pass.name == "EarlyAttributes" || pass.name == "MacroBraces" {
+                continue;
+            }
+            if pass.is_early {
+                early_passes.push(pass);
+            }
+            if pass.is_late {
+                late_passes.push(pass);
+            }
+        }
+        (early_passes, late_passes)
+    }
 }
 impl<'cx> Deref for LintPasses<'cx> {
     type Target = Vec<LintPass<'cx>>;

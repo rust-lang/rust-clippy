@@ -880,6 +880,46 @@ impl<T> VecBuf<T> {
     }
 }
 
+/// Splits the file's path into the crate it's a part of and the module it implements.
+///
+/// Only supports paths in the form `CRATE_NAME/src/PATH/TO/FILE.rs` using the current
+/// platform's path separator. The module path returned will use the current platform's
+/// path separator.
+pub fn path_as_crate_mod(path: &str) -> (&str, &str) {
+    let Some((krate, path)) = path.split_once(path::MAIN_SEPARATOR) else {
+        return ("", "");
+    };
+    let module = if let Some(path) = path.strip_prefix("src")
+        && let Some(path) = path.strip_prefix(path::MAIN_SEPARATOR)
+        && let Some(path) = path.strip_suffix(".rs")
+    {
+        if path == "lib" {
+            ""
+        } else if let Some(path) = path.strip_suffix("mod")
+            && let Some(path) = path.strip_suffix(path::MAIN_SEPARATOR)
+        {
+            path
+        } else {
+            path
+        }
+    } else {
+        ""
+    };
+    (krate, module)
+}
+
+/// Writes the full rust path to the module starting with a leading `::`.
+///
+/// Only supports paths in the form `CRATE_NAME/src/PATH/TO/FILE.rs` using the current
+/// platform's path separator.
+pub fn write_path_as_rust_path(path: &str, dst: &mut String) {
+    let (krate, mod_path) = path_as_crate_mod(path);
+    dst.extend(["::", krate]);
+    for part in mod_path.split(path::MAIN_SEPARATOR) {
+        dst.extend(["::", part]);
+    }
+}
+
 #[derive(Eq)]
 pub struct SourceFile<'cx> {
     // `cargo dev rename_lint` needs to be able to rename files.
@@ -898,6 +938,7 @@ impl<'cx> SourceFile<'cx> {
     }
 
     #[must_use]
+    #[track_caller]
     pub fn load(path: &'cx str) -> Self {
         let mut contents = String::new();
         File::open_read(path).read_append_to_string(&mut contents);
@@ -918,33 +959,8 @@ impl<'cx> SourceFile<'cx> {
         })
     }
 
-    /// Splits the file's path into the crate it's a part of and the module it implements.
-    ///
-    /// Only supports paths in the form `CRATE_NAME/src/PATH/TO/FILE.rs` using the current
-    /// platform's path separator. The module path returned will use the current platform's
-    /// path separator.
-    pub fn path_as_krate_mod(&self) -> (&'cx str, &'cx str) {
-        let path = self.path.get();
-        let Some((krate, path)) = path.split_once(path::MAIN_SEPARATOR) else {
-            return ("", "");
-        };
-        let module = if let Some(path) = path.strip_prefix("src")
-            && let Some(path) = path.strip_prefix(path::MAIN_SEPARATOR)
-            && let Some(path) = path.strip_suffix(".rs")
-        {
-            if path == "lib" {
-                ""
-            } else if let Some(path) = path.strip_suffix("mod")
-                && let Some(path) = path.strip_suffix(path::MAIN_SEPARATOR)
-            {
-                path
-            } else {
-                path
-            }
-        } else {
-            ""
-        };
-        (krate, module)
+    pub fn write_path_as_rust_path(&self, dst: &mut String) {
+        write_path_as_rust_path(self.path.get(), dst);
     }
 }
 impl PartialEq<SourceFile<'_>> for SourceFile<'_> {
