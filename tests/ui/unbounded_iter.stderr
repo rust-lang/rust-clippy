@@ -1,0 +1,17 @@
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:4:5
+   |
+LL |     (0..).all(|x| x > 0);
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::unbounded-iter` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unbounded_iter)]`
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:4:5
+   |
+LL |     (0..).all(|x| x > 0);
+   |     ^^^^^
+
+error: aborting due to 2 previous errors
+
