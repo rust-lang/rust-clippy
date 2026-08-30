@@ -106,17 +106,17 @@ enum UnwrappableKind {
 }
 
 impl UnwrappableKind {
-    fn success_variant_pattern(self) -> &'static str {
+    fn success_variant_pattern(self, binding_prefix: &str) -> String {
         match self {
-            UnwrappableKind::Option => "Some(<item>)",
-            UnwrappableKind::Result => "Ok(<item>)",
+            UnwrappableKind::Option => format!("Some({binding_prefix}<item>)"),
+            UnwrappableKind::Result => format!("Ok({binding_prefix}<item>)"),
         }
     }
 
-    fn error_variant_pattern(self) -> &'static str {
+    fn error_variant_pattern(self, binding_prefix: &str) -> String {
         match self {
-            UnwrappableKind::Option => "None",
-            UnwrappableKind::Result => "Err(<item>)",
+            UnwrappableKind::Option => "None".to_string(),
+            UnwrappableKind::Result => format!("Err({binding_prefix}<item>)"),
         }
     }
 }
@@ -465,20 +465,26 @@ impl<'tcx> Visitor<'tcx> for UnwrappableVariablesVisitor<'_, 'tcx> {
                         ),
                         |diag| {
                             if unwrappable.is_entire_condition {
+                                // For field access, borrowing the scrutinee (`&self.field`) can keep the borrow alive
+                                // after the `if` under legacy borrow checking, conflicting with a later mutation
+                                // (#16182). A `ref` or `ref mut` binding instead
+                                // borrows only the matched field value.
+                                let (binding_prefix, borrow_prefix) = match (as_ref_kind, &unwrappable.local) {
+                                    (Some(AsRefKind::AsRef), Local::WithFieldAccess { .. }) => ("ref ", ""),
+                                    (Some(AsRefKind::AsMut), Local::WithFieldAccess { .. }) => ("ref mut ", ""),
+                                    (Some(AsRefKind::AsRef), _) => ("", "&"),
+                                    (Some(AsRefKind::AsMut), _) => ("", "&mut "),
+                                    (None, _) => ("", ""),
+                                };
                                 diag.span_suggestion(
                                     unwrappable.check.span.with_lo(unwrappable.if_expr.span.lo()),
                                     "try",
                                     format!(
                                         "if let {suggested_pattern} = {borrow_prefix}{unwrappable_variable_str}",
                                         suggested_pattern = if call_to_unwrap {
-                                            unwrappable.kind.success_variant_pattern()
+                                            unwrappable.kind.success_variant_pattern(binding_prefix)
                                         } else {
-                                            unwrappable.kind.error_variant_pattern()
-                                        },
-                                        borrow_prefix = match as_ref_kind {
-                                            Some(AsRefKind::AsRef) => "&",
-                                            Some(AsRefKind::AsMut) => "&mut ",
-                                            None => "",
+                                            unwrappable.kind.error_variant_pattern(binding_prefix)
                                         },
                                     ),
                                     // We don't track how the unwrapped value is used inside the
