@@ -2,7 +2,9 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::paths::EXACT_SIZE_ITERATOR;
 use clippy_utils::sym;
 use clippy_utils::ty::{get_field_by_name, implements_trait, ty_from_hir_ty};
-use rustc_hir::{Body, Expr, ExprKind, Impl, ImplItem, ImplItemKind, ItemKind, OwnerNode, QPath, StmtKind};
+use rustc_hir::{
+    Body, Expr, ExprKind, Impl, ImplItem, ImplItemImplKind, ImplItemKind, ItemKind, OwnerNode, QPath, StmtKind,
+};
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 use rustc_span::symbol::kw;
 
@@ -110,73 +112,42 @@ fn size_hint_return<'tcx>(body: &'tcx Body<'tcx>) -> Option<&'tcx Expr<'tcx>> {
 impl<'tcx> LateLintPass<'tcx> for IterMissingExactSize {
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'tcx>) {
         // Check for this item being the size_hint() function in the
-        // implementation of the iterator trait:
-        // 1) is this function named size_hint() (simplest check first)
-        if impl_item.ident.name != sym::size_hint {
-            return;
-        }
-        // 2) is this part of a bigger item?
-        let OwnerNode::Item(item) = cx
-            .tcx
-            .expect_hir_owner_node(cx.tcx.local_parent(impl_item.owner_id.def_id))
-        else {
-            return;
-        };
-        // 3) is that bigger item a trait implementation?
-        let ItemKind::Impl(Impl {
-            of_trait: Some(of_trait),
-            self_ty: current_type,
-            ..
-        }) = item.kind
-        else {
-            return;
-        };
-        // 4) can we find the trait definition id?
-        let Some(trait_id) = of_trait.trait_ref.trait_def_id() else {
-            return;
-        };
-        // 5) is it the iterator trait?
-        if !cx.tcx.is_diagnostic_item(sym::Iterator, trait_id) {
-            return;
-        }
-
-        // Get the body ID and convert it to the actual body
-        let ImplItemKind::Fn(_, body_id) = impl_item.kind else {
-            return;
-        };
-        let size_hint_body = cx.tcx.hir_body(body_id);
-
-        let Some(size_hint_return) = size_hint_return(size_hint_body) else {
-            return;
-        };
-        if let ExprKind::MethodCall(method_name, receiver, args, _) = size_hint_return.kind
+        // implementation of the iterator trait.
+        if impl_item.ident.name == sym::size_hint
+            && matches!(impl_item.impl_kind, ImplItemImplKind::Trait { .. })
+            && let OwnerNode::Item(item) = cx
+                .tcx
+                .expect_hir_owner_node(cx.tcx.local_parent(impl_item.owner_id.def_id))
+            && let ItemKind::Impl(Impl {
+                    of_trait: Some(of_trait),
+                    self_ty: current_type,
+                    ..
+                }) = item.kind
+            && let Some(trait_id) = of_trait.trait_ref.trait_def_id()
+            && cx.tcx.is_diagnostic_item(sym::Iterator, trait_id)
+            // Get the body ID and convert it to the actual body
+            && let ImplItemKind::Fn(_, body_id) = impl_item.kind
+            && let size_hint_body = cx.tcx.hir_body(body_id)
+            && let Some(size_hint_return) = size_hint_return(size_hint_body)
+            // the size_hint() function just returns - check if it returns the
+            // result of `self.{field}.size_hint()`
+            && let ExprKind::MethodCall(method_name, receiver, [], _) = size_hint_return.kind
             && method_name.ident.name == sym::size_hint
             && let ExprKind::Field(object, field_name) = receiver.kind
             && let ExprKind::Path(QPath::Resolved(_, object_path)) = object.kind
             && let [path_segment] = object_path.segments
             && path_segment.ident.name == kw::SelfLower
-            && args.is_empty()
+            // Extract the `{field}` from `self.{field}.size_hint()`
+            && let current_middle_ty = ty_from_hir_ty(cx, current_type)
+            && let Some(field) = get_field_by_name(cx.tcx, current_middle_ty, field_name.name)
+            // Make sure a ExactSizeIterator type is known, if not this is a no_core
+            // environment
+            && let Some(trait_def) = EXACT_SIZE_ITERATOR.only(cx)
+            // Field type needs to implement ExactSizeIterator
+            && implements_trait(cx, field, trait_def, &[])
+            // Overall type needs to not already implement ExactSizeIterator
+            && !implements_trait(cx, current_middle_ty, trait_def, &[])
         {
-            // The function body is just `self.{field}.size_hint()`, check
-            // for the type of the field
-            let current_middle_ty = ty_from_hir_ty(cx, current_type);
-            let field = get_field_by_name(cx.tcx, current_middle_ty, field_name.name);
-            let Some(field) = field else {
-                return;
-            };
-            // Does that type implement ExactSizeIterator?
-            let Some(trait_def) = EXACT_SIZE_ITERATOR.only(cx) else {
-                // Type isn't know, no_core environment
-                return;
-            };
-            if !implements_trait(cx, field, trait_def, &[]) {
-                // Field type does not implement ExactSizeIterator
-                return;
-            }
-            if implements_trait(cx, current_middle_ty, trait_def, &[]) {
-                // Overall type already implements ExactSizeIterator
-                return;
-            }
             span_lint_and_help(
                 cx,
                 ITER_MISSING_EXACT_SIZE,
