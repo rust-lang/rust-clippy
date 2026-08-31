@@ -2,9 +2,8 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::paths::EXACT_SIZE_ITERATOR;
 use clippy_utils::sym;
 use clippy_utils::ty::{get_field_by_name, implements_trait, ty_from_hir_ty};
-use rustc_hir::{Body, Expr, ExprKind, Impl, ImplItemKind, Item, ItemKind, OwnerId, OwnerNode, QPath, StmtKind};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::declare_lint_pass;
+use rustc_hir::{Body, Expr, ExprKind, Impl, ImplItem, ImplItemKind, ItemKind, OwnerNode, QPath, StmtKind};
+use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 use rustc_span::symbol::kw;
 
 declare_clippy_lint! {
@@ -83,25 +82,6 @@ declare_clippy_lint! {
 
 declare_lint_pass!(IterMissingExactSize => [ITER_MISSING_EXACT_SIZE]);
 
-/// Given an `OwnerId` for an item that is `impl Iterator for {type}`, try to
-/// locate the `size_hint()` function being defined in that block.
-fn size_hint_body<'tcx>(cx: &LateContext<'tcx>, owner_id: OwnerId) -> Option<&'tcx Body<'tcx>> {
-    let size_hint_fn = cx
-        .tcx
-        .associated_items(owner_id)
-        .filter_by_name_unhygienic(sym::size_hint)
-        .find(|assoc_item| assoc_item.expect_trait_impl().is_ok() && assoc_item.is_method())?;
-
-    let node = cx.tcx.expect_hir_owner_node(size_hint_fn.def_id.expect_local());
-    let OwnerNode::ImplItem(impl_item) = node else {
-        return None;
-    };
-    let ImplItemKind::Fn(_, body_id) = impl_item.kind else {
-        return None;
-    };
-    Some(cx.tcx.hir_body(body_id))
-}
-
 /// Given a `Body` for the `size_hint()` function, try to get the return
 /// expression, either
 /// - a trailing expression when the block has no statements
@@ -128,9 +108,21 @@ fn size_hint_return<'tcx>(body: &'tcx Body<'tcx>) -> Option<&'tcx Expr<'tcx>> {
 }
 
 impl<'tcx> LateLintPass<'tcx> for IterMissingExactSize {
-    fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        // Check for this item being an implementation of the iterator trait:
-        // 1) is it implementing a trait?
+    fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'tcx>) {
+        // Check for this item being the size_hint() function in the
+        // implementation of the iterator trait:
+        // 1) is this function named size_hint() (simplest check first)
+        if impl_item.ident.name != sym::size_hint {
+            return;
+        }
+        // 2) is this part of a bigger item?
+        let OwnerNode::Item(item) = cx
+            .tcx
+            .expect_hir_owner_node(cx.tcx.local_parent(impl_item.owner_id.def_id))
+        else {
+            return;
+        };
+        // 3) is that bigger item a trait implementation?
         let ItemKind::Impl(Impl {
             of_trait: Some(of_trait),
             self_ty: current_type,
@@ -139,20 +131,21 @@ impl<'tcx> LateLintPass<'tcx> for IterMissingExactSize {
         else {
             return;
         };
-        // 2) can we find the trait definition id?
+        // 4) can we find the trait definition id?
         let Some(trait_id) = of_trait.trait_ref.trait_def_id() else {
             return;
         };
-        // 3) is it the iterator trait?
+        // 5) is it the iterator trait?
         if !cx.tcx.is_diagnostic_item(sym::Iterator, trait_id) {
             return;
         }
 
-        // We know that this item is an `impl Iterator for _` block; find the
-        // size_hint() function (if present)
-        let Some(size_hint_body) = size_hint_body(cx, item.owner_id) else {
+        // Get the body ID and convert it to the actual body
+        let ImplItemKind::Fn(_, body_id) = impl_item.kind else {
             return;
         };
+        let size_hint_body = cx.tcx.hir_body(body_id);
+
         let Some(size_hint_return) = size_hint_return(size_hint_body) else {
             return;
         };
