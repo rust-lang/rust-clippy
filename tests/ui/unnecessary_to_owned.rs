@@ -499,7 +499,7 @@ mod issue_9351 {
 }
 
 mod issue_9504 {
-
+    #![allow(clippy::cow_to_owned)]
     async fn foo<S: AsRef<str>>(_: S) {}
     async fn bar() {
         foo(std::path::PathBuf::new().to_string_lossy().to_string()).await;

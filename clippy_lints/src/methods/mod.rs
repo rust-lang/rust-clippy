@@ -16,6 +16,7 @@ mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
 mod collapsible_str_replace;
+mod cow_to_owned;
 mod double_ended_iterator_last;
 mod drain_collect;
 mod err_expect;
@@ -538,6 +539,36 @@ declare_clippy_lint! {
     pub CONST_IS_EMPTY,
     suspicious,
     "is_empty() called on strings known at compile time"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks the `to_owned`-like methods call on the temporary `Cow`, it can be replaced
+    /// with `Cow::into_owned`.
+    ///
+    /// ### Why is this bad?
+    /// If the temporary `Cow` is `Cow::Owned`, it will result in useless allocations.
+    ///
+    /// ### Known problems
+    /// To avoid accidental move, only temporary values are currently being checked.
+    /// See [#2387](https://github.com/rust-lang/rust-clippy/issues/2387).
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn readable_path(path: &std::path::Path) -> String {
+    ///     path.to_string_lossy().to_string()
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn readable_path(path: &std::path::Path) -> String {
+    ///     path.to_string_lossy().into_owned()
+    /// }
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub COW_TO_OWNED,
+    perf,
+    "`to_owned`-like functions called on `Cow::Owned`"
 }
 
 declare_clippy_lint! {
@@ -4967,6 +4998,7 @@ impl_lint_pass!(Methods => [
     CLONE_ON_REF_PTR,
     COLLAPSIBLE_STR_REPLACE,
     CONST_IS_EMPTY,
+    COW_TO_OWNED,
     DOUBLE_ENDED_ITERATOR_LAST,
     DRAIN_COLLECT,
     ERR_EXPECT,
@@ -5848,6 +5880,7 @@ impl Methods {
                     }
                 },
                 (sym::to_os_string | sym::to_path_buf | sym::to_string | sym::to_vec, []) => {
+                    cow_to_owned::check(cx, name, expr, recv, span);
                     implicit_clone::check(cx, name, expr, recv);
                 },
                 (sym::type_id, []) => {
