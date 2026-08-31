@@ -1,4 +1,4 @@
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::{SpanExt as _, snippet};
 use clippy_utils::ty::{implements_trait, implements_trait_with_env_from_iter, is_copy};
@@ -295,9 +295,10 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByValue {
                     );
                 };
 
-                span_lint_and_then(
+                span_lint_hir_and_then(
                     cx,
                     NEEDLESS_PASS_BY_VALUE,
+                    arg.hir_id,
                     input.span,
                     "this argument is passed by value, but not consumed in the function body",
                     sugg,
