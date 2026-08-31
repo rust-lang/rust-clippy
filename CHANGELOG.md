@@ -7040,6 +7040,7 @@ Released 2018-09-13
 [`const_is_empty`]: https://clippy.rust-lang.org/main/index.html#const_is_empty
 [`const_static_lifetime`]: https://clippy.rust-lang.org/main/index.html#const_static_lifetime
 [`copy_iterator`]: https://clippy.rust-lang.org/main/index.html#copy_iterator
+[`cow_to_owned`]: https://clippy.rust-lang.org/main/index.html#cow_to_owned
 [`crate_in_macro_def`]: https://clippy.rust-lang.org/main/index.html#crate_in_macro_def
 [`create_dir`]: https://clippy.rust-lang.org/main/index.html#create_dir
 [`crosspointer_transmute`]: https://clippy.rust-lang.org/main/index.html#crosspointer_transmute
