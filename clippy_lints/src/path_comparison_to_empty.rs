@@ -11,9 +11,9 @@ use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for comparing a `Path` or `PathBuf` to `Path::new("")` or `PathBuf()` and suggests to use `.is_empty()` instead
+    /// Checks for comparing a `Path` or `PathBuf` to `Path::new("")` or `PathBuf::new()` and suggests to use `.is_empty()` instead
     /// ### Why is this bad?
-    /// using `is_empty()` is more performant
+    /// using `is_empty()` is clearer
     /// ### Example
     /// ```no_run
     /// # use std::path::{Path};
@@ -73,7 +73,7 @@ impl LateLintPass<'_> for PathComparisonToEmpty {
                 cx,
                 PATH_COMPARISON_TO_EMPTY,
                 expr.span,
-                "path comparison to new empty initialized path",
+                "comparing a path against an empty path",
                 format!("using `{negation_sign}is_empty` is clearer and more explicit"),
                 format!(
                     "{negation_sign}{}.is_empty()",
@@ -86,25 +86,18 @@ impl LateLintPass<'_> for PathComparisonToEmpty {
 }
 
 fn is_path_new_empty_args(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
-    // PathBuf has no args, Path has "" as args
     if let ExprKind::Call(func, args) = expr.kind
         && let ExprKind::Path(ref qpath) = func.kind
         && let Some(def_id) = cx.qpath_res(qpath, func.hir_id).opt_def_id()
-        && let Some(impl_ty) = def_id.assoc_parent(cx).opt_impl_ty(cx)
         && cx.tcx.item_name(def_id) == sym::new
-        && (impl_ty.skip_binder().is_diag_item(cx, sym::Path) || impl_ty.skip_binder().is_diag_item(cx, sym::PathBuf))
+        && let Some(impl_ty) = def_id.assoc_parent(cx).opt_impl_ty(cx)
     {
-        // PathBuf::new() check for no args
-        if args.is_empty() && impl_ty.skip_binder().is_diag_item(cx, sym::PathBuf) {
-            return true;
-        }
-
-        // Path::new("") check for empty String as arg
-        if let [arg] = args
-            && (impl_ty.skip_binder().is_diag_item(cx, sym::Path))
-        {
-            return is_empty_string(arg);
-        }
+        // `PathBuf::new()` takes no args, `Path::new("")` takes one empty string literal.
+        return match impl_ty.skip_binder().opt_diag_name(cx) {
+            Some(sym::PathBuf) => args.is_empty(),
+            Some(sym::Path) => matches!(args, [arg] if is_empty_string(arg)),
+            _ => false,
+        };
     }
     false
 }
