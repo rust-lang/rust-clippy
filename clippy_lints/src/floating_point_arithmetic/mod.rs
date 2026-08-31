@@ -1,7 +1,9 @@
+use clippy_config::Conf;
+use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
-use clippy_utils::{is_in_const_context, is_no_std_crate, sym};
+use clippy_utils::{is_in_const_context, is_no_std_crate, msrvs, sym};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 
 mod custom_abs;
 mod expm1;
@@ -102,12 +104,26 @@ declare_clippy_lint! {
     "usage of sub-optimal floating point operations"
 }
 
-declare_lint_pass!(FloatingPointArithmetic => [IMPRECISE_FLOPS, SUBOPTIMAL_FLOPS]);
+impl_lint_pass!(FloatingPointArithmetic => [IMPRECISE_FLOPS, SUBOPTIMAL_FLOPS]);
+
+pub struct FloatingPointArithmetic {
+    msrv: Msrv,
+}
+
+impl FloatingPointArithmetic {
+    pub fn new(conf: &Conf) -> Self {
+        Self { msrv: conf.msrv.into() }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for FloatingPointArithmetic {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        // All of these operations are currently not const and are in std.
         if is_in_const_context(cx) {
+            // `mul_add` became const-stable in Rust 1.94. Other operations in
+            // this lint are still not available in const contexts.
+            if self.msrv.meets(cx, msrvs::CONST_FLOAT_MUL_ADD) {
+                mul_add::check(cx, expr);
+            }
             return;
         }
 
