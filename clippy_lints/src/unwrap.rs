@@ -18,6 +18,7 @@ use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::ProjectionKind;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty::{self, Ty, TyCtxt};
+use rustc_session::config::Polonius;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, Symbol};
 
@@ -465,15 +466,22 @@ impl<'tcx> Visitor<'tcx> for UnwrappableVariablesVisitor<'_, 'tcx> {
                         ),
                         |diag| {
                             if unwrappable.is_entire_condition {
-                                // For field access, borrowing the scrutinee (`&self.field`) can keep the borrow alive
-                                // after the `if` under legacy borrow checking, conflicting with a later mutation
-                                // (#16182). A `ref` or `ref mut` binding instead
-                                // borrows only the matched field value.
-                                let (binding_prefix, borrow_prefix) = match (as_ref_kind, &unwrappable.local) {
-                                    (Some(AsRefKind::AsRef), Local::WithFieldAccess { .. }) => ("ref ", ""),
-                                    (Some(AsRefKind::AsMut), Local::WithFieldAccess { .. }) => ("ref mut ", ""),
-                                    (Some(AsRefKind::AsRef), _) => ("", "&"),
-                                    (Some(AsRefKind::AsMut), _) => ("", "&mut "),
+                                // For field access, borrowing the scrutinee (`&self.field`) evaluates the
+                                // borrow before the match, which under NLL can keep it alive after the `if`
+                                // and conflict with a later mutation (#16182). A `ref` or `ref mut` binding
+                                // instead borrows only the matched field value, which both borrow checkers
+                                // accept. Polonius does not have that limitation, so it keeps the more
+                                // idiomatic match ergonomics form. This special case can be dropped once
+                                // polonius is enabled everywhere.
+                                let polonius_enabled =
+                                    !matches!(self.cx.tcx.sess.opts.unstable_opts.polonius, Polonius::Off);
+                                let use_ref_binding =
+                                    !polonius_enabled && matches!(unwrappable.local, Local::WithFieldAccess { .. });
+                                let (binding_prefix, borrow_prefix) = match (as_ref_kind, use_ref_binding) {
+                                    (Some(AsRefKind::AsRef), true) => ("ref ", ""),
+                                    (Some(AsRefKind::AsMut), true) => ("ref mut ", ""),
+                                    (Some(AsRefKind::AsRef), false) => ("", "&"),
+                                    (Some(AsRefKind::AsMut), false) => ("", "&mut "),
                                     (None, _) => ("", ""),
                                 };
                                 diag.span_suggestion(

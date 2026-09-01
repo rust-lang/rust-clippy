@@ -473,7 +473,7 @@ fn issue15321() {
         topt.0.unwrap();
         //~^ unnecessary_unwrap
     }
-    // This is fine though, as `if let Some(ref o) = topt.0` won't (partially) move `topt`
+    // This is fine though, as `if let Some(o) = &topt.0` won't (partially) move `topt`
     if topt.0.is_some() {
         borrow_toption(&topt);
         topt.0.as_ref().unwrap();
@@ -548,21 +548,21 @@ mod issue16182 {
         }
 
         fn suggested_option_ref(&mut self) -> &String {
-            if let Some(ref value) = self.option {
+            if let Some(value) = &self.option {
                 return value;
             }
             self.option.insert(String::new())
         }
 
         fn suggested_option_mut(&mut self) -> &mut String {
-            if let Some(ref mut value) = self.option {
+            if let Some(value) = &mut self.option {
                 return value;
             }
             self.option.insert(String::new())
         }
 
         fn suggested_result_ok(&mut self) -> &String {
-            if let Ok(ref value) = self.result {
+            if let Ok(value) = &self.result {
                 return value;
             }
             self.result = Ok(String::new());
@@ -573,7 +573,7 @@ mod issue16182 {
         }
 
         fn suggested_result_err(&mut self) -> &String {
-            if let Err(ref error) = self.result {
+            if let Err(error) = &self.result {
                 return error;
             }
             self.result = Err(String::new());
