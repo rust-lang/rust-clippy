@@ -8,7 +8,7 @@ LL |     let a = [f(); 0];
    = help: to override `-D warnings` add `#[allow(clippy::zero_repeat_side_effects)]`
 help: consider performing the side effect separately
    |
-LL ~     f();
+LL ~     let _: i32 = f();
 LL +     let a: [i32; 0] = [];
    |
 
@@ -20,7 +20,7 @@ LL |     b = [f(); 0];
    |
 help: consider performing the side effect separately
    |
-LL ~     f();
+LL ~     let _: i32 = f();
 LL ~     b = [] as [i32; 0];
    |
 
@@ -32,7 +32,7 @@ LL |     let c = vec![f(); 0];
    |
 help: consider performing the side effect separately
    |
-LL ~     f();
+LL ~     let _: i32 = f();
 LL +     let c: std::vec::Vec<i32> = vec![];
    |
 
@@ -44,7 +44,7 @@ LL |     d = vec![f(); 0];
    |
 help: consider performing the side effect separately
    |
-LL ~     f();
+LL ~     let _: i32 = f();
 LL ~     d = vec![] as std::vec::Vec<i32>;
    |
 
@@ -56,7 +56,7 @@ LL |     let e = [println!("side effect"); 0];
    |
 help: consider performing the side effect separately
    |
-LL ~     println!("side effect");
+LL ~     let _: () = println!("side effect");
 LL +     let e: [(); 0] = [];
    |
 
@@ -68,7 +68,7 @@ LL |     let g = [{ f() }; 0];
    |
 help: consider performing the side effect separately
    |
-LL ~     { f() };
+LL ~     let _: i32 = { f() };
 LL +     let g: [i32; 0] = [];
    |
 
@@ -81,7 +81,7 @@ LL |     drop(vec![f(); 0]);
 help: consider performing the side effect separately
    |
 LL ~     drop({
-LL +         f();
+LL +         let _: i32 = f();
 LL +         vec![] as std::vec::Vec<i32>
 LL ~     });
    |
@@ -119,7 +119,7 @@ LL |     foo(&[Some(f()); 0]);
 help: consider performing the side effect separately
    |
 LL ~     foo(&{
-LL +         Some(f());
+LL +         let _: std::option::Option<i32> = Some(f());
 LL +         [] as [std::option::Option<i32>; 0]
 LL ~     });
    |
@@ -133,7 +133,7 @@ LL |     foo(&[Some(Some(S::new())); 0]);
 help: consider performing the side effect separately
    |
 LL ~     foo(&{
-LL +         Some(Some(S::new()));
+LL +         let _: std::option::Option<std::option::Option<S>> = Some(Some(S::new()));
 LL +         [] as [std::option::Option<std::option::Option<S>>; 0]
 LL ~     });
    |
@@ -147,7 +147,7 @@ LL |         0 => _ = [f(); 0],
 help: consider performing the side effect separately
    |
 LL ~         0 => {
-LL +             f();
+LL +             let _: () = f();
 LL +             _ = [] as [(); 0]
 LL ~         },
    |
@@ -161,10 +161,62 @@ LL |         0 => a = [f(); 0],
 help: consider performing the side effect separately
    |
 LL ~         0 => {
-LL +             f();
+LL +             let _: () = f();
 LL +             a = [] as [(); 0]
 LL ~         },
    |
 
-error: aborting due to 13 previous errors
+error: expression with side effects as the initial value in a zero-sized array initializer
+  --> tests/ui/zero_repeat_side_effects.rs:147:9
+   |
+LL |         let mut entries = vec![Entry::default(); 0];
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider performing the side effect separately
+   |
+LL ~         let _: issue_16474::Entry<usize> = Entry::default();
+LL +         let mut entries: std::vec::Vec<issue_16474::Entry<usize>> = vec![];
+   |
+
+error: expression with side effects as the initial value in a zero-sized array initializer
+  --> tests/ui/zero_repeat_side_effects.rs:162:9
+   |
+LL |         entries = vec![Entry::default(); 0];
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider performing the side effect separately
+   |
+LL ~         let _: issue_16474::Entry<usize> = Entry::default();
+LL ~         entries = vec![] as std::vec::Vec<issue_16474::Entry<usize>>;
+   |
+
+error: expression with side effects as the initial value in a zero-sized array initializer
+  --> tests/ui/zero_repeat_side_effects.rs:178:18
+   |
+LL |             0 => entries = vec![Entry::default(); 0],
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider performing the side effect separately
+   |
+LL ~             0 => {
+LL +                 let _: issue_16474::Entry<usize> = Entry::default();
+LL +                 entries = vec![] as std::vec::Vec<issue_16474::Entry<usize>>
+LL ~             },
+   |
+
+error: expression with side effects as the initial value in a zero-sized array initializer
+  --> tests/ui/zero_repeat_side_effects.rs:202:13
+   |
+LL |     some_fn(vec![Generic::default(); 0], 42);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider performing the side effect separately
+   |
+LL ~     some_fn({
+LL +         let _: Generic<usize> = Generic::default();
+LL +         vec![] as std::vec::Vec<Generic<usize>>
+LL ~     }, 42);
+   |
+
+error: aborting due to 17 previous errors
 
