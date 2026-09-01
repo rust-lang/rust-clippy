@@ -89,6 +89,7 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
                             hir::ExprKind::Call(call, [arg]) => {
                                 if let hir::ExprKind::Path(qpath) = call.kind
                                     && ident_eq(name, arg)
+                                    && cx.typeck_results().expr_ty(arg) == cx.typeck_results().expr_ty_adjusted(arg)
                                 {
                                     handle_path(cx, call, &qpath, e, recv);
                                 }
