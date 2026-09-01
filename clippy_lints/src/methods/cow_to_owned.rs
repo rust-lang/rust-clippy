@@ -11,10 +11,10 @@ use crate::methods::is_clone_like;
 use super::COW_TO_OWNED;
 
 pub fn check(cx: &LateContext<'_>, method_name: Symbol, expr: &Expr<'_>, recv: &Expr<'_>, span: Span) {
+    debug_assert_ne!(method_name, sym::to_owned, "hit Cow::to_owned");
     if let Some(method_parent_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id).opt_parent(cx)
         && cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::Cow)
         && is_clone_like(cx, method_name, method_parent_id)
-        && method_name != sym::to_owned // hit Cow::to_owned
         && is_expr_temporary_value(cx, recv)
     {
         let msg = format!(
