@@ -89,13 +89,6 @@ fn msrv_1_76(_: std::net::IpAddr) {}
 fn msrv_1_77(_: core::net::IpAddr) {}
 //~^ std_instead_of_core
 
-#[warn(clippy::alloc_instead_of_core)]
-fn issue15579() {
-    use std::alloc;
-
-    let layout = alloc::Layout::new::<u8>();
-}
-
 #[warn(clippy::std_instead_of_core)]
 fn issue13158_core_io() {
     // items moved from std::io into core::io are stable in an unstable module.
@@ -115,3 +108,26 @@ fn issue13158_msrv_1_80(_: &dyn std::error::Error) {}
 #[clippy::msrv = "1.81"]
 fn issue13158_msrv_1_81(_: &dyn core::error::Error) {}
 //~^ std_instead_of_core
+
+#[warn(clippy::std_instead_of_core)]
+fn issue17260() {
+    use core::concat;
+    //~^ std_instead_of_core
+}
+
+#[warn(clippy::std_instead_of_alloc)]
+fn non_use_paths() {
+    type Foo = alloc::sync::Arc<std::sync::Mutex<bool>>;
+    //~^ std_instead_of_alloc
+
+    let _x = core::iter::repeat(u8::default());
+    //~^ std_instead_of_core
+
+    fn impl_trait(_: impl core::fmt::Display) {}
+    //~^ std_instead_of_core
+
+    struct Bar {
+        layout: core::alloc::Layout,
+        //~^ std_instead_of_core
+    }
+}
