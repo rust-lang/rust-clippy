@@ -35,4 +35,15 @@ fn main() {
     let _other = osstr().clone();
     let _other = osstr().to_owned();
     let _other = cow_ref().to_vec();
+    non_template_values();
+}
+
+// Perhaps in the future, single reference or last reference may be possible
+fn non_template_values() {
+    let single = bytes();
+    let multi = bytes();
+
+    let _a = single.to_vec();
+    let _b = multi.to_vec();
+    let _c = multi.to_vec();
 }
