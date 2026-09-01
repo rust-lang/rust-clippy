@@ -18,6 +18,10 @@ fn osstr() -> Cow<'static, OsStr> {
     Cow::Borrowed(OsStr::new(""))
 }
 
+fn cow_ref() -> &'static Cow<'static, [u8]> {
+    &Cow::Borrowed(&[])
+}
+
 fn main() {
     let _a = bytes().to_vec();
     //~^ cow_to_owned
@@ -30,4 +34,5 @@ fn main() {
 
     let _other = osstr().clone();
     let _other = osstr().to_owned();
+    let _other = cow_ref().to_vec();
 }
