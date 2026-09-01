@@ -1,4 +1,5 @@
 #![warn(clippy::cow_to_owned)]
+#![expect(clippy::suspicious_to_owned)]
 
 use std::borrow::Cow;
 use std::ffi::OsStr;
@@ -28,6 +29,5 @@ fn main() {
     //~^ cow_to_owned
 
     let _other = osstr().clone();
-    #[allow(clippy::suspicious_to_owned)]
     let _other = osstr().to_owned();
 }

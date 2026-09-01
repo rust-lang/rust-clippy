@@ -1,5 +1,6 @@
 #![warn(clippy::redundant_clone, clippy::unnecessary_to_owned)]
 #![expect(
+    clippy::cow_to_owned,
     clippy::manual_async_fn,
     clippy::needless_borrow,
     clippy::needless_borrows_for_generic_args,
@@ -499,7 +500,7 @@ mod issue_9351 {
 }
 
 mod issue_9504 {
-    #![allow(clippy::cow_to_owned)]
+
     async fn foo<S: AsRef<str>>(_: S) {}
     async fn bar() {
         foo(std::path::PathBuf::new().to_string_lossy().to_string()).await;
