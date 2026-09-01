@@ -549,10 +549,6 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     /// If the temporary `Cow` is `Cow::Owned`, it will result in useless allocations.
     ///
-    /// ### Known problems
-    /// To avoid accidental move, only temporary values are currently being checked.
-    /// See [#2387](https://github.com/rust-lang/rust-clippy/issues/2387).
-    ///
     /// ### Example
     /// ```no_run
     /// fn readable_path(path: &std::path::Path) -> String {
