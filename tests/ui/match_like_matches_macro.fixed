@@ -309,6 +309,20 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
+    fn mut_binding(v: (Option<u8>, Option<u8>)) -> bool {
+        matches!(v, (Some(mut x), Some(1)) | (Some(mut x), Some(2)))
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct StructRefBinding {
+        x: Option<u8>,
+        y: u8,
+    }
+    fn struct_ref_binding(v: StructRefBinding) -> bool {
+        matches!(v, StructRefBinding { ref x, y: 1 } | StructRefBinding { ref x, y: 2 })
+        //~^^^^^ match_like_matches_macro
+    }
+
     struct TestBindingNames {
         a: u8,
         b: u8,

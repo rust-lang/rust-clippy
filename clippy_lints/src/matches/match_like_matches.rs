@@ -273,16 +273,21 @@ fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
     let mut binding_spans_with_struct: Vec<(Span, String)> = Vec::new();
 
     // skip replacement when there is a `ref` to a binding.
-    let mut has_ref_binding = false;
+    let mut has_binding_modifier = false;
 
     arm_pat.walk_always(|p| {
         if let PatKind::Binding(binding_mode, _, ident, _) = p.kind {
-            binding_spans.push(ident.span);
-
             // `ref` and `ref mut` won't be replaced with `_`
             if let ByRef::Yes(..) = binding_mode.0 {
-                has_ref_binding = true;
+                has_binding_modifier = true;
             }
+
+            // `mut` won't be replaced with `_`
+            if binding_mode.1.is_mut() {
+                has_binding_modifier = true;
+            }
+
+            binding_spans.push(ident.span);
         }
         if let PatKind::Struct(_, pat_fields, _) = p.kind {
             for field in pat_fields {
@@ -293,7 +298,7 @@ fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
         }
     });
 
-    if !has_ref_binding {
+    if !has_binding_modifier {
         if binding_spans_with_struct.is_empty() {
             for span in binding_spans.iter().rev() {
                 let start = (span.lo() - arm_pat.span.lo()).0 as usize;
