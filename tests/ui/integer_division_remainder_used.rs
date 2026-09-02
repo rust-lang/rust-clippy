@@ -19,6 +19,21 @@ impl std::ops::Rem for CustomOps {
     }
 }
 
+fn issue17603() {
+    let x: u16 = 7;
+    let _ = x.div_ceil(3);
+    //~^ integer_division_remainder_used
+
+    let _ = x.wrapping_div(3);
+    //~^ integer_division_remainder_used
+
+    let _ = x.checked_rem(3);
+    //~^ integer_division_remainder_used
+
+    let f: f64 = 7.0;
+    let _ = f.div_euclid(3.0);
+}
+
 fn main() {
     // should trigger
     let a = 10;
