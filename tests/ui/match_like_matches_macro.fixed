@@ -342,6 +342,70 @@ mod issue17503 {
         //~^^^^^^ match_like_matches_macro
     }
 
+    struct MixedBindingNames {
+        a: u8,
+        b: u8,
+    }
+    fn mixed_binding_names(x: MixedBindingNames, y: Option<u8>) -> bool {
+        matches!((x, y), (MixedBindingNames { a: _, .. }, Some(_)) | (MixedBindingNames { b: _, .. }, Some(_)))
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct MixedNested {
+        a: Option<u8>,
+        b: u8,
+    }
+    fn mixed_nested(x: MixedNested) -> bool {
+        matches!(x, MixedNested { a: Some(_), b: _ } | MixedNested { a: Some(_), b: _ })
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct MixedFields {
+        a: u8,
+        b: u8,
+    }
+    fn mixed_fields(x: MixedFields) -> bool {
+        matches!(x, MixedFields { a: _, b: 1 } | MixedFields { a: 2, b: _ })
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct InnerStruct {
+        x: u8,
+    }
+    struct OuterStruct {
+        inner: InnerStruct,
+        y: u8,
+    }
+    fn nested_struct(x: OuterStruct) -> bool {
+        matches!(x, OuterStruct {
+                inner: InnerStruct { x: _, .. },
+                y: _,
+            } | OuterStruct {
+                inner: InnerStruct { x: _, .. },
+                y: _,
+            })
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+    fn nested_struct_shorthand(x: OuterStruct) -> bool {
+        matches!(x, OuterStruct {
+                inner: InnerStruct { x: _, .. },
+                y: _,
+            } | OuterStruct {
+                inner: InnerStruct { x: _, .. },
+                y: _,
+            })
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+
+    struct AdjacentShorthand {
+        a: u8,
+        b: u8,
+    }
+    fn adjacent_shorthand_fields(x: AdjacentShorthand) -> bool {
+        matches!(x, AdjacentShorthand { a: _, b: _ } | AdjacentShorthand { a: 1, b: 2 })
+        //~^^^^^ match_like_matches_macro
+    }
+
     enum NestedTupleInEnum {
         A((u8, u8)),
         B((u8, u8)),
@@ -393,5 +457,18 @@ mod issue17503 {
             mk_pat!(b) => true,
             _ => false,
         }
+    }
+
+    struct Data {
+        x: u8,
+    }
+    enum Kind {
+        A(Data),
+        B(Data),
+    }
+    // Test all of above cases in one function.
+    fn everything(v: (Kind, Option<u8>)) -> bool {
+        matches!(v, (Kind::A(Data { x: _, .. }), Some(_)) | (Kind::B(Data { x: _, .. }), Some(_)))
+        //~^^^^^ match_like_matches_macro
     }
 }

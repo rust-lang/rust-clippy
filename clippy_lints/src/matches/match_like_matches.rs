@@ -269,8 +269,7 @@ fn has_at_binding(pat: &Pat<'_>) -> bool {
 /// Replace bindings in a pattern's snippet with `_`, so multiple arms with
 /// different binding names can be merged into a single `matches!` pattern.
 fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
-    let mut binding_spans: Vec<Span> = Vec::new();
-    let mut binding_spans_with_struct: Vec<(Span, String)> = Vec::new();
+    let mut replacements: Vec<(Span, String)> = Vec::new();
 
     // skip replacement when there is a `ref` to a binding.
     let mut has_binding_modifier = false;
@@ -287,30 +286,28 @@ fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
                 has_binding_modifier = true;
             }
 
-            binding_spans.push(ident.span);
+            // make sure that we don't replace the same binding twice
+            if !replacements.iter().any(|(span, _)| *span == ident.span) {
+                replacements.push((ident.span, "_".to_owned()));
+            }
         }
+
         if let PatKind::Struct(_, pat_fields, _) = p.kind {
             for field in pat_fields {
                 if field.is_shorthand {
-                    binding_spans_with_struct.push((field.span, format!("{}: _", field.ident)));
+                    replacements.push((field.span, format!("{}: _", field.ident)));
                 }
             }
         }
     });
 
     if !has_binding_modifier {
-        if binding_spans_with_struct.is_empty() {
-            for span in binding_spans.iter().rev() {
-                let start = (span.lo() - arm_pat.span.lo()).0 as usize;
-                let end = (span.hi() - arm_pat.span.lo()).0 as usize;
-                s.replace_range(start..end, "_");
-            }
-        } else {
-            for (span, replacement) in binding_spans_with_struct.iter().rev() {
-                let start = (span.lo() - arm_pat.span.lo()).0 as usize;
-                let end = (span.hi() - arm_pat.span.lo()).0 as usize;
-                s.replace_range(start..end, replacement);
-            }
+        // sort replacements by span so that the replacements are applied in the correct order.
+        replacements.sort_by_key(|(span, _)| span.lo());
+        for (span, replacement) in replacements.iter().rev() {
+            let start = (span.lo() - arm_pat.span.lo()).0 as usize;
+            let end = (span.hi() - arm_pat.span.lo()).0 as usize;
+            s.replace_range(start..end, replacement);
         }
     }
 

@@ -441,6 +441,94 @@ mod issue17503 {
         //~^^^^^^ match_like_matches_macro
     }
 
+    struct MixedBindingNames {
+        a: u8,
+        b: u8,
+    }
+    fn mixed_binding_names(x: MixedBindingNames, y: Option<u8>) -> bool {
+        match (x, y) {
+            (MixedBindingNames { a, .. }, Some(x)) => true,
+            (MixedBindingNames { b, .. }, Some(y)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct MixedNested {
+        a: Option<u8>,
+        b: u8,
+    }
+    fn mixed_nested(x: MixedNested) -> bool {
+        match x {
+            MixedNested { a: Some(x), b } => true,
+            MixedNested { a: Some(y), b: c } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct MixedFields {
+        a: u8,
+        b: u8,
+    }
+    fn mixed_fields(x: MixedFields) -> bool {
+        match x {
+            MixedFields { a, b: 1 } => true,
+            MixedFields { a: 2, b } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct InnerStruct {
+        x: u8,
+    }
+    struct OuterStruct {
+        inner: InnerStruct,
+        y: u8,
+    }
+    fn nested_struct(x: OuterStruct) -> bool {
+        match x {
+            OuterStruct {
+                inner: InnerStruct { x, .. },
+                y: w,
+            } => true,
+            OuterStruct {
+                inner: InnerStruct { x: z, .. },
+                y: w,
+            } => true,
+            _ => false,
+        }
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+    fn nested_struct_shorthand(x: OuterStruct) -> bool {
+        match x {
+            OuterStruct {
+                inner: InnerStruct { x, .. },
+                y,
+            } => true,
+            OuterStruct {
+                inner: InnerStruct { x, .. },
+                y,
+            } => true,
+            _ => false,
+        }
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+
+    struct AdjacentShorthand {
+        a: u8,
+        b: u8,
+    }
+    fn adjacent_shorthand_fields(x: AdjacentShorthand) -> bool {
+        match x {
+            AdjacentShorthand { a, b } => true,
+            AdjacentShorthand { a: 1, b: 2 } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
     enum NestedTupleInEnum {
         A((u8, u8)),
         B((u8, u8)),
@@ -504,5 +592,22 @@ mod issue17503 {
             mk_pat!(b) => true,
             _ => false,
         }
+    }
+
+    struct Data {
+        x: u8,
+    }
+    enum Kind {
+        A(Data),
+        B(Data),
+    }
+    // Test all of above cases in one function.
+    fn everything(v: (Kind, Option<u8>)) -> bool {
+        match v {
+            (Kind::A(Data { x, .. }), Some(y)) => true,
+            (Kind::B(Data { x: z, .. }), Some(w)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
     }
 }
