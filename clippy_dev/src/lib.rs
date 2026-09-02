@@ -41,3 +41,6 @@ mod utils;
 pub use self::diag::DiagCx;
 pub use self::parse::{ParseCx, new_parse_cx};
 pub use self::utils::{ClippyInfo, SourceFile, Span, UpdateMode};
+
+// n.b. we can't use the actual string since it would be replaced.
+const VERSION_PLACEHOLDER: &str = concat!("CURRENT_", "RUSTC_VERSION");
