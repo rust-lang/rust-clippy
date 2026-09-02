@@ -5,7 +5,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher::has_let_expr;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::{is_lint_allowed, is_wild, span_contains_comment};
-use rustc_ast::LitKind;
+use rustc_ast::{ByRef, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, BorrowKind, Expr, ExprKind, Pat, PatKind, QPath};
 use rustc_lint::LateContext;
@@ -272,9 +272,17 @@ fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
     let mut binding_spans: Vec<Span> = Vec::new();
     let mut binding_spans_with_struct: Vec<(Span, String)> = Vec::new();
 
+    // skip replacement when there is a `ref` to a binding.
+    let mut has_ref_binding = false;
+
     arm_pat.walk_always(|p| {
-        if let PatKind::Binding(_, _, ident, _) = p.kind {
+        if let PatKind::Binding(binding_mode, _, ident, _) = p.kind {
             binding_spans.push(ident.span);
+
+            // `ref` and `ref mut` won't be replaced with `_`
+            if let ByRef::Yes(..) = binding_mode.0 {
+                has_ref_binding = true;
+            }
         }
         if let PatKind::Struct(_, pat_fields, _) = p.kind {
             for field in pat_fields {
@@ -285,17 +293,19 @@ fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
         }
     });
 
-    if binding_spans_with_struct.is_empty() {
-        for span in binding_spans.iter().rev() {
-            let start = (span.lo() - arm_pat.span.lo()).0 as usize;
-            let end = (span.hi() - arm_pat.span.lo()).0 as usize;
-            s.replace_range(start..end, "_");
-        }
-    } else {
-        for (span, replacement) in binding_spans_with_struct.iter().rev() {
-            let start = (span.lo() - arm_pat.span.lo()).0 as usize;
-            let end = (span.hi() - arm_pat.span.lo()).0 as usize;
-            s.replace_range(start..end, replacement);
+    if !has_ref_binding {
+        if binding_spans_with_struct.is_empty() {
+            for span in binding_spans.iter().rev() {
+                let start = (span.lo() - arm_pat.span.lo()).0 as usize;
+                let end = (span.hi() - arm_pat.span.lo()).0 as usize;
+                s.replace_range(start..end, "_");
+            }
+        } else {
+            for (span, replacement) in binding_spans_with_struct.iter().rev() {
+                let start = (span.lo() - arm_pat.span.lo()).0 as usize;
+                let end = (span.hi() - arm_pat.span.lo()).0 as usize;
+                s.replace_range(start..end, replacement);
+            }
         }
     }
 

@@ -355,6 +355,42 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
+    fn ref_binding_names(v: (Option<u8>, Option<u8>)) -> bool {
+        match v {
+            (Some(ref x), Some(1)) => true,
+            (Some(ref x), Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_names2(v1: Option<u8>, v2: Option<u8>) -> bool {
+        match (v1, v2) {
+            (Some(ref x), Some(1)) => true,
+            (Some(ref x), Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_mut_binding_names(v: (&mut Option<u8>, &mut Option<u8>)) -> bool {
+        match v {
+            (&mut Some(ref mut x), &mut Some(1)) => true,
+            (&mut Some(ref mut x), &mut Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_mut_binding_names2(v1: &mut Option<u8>, v2: &mut Option<u8>) -> bool {
+        match (v1, v2) {
+            (&mut Some(ref mut x), &mut Some(1)) => true,
+            (&mut Some(ref mut x), &mut Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
     struct TestBindingNames {
         a: u8,
         b: u8,

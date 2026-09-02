@@ -400,7 +400,87 @@ LL +         matches!(v, (Some(_), _) | (_, Some(_)))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:363:9
+  --> tests/ui/match_like_matches_macro.rs:359:9
+   |
+LL | /         match v {
+LL | |             (Some(ref x), Some(1)) => true,
+LL | |             (Some(ref x), Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(ref x), Some(1)) => true,
+LL -             (Some(ref x), Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(ref x), Some(1)) | (Some(ref x), Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:368:9
+   |
+LL | /         match (v1, v2) {
+LL | |             (Some(ref x), Some(1)) => true,
+LL | |             (Some(ref x), Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match (v1, v2) {
+LL -             (Some(ref x), Some(1)) => true,
+LL -             (Some(ref x), Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!((v1, v2), (Some(ref x), Some(1)) | (Some(ref x), Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:377:9
+   |
+LL | /         match v {
+LL | |             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL | |             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL -             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (&mut Some(ref mut x), &mut Some(1)) | (&mut Some(ref mut x), &mut Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:386:9
+   |
+LL | /         match (v1, v2) {
+LL | |             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL | |             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match (v1, v2) {
+LL -             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL -             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!((v1, v2), (&mut Some(ref mut x), &mut Some(1)) | (&mut Some(ref mut x), &mut Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:399:9
    |
 LL | /         match x {
 LL | |             TestBindingNames { a, .. } => true,
@@ -420,7 +500,7 @@ LL +         matches!(x, TestBindingNames { a: _, .. } | TestBindingNames { b: _
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:377:9
+  --> tests/ui/match_like_matches_macro.rs:413:9
    |
 LL | /         match x {
 LL | |             TestBindingNames2 { a, b: 1, .. } => true,
@@ -442,7 +522,7 @@ LL +         matches!(x, TestBindingNames2 { a: _, b: 1, .. } | TestBindingNames
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:392:9
+  --> tests/ui/match_like_matches_macro.rs:428:9
    |
 LL | /         match e {
 LL | |             NestedTupleInEnum::A((x, y)) => true,
@@ -462,7 +542,7 @@ LL +         matches!(e, NestedTupleInEnum::A((_, _)) | NestedTupleInEnum::B((_,
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:410:9
+  --> tests/ui/match_like_matches_macro.rs:446:9
    |
 LL | /         match o {
 LL | |             Outer::A(Inner::X(x)) => true,
@@ -482,7 +562,7 @@ LL +         matches!(o, Outer::A(Inner::X(_)) | Outer::B(Inner::X(_)))
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:428:9
+  --> tests/ui/match_like_matches_macro.rs:464:9
    |
 LL | /         match v {
 LL | |             [first, ..] => true,
@@ -501,5 +581,5 @@ LL -         }
 LL +         matches!(v, [_, ..] | [_, _])
    |
 
-error: aborting due to 26 previous errors
+error: aborting due to 30 previous errors
 
