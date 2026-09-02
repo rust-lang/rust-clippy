@@ -705,6 +705,7 @@ define_Conf! {
         nonnull_unchecked_on_box_ptr,
         option_as_ref_deref,
         or_fun_call,
+        path_comparison_to_empty,
         ptr_as_ptr,
         question_mark,
         redundant_field_names,

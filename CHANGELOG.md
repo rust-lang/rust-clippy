@@ -7444,6 +7444,7 @@ Released 2018-09-13
 [`partialeq_ne_impl`]: https://rust-lang.github.io/rust-clippy/main/index.html#partialeq_ne_impl
 [`partialeq_to_none`]: https://rust-lang.github.io/rust-clippy/main/index.html#partialeq_to_none
 [`path_buf_push_overwrite`]: https://rust-lang.github.io/rust-clippy/main/index.html#path_buf_push_overwrite
+[`path_comparison_to_empty`]: https://rust-lang.github.io/rust-clippy/main/index.html#path_comparison_to_empty
 [`path_ends_with_ext`]: https://rust-lang.github.io/rust-clippy/main/index.html#path_ends_with_ext
 [`pathbuf_init_then_push`]: https://rust-lang.github.io/rust-clippy/main/index.html#pathbuf_init_then_push
 [`pattern_type_mismatch`]: https://rust-lang.github.io/rust-clippy/main/index.html#pattern_type_mismatch
