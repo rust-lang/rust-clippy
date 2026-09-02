@@ -134,14 +134,9 @@ impl ItemInfo {
     }
 }
 
+#[derive(Default)]
 pub struct EmptyLineAfter {
     items: Vec<ItemInfo>,
-}
-
-impl EmptyLineAfter {
-    pub fn new() -> Self {
-        Self { items: Vec::new() }
-    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]

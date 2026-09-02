@@ -1,4 +1,5 @@
 #![warn(clippy::len_without_is_empty)]
+#![expect(clippy::result_unit_err)]
 
 pub struct PubOne;
 
@@ -240,7 +241,6 @@ pub struct ResultLen;
 impl ResultLen {
     pub fn len(&self) -> Result<usize, ()> {
         //~^ len_without_is_empty
-        //~| result_unit_err
 
         Ok(0)
     }
@@ -254,14 +254,10 @@ impl ResultLen {
 pub struct ResultLen2;
 impl ResultLen2 {
     pub fn len(&self) -> Result<usize, ()> {
-        //~^ result_unit_err
-
         Ok(0)
     }
 
     pub fn is_empty(&self) -> Result<bool, ()> {
-        //~^ result_unit_err
-
         Ok(true)
     }
 }
@@ -269,8 +265,6 @@ impl ResultLen2 {
 pub struct ResultLen3;
 impl ResultLen3 {
     pub fn len(&self) -> Result<usize, ()> {
-        //~^ result_unit_err
-
         Ok(0)
     }
 

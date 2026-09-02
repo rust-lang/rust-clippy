@@ -1,4 +1,4 @@
-#![feature(rustc_private)]
+#![feature(custom_inner_attributes, rustc_private)]
 #![warn(
     // warn on lints, that are included in `rust-lang/rust`s bootstrap
     rust_2018_idioms, unused_lifetimes,
@@ -7,14 +7,23 @@
 
 // FIXME: switch to something more ergonomic here, once available.
 // (Currently there is no way to opt into sysroot crates without `extern crate`.)
+extern crate rustc_ast;
+extern crate rustc_data_structures;
 extern crate rustc_driver;
+extern crate rustc_hir;
 extern crate rustc_interface;
+extern crate rustc_lint;
+extern crate rustc_middle;
 extern crate rustc_session;
 extern crate rustc_span;
 
 // Override the C allocator in the same way that the `rustc` binary would do.
 rustc_driver::override_c_allocator_in_binary!();
 
+mod combined_passes;
+
+use clippy_lints::utils::attr_collector::AttrStorage;
+use clippy_utils::macros::FormatArgsStorage;
 use clippy_utils::sym;
 use declare_clippy_lint::LintListBuilder;
 use rustc_interface::interface;
@@ -159,11 +168,47 @@ impl rustc_driver::Callbacks for ClippyCallbacks {
             }
 
             let mut list_builder = LintListBuilder::default();
-            list_builder.insert(clippy_lints::declared_lints::LINTS);
+            list_builder.insert(::clippy::LINTS);
             list_builder.register(lint_store);
+            for (old_name, new_name) in ::clippy::RENAMED {
+                lint_store.register_renamed(old_name, new_name);
+            }
+            for (name, reason) in ::clippy::DEPRECATED {
+                lint_store.register_removed(name, reason);
+            }
 
             let conf = clippy_config::Conf::load(sess);
-            clippy_lints::register_lint_passes(lint_store, conf);
+
+            // NOTE: Do not add any more pre-expansion passes. These should be removed eventually.
+            // Due to the architecture of the compiler, currently `cfg_attr` attributes on crate
+            // level (i.e `#![cfg_attr(...)]`) will still be expanded even when using a pre-expansion pass.
+            lint_store.register_pre_expansion_lint_pass(Box::new(move || {
+                Box::new(::clippy_lints::attrs::EarlyAttributes::new(conf))
+            }));
+            lint_store.register_pre_expansion_lint_pass(Box::new(move || {
+                Box::new(::clippy_lints::nonstandard_macro_braces::MacroBraces::new(conf))
+            }));
+
+            let format_args = FormatArgsStorage::default();
+            let attrs = AttrStorage::default();
+            let format_args_dup = format_args.clone();
+            let attrs_dup = attrs.clone();
+
+            lint_store.register_early_lint_pass(Box::new(move || {
+                Box::new(combined_passes::CombinedClippyEarlyPass::new(
+                    conf,
+                    &format_args,
+                    &attrs,
+                ))
+            }));
+            lint_store.register_late_lint_pass(Box::new(move |tcx| {
+                Box::new(combined_passes::CombinedClippyLatePass::new(
+                    tcx,
+                    conf,
+                    &format_args_dup,
+                    &attrs_dup,
+                ))
+            }));
 
             #[cfg(feature = "internal")]
             clippy_lints_internal::register_lints(lint_store);

@@ -1,10 +1,10 @@
+use crate::ir::{ActiveLintData, DeprecatedLintData, Lint, LintData, LintName, ParsedLints, RenamedLintData};
 use crate::parse::cursor::{self, Capture, Cursor};
-use crate::parse::{ActiveLint, DeprecatedLint, Lint, LintData, LintName, ParseCx, ParsedLints, RenamedLint};
 use crate::utils::{
     ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
     expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
 };
-use crate::{SourceFile, Span};
+use crate::{ParseCx, SourceFile, Span};
 use core::mem;
 use rustc_lexer::TokenKind;
 use std::collections::hash_map::Entry;
@@ -31,10 +31,8 @@ pub fn deprecate<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, name
         lint.get_mut(),
         Lint {
             name_sp: Span::new(data.deprecated_file, 0..0),
-            data: LintData::Deprecated(DeprecatedLint {
-                reason,
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
-            }),
+            version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+            data: LintData::Deprecated(DeprecatedLintData { reason }),
         },
     );
     let LintData::Active(prev_lint_data) = prev_lint.data else {
@@ -65,9 +63,9 @@ pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
         lint.get_mut(),
         Lint {
             name_sp: Span::new(data.deprecated_file, 0..0),
-            data: LintData::Renamed(RenamedLint {
+            version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+            data: LintData::Renamed(RenamedLintData {
                 new_name: LintName::new_rustc(new_name),
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
             }),
         },
     );
@@ -116,9 +114,9 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
         lint.get_mut(),
         Lint {
             name_sp: Span::new(data.deprecated_file, 0..0),
-            data: LintData::Renamed(RenamedLint {
+            version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+            data: LintData::Renamed(RenamedLintData {
                 new_name: LintName::new_clippy(new_name),
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
             }),
         },
     );
@@ -172,14 +170,14 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
 fn remove_lint_declaration(
     name: &str,
     lint_file: &SourceFile<'_>,
-    lint_data: &ActiveLint<'_>,
+    lint_data: &ActiveLintData<'_>,
     data: &ParsedLints<'_>,
     updater: &mut FileUpdater,
 ) -> bool {
     let delete_mod = if data.lints.iter().all(|(_, l)| l.name_sp.file != lint_file) {
         delete_file_if_exists(lint_file.path.get())
     } else {
-        updater.update_file(lint_file.path.get(), &mut |_, src, dst| -> UpdateStatus {
+        updater.change_file(lint_file.path.get(), |src, dst| {
             let mut start = &src[..lint_data.decl_range.start as usize];
             if start.ends_with("\n\n") {
                 start = &start[..start.len() - 1];
@@ -190,7 +188,6 @@ fn remove_lint_declaration(
             }
             dst.push_str(start);
             dst.push_str(end);
-            UpdateStatus::Changed
         });
         false
     };
@@ -340,7 +337,7 @@ fn snake_to_pascal(s: &str) -> String {
 fn uplift_update_fn<'a>(
     old_name: &'a str,
     new_name: &'a str,
-    remove_mod: bool,
+    mut remove_mod: bool,
 ) -> impl use<'a> + FnMut(&Path, &str, &mut String) -> UpdateStatus {
     move |_, src, dst| {
         let mut copy_pos = 0u32;
@@ -348,7 +345,7 @@ fn uplift_update_fn<'a>(
         let mut cursor = Cursor::new(src);
         while let Some(ident) = cursor.find_capture_ident() {
             match cursor.get_text(ident) {
-                "mod" if remove_mod && cursor.eat_ident(old_name) && cursor.eat_semi() => {
+                "pub" if remove_mod && cursor.eat_ident("mod") && cursor.eat_ident(old_name) && cursor.eat_semi() => {
                     dst.push_str(&src[copy_pos as usize..ident.pos as usize]);
                     dst.push_str(new_name);
                     copy_pos = cursor.pos();
@@ -356,6 +353,7 @@ fn uplift_update_fn<'a>(
                         copy_pos += 1;
                     }
                     changed = true;
+                    remove_mod = false;
                 },
                 "clippy" if cursor.eat_double_colon() && cursor.eat_ident(old_name) => {
                     dst.push_str(&src[copy_pos as usize..ident.pos as usize]);
@@ -363,7 +361,6 @@ fn uplift_update_fn<'a>(
                     copy_pos = cursor.pos();
                     changed = true;
                 },
-
                 _ => {},
             }
         }

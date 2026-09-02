@@ -81,7 +81,7 @@ declare_clippy_lint! {
 
 impl_lint_pass!(Unwrap => [PANICKING_UNWRAP, UNNECESSARY_UNWRAP]);
 
-pub(crate) struct Unwrap {
+pub struct Unwrap {
     msrv: Msrv,
 }
 
