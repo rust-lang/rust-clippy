@@ -88,6 +88,7 @@ mod needless_option_as_deref;
 mod needless_option_take;
 mod new_ret_no_self;
 mod no_effect_replace;
+mod obfuscated_and_then;
 mod obfuscated_if_else;
 mod ok_expect;
 mod open_options;
@@ -2822,6 +2823,33 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `.map_or_else(Err, f)` on a `Result` and `.map_or_else(|| None, f)` on an
+    /// `Option`.
+    ///
+    /// ### Why is this bad?
+    /// In these cases the "default closure" wraps the value unchanged, so the
+    /// call is the same as `.and_then(f)`, which is shorter and quicker to read.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn get(res: Result<Vec<i32>, String>) -> Result<i32, String> {
+    ///     res.map_or_else(Err, |mut v| v.pop().ok_or_else(|| "empty!".to_string()))
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn get(res: Result<Vec<i32>, String>) -> Result<i32, String> {
+    ///     res.and_then(|mut v| v.pop().ok_or_else(|| "empty!".to_string()))
+    /// }
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub OBFUSCATED_AND_THEN,
+    style,
+    "using `.map_or_else(Err, f)` / `.map_or_else(|| None, f)` instead of `.and_then(f)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for unnecessary method chains that can be simplified into `if .. else ..`.
     ///
     /// ### Why is this bad?
@@ -5044,6 +5072,7 @@ impl_lint_pass!(Methods => [
     NEW_RET_NO_SELF,
     NONSENSICAL_OPEN_OPTIONS,
     NO_EFFECT_REPLACE,
+    OBFUSCATED_AND_THEN,
     OBFUSCATED_IF_ELSE,
     OK_EXPECT,
     OPTION_AS_REF_CLONED,
@@ -5672,6 +5701,7 @@ impl Methods {
                 (sym::map_or_else, [def, map]) => {
                     result_map_or_else_none::check(cx, expr, recv, def, map);
                     unnecessary_map_or_else::check(cx, expr, recv, def, map, call_span);
+                    obfuscated_and_then::check(cx, expr, recv, def, map, call_span);
                     unnecessary_map_or::check_map_or_else(cx, expr, recv, def, map);
                 },
                 (sym::next, []) => {

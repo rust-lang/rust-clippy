@@ -1,0 +1,72 @@
+#![warn(clippy::obfuscated_and_then)]
+#![allow(clippy::unnecessary_literal_unwrap, clippy::redundant_closure)]
+
+fn pop(mut v: Vec<i32>) -> Result<i32, String> {
+    v.pop().ok_or_else(|| "empty list!".to_string())
+}
+
+fn first(v: Vec<i32>) -> Option<i32> {
+    v.into_iter().next()
+}
+
+fn main() {
+    let res: Result<Vec<i32>, String> = Ok(vec![1, 2, 3]);
+
+    // `Err` as a path
+    let _: Result<i32, String> = res.clone().map_or_else(Err, |v| pop(v));
+    //~^ obfuscated_and_then
+
+    // closure `|e| Err(e)`
+    let _: Result<i32, String> = res.clone().map_or_else(|e| Err(e), |v| pop(v));
+    //~^ obfuscated_and_then
+
+    // map arg is a path
+    let _: Result<i32, String> = res.clone().map_or_else(Err, pop);
+    //~^ obfuscated_and_then
+
+    // multi-line
+    let _: Result<i32, String> = res
+        .clone()
+        .map_or_else(Err, |mut v| v.pop().ok_or_else(|| "empty list!".to_string()));
+    //~^^^ obfuscated_and_then
+
+    let opt: Option<Vec<i32>> = Some(vec![1, 2, 3]);
+
+    let _: Option<i32> = opt.clone().map_or_else(|| None, |v| first(v));
+    //~^ obfuscated_and_then
+
+    let _: Option<i32> = opt.clone().map_or_else(|| None, first);
+    //~^ obfuscated_and_then
+
+    //
+    // Should not lint
+    //
+
+    // default arm does more than forward the error / return `None`
+    let _: Result<i32, String> = res.clone().map_or_else(|e| Err(format!("{e}!")), |v| pop(v));
+    let _: Result<i32, String> = res.clone().map_or_else(|_| Ok(0), |v| pop(v));
+    let _: Option<i32> = opt.clone().map_or_else(|| Some(0), |v| first(v));
+    let _: Option<i32> = opt.clone().map_or_else(
+        || {
+            println!("empty");
+            None
+        },
+        |v| first(v),
+    );
+
+    // default arm forwards the error but also runs a side effect
+    let _: Result<i32, String> = res.clone().map_or_else(
+        |e| {
+            eprintln!("{e}");
+            Err(e)
+        },
+        |v| pop(v),
+    );
+
+    // already using `and_then`
+    let _: Result<i32, String> = res.clone().and_then(|v| pop(v));
+    let _: Option<i32> = opt.clone().and_then(|v| first(v));
+
+    // `unwrap_or_else`-style use with a real default value
+    let _: usize = opt.clone().map_or_else(|| 0, |v| v.len());
+}

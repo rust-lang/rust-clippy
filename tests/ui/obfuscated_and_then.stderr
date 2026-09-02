@@ -1,0 +1,79 @@
+error: `map_or_else(Err, ..)` on a `Result` can be replaced with `and_then`
+  --> tests/ui/obfuscated_and_then.rs:16:34
+   |
+LL |     let _: Result<i32, String> = res.clone().map_or_else(Err, |v| pop(v));
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::obfuscated-and-then` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::obfuscated_and_then)]`
+help: use `and_then` instead
+   |
+LL -     let _: Result<i32, String> = res.clone().map_or_else(Err, |v| pop(v));
+LL +     let _: Result<i32, String> = res.clone().and_then(|v| pop(v));
+   |
+
+error: `map_or_else(Err, ..)` on a `Result` can be replaced with `and_then`
+  --> tests/ui/obfuscated_and_then.rs:20:34
+   |
+LL |     let _: Result<i32, String> = res.clone().map_or_else(|e| Err(e), |v| pop(v));
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `and_then` instead
+   |
+LL -     let _: Result<i32, String> = res.clone().map_or_else(|e| Err(e), |v| pop(v));
+LL +     let _: Result<i32, String> = res.clone().and_then(|v| pop(v));
+   |
+
+error: `map_or_else(Err, ..)` on a `Result` can be replaced with `and_then`
+  --> tests/ui/obfuscated_and_then.rs:24:34
+   |
+LL |     let _: Result<i32, String> = res.clone().map_or_else(Err, pop);
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `and_then` instead
+   |
+LL -     let _: Result<i32, String> = res.clone().map_or_else(Err, pop);
+LL +     let _: Result<i32, String> = res.clone().and_then(pop);
+   |
+
+error: `map_or_else(Err, ..)` on a `Result` can be replaced with `and_then`
+  --> tests/ui/obfuscated_and_then.rs:28:34
+   |
+LL |       let _: Result<i32, String> = res
+   |  __________________________________^
+LL | |         .clone()
+LL | |         .map_or_else(Err, |mut v| v.pop().ok_or_else(|| "empty list!".to_string()));
+   | |___________________________________________________________________________________^
+   |
+help: use `and_then` instead
+   |
+LL -         .map_or_else(Err, |mut v| v.pop().ok_or_else(|| "empty list!".to_string()));
+LL +         .and_then(|mut v| v.pop().ok_or_else(|| "empty list!".to_string()));
+   |
+
+error: `map_or_else(|| None, ..)` on an `Option` can be replaced with `and_then`
+  --> tests/ui/obfuscated_and_then.rs:35:26
+   |
+LL |     let _: Option<i32> = opt.clone().map_or_else(|| None, |v| first(v));
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `and_then` instead
+   |
+LL -     let _: Option<i32> = opt.clone().map_or_else(|| None, |v| first(v));
+LL +     let _: Option<i32> = opt.clone().and_then(|v| first(v));
+   |
+
+error: `map_or_else(|| None, ..)` on an `Option` can be replaced with `and_then`
+  --> tests/ui/obfuscated_and_then.rs:38:26
+   |
+LL |     let _: Option<i32> = opt.clone().map_or_else(|| None, first);
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `and_then` instead
+   |
+LL -     let _: Option<i32> = opt.clone().map_or_else(|| None, first);
+LL +     let _: Option<i32> = opt.clone().and_then(first);
+   |
+
+error: aborting due to 6 previous errors
+
