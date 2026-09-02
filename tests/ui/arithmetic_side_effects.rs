@@ -792,4 +792,17 @@ pub fn issue_17005() {
     let _ = 0xf301_0000u32 + id_u16() as u32;
 }
 
+pub fn pow_with_an_arithmetic_exponent(base: u32, x: u32, y: u32) {
+    // A linted `pow` reports the whole call, which covers the exponent, the same way the diagnostic
+    // on `base * (x + y)` covers the addition.
+    let _ = base.pow(x + y);
+    //~^ arithmetic_side_effects
+    let _ = base * (x + y);
+    //~^ arithmetic_side_effects
+
+    // Resolves to `CustomPow`, so the call is not linted and the exponent is reported on its own.
+    let _ = (&base).pow(x + y);
+    //~^ arithmetic_side_effects
+}
+
 fn main() {}
