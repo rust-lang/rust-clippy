@@ -37,7 +37,7 @@ fn main() {
             category,
             r#type,
             msrv,
-        } => match new_lint::create(clippy.version, pass, &name, &category, r#type.as_deref(), msrv) {
+        } => match new_lint::create(pass, &name, &category, r#type.as_deref(), msrv) {
             Ok(()) => new_parse_cx(|cx| {
                 let data = cx.parse_lint_decls();
                 cx.dcx.exit_on_err();
@@ -82,13 +82,13 @@ fn main() {
         DevCommand::Serve { port, lint } => serve::run(port, lint),
         DevCommand::Lint { path, edition, args } => lint::run(&path, &edition, args.iter()),
         DevCommand::RenameLint { old_name, new_name } => new_parse_cx(|cx| {
-            edit_lints::rename(cx, clippy.version, &old_name, &new_name);
+            edit_lints::rename(cx, &old_name, &new_name);
         }),
         DevCommand::Uplift { old_name, new_name } => new_parse_cx(|cx| {
-            edit_lints::uplift(cx, clippy.version, &old_name, new_name.as_deref().unwrap_or(&old_name));
+            edit_lints::uplift(cx, &old_name, new_name.as_deref().unwrap_or(&old_name));
         }),
         DevCommand::Deprecate { name, reason } => {
-            new_parse_cx(|cx| edit_lints::deprecate(cx, clippy.version, &name, &reason));
+            new_parse_cx(|cx| edit_lints::deprecate(cx, &name, &reason));
         },
         DevCommand::Sync(SyncCommand { subcommand }) => match subcommand {
             SyncSubcommand::UpdateNightly => sync::update_nightly(),
