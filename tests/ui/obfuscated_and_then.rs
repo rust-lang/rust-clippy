@@ -1,5 +1,5 @@
 #![warn(clippy::obfuscated_and_then)]
-#![allow(clippy::unnecessary_literal_unwrap, clippy::redundant_closure)]
+#![expect(clippy::redundant_closure)]
 
 fn pop(mut v: Vec<i32>) -> Result<i32, String> {
     v.pop().ok_or_else(|| "empty list!".to_string())
