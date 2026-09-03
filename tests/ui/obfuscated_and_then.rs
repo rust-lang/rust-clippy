@@ -69,4 +69,21 @@ fn main() {
 
     // `unwrap_or_else`-style use with a real default value
     let _: usize = opt.clone().map_or_else(|| 0, |v| v.len());
+
+    shadowed_err_is_not_linted();
+}
+
+fn shadowed_err_is_not_linted() {
+    #[expect(non_snake_case)]
+    fn Err<T, E>(e: E) -> Result<T, E> {
+        Result::Err(e)
+    }
+
+    let res: Result<Vec<i32>, String> = Ok(vec![1, 2, 3]);
+
+    // `Err` as a path
+    let _: Result<i32, String> = res.clone().map_or_else(Err, |v| pop(v));
+
+    // closure `|e| Err(e)`
+    let _: Result<i32, String> = res.clone().map_or_else(|e| Err(e), |v| pop(v));
 }
