@@ -31,13 +31,14 @@ pub(super) fn check(
     }
 
     let ty = cx.typeck_results().expr_ty(recv);
-    let msg = if ty.is_diag_item(cx, sym::Result) && is_wrapping_closure(cx, def_arg, ResultErr) {
-        "`map_or_else(Err, ..)` on a `Result` can be replaced with `and_then`"
-    } else if ty.is_diag_item(cx, sym::Option) && is_wrapping_closure(cx, def_arg, OptionNone) {
-        "`map_or_else(|| None, ..)` on an `Option` can be replaced with `and_then`"
-    } else {
-        return;
+
+    let argument = match ty.opt_diag_name(cx) {
+        Some(sym::Result) if is_wrapping_closure(cx, def_arg, ResultErr) => "Err",
+        Some(sym::Option) if is_wrapping_closure(cx, def_arg, OptionNone) => "|| None",
+        _ => return,
     };
+
+    let msg = format!("`map_or_else({argument}, ..)` can be replaced with `and_then`");
 
     span_lint_and_then(cx, OBFUSCATED_AND_THEN, expr.span, msg, |diag| {
         let mut applicability = Applicability::MachineApplicable;
