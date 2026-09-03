@@ -1,14 +1,13 @@
+use crate::clippy_utils::source::SpanExt as _;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::source::SpanRangeExt;
 use clippy_utils::tokenize_with_text;
 use def_id::LOCAL_CRATE;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Item, ItemKind, UsePath, def_id};
-use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_session::impl_lint_pass;
-use rustc_span::{FileName, RealFileName, Span, Symbol, kw};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_span::{FileName, Span, Symbol, kw};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -65,8 +64,11 @@ impl_lint_pass!(UseCratePrefixForSelfImports<'_, '_> => [USE_CRATE_PREFIX_FOR_SE
 
 impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'a Item<'tcx>) {
-        let FileName::Real(RealFileName::LocalPath(p)) = cx.sess().source_map().span_to_filename(item.span) else {
+        let FileName::Real(p) = cx.sess().source_map().span_to_filename(item.span) else {
             self.clear();
+            return;
+        };
+        let Some(p) = p.local_path() else {
             return;
         };
         let Some(file_name) = p.file_name() else {
@@ -90,7 +92,7 @@ impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
                     return true;
                 }
                 let gap_span = latest_span.between(span);
-                let gap_snippet = gap_span.get_source_text(cx).unwrap();
+                let gap_snippet = gap_span.get_text(cx).unwrap();
                 for (token, source, _) in tokenize_with_text(&gap_snippet) {
                     if token == rustc_lexer::TokenKind::Whitespace && source.chars().filter(|c| *c == '\n').count() > 1
                     {
