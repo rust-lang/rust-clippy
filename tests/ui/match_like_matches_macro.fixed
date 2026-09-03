@@ -290,27 +290,42 @@ mod issue17503 {
     }
 
     fn ref_binding_names(v: (Option<u8>, Option<u8>)) -> bool {
-        matches!(v, (Some(ref x), Some(1)) | (Some(ref x), Some(2)))
+        matches!(v, (Some(_), Some(1)) | (Some(_), Some(2)))
         //~^^^^^ match_like_matches_macro
     }
 
     fn ref_binding_names2(v1: Option<u8>, v2: Option<u8>) -> bool {
-        matches!((v1, v2), (Some(ref x), Some(1)) | (Some(ref x), Some(2)))
+        matches!((v1, v2), (Some(_), Some(1)) | (Some(_), Some(2)))
         //~^^^^^ match_like_matches_macro
     }
 
+    fn ref_binding_names_three_arms(v: (Option<u8>, u8)) -> bool {
+        matches!(v, (Some(_), 1) | (Some(_), 2) | (Some(_), 3))
+        //~^^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_var_is_not_used(v: (Option<u8>, u8)) -> bool {
+        matches!(v, (Some(_), 1) | (Some(_), 2))
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_multi_arm_var_is_not_used(v: (Option<u8>, u8)) -> bool {
+        matches!(v, (Some(_), 1) | (Some(_), 2) | (Some(_), 3))
+        //~^^^^^^ match_like_matches_macro
+    }
+
     fn ref_mut_binding_names(v: (&mut Option<u8>, &mut Option<u8>)) -> bool {
-        matches!(v, (&mut Some(ref mut x), &mut Some(1)) | (&mut Some(ref mut x), &mut Some(2)))
+        matches!(v, (&mut Some(_), &mut Some(1)) | (&mut Some(_), &mut Some(2)))
         //~^^^^^ match_like_matches_macro
     }
 
     fn ref_mut_binding_names2(v1: &mut Option<u8>, v2: &mut Option<u8>) -> bool {
-        matches!((v1, v2), (&mut Some(ref mut x), &mut Some(1)) | (&mut Some(ref mut x), &mut Some(2)))
+        matches!((v1, v2), (&mut Some(_), &mut Some(1)) | (&mut Some(_), &mut Some(2)))
         //~^^^^^ match_like_matches_macro
     }
 
     fn mut_binding(v: (Option<u8>, Option<u8>)) -> bool {
-        matches!(v, (Some(mut x), Some(1)) | (Some(mut x), Some(2)))
+        matches!(v, (Some(_), Some(1)) | (Some(_), Some(2)))
         //~^^^^^ match_like_matches_macro
     }
 
@@ -319,7 +334,11 @@ mod issue17503 {
         y: u8,
     }
     fn struct_ref_binding(v: StructRefBinding) -> bool {
-        matches!(v, StructRefBinding { ref x, y: 1 } | StructRefBinding { ref x, y: 2 })
+        matches!(v, StructRefBinding { x: _, y: 1 } | StructRefBinding { x: _, y: 2 })
+        //~^^^^^ match_like_matches_macro
+    }
+    fn struct_ref_binding2(v: StructRefBinding) -> bool {
+        matches!(v, StructRefBinding { x: _, y: 1 } | StructRefBinding { x: _, y: 2 })
         //~^^^^^ match_like_matches_macro
     }
 
@@ -393,6 +412,16 @@ mod issue17503 {
             } | OuterStruct {
                 inner: InnerStruct { x: _, .. },
                 y: _,
+            })
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+    fn nested_struct_ref_shorthand(v: OuterStruct) -> bool {
+        matches!(v, OuterStruct {
+                inner: InnerStruct { x: _ },
+                y: 1,
+            } | OuterStruct {
+                inner: InnerStruct { x: _ },
+                y: 2,
             })
         //~^^^^^^^^^^^ match_like_matches_macro
     }

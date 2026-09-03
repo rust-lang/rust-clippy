@@ -5,7 +5,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::higher::has_let_expr;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::{is_lint_allowed, is_wild, span_contains_comment};
-use rustc_ast::{ByRef, LitKind};
+use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, BorrowKind, Expr, ExprKind, Pat, PatKind, QPath};
 use rustc_lint::LateContext;
@@ -169,7 +169,7 @@ pub(super) fn check_match<'tcx>(
                     // rust requires every match arm to have the same bindings
                     // we thus need to change bindings to `_` for this suggestion to compile
                     if !middle_arms.is_empty() {
-                        s = replace_bindings_with_wildcard(arm.pat, s);
+                        s = replace_bindings_with_wildcard(arm, s);
                     }
 
                     s
@@ -268,47 +268,38 @@ fn has_at_binding(pat: &Pat<'_>) -> bool {
 
 /// Replace bindings in a pattern's snippet with `_`, so multiple arms with
 /// different binding names can be merged into a single `matches!` pattern.
-fn replace_bindings_with_wildcard(arm_pat: &Pat<'_>, mut s: String) -> String {
+fn replace_bindings_with_wildcard(arm: &Arm<'_>, mut s: String) -> String {
     let mut replacements: Vec<(Span, String)> = Vec::new();
+    // record the span of the struct field, so we can skip it when replacing bindings
+    let mut struct_field_spans: Vec<Span> = Vec::new();
 
-    // skip replacement when there is a `ref` to a binding.
-    let mut has_binding_modifier = false;
-
-    arm_pat.walk_always(|p| {
-        if let PatKind::Binding(binding_mode, _, ident, _) = p.kind {
-            // `ref` and `ref mut` won't be replaced with `_`
-            if let ByRef::Yes(..) = binding_mode.0 {
-                has_binding_modifier = true;
-            }
-
-            // `mut` won't be replaced with `_`
-            if binding_mode.1.is_mut() {
-                has_binding_modifier = true;
-            }
-
-            // make sure that we don't replace the same binding twice
-            if !replacements.iter().any(|(span, _)| *span == ident.span) {
-                replacements.push((ident.span, "_".to_owned()));
-            }
-        }
-
+    arm.pat.walk_always(|p| {
         if let PatKind::Struct(_, pat_fields, _) = p.kind {
             for field in pat_fields {
                 if field.is_shorthand {
+                    // we need to replace shorthand cases specially like `var: _` rather than `_`
                     replacements.push((field.span, format!("{}: _", field.ident)));
+                    struct_field_spans.push(field.span);
                 }
             }
         }
+
+        if let PatKind::Binding(_, _, _, _) = p.kind {
+            // skip the shorthand spans
+            if struct_field_spans.contains(&p.span) {
+                return;
+            }
+
+            replacements.push((p.span, "_".to_owned()));
+        }
     });
 
-    if !has_binding_modifier {
-        // sort replacements by span so that the replacements are applied in the correct order.
-        replacements.sort_by_key(|(span, _)| span.lo());
-        for (span, replacement) in replacements.iter().rev() {
-            let start = (span.lo() - arm_pat.span.lo()).0 as usize;
-            let end = (span.hi() - arm_pat.span.lo()).0 as usize;
-            s.replace_range(start..end, replacement);
-        }
+    // sort replacements by span so that the replacements are applied in the correct order.
+    replacements.sort_by_key(|(span, _)| span.lo());
+    for (span, replacement) in replacements.iter().rev() {
+        let start = (span.lo() - arm.pat.span.lo()).0 as usize;
+        let end = (span.hi() - arm.pat.span.lo()).0 as usize;
+        s.replace_range(start..end, replacement);
     }
 
     s

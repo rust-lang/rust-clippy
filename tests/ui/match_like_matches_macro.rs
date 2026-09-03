@@ -373,6 +373,35 @@ mod issue17503 {
         //~^^^^^ match_like_matches_macro
     }
 
+    fn ref_binding_names_three_arms(v: (Option<u8>, u8)) -> bool {
+        match v {
+            (Some(ref x), 1) => true,
+            (Some(ref x), 2) => true,
+            (Some(ref x), 3) => true,
+            _ => false,
+        }
+        //~^^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_var_is_not_used(v: (Option<u8>, u8)) -> bool {
+        match v {
+            (Some(ref x), 1) => true,
+            (Some(ref y), 2) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_multi_arm_var_is_not_used(v: (Option<u8>, u8)) -> bool {
+        match v {
+            (Some(ref x), 1) => true,
+            (Some(ref x), 2) => true,
+            (Some(ref z), 3) => true,
+            _ => false,
+        }
+        //~^^^^^^ match_like_matches_macro
+    }
+
     fn ref_mut_binding_names(v: (&mut Option<u8>, &mut Option<u8>)) -> bool {
         match v {
             (&mut Some(ref mut x), &mut Some(1)) => true,
@@ -408,6 +437,14 @@ mod issue17503 {
         match v {
             StructRefBinding { ref x, y: 1 } => true,
             StructRefBinding { ref x, y: 2 } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+    fn struct_ref_binding2(v: StructRefBinding) -> bool {
+        match v {
+            StructRefBinding { x: ref a, y: 1 } => true,
+            StructRefBinding { x: ref b, y: 2 } => true,
             _ => false,
         }
         //~^^^^^ match_like_matches_macro
@@ -510,6 +547,20 @@ mod issue17503 {
             OuterStruct {
                 inner: InnerStruct { x, .. },
                 y,
+            } => true,
+            _ => false,
+        }
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+    fn nested_struct_ref_shorthand(v: OuterStruct) -> bool {
+        match v {
+            OuterStruct {
+                inner: InnerStruct { ref x },
+                y: 1,
+            } => true,
+            OuterStruct {
+                inner: InnerStruct { ref x },
+                y: 2,
             } => true,
             _ => false,
         }
