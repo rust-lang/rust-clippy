@@ -51,19 +51,21 @@ declare_clippy_lint! {
     "checks that imports from the current crate use the `crate::` prefix"
 }
 
+impl_lint_pass!(UseCratePrefixForSelfImports<'_> => [
+    USE_CRATE_PREFIX_FOR_SELF_IMPORTS,
+]);
+
 #[derive(Clone, Default)]
-pub struct UseCratePrefixForSelfImports<'a, 'tcx> {
+pub struct UseCratePrefixForSelfImports<'tcx> {
     /// collect `use` in current block
-    use_block: Vec<&'a UsePath<'tcx>>,
+    use_block: Vec<&'tcx UsePath<'tcx>>,
     /// collect `mod` in current block
     mod_names: FxHashSet<Symbol>,
     latest_span: Option<Span>,
 }
 
-impl_lint_pass!(UseCratePrefixForSelfImports<'_, '_> => [USE_CRATE_PREFIX_FOR_SELF_IMPORTS]);
-
-impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
-    fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'a Item<'tcx>) {
+impl<'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'tcx> {
+    fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
         let FileName::Real(p) = cx.sess().source_map().span_to_filename(item.span) else {
             self.clear();
             return;
@@ -84,7 +86,7 @@ impl<'a, 'tcx> LateLintPass<'tcx> for UseCratePrefixForSelfImports<'a, 'tcx> {
     }
 }
 
-impl<'tcx> UseCratePrefixForSelfImports<'_, 'tcx> {
+impl<'tcx> UseCratePrefixForSelfImports<'tcx> {
     fn in_same_block(&self, cx: &LateContext<'tcx>, span: Span) -> bool {
         match self.latest_span {
             Some(latest_span) => {
