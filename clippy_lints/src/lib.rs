@@ -399,6 +399,7 @@ mod unused_unit;
 mod unwrap;
 mod unwrap_in_result;
 mod upper_case_acronyms;
+mod use_crate_prefix_for_self_imports;
 mod use_self;
 mod useless_concat;
 mod useless_conversion;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        UseCratePrefixForSelfImports: use_crate_prefix_for_self_imports::UseCratePrefixForSelfImports<'tcx> = <use_crate_prefix_for_self_imports::UseCratePrefixForSelfImports<'_>>::default(),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
