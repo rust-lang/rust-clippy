@@ -44,6 +44,9 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &
             .filter(|adj| matches!(adj.kind, Adjust::Deref(_)))
             .count()
         && let Some(param_snippet) = param.span.get_text(cx)
+        // Splitting the closure is the only thing this lint has to offer, and here it cannot be
+        // done at all, not even by hand.
+        && !has_conflicting_captures(cx, &param, recv, then_body)
     {
         let mut applicability = Applicability::MachineApplicable;
         let (filter, _) = snippet_with_context(cx, recv.span, expr.span.ctxt(), "..", &mut applicability);
@@ -55,7 +58,9 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &
             call_span,
             "usage of `bool::then` in `filter_map`",
             |diag| {
-                if can_filter_and_then_move_to_closure(cx, &param, recv, then_body) {
+                if contains_return(recv) {
+                    diag.help("consider using `filter` then `map` instead");
+                } else {
                     diag.span_suggestion(
                         call_span,
                         "use `filter` then `map` instead",
@@ -65,8 +70,6 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &
                         ),
                         applicability,
                     );
-                } else {
-                    diag.help("consider using `filter` then `map` instead");
                 }
             },
         );
@@ -85,32 +88,28 @@ fn find_bindings_from_pat(pat: &Pat<'_>) -> FxHashSet<HirId> {
     bindings
 }
 
-/// Returns true if we can take a closure parameter and have it in both the `filter` function and
-/// the`map` function. This is not the case if:
+/// Returns true if splitting the closure would leave the same binding borrowed by both halves,
+/// with at least one of them needing it mutably.
 ///
-/// - The `filter` would contain an early return,
-/// - `filter` and `then` contain captures, and any of those are &mut
-fn can_filter_and_then_move_to_closure<'tcx>(
+/// The two closures are alive at the same time once they are arguments to `filter` and `map`, so
+/// the borrow checker rejects that. There is no way to write the split by hand either, which is
+/// all this lint has to say, so it stays quiet instead.
+fn has_conflicting_captures<'tcx>(
     cx: &LateContext<'tcx>,
     param: &Param<'tcx>,
     filter: &'tcx Expr<'tcx>,
     then: &'tcx Expr<'tcx>,
 ) -> bool {
-    if contains_return(filter) {
+    let (Some(filter_captures), Some(then_captures)) =
+        (can_move_expr_to_closure(cx, filter), can_move_expr_to_closure(cx, then))
+    else {
         return false;
-    }
-
-    let Some(filter_captures) = can_move_expr_to_closure(cx, filter) else {
-        return true;
-    };
-    let Some(then_captures) = can_move_expr_to_closure(cx, then) else {
-        return true;
     };
 
     let param_bindings = find_bindings_from_pat(param.pat);
-    filter_captures.iter().all(|(hir_id, filter_cap)| {
-        param_bindings.contains(hir_id)
-            || !then_captures
+    filter_captures.iter().any(|(hir_id, filter_cap)| {
+        !param_bindings.contains(hir_id)
+            && then_captures
                 .get(hir_id)
                 .is_some_and(|then_cap| matches!(*filter_cap | *then_cap, CaptureKind::Ref(Mutability::Mut)))
     })
