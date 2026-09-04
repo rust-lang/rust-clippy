@@ -496,5 +496,11 @@ error: missing documentation for a struct
 LL |         pub struct VisFromOutside;
    |                    ^^^^^^^^^^^^^^
 
-error: aborting due to 82 previous errors
+error: missing documentation for an associated constant
+  --> tests/ui-toml/missing_docs_in_private_items/missing_docs_in_private_items.rs:1171:11
+   |
+LL |     const _SIZE_ASSERT: () = {};
+   |           ^^^^^^^^^^^^
+
+error: aborting due to 83 previous errors
 
