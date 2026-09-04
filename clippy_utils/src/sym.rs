@@ -485,6 +485,7 @@ generate! {
     powi,
     print_macro,
     println_macro,
+    private_interior_mutability,
     process_abort,
     process_exit,
     product,
