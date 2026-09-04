@@ -13,7 +13,7 @@ use rustc_middle::ty::TyCtxt;
 use rustc_session::Session;
 use rustc_span::source_map::{SourceMap, original_sp};
 use rustc_span::{
-    BytePos, DUMMY_SP, DesugaringKind, Pos as _, RelativeBytePos, SourceFile, SourceFileAndLine, Span, SpanData,
+    BytePos, DUMMY_SP, DesugaringKind, Ident, Pos as _, RelativeBytePos, SourceFile, SourceFileAndLine, Span, SpanData,
     SyntaxContext, hygiene,
 };
 use std::borrow::Cow;
@@ -407,6 +407,21 @@ fn first_char_in_first_line<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> Opti
         snip.find(|c: char| !c.is_whitespace())
             .map(|pos| line_span.lo() + BytePos::from_usize(pos))
     })
+}
+
+/// Shortens `span` so that it ends where `ident`'s span ends, e.g. to make an item's span point
+/// at its `fn name` part rather than including the entire body.
+///
+/// Returns `span` unchanged when `ident`'s span isn't contained in it. This can happen for
+/// macro-generated items whose ident comes from a different location entirely (e.g. the macro call
+/// site, or another file); combining the two spans would produce a nonsensical span covering
+/// unrelated code.
+pub fn span_up_to_ident(span: Span, ident: Ident) -> Span {
+    if span.contains(ident.span) {
+        span.with_hi(ident.span.hi())
+    } else {
+        span
+    }
 }
 
 /// Extends the span to the beginning of the spans line, incl. whitespaces.

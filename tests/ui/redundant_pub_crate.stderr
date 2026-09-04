@@ -145,5 +145,18 @@ LL |     pub(crate) use m5_1::{*};
    |     |
    |     help: consider using: `pub`
 
-error: aborting due to 18 previous errors
+error: pub(crate) function inside private module
+  --> tests/ui/redundant_pub_crate.rs:168:17
+   |
+LL |         crate::issue_14968::macros::mac!(some_function_name);
+   |         ---------------------------------------------------- in this macro invocation
+...
+LL |                 pub(crate) fn $name() {}
+   |                 ----------^^^^^^^^^^^^^^
+   |                 |
+   |                 help: consider using: `pub`
+   |
+   = note: this error originates in the macro `crate::issue_14968::macros::mac` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 19 previous errors
 

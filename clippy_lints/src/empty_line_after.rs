@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::{SpanExt as _, snippet_indent};
+use clippy_utils::source::{SpanExt as _, snippet_indent, span_up_to_ident};
 use clippy_utils::tokenize_with_text;
 use itertools::Itertools as _;
 use rustc_ast::token::CommentKind;
@@ -126,7 +126,7 @@ impl ItemInfo {
             kind,
             name: ident.map(|ident| ident.name),
             span: match ident {
-                Some(ident) => span.with_hi(ident.span.hi()),
+                Some(ident) => span_up_to_ident(span, ident),
                 None => span.shrink_to_lo(),
             },
             mod_items,
