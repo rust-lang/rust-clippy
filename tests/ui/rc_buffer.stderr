@@ -4,13 +4,10 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad1: Rc<String>,
    |           ^^^^^^^^^^
    |
+   = help: consider using `str` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
    = note: `-D clippy::rc-buffer` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::rc_buffer)]`
-help: try
-   |
-LL -     bad1: Rc<String>,
-LL +     bad1: Rc<str>,
-   |
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:12:11
@@ -18,11 +15,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad2: Rc<PathBuf>,
    |           ^^^^^^^^^^^
    |
-help: try
-   |
-LL -     bad2: Rc<PathBuf>,
-LL +     bad2: Rc<std::path::Path>,
-   |
+   = help: consider using `std::path::Path` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:14:11
@@ -30,11 +24,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad3: Rc<Vec<u8>>,
    |           ^^^^^^^^^^^
    |
-help: try
-   |
-LL -     bad3: Rc<Vec<u8>>,
-LL +     bad3: Rc<[u8]>,
-   |
+   = help: consider using `[u8]` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:16:11
@@ -42,11 +33,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     bad4: Rc<OsString>,
    |           ^^^^^^^^^^^^
    |
-help: try
-   |
-LL -     bad4: Rc<OsString>,
-LL +     bad4: Rc<std::ffi::OsStr>,
-   |
+   = help: consider using `std::ffi::OsStr` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:23:17
@@ -54,11 +42,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad1(_: Rc<String>) {}
    |                 ^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad1(_: Rc<String>) {}
-LL + fn func_bad1(_: Rc<str>) {}
-   |
+   = help: consider using `str` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:25:17
@@ -66,11 +51,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad2(_: Rc<PathBuf>) {}
    |                 ^^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad2(_: Rc<PathBuf>) {}
-LL + fn func_bad2(_: Rc<std::path::Path>) {}
-   |
+   = help: consider using `std::path::Path` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:27:17
@@ -78,11 +60,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad3(_: Rc<Vec<u8>>) {}
    |                 ^^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad3(_: Rc<Vec<u8>>) {}
-LL + fn func_bad3(_: Rc<[u8]>) {}
-   |
+   = help: consider using `[u8]` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:29:17
@@ -90,11 +69,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL | fn func_bad4(_: Rc<OsString>) {}
    |                 ^^^^^^^^^^^^
    |
-help: try
-   |
-LL - fn func_bad4(_: Rc<OsString>) {}
-LL + fn func_bad4(_: Rc<std::ffi::OsStr>) {}
-   |
+   = help: consider using `std::ffi::OsStr` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: usage of `Rc<T>` when `T` is a buffer type
   --> tests/ui/rc_buffer.rs:35:15
@@ -102,11 +78,8 @@ error: usage of `Rc<T>` when `T` is a buffer type
 LL |     fn foo(_: std::rc::Rc<Vec<u8>>) {}
    |               ^^^^^^^^^^^^^^^^^^^^
    |
-help: try
-   |
-LL -     fn foo(_: std::rc::Rc<Vec<u8>>) {}
-LL +     fn foo(_: std::rc::Rc<[u8]>) {}
-   |
+   = help: consider using `[u8]` if length-changing mutations are not needed
+   = note: changing the type requires reallocating the buffer
 
 error: aborting due to 9 previous errors
 
