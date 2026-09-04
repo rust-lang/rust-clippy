@@ -1,0 +1,100 @@
+error: using `panic!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:10:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   |
+   = help: consider describing why this is bad
+   = note: `-D clippy::missing-panic-message` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_panic_message)]`
+
+error: using `todo!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:11:5
+   |
+LL |     todo!();
+   |     ^^^^^^^
+   |
+   = help: consider describing what to do
+
+error: using `unimplemented!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:12:5
+   |
+LL |     unimplemented!();
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is intentionally unimplemented
+
+error: using `unreachable!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:13:5
+   |
+LL |     unreachable!();
+   |     ^^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is unreachable
+
+error: using `panic!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:34:5
+   |
+LL |     std::panic!();
+   |     ^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is bad
+
+error: using `panic!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:35:5
+   |
+LL |     core::panic!();
+   |     ^^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is bad
+
+error: using `todo!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:37:5
+   |
+LL |     std::todo!();
+   |     ^^^^^^^^^^^^
+   |
+   = help: consider describing what to do
+
+error: using `todo!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:38:5
+   |
+LL |     core::prelude::v1::todo!();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider describing what to do
+
+error: using `unimplemented!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:40:5
+   |
+LL |     unimplemented!();
+   |     ^^^^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is intentionally unimplemented
+
+error: using `unimplemented!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:41:5
+   |
+LL |     core::prelude::v1::unimplemented!();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is intentionally unimplemented
+
+error: using `unreachable!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:43:5
+   |
+LL |     unreachable!();
+   |     ^^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is unreachable
+
+error: using `unreachable!` macro without a custom message
+  --> tests/ui/missing_panic_message.rs:44:5
+   |
+LL |     core::prelude::v1::unreachable!();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider describing why this is unreachable
+
+error: aborting due to 12 previous errors
+
