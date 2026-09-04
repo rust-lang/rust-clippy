@@ -94,6 +94,66 @@ macro_rules! conf_enum {
         }
     };
 }
+/// An entry in the `disallowed-trait-usage` configuration.
+///
+/// Forbids using the trait named by `trait` on the types selected by `types` and `implements`,
+/// or on every type when neither is given.
+pub struct DisallowedTraitUsage {
+    /// The fully qualified path to the trait being disallowed (e.g. `"std::fmt::Debug"`).
+    pub trait_path: String,
+
+    /// The concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`).
+    pub types: Vec<DisallowedPathWithoutReplacement>,
+
+    /// Traits whose implementors the trait is disallowed for (e.g. `"std::error::Error"`).
+    pub implements: Vec<DisallowedPathWithoutReplacement>,
+
+    /// Why this trait usage is disallowed.
+    ///
+    /// Applies to the whole entry; the entries of `types` and `implements` can give their own.
+    pub reason: Option<String>,
+
+    /// The span of this entry.
+    ///
+    /// Used for diagnostics.
+    pub span: Span,
+}
+
+impl Deserialize for DisallowedTraitUsage {
+    fn deserialize(dcx: &DiagCtxt<'_>, value: &TomlValue<'_>) -> Option<Self> {
+        if let Some(s) = value.as_ref().as_str() {
+            Some(DisallowedTraitUsage {
+                trait_path: s.into(),
+                types: Vec::new(),
+                implements: Vec::new(),
+                reason: None,
+                span: dcx.make_sp(value.span()),
+            })
+        } else if let Some(table) = value.as_ref().as_table() {
+            deserialize_table!(dcx, table,
+                trait_path("trait"): String,
+                types("types"): Vec<DisallowedPathWithoutReplacement>,
+                implements("implements"): Vec<DisallowedPathWithoutReplacement>,
+                reason("reason"): String,
+            );
+            let Some(trait_path) = trait_path else {
+                dcx.span_err(value.span(), "missing required field `trait`");
+                return None;
+            };
+            Some(DisallowedTraitUsage {
+                trait_path,
+                types: types.unwrap_or_default(),
+                implements: implements.unwrap_or_default(),
+                reason,
+                span: dcx.make_sp(value.span()),
+            })
+        } else {
+            dcx.span_err(value.span(), "expected either a string or an inline table");
+            None
+        }
+    }
+}
+
 pub struct Rename {
     pub path: String,
     pub rename: String,
