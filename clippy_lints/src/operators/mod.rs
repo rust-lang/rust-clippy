@@ -1059,7 +1059,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     erasing_op::check(cx, e, op.node, lhs, rhs);
                     identity_op::check(cx, e, op.node, lhs, rhs);
                     invalid_upcast_comparisons::check(cx, op.node, lhs, rhs, e.span);
-                    needless_bitwise_bool::check(cx, e, op.node, lhs, rhs);
+                    needless_bitwise_bool::check(cx, e, op, rhs);
                     manual_midpoint::check(cx, e, op.node, lhs, rhs, self.msrv);
                     manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, self.msrv);
                     manual_isolate_lowest_one::check(cx, e, op.node, lhs, rhs, self.msrv);
