@@ -300,7 +300,15 @@ LL | |                 }
    = help: try refactoring your code to minimize nesting
 
 error: this block is too nested
-  --> tests/ui-toml/excessive_nesting/excessive_nesting.rs:228:28
+  --> tests/ui-toml/excessive_nesting/excessive_nesting.rs:226:23
+   |
+LL |     let _ = unsafe {{{{{{{{{{{ todo!() }}}}}}}}}}};
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: try refactoring your code to minimize nesting
+
+error: this block is too nested
+  --> tests/ui-toml/excessive_nesting/excessive_nesting.rs:231:28
    |
 LL |     async fn c() -> u32 {{{{{{{0}}}}}}}
    |                            ^^^^^^^^^
@@ -308,12 +316,12 @@ LL |     async fn c() -> u32 {{{{{{{0}}}}}}}
    = help: try refactoring your code to minimize nesting
 
 error: this block is too nested
-  --> tests/ui-toml/excessive_nesting/excessive_nesting.rs:235:8
+  --> tests/ui-toml/excessive_nesting/excessive_nesting.rs:238:8
    |
 LL |     {{{{b().await}}}};
    |        ^^^^^^^^^^^
    |
    = help: try refactoring your code to minimize nesting
 
-error: aborting due to 37 previous errors
+error: aborting due to 38 previous errors
 
