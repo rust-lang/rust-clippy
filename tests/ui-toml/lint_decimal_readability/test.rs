@@ -13,9 +13,7 @@ fn main() {
     let _pass4 = 10000.00001;
     let _pass5 = 1.123456789e1;
 
-    // due to clippy::inconsistent-digit-grouping
-    let _fail1 = 100_200_300.123456789;
-    //~^ inconsistent_digit_grouping
+    let _ = 100_200_300.123456789;
 
     // fail due to the integer part
     let _fail2 = 100200300.300200100;
