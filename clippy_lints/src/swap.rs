@@ -371,7 +371,7 @@ impl<'tcx> IndexBinding<'_, 'tcx> {
 
                 let init_str = snippet_with_context(self.cx, init.span, self.ctxt, "", self.applicability)
                     .0
-                    .to_string();
+                    .into_owned();
                 let indent_str = snippet_indent(self.cx, init.span);
                 let indent_str = indent_str.as_deref().unwrap_or("");
 
