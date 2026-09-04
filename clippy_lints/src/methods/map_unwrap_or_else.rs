@@ -1,11 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::mir::{BorrowedVariables, PossibleBorrowerMap, enclosing_mir};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::snippet;
 use clippy_utils::sym;
-use clippy_utils::usage::mutated_variables;
+
 use rustc_errors::Applicability;
-use rustc_hir as hir;
+use rustc_hir::{self as hir};
 use rustc_lint::LateContext;
 
 use super::MAP_UNWRAP_OR;
@@ -30,14 +31,17 @@ pub(super) fn check<'tcx>(
 
     // Don't make a suggestion that may fail to compile due to mutably borrowing
     // the same variable twice.
-    let Some(map_mutated_vars) = mutated_variables(recv, cx) else {
-        return false;
-    };
-    let Some(unwrap_mutated_vars) = mutated_variables(unwrap_arg, cx) else {
-        return false;
-    };
-    if map_mutated_vars.intersection(&unwrap_mutated_vars).next().is_some() {
-        return false;
+    if let Some(mir) = enclosing_mir(cx.tcx, expr.hir_id) {
+        let borrower_map = PossibleBorrowerMap::new(cx, mir);
+        let recv_borrowed_vars = BorrowedVariables::new(cx, recv, &borrower_map);
+        let map_borrowed_vars = BorrowedVariables::new(cx, map_arg, &borrower_map);
+        let unwrap_borrowed_vars = BorrowedVariables::new(cx, unwrap_arg, &borrower_map);
+        if recv_borrowed_vars.conflicts_with(&map_borrowed_vars)
+            || recv_borrowed_vars.conflicts_with(&unwrap_borrowed_vars)
+            || map_borrowed_vars.conflicts_with(&unwrap_borrowed_vars)
+        {
+            return false;
+        }
     }
 
     // lint message
