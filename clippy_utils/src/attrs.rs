@@ -145,8 +145,8 @@ impl Drop for LimitStack {
 
 #[expect(missing_docs, reason = "they're all trivial...")]
 impl LimitStack {
-    #[must_use]
     /// Initialize the stack starting with a default value, which usually comes from configuration
+    #[must_use]
     pub fn new(limit: u64) -> Self {
         Self {
             default: limit,
