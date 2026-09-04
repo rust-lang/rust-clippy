@@ -1,8 +1,8 @@
-use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::{SpanExt as _, position_before_rarrow};
 use clippy_utils::{is_never_expr, is_unit_expr};
 use rustc_ast::{Block, StmtKind};
-use rustc_errors::Applicability;
+use rustc_errors::{Applicability, SuggestionStyle};
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{
@@ -11,7 +11,7 @@ use rustc_hir::{
 };
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, declare_lint_pass};
 use rustc_span::edition::Edition;
-use rustc_span::{BytePos, Pos as _, Span, sym};
+use rustc_span::{BytePos, Pos as _, RelativeBytePos, Span, sym};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -130,21 +130,54 @@ impl EarlyLintPass for UnusedUnit {
             && expr.attrs.is_empty()
         {
             let sp = expr.span;
-            span_lint_and_sugg(
-                cx,
-                UNUSED_UNIT,
-                sp,
-                "unneeded unit expression",
-                "remove the final `()`",
-                String::new(),
-                Applicability::MachineApplicable,
-            );
+            let sugg_span = unit_expr_suggestion_span(cx, sp);
+            span_lint_and_then(cx, UNUSED_UNIT, sp, "unneeded unit expression", |diag| {
+                if sugg_span == sp {
+                    diag.span_suggestion(
+                        sp,
+                        "remove the final `()`",
+                        String::new(),
+                        Applicability::MachineApplicable,
+                    );
+                } else {
+                    diag.span_help(sp, "remove the final `()`");
+                    diag.span_suggestion_with_style(
+                        sugg_span,
+                        "remove the final `()`",
+                        String::new(),
+                        Applicability::MachineApplicable,
+                        SuggestionStyle::CompletelyHidden,
+                    );
+                }
+            });
         }
     }
 }
 
 fn is_unit_ty(ty: &Ty<'_>) -> bool {
     matches!(ty.kind, TyKind::Tup([]))
+}
+
+fn unit_expr_suggestion_span(cx: &EarlyContext<'_>, span: Span) -> Span {
+    span.map_range(cx, |sf, src, range| {
+        let lines = sf.lines();
+        let Ok(range_start) = u32::try_from(range.start) else {
+            return Some(range);
+        };
+        let line = sf.lookup_line(RelativeBytePos(range_start)).unwrap_or(0);
+        let line_start = lines[line].0 as usize;
+        let line_end = lines.get(line + 1).map_or(sf.end_position().0, |x| x.0) as usize;
+
+        let before_unit = src.get(line_start..range.start)?.trim().is_empty();
+        let after_unit = src.get(range.end..line_end)?.trim().is_empty();
+
+        if before_unit && after_unit {
+            Some(line_start..line_end)
+        } else {
+            Some(range)
+        }
+    })
+    .map_or(span, |range| span.with_lo(range.start).with_hi(range.end))
 }
 
 // get the def site
