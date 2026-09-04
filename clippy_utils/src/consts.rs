@@ -442,7 +442,7 @@ pub fn lit_to_mir_constant(lit: &LitKind, ty: Option<Ty<'_>>) -> Constant {
 }
 
 /// The source of a constant value.
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ConstantSource {
     /// The value is determined solely from the expression.
     Local,
