@@ -69,6 +69,7 @@ somewhat coherent.
 
 The sections order should roughly be:
 
+<!-- If this format changes please also update tests/lint-definitions.rs -->
 ```
 ### New Lints
 * Added [`LINT`] to `GROUP`
@@ -99,16 +100,14 @@ that label in the changelog. If you can, remove the `beta-accepted` labels
 ### 5. Update `clippy::version` attributes
 
 Next, make sure to check that the `#[clippy::version]` attributes for the added
-lints contain the correct version. 
-In order to find lints that need a version update, go through the lints in the 
-"New Lints" section and run the following command for each lint name:
+lints contain the correct version:
 
 ```
-grep -rB1 "pub $LINT_NAME" .
+cargo test --test lint-definitions
 ```
 
-The version shown should match the version of the release the changelog is 
-written for. If not, update the version to the changelog version.
+If a lint definition's version doesn't match the changelog you will see an error
+pointing to the definition that needs changing.
 
 [changelog]: https://github.com/rust-lang/rust-clippy/blob/master/CHANGELOG.md
 [forge]: https://forge.rust-lang.org/
