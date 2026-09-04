@@ -7513,6 +7513,7 @@ Released 2018-09-13
 [`ref_option`]: https://rust-lang.github.io/rust-clippy/main/index.html#ref_option
 [`ref_option_ref`]: https://rust-lang.github.io/rust-clippy/main/index.html#ref_option_ref
 [`ref_patterns`]: https://rust-lang.github.io/rust-clippy/main/index.html#ref_patterns
+[`refcell_cell`]: https://rust-lang.github.io/rust-clippy/main/index.html#refcell_cell
 [`regex_creation_in_loops`]: https://rust-lang.github.io/rust-clippy/main/index.html#regex_creation_in_loops
 [`regex_macro`]: https://rust-lang.github.io/rust-clippy/main/index.html#regex_macro
 [`renamed_function_params`]: https://rust-lang.github.io/rust-clippy/main/index.html#renamed_function_params
@@ -7841,6 +7842,7 @@ Released 2018-09-13
 [`lint-commented-code`]: https://doc.rust-lang.org/clippy/lint_configuration.html#lint-commented-code
 [`literal-representation-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#literal-representation-threshold
 [`matches-for-let-else`]: https://doc.rust-lang.org/clippy/lint_configuration.html#matches-for-let-else
+[`max-cheap-copy-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-cheap-copy-size
 [`max-fn-params-bools`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-fn-params-bools
 [`max-include-file-size`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-include-file-size
 [`max-struct-bools`]: https://doc.rust-lang.org/clippy/lint_configuration.html#max-struct-bools
