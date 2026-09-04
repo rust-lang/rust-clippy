@@ -1,3 +1,4 @@
+#![feature(array_try_map)]
 #![feature(control_flow_into_value)]
 #![feature(deref_patterns)]
 #![feature(exact_div)]
