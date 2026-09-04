@@ -4,7 +4,7 @@ use clippy_utils::source::{snippet, snippet_indent, snippet_opt};
 use clippy_utils::ty::needs_ordered_drop;
 use clippy_utils::visitors::any_temporaries_need_ordered_drop;
 use clippy_utils::{higher, peel_blocks};
-use rustc_ast::BindingMode;
+use rustc_ast::{BindingMode, Label};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, LetStmt, MatchSource, Pat, PatKind, Path, QPath, StmtKind, Ty};
 use rustc_lint::LateContext;
@@ -26,10 +26,14 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, loop_blo
         _ => return,
     };
     let has_trailing_exprs = loop_block.stmts.len() + usize::from(loop_block.expr.is_some()) > 1;
-
+    let loop_label = if let ExprKind::Loop(_, label, ..) = expr.kind {
+        label
+    } else {
+        None
+    };
     if let Some(if_let) = higher::IfLet::hir(cx, init)
         && let Some(else_expr) = if_let.if_else
-        && is_simple_break_expr(else_expr)
+        && is_simple_break_expr(else_expr, loop_label)
     {
         could_be_while_let(
             cx,
@@ -39,15 +43,16 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, loop_blo
             has_trailing_exprs,
             let_info,
             Some(if_let.if_then),
+            loop_label,
         );
-    } else if els.is_some_and(is_simple_break_block)
+    } else if els.is_some_and(|b| is_simple_break_block(b, loop_label))
         && let Some((pat, _)) = let_info
     {
-        could_be_while_let(cx, expr, pat, init, has_trailing_exprs, let_info, None);
+        could_be_while_let(cx, expr, pat, init, has_trailing_exprs, let_info, None, loop_label);
     } else if let ExprKind::Match(scrutinee, [arm1, arm2], MatchSource::Normal) = init.kind
         && arm1.guard.is_none()
         && arm2.guard.is_none()
-        && is_simple_break_expr(arm2.body)
+        && is_simple_break_expr(arm2.body, loop_label)
     {
         could_be_while_let(
             cx,
@@ -57,30 +62,32 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, loop_blo
             has_trailing_exprs,
             let_info,
             Some(arm1.body),
+            loop_label,
         );
     }
 }
 
-/// Checks if `block` contains a single unlabeled `break` expression or statement, possibly embedded
-/// inside other blocks.
-fn is_simple_break_block(block: &Block<'_>) -> bool {
+/// Checks if `block` contains a single (labeled or unlabeled) `break`
+/// expression or statement, possibly embedded inside other blocks.
+fn is_simple_break_block(block: &Block<'_>, looplabel: Option<Label>) -> bool {
     match (block.stmts, block.expr) {
-        ([s], None) => matches!(s.kind, StmtKind::Expr(e) | StmtKind::Semi(e) if is_simple_break_expr(e)),
-        ([], Some(e)) => is_simple_break_expr(e),
+        ([s], None) => matches!(s.kind, StmtKind::Expr(e) | StmtKind::Semi(e) if is_simple_break_expr(e, looplabel)),
+        ([], Some(e)) => is_simple_break_expr(e, looplabel),
         _ => false,
     }
 }
 
-/// Checks if `expr` contains a single unlabeled `break` expression or statement, possibly embedded
-/// inside other blocks.
-fn is_simple_break_expr(expr: &Expr<'_>) -> bool {
+/// Checks if `expr` contains a single (labeled or unlabeled) `break`
+/// expression or statement, possibly embedded inside other blocks.
+fn is_simple_break_expr(expr: &Expr<'_>, looplabel: Option<Label>) -> bool {
     match expr.kind {
-        ExprKind::Block(b, _) => is_simple_break_block(b),
-        ExprKind::Break(dest, None) => dest.label.is_none(),
+        ExprKind::Block(b, _) => is_simple_break_block(b, looplabel),
+        ExprKind::Break(dest, None) => dest.label.is_none() || dest.label == looplabel,
         _ => false,
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn could_be_while_let<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
@@ -89,6 +96,7 @@ fn could_be_while_let<'tcx>(
     has_trailing_exprs: bool,
     let_info: Option<(&Pat<'_>, Option<&Ty<'_>>)>,
     inner_expr: Option<&Expr<'_>>,
+    label: Option<Label>,
 ) {
     if has_trailing_exprs
         && (needs_ordered_drop(cx, cx.typeck_results().expr_ty(let_expr))
@@ -118,7 +126,8 @@ fn could_be_while_let<'tcx>(
     } else {
         " .. ".into()
     };
-
+    let looplabelstr = label.map(|label| format!("{}: ", label.ident.name)).unwrap_or_default();
+    // use the label not silenty dropping it in the suggestion when u have a labeled loop
     span_lint_and_sugg(
         cx,
         WHILE_LET_LOOP,
@@ -126,7 +135,8 @@ fn could_be_while_let<'tcx>(
         "this loop could be written as a `while let` loop",
         "try",
         format!(
-            "while let {} = {} {{{inner_content}}}",
+            "{}while let {} = {} {{{inner_content}}}",
+            looplabelstr,
             snippet(cx, let_pat.span, ".."),
             snippet(cx, let_expr.span, ".."),
         ),
