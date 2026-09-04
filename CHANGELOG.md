@@ -7850,6 +7850,7 @@ Released 2018-09-13
 [`min-ident-chars-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#min-ident-chars-threshold
 [`missing-docs-allow-unused`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-docs-allow-unused
 [`missing-docs-in-crate-items`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-docs-in-crate-items
+[`missing-transmute-annotations-in-expansions`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-transmute-annotations-in-expansions
 [`module-item-order-groupings`]: https://doc.rust-lang.org/clippy/lint_configuration.html#module-item-order-groupings
 [`module-items-ordered-within-groupings`]: https://doc.rust-lang.org/clippy/lint_configuration.html#module-items-ordered-within-groupings
 [`msrv`]: https://doc.rust-lang.org/clippy/lint_configuration.html#msrv
