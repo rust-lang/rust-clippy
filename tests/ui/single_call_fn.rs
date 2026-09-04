@@ -69,6 +69,7 @@ fn e() {
     b();
 }
 
+#[expect(clippy::test_without_assertions)]
 #[test]
 fn k() {}
 
