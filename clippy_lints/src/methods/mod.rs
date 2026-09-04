@@ -78,6 +78,7 @@ mod map_flatten;
 mod map_identity;
 mod map_or_identity;
 mod map_unwrap_or;
+mod map_unwrap_or_default;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
 mod mut_mutex_lock;
@@ -2440,12 +2441,12 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `option.map(_).unwrap_or(_)` or `option.map(_).unwrap_or_else(_)` or
-    /// `result.map(_).unwrap_or_else(_)`.
+    /// Checks the usage of `map(_).unwrap_or(_)`, `map(_).unwrap_or_default()`
+    /// or `map(_).unwrap_or_else(_)` for `Option` and `Result` types.
     ///
     /// ### Why is this bad?
     /// Readability, these can be written more concisely (resp.) as
-    /// `option.map_or(_, _)`, `option.map_or_else(_, _)` and `result.map_or_else(_, _)`.
+    /// `map_or(_, _)`, `map_or_default(_)` or `map_or_else(_, _)`.
     ///
     /// ### Known problems
     /// The order of the arguments is not in execution order
@@ -2457,6 +2458,7 @@ declare_clippy_lint! {
     /// # fn some_function(foo: ()) -> usize { 1 }
     /// option.map(|a| a + 1).unwrap_or(0);
     /// option.map(|a| a > 10).unwrap_or(false);
+    /// result.map(|a| vec![a]).unwrap_or_default();
     /// result.map(|a| a + 1).unwrap_or_else(some_function);
     /// ```
     ///
@@ -2467,12 +2469,13 @@ declare_clippy_lint! {
     /// # fn some_function(foo: ()) -> usize { 1 }
     /// option.map_or(0, |a| a + 1);
     /// option.is_some_and(|a| a > 10);
+    /// result.map_or_default(|a| vec![a]);
     /// result.map_or_else(some_function, |a| a + 1);
     /// ```
     #[clippy::version = "1.45.0"]
     pub MAP_UNWRAP_OR,
     pedantic,
-    "using `.map(f).unwrap_or(a)` or `.map(f).unwrap_or_else(func)`, which are more succinctly expressed as `map_or(a, f)` or `map_or_else(a, f)`"
+    "using `.map(f).unwrap_or(a)`, `map(f).unwrap_or_default()` or `.map(f).unwrap_or_else(func)`, which are more succinctly expressed as `map_or(a, f)`, `map_or_default(f)` or `map_or_else(a, f)`"
 }
 
 declare_clippy_lint! {
@@ -5897,6 +5900,7 @@ impl Methods {
                         },
                         Some((sym::map, m_recv, [arg], span, _)) => {
                             manual_is_variant_and::check_map_unwrap_or_default(cx, expr, m_recv, arg, span, self.msrv);
+                            map_unwrap_or_default::check(cx, expr, recv, m_recv, span, self.msrv);
                         },
                         Some((then_method @ (sym::then | sym::then_some), t_recv, [t_arg], _, _)) => {
                             obfuscated_if_else::check(

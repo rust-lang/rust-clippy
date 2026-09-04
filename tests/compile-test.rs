@@ -155,17 +155,15 @@ impl TestContext {
         let mut config = Config {
             output_conflict_handling: error_on_output_conflict,
             // Pre-fill filters with TESTNAME; will be later extended with `self.args`.
-            filter_files: env::var("TESTNAME")
-                .map(|filters| {
-                    filters
-                        .split(',')
-                        // Make sure that if TESTNAME is empty we produce the empty list here,
-                        // not a list containing an empty string.
-                        .filter(|s| !s.is_empty())
-                        .map(str::to_string)
-                        .collect()
-                })
-                .unwrap_or_default(),
+            filter_files: env::var("TESTNAME").map_or_default(|filters| {
+                filters
+                    .split(',')
+                    // Make sure that if TESTNAME is empty we produce the empty list here,
+                    // not a list containing an empty string.
+                    .filter(|s| !s.is_empty())
+                    .map(str::to_string)
+                    .collect()
+            }),
             target: None,
             bless_command: Some(if IS_RUSTC_TEST_SUITE {
                 "./x test src/tools/clippy --bless".into()
