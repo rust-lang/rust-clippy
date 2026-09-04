@@ -1,0 +1,11 @@
+error: this `if` can be collapsed into the outer `match`
+  --> tests/ui/collapsible_match_no_fix.rs:20:13
+   |
+LL |             if true { println!("hi") }
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::collapsible-match` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::collapsible_match)]`
+
+error: aborting due to 1 previous error
+

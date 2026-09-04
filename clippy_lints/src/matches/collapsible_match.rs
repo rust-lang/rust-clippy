@@ -1,3 +1,5 @@
+use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
+use crate::collapsible_if::{parens_around, peel_parens};
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::{If, IfLetOrMatch};
 use clippy_utils::msrvs::Msrv;
@@ -7,6 +9,7 @@ use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
     SpanlessEq, get_ref_operators, is_none_pattern, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators,
+    tokenize_with_text,
 };
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
@@ -16,9 +19,6 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
 use rustc_span::{BytePos, Ident, Span, SyntaxContext};
-
-use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
-use crate::collapsible_if::{parens_around, peel_parens};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
@@ -166,11 +166,30 @@ fn check_arm<'tcx>(
                 let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner_expr.span);
                 let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
-                if matches!(outer_then_body.kind, ExprKind::Block(..)) {
-                    let outer_then_open_bracket = outer_then_body
-                        .span
-                        .split_at(1)
-                        .0
+
+                if let ExprKind::Block(block, label) = outer_then_body.kind {
+                    if label.is_some() && outer_then_body.span.from_expansion() {
+                        return;
+                    }
+                    let block_span = outer_then_body.span;
+                    let search_start = if let Some(label) = label {
+                        label.ident.span.hi()
+                    } else {
+                        block_span.lo()
+                    };
+                    let gap_span = block_span.with_lo(search_start).with_hi(block.span.hi());
+                    let gap_snippet = snippet(cx, gap_span, "");
+                    let Some((_, _, brace_range)) = tokenize_with_text(&gap_snippet)
+                        .find(|(token, _, _)| *token == rustc_lexer::TokenKind::OpenBrace)
+                    else {
+                        return;
+                    };
+                    let brace_offset = u32::try_from(brace_range.start).unwrap();
+                    let brace_pos = search_start + BytePos(brace_offset);
+
+                    let outer_then_open_bracket = block_span
+                        .with_lo(brace_pos)
+                        .with_hi(brace_pos + BytePos(1))
                         .with_leading_whitespace(cx)
                         .into_span();
                     let outer_then_closing_bracket = {
@@ -181,6 +200,18 @@ fn check_arm<'tcx>(
                     };
                     sugg.push((outer_arrow_end.to(outer_then_open_bracket), String::new()));
                     sugg.push((outer_then_closing_bracket, String::new()));
+
+                    let prefix_start = if let Some(label) = label {
+                        label.ident.span.lo()
+                    } else {
+                        block_span.lo()
+                    };
+                    let label_prefix = snippet(cx, block_span.with_lo(prefix_start).with_hi(brace_pos), "")
+                        .trim()
+                        .to_string();
+                    if !label_prefix.is_empty() {
+                        sugg[0].1 = format!("=> {label_prefix} ");
+                    }
                 } else {
                     sugg.push((outer_arrow_end.until(inner_if), " ".to_string()));
                 }
