@@ -10,7 +10,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{Arm, BorrowKind, Expr, ExprKind, Pat, PatKind, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::Spanned;
+use rustc_span::{Span, Spanned};
 
 use super::MATCH_LIKE_MATCHES_MACRO;
 
@@ -145,6 +145,12 @@ pub(super) fn check_match<'tcx>(
 
         for arm in arms_without_last {
             let pat = arm.pat;
+            if pat.span.from_expansion() {
+                return false;
+            }
+            if has_at_binding(pat) {
+                return false;
+            }
             if !is_lint_allowed(cx, REDUNDANT_PATTERN_MATCHING, pat.hir_id) && is_some_wild(pat.kind) {
                 return false;
             }
@@ -157,7 +163,17 @@ pub(super) fn check_match<'tcx>(
             use itertools::Itertools as _;
             arms_without_last
                 .iter()
-                .map(|arm| snippet_with_applicability(cx, arm.pat.span, "..", &mut applicability))
+                .map(|arm| {
+                    let mut s = snippet_with_applicability(cx, arm.pat.span, "..", &mut applicability).into_owned();
+
+                    // rust requires every match arm to have the same bindings
+                    // we thus need to change bindings to `_` for this suggestion to compile
+                    if !middle_arms.is_empty() {
+                        s = replace_bindings_with_wildcard(arm, s);
+                    }
+
+                    s
+                })
                 .join(" | ")
         };
         let pat_and_guard = if let Some(g) = first_arm.guard {
@@ -234,4 +250,57 @@ fn is_some_wild(pat_kind: PatKind<'_>) -> bool {
         },
         _ => false,
     }
+}
+
+/// Bails on `@` bindings.
+fn has_at_binding(pat: &Pat<'_>) -> bool {
+    let mut found_at_binding = false;
+
+    pat.walk_short(|p| {
+        if matches!(p.kind, PatKind::Binding(_, _, _, Some(_))) {
+            found_at_binding = true;
+            return false;
+        }
+        true
+    });
+    found_at_binding
+}
+
+/// Replace bindings in a pattern's snippet with `_`, so multiple arms with
+/// different binding names can be merged into a single `matches!` pattern.
+fn replace_bindings_with_wildcard(arm: &Arm<'_>, mut s: String) -> String {
+    let mut replacements: Vec<(Span, String)> = Vec::new();
+    // record the span of the struct field, so we can skip it when replacing bindings
+    let mut struct_field_spans: Vec<Span> = Vec::new();
+
+    arm.pat.walk_always(|p| {
+        if let PatKind::Struct(_, pat_fields, _) = p.kind {
+            for field in pat_fields {
+                if field.is_shorthand {
+                    // we need to replace shorthand cases specially like `var: _` rather than `_`
+                    replacements.push((field.span, format!("{}: _", field.ident)));
+                    struct_field_spans.push(field.span);
+                }
+            }
+        }
+
+        if let PatKind::Binding(_, _, _, _) = p.kind {
+            // skip the shorthand spans
+            if struct_field_spans.contains(&p.span) {
+                return;
+            }
+
+            replacements.push((p.span, "_".to_owned()));
+        }
+    });
+
+    // sort replacements by span so that the replacements are applied in the correct order.
+    replacements.sort_by_key(|(span, _)| span.lo());
+    for (span, replacement) in replacements.iter().rev() {
+        let start = (span.lo() - arm.pat.span.lo()).0 as usize;
+        let end = (span.hi() - arm.pat.span.lo()).0 as usize;
+        s.replace_range(start..end, replacement);
+    }
+
+    s
 }

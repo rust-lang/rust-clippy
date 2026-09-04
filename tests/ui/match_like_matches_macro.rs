@@ -1,5 +1,9 @@
 #![warn(clippy::match_like_matches_macro)]
-#![allow(irrefutable_let_patterns, clippy::redundant_guards)]
+#![allow(
+    irrefutable_let_patterns,
+    clippy::redundant_guards,
+    clippy::unneeded_wildcard_pattern
+)]
 #![expect(clippy::needless_borrowed_reference)]
 
 fn main() {
@@ -296,4 +300,365 @@ fn issue16015<T: 'static, U: 'static>() -> bool {
 
     if let _ = typeid!(U) { true } else { false }
     //~^ match_like_matches_macro
+}
+
+mod issue17503 {
+    enum MatchType {
+        A(String),
+        B(String, String),
+        C,
+    }
+
+    fn matches(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(_str1) => true,
+            MatchType::B(_str1, _str2) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    // TODO: This can be transformed into `matches!(match_type, MatchType::A(_) | MatchType::C)`,
+    // but is currently not linted because the middle arm returns a different boolean value.
+    fn match_check_todo(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(_str1) => true,
+            MatchType::B(_str1, _str2) => false,
+            MatchType::C => true,
+        }
+    }
+
+    fn different_binding_names(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(a) => true,
+            MatchType::B(b, c) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn different_binding_names_2(match_type: MatchType) -> bool {
+        match match_type {
+            MatchType::A(r#match) => true,
+            MatchType::B(very_long_name_in_snake_case, __very_strange_name__) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn tuple_binding_names(v: (Option<u8>, Option<u8>)) -> bool {
+        match v {
+            (Some(left), _) => true,
+            (_, Some(right)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_names(v: (Option<u8>, Option<u8>)) -> bool {
+        match v {
+            (Some(ref x), Some(1)) => true,
+            (Some(ref x), Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_names2(v1: Option<u8>, v2: Option<u8>) -> bool {
+        match (v1, v2) {
+            (Some(ref x), Some(1)) => true,
+            (Some(ref x), Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_names_three_arms(v: (Option<u8>, u8)) -> bool {
+        match v {
+            (Some(ref x), 1) => true,
+            (Some(ref x), 2) => true,
+            (Some(ref x), 3) => true,
+            _ => false,
+        }
+        //~^^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_var_is_not_used(v: (Option<u8>, u8)) -> bool {
+        match v {
+            (Some(ref x), 1) => true,
+            (Some(ref y), 2) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_binding_multi_arm_var_is_not_used(v: (Option<u8>, u8)) -> bool {
+        match v {
+            (Some(ref x), 1) => true,
+            (Some(ref x), 2) => true,
+            (Some(ref z), 3) => true,
+            _ => false,
+        }
+        //~^^^^^^ match_like_matches_macro
+    }
+
+    fn ref_mut_binding_names(v: (&mut Option<u8>, &mut Option<u8>)) -> bool {
+        match v {
+            (&mut Some(ref mut x), &mut Some(1)) => true,
+            (&mut Some(ref mut x), &mut Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn ref_mut_binding_names2(v1: &mut Option<u8>, v2: &mut Option<u8>) -> bool {
+        match (v1, v2) {
+            (&mut Some(ref mut x), &mut Some(1)) => true,
+            (&mut Some(ref mut x), &mut Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    fn mut_binding(v: (Option<u8>, Option<u8>)) -> bool {
+        match v {
+            (Some(mut x), Some(1)) => true,
+            (Some(mut x), Some(2)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct StructRefBinding {
+        x: Option<u8>,
+        y: u8,
+    }
+    fn struct_ref_binding(v: StructRefBinding) -> bool {
+        match v {
+            StructRefBinding { ref x, y: 1 } => true,
+            StructRefBinding { ref x, y: 2 } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+    fn struct_ref_binding2(v: StructRefBinding) -> bool {
+        match v {
+            StructRefBinding { x: ref a, y: 1 } => true,
+            StructRefBinding { x: ref b, y: 2 } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct TestBindingNames {
+        a: u8,
+        b: u8,
+    }
+    fn struct_binding_names(x: TestBindingNames) -> bool {
+        match x {
+            TestBindingNames { a, .. } => true,
+            TestBindingNames { b, .. } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct TestBindingNames2 {
+        a: u8,
+        b: u8,
+        c: u8,
+    }
+    fn struct_binding_names2(x: TestBindingNames2) -> bool {
+        match x {
+            TestBindingNames2 { a, b: 1, .. } => true,
+            TestBindingNames2 { a, b: 2, .. } => true,
+            TestBindingNames2 { a: 3, b: 4, .. } => true,
+            _ => false,
+        }
+        //~^^^^^^ match_like_matches_macro
+    }
+
+    struct MixedBindingNames {
+        a: u8,
+        b: u8,
+    }
+    fn mixed_binding_names(x: MixedBindingNames, y: Option<u8>) -> bool {
+        match (x, y) {
+            (MixedBindingNames { a, .. }, Some(x)) => true,
+            (MixedBindingNames { b, .. }, Some(y)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct MixedNested {
+        a: Option<u8>,
+        b: u8,
+    }
+    fn mixed_nested(x: MixedNested) -> bool {
+        match x {
+            MixedNested { a: Some(x), b } => true,
+            MixedNested { a: Some(y), b: c } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct MixedFields {
+        a: u8,
+        b: u8,
+    }
+    fn mixed_fields(x: MixedFields) -> bool {
+        match x {
+            MixedFields { a, b: 1 } => true,
+            MixedFields { a: 2, b } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    struct InnerStruct {
+        x: u8,
+    }
+    struct OuterStruct {
+        inner: InnerStruct,
+        y: u8,
+    }
+    fn nested_struct(x: OuterStruct) -> bool {
+        match x {
+            OuterStruct {
+                inner: InnerStruct { x, .. },
+                y: w,
+            } => true,
+            OuterStruct {
+                inner: InnerStruct { x: z, .. },
+                y: w,
+            } => true,
+            _ => false,
+        }
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+    fn nested_struct_shorthand(x: OuterStruct) -> bool {
+        match x {
+            OuterStruct {
+                inner: InnerStruct { x, .. },
+                y,
+            } => true,
+            OuterStruct {
+                inner: InnerStruct { x, .. },
+                y,
+            } => true,
+            _ => false,
+        }
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+    fn nested_struct_ref_shorthand(v: OuterStruct) -> bool {
+        match v {
+            OuterStruct {
+                inner: InnerStruct { ref x },
+                y: 1,
+            } => true,
+            OuterStruct {
+                inner: InnerStruct { ref x },
+                y: 2,
+            } => true,
+            _ => false,
+        }
+        //~^^^^^^^^^^^ match_like_matches_macro
+    }
+
+    struct AdjacentShorthand {
+        a: u8,
+        b: u8,
+    }
+    fn adjacent_shorthand_fields(x: AdjacentShorthand) -> bool {
+        match x {
+            AdjacentShorthand { a, b } => true,
+            AdjacentShorthand { a: 1, b: 2 } => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    enum NestedTupleInEnum {
+        A((u8, u8)),
+        B((u8, u8)),
+    }
+
+    fn nested_tuple(e: NestedTupleInEnum) -> bool {
+        match e {
+            NestedTupleInEnum::A((x, y)) => true,
+            NestedTupleInEnum::B((a, b)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    enum Inner {
+        X(u8),
+    }
+
+    enum Outer {
+        A(Inner),
+        B(Inner),
+    }
+
+    fn nested_enum(o: Outer) -> bool {
+        match o {
+            Outer::A(Inner::X(x)) => true,
+            Outer::B(Inner::X(y)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    // Bail on at bindings, so this one won't be linted.
+    fn at_binding(v: Option<u8>) -> bool {
+        match v {
+            Some(x @ 0) => true,
+            Some(y @ 1) => true,
+            _ => false,
+        }
+    }
+
+    fn slice_binding(v: &[u8]) -> bool {
+        match v {
+            [first, ..] => true,
+            [_, last] => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
+
+    macro_rules! mk_pat {
+        ($name:ident) => {
+            Some($name)
+        };
+    }
+
+    // ok
+    fn from_expansion(v: Option<u8>) -> bool {
+        match v {
+            mk_pat!(a) => true,
+            mk_pat!(b) => true,
+            _ => false,
+        }
+    }
+
+    struct Data {
+        x: u8,
+    }
+    enum Kind {
+        A(Data),
+        B(Data),
+    }
+    // Test all of above cases in one function.
+    fn everything(v: (Kind, Option<u8>)) -> bool {
+        match v {
+            (Kind::A(Data { x, .. }), Some(y)) => true,
+            (Kind::B(Data { x: z, .. }), Some(w)) => true,
+            _ => false,
+        }
+        //~^^^^^ match_like_matches_macro
+    }
 }

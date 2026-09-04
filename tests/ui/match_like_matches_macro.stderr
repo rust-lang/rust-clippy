@@ -1,5 +1,5 @@
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:9:14
+  --> tests/ui/match_like_matches_macro.rs:13:14
    |
 LL |       let _y = match x {
    |  ______________^
@@ -20,7 +20,7 @@ LL +     let _y = matches!(x, Some(0));
    |
 
 error: redundant pattern matching
-  --> tests/ui/match_like_matches_macro.rs:16:14
+  --> tests/ui/match_like_matches_macro.rs:20:14
    |
 LL |       let _w = match x {
    |  ______________^
@@ -41,7 +41,7 @@ LL +     let _w = x.is_some();
    |
 
 error: redundant pattern matching
-  --> tests/ui/match_like_matches_macro.rs:23:14
+  --> tests/ui/match_like_matches_macro.rs:27:14
    |
 LL |       let _z = match x {
    |  ______________^
@@ -60,7 +60,7 @@ LL +     let _z = x.is_none();
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:30:15
+  --> tests/ui/match_like_matches_macro.rs:34:15
    |
 LL |       let _zz = match x {
    |  _______________^
@@ -79,7 +79,7 @@ LL +     let _zz = !matches!(x, Some(r) if r == 0);
    |
 
 error: `if let .. else` expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:37:16
+  --> tests/ui/match_like_matches_macro.rs:41:16
    |
 LL |     let _zzz = if let Some(5) = x { true } else { false };
    |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -91,7 +91,7 @@ LL +     let _zzz = matches!(x, Some(5));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:62:20
+  --> tests/ui/match_like_matches_macro.rs:66:20
    |
 LL |           let _ans = match x {
    |  ____________________^
@@ -112,7 +112,7 @@ LL +         let _ans = matches!(x, E::A(_) | E::B(_));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:73:20
+  --> tests/ui/match_like_matches_macro.rs:77:20
    |
 LL |           let _ans = match x {
    |  ____________________^
@@ -136,7 +136,7 @@ LL +         let _ans = matches!(x, E::A(_) | E::B(_));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:84:20
+  --> tests/ui/match_like_matches_macro.rs:88:20
    |
 LL |           let _ans = match x {
    |  ____________________^
@@ -157,7 +157,7 @@ LL +         let _ans = !matches!(x, E::B(_) | E::C);
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:145:18
+  --> tests/ui/match_like_matches_macro.rs:149:18
    |
 LL |           let _z = match &z {
    |  __________________^
@@ -176,7 +176,7 @@ LL +         let _z = matches!(z, Some(3));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:155:18
+  --> tests/ui/match_like_matches_macro.rs:159:18
    |
 LL |           let _z = match &z {
    |  __________________^
@@ -195,7 +195,7 @@ LL +         let _z = matches!(&z, Some(3));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:173:21
+  --> tests/ui/match_like_matches_macro.rs:177:21
    |
 LL |               let _ = match &z {
    |  _____________________^
@@ -214,7 +214,7 @@ LL +             let _ = matches!(&z, AnEnum::X);
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:188:20
+  --> tests/ui/match_like_matches_macro.rs:192:20
    |
 LL |           let _res = match &val {
    |  ____________________^
@@ -233,7 +233,7 @@ LL +         let _res = matches!(&val, &Some(ref _a));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:201:20
+  --> tests/ui/match_like_matches_macro.rs:205:20
    |
 LL |           let _res = match &val {
    |  ____________________^
@@ -252,7 +252,7 @@ LL +         let _res = matches!(&val, &Some(ref _a));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:260:14
+  --> tests/ui/match_like_matches_macro.rs:264:14
    |
 LL |       let _y = match Some(5) {
    |  ______________^
@@ -271,7 +271,7 @@ LL +     let _y = matches!(Some(5), Some(0));
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:270:13
+  --> tests/ui/match_like_matches_macro.rs:274:13
    |
 LL |       let _ = match opt {
    |  _____________^
@@ -290,7 +290,7 @@ LL +     let _ = matches!(opt, Some(first) if (if let Some(second) = first { tru
    |
 
 error: match expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:291:5
+  --> tests/ui/match_like_matches_macro.rs:295:5
    |
 LL | /     match typeid!(T) {
 LL | |         _ => true,
@@ -308,7 +308,7 @@ LL +     matches!(typeid!(T), _);
    |
 
 error: `if let .. else` expression looks like `matches!` macro
-  --> tests/ui/match_like_matches_macro.rs:297:5
+  --> tests/ui/match_like_matches_macro.rs:301:5
    |
 LL |     if let _ = typeid!(U) { true } else { false }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -319,5 +319,560 @@ LL -     if let _ = typeid!(U) { true } else { false }
 LL +     matches!(typeid!(U), _)
    |
 
-error: aborting due to 17 previous errors
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:313:9
+   |
+LL | /         match match_type {
+LL | |             MatchType::A(_str1) => true,
+LL | |             MatchType::B(_str1, _str2) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type {
+LL -             MatchType::A(_str1) => true,
+LL -             MatchType::B(_str1, _str2) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:332:9
+   |
+LL | /         match match_type {
+LL | |             MatchType::A(a) => true,
+LL | |             MatchType::B(b, c) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type {
+LL -             MatchType::A(a) => true,
+LL -             MatchType::B(b, c) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:341:9
+   |
+LL | /         match match_type {
+LL | |             MatchType::A(r#match) => true,
+LL | |             MatchType::B(very_long_name_in_snake_case, __very_strange_name__) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match match_type {
+LL -             MatchType::A(r#match) => true,
+LL -             MatchType::B(very_long_name_in_snake_case, __very_strange_name__) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(match_type, MatchType::A(_) | MatchType::B(_, _))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:350:9
+   |
+LL | /         match v {
+LL | |             (Some(left), _) => true,
+LL | |             (_, Some(right)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(left), _) => true,
+LL -             (_, Some(right)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(_), _) | (_, Some(_)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:359:9
+   |
+LL | /         match v {
+LL | |             (Some(ref x), Some(1)) => true,
+LL | |             (Some(ref x), Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(ref x), Some(1)) => true,
+LL -             (Some(ref x), Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(_), Some(1)) | (Some(_), Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:368:9
+   |
+LL | /         match (v1, v2) {
+LL | |             (Some(ref x), Some(1)) => true,
+LL | |             (Some(ref x), Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match (v1, v2) {
+LL -             (Some(ref x), Some(1)) => true,
+LL -             (Some(ref x), Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!((v1, v2), (Some(_), Some(1)) | (Some(_), Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:377:9
+   |
+LL | /         match v {
+LL | |             (Some(ref x), 1) => true,
+LL | |             (Some(ref x), 2) => true,
+LL | |             (Some(ref x), 3) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(ref x), 1) => true,
+LL -             (Some(ref x), 2) => true,
+LL -             (Some(ref x), 3) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(_), 1) | (Some(_), 2) | (Some(_), 3))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:387:9
+   |
+LL | /         match v {
+LL | |             (Some(ref x), 1) => true,
+LL | |             (Some(ref y), 2) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(ref x), 1) => true,
+LL -             (Some(ref y), 2) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(_), 1) | (Some(_), 2))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:396:9
+   |
+LL | /         match v {
+LL | |             (Some(ref x), 1) => true,
+LL | |             (Some(ref x), 2) => true,
+LL | |             (Some(ref z), 3) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(ref x), 1) => true,
+LL -             (Some(ref x), 2) => true,
+LL -             (Some(ref z), 3) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(_), 1) | (Some(_), 2) | (Some(_), 3))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:406:9
+   |
+LL | /         match v {
+LL | |             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL | |             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL -             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (&mut Some(_), &mut Some(1)) | (&mut Some(_), &mut Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:415:9
+   |
+LL | /         match (v1, v2) {
+LL | |             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL | |             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match (v1, v2) {
+LL -             (&mut Some(ref mut x), &mut Some(1)) => true,
+LL -             (&mut Some(ref mut x), &mut Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!((v1, v2), (&mut Some(_), &mut Some(1)) | (&mut Some(_), &mut Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:424:9
+   |
+LL | /         match v {
+LL | |             (Some(mut x), Some(1)) => true,
+LL | |             (Some(mut x), Some(2)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Some(mut x), Some(1)) => true,
+LL -             (Some(mut x), Some(2)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Some(_), Some(1)) | (Some(_), Some(2)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:437:9
+   |
+LL | /         match v {
+LL | |             StructRefBinding { ref x, y: 1 } => true,
+LL | |             StructRefBinding { ref x, y: 2 } => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             StructRefBinding { ref x, y: 1 } => true,
+LL -             StructRefBinding { ref x, y: 2 } => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, StructRefBinding { x: _, y: 1 } | StructRefBinding { x: _, y: 2 })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:445:9
+   |
+LL | /         match v {
+LL | |             StructRefBinding { x: ref a, y: 1 } => true,
+LL | |             StructRefBinding { x: ref b, y: 2 } => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             StructRefBinding { x: ref a, y: 1 } => true,
+LL -             StructRefBinding { x: ref b, y: 2 } => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, StructRefBinding { x: _, y: 1 } | StructRefBinding { x: _, y: 2 })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:458:9
+   |
+LL | /         match x {
+LL | |             TestBindingNames { a, .. } => true,
+LL | |             TestBindingNames { b, .. } => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match x {
+LL -             TestBindingNames { a, .. } => true,
+LL -             TestBindingNames { b, .. } => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(x, TestBindingNames { a: _, .. } | TestBindingNames { b: _, .. })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:472:9
+   |
+LL | /         match x {
+LL | |             TestBindingNames2 { a, b: 1, .. } => true,
+LL | |             TestBindingNames2 { a, b: 2, .. } => true,
+LL | |             TestBindingNames2 { a: 3, b: 4, .. } => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match x {
+LL -             TestBindingNames2 { a, b: 1, .. } => true,
+LL -             TestBindingNames2 { a, b: 2, .. } => true,
+LL -             TestBindingNames2 { a: 3, b: 4, .. } => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(x, TestBindingNames2 { a: _, b: 1, .. } | TestBindingNames2 { a: _, b: 2, .. } | TestBindingNames2 { a: 3, b: 4, .. })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:486:9
+   |
+LL | /         match (x, y) {
+LL | |             (MixedBindingNames { a, .. }, Some(x)) => true,
+LL | |             (MixedBindingNames { b, .. }, Some(y)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match (x, y) {
+LL -             (MixedBindingNames { a, .. }, Some(x)) => true,
+LL -             (MixedBindingNames { b, .. }, Some(y)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!((x, y), (MixedBindingNames { a: _, .. }, Some(_)) | (MixedBindingNames { b: _, .. }, Some(_)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:499:9
+   |
+LL | /         match x {
+LL | |             MixedNested { a: Some(x), b } => true,
+LL | |             MixedNested { a: Some(y), b: c } => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match x {
+LL -             MixedNested { a: Some(x), b } => true,
+LL -             MixedNested { a: Some(y), b: c } => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(x, MixedNested { a: Some(_), b: _ } | MixedNested { a: Some(_), b: _ })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:512:9
+   |
+LL | /         match x {
+LL | |             MixedFields { a, b: 1 } => true,
+LL | |             MixedFields { a: 2, b } => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match x {
+LL -             MixedFields { a, b: 1 } => true,
+LL -             MixedFields { a: 2, b } => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(x, MixedFields { a: _, b: 1 } | MixedFields { a: 2, b: _ })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:528:9
+   |
+LL | /         match x {
+LL | |             OuterStruct {
+LL | |                 inner: InnerStruct { x, .. },
+LL | |                 y: w,
+...  |
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL ~         matches!(x, OuterStruct {
+LL +                 inner: InnerStruct { x: _, .. },
+LL +                 y: _,
+LL +             } | OuterStruct {
+LL +                 inner: InnerStruct { x: _, .. },
+LL +                 y: _,
+LL +             })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:542:9
+   |
+LL | /         match x {
+LL | |             OuterStruct {
+LL | |                 inner: InnerStruct { x, .. },
+LL | |                 y,
+...  |
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL ~         matches!(x, OuterStruct {
+LL +                 inner: InnerStruct { x: _, .. },
+LL +                 y: _,
+LL +             } | OuterStruct {
+LL +                 inner: InnerStruct { x: _, .. },
+LL +                 y: _,
+LL +             })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:556:9
+   |
+LL | /         match v {
+LL | |             OuterStruct {
+LL | |                 inner: InnerStruct { ref x },
+LL | |                 y: 1,
+...  |
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL ~         matches!(v, OuterStruct {
+LL +                 inner: InnerStruct { x: _ },
+LL +                 y: 1,
+LL +             } | OuterStruct {
+LL +                 inner: InnerStruct { x: _ },
+LL +                 y: 2,
+LL +             })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:575:9
+   |
+LL | /         match x {
+LL | |             AdjacentShorthand { a, b } => true,
+LL | |             AdjacentShorthand { a: 1, b: 2 } => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match x {
+LL -             AdjacentShorthand { a, b } => true,
+LL -             AdjacentShorthand { a: 1, b: 2 } => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(x, AdjacentShorthand { a: _, b: _ } | AdjacentShorthand { a: 1, b: 2 })
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:589:9
+   |
+LL | /         match e {
+LL | |             NestedTupleInEnum::A((x, y)) => true,
+LL | |             NestedTupleInEnum::B((a, b)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match e {
+LL -             NestedTupleInEnum::A((x, y)) => true,
+LL -             NestedTupleInEnum::B((a, b)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(e, NestedTupleInEnum::A((_, _)) | NestedTupleInEnum::B((_, _)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:607:9
+   |
+LL | /         match o {
+LL | |             Outer::A(Inner::X(x)) => true,
+LL | |             Outer::B(Inner::X(y)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match o {
+LL -             Outer::A(Inner::X(x)) => true,
+LL -             Outer::B(Inner::X(y)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(o, Outer::A(Inner::X(_)) | Outer::B(Inner::X(_)))
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:625:9
+   |
+LL | /         match v {
+LL | |             [first, ..] => true,
+LL | |             [_, last] => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             [first, ..] => true,
+LL -             [_, last] => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, [_, ..] | [_, _])
+   |
+
+error: match expression looks like `matches!` macro
+  --> tests/ui/match_like_matches_macro.rs:657:9
+   |
+LL | /         match v {
+LL | |             (Kind::A(Data { x, .. }), Some(y)) => true,
+LL | |             (Kind::B(Data { x: z, .. }), Some(w)) => true,
+LL | |             _ => false,
+LL | |         }
+   | |_________^
+   |
+help: use `matches!` directly
+   |
+LL -         match v {
+LL -             (Kind::A(Data { x, .. }), Some(y)) => true,
+LL -             (Kind::B(Data { x: z, .. }), Some(w)) => true,
+LL -             _ => false,
+LL -         }
+LL +         matches!(v, (Kind::A(Data { x: _, .. }), Some(_)) | (Kind::B(Data { x: _, .. }), Some(_)))
+   |
+
+error: aborting due to 44 previous errors
 
