@@ -63,11 +63,17 @@ impl<'tcx> LateLintPass<'tcx> for FourForwardSlashes {
                 )
             })
             .fold(item.span.shrink_to_lo(), |span, attr| span.to(attr.span()));
-        let (Some(file), _, _, end_line, _) = sm.span_to_location_info(span) else {
+        // `lookup_line` binary searches the line table. Resolving a column instead walks
+        // the line from its start, which costs O(offset) per item, and a file that holds
+        // its whole content on one line — generated code printed from a `TokenStream`, or
+        // a minified source — makes that offset the item's position in the file.
+        let Ok(loc) = sm.lookup_line(span.hi()) else {
             return;
         };
+        // Lines count from 0 here, so `end_line` is already the line above the item.
+        let (file, end_line) = (loc.sf, loc.line);
         let mut bad_comments = vec![];
-        for line in (0..end_line.saturating_sub(1)).rev() {
+        for line in (0..end_line).rev() {
             let Some(contents) = file.get_line(line).map(|c| c.trim().to_owned()) else {
                 return;
             };
