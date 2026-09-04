@@ -49,7 +49,7 @@ a [developer guide] and is a good place to start your journey.
 All issues on Clippy are mentored, if you want help simply ask someone from the
 Clippy team directly by mentioning them in the issue or over on [Zulip]. All
 currently active team members can be found
-[here](https://github.com/rust-lang/rust-clippy/blob/master/triagebot.toml#L18)
+[here](https://github.com/rust-lang/rust-clippy/blob/main/triagebot.toml#L18)
 
 Some issues are easier than others. The [`good first issue`] label can be used to find the easy
 issues. You can use `@rustbot claim` to assign the issue to yourself.
@@ -176,7 +176,7 @@ via the `LateContext` parameter.
 That's why the `else_if_without_else` example is listed in `early_lint_methods!`. Because the
 [actual lint logic][else_if_without_else] does not depend on any type information.
 
-[lint_crate_entry]: https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/lib.rs
+[lint_crate_entry]: https://github.com/rust-lang/rust-clippy/blob/main/clippy_lints/src/lib.rs
 [else_if_without_else]: https://github.com/rust-lang/rust-clippy/blob/4253aa7137cb7378acc96133c787e49a345c2b3c/clippy_lints/src/else_if_without_else.rs
 [`LintStore`]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/struct.LintStore.html
 [early_lint_pass]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/trait.EarlyLintPass.html
