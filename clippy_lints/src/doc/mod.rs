@@ -1,3 +1,17 @@
+mod broken_link;
+mod doc_comment_double_space_linebreaks;
+mod doc_paragraphs_missing_punctuation;
+mod doc_suspicious_footnotes;
+mod include_in_doc_without_cfg;
+mod lazy_continuation;
+mod link_with_quotes;
+mod markdown;
+mod missing_headers;
+mod needless_doctest_main;
+mod suspicious_doc_comments;
+mod test_attr_in_doctest;
+mod too_long_first_doc_paragraph;
+
 use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
@@ -21,20 +35,6 @@ use rustc_resolve::rustdoc::{
 use rustc_span::Span;
 use std::ops::Range;
 use url::Url;
-
-mod broken_link;
-mod doc_comment_double_space_linebreaks;
-mod doc_paragraphs_missing_punctuation;
-mod doc_suspicious_footnotes;
-mod include_in_doc_without_cfg;
-mod lazy_continuation;
-mod link_with_quotes;
-mod markdown;
-mod missing_headers;
-mod needless_doctest_main;
-mod suspicious_doc_comments;
-mod test_attr_in_doctest;
-mod too_long_first_doc_paragraph;
 
 declare_clippy_lint! {
     /// ### What it does

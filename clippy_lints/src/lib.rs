@@ -50,14 +50,6 @@ extern crate clippy_utils;
 #[macro_use]
 extern crate declare_clippy_lint;
 
-mod utils;
-
-mod combined_early_pass;
-mod combined_late_pass;
-
-pub mod declared_lints;
-pub mod deprecated_lints;
-
 // begin lints modules, do not remove this comment, it's used in `update_lints`
 mod absolute_paths;
 mod almost_complete_range;
@@ -414,6 +406,13 @@ mod zero_repeat_side_effects;
 mod zero_sized_map_values;
 mod zombie_processes;
 // end lints modules, do not remove this comment, it's used in `update_lints`
+
+mod combined_early_pass;
+mod combined_late_pass;
+mod utils;
+
+pub mod declared_lints;
+pub mod deprecated_lints;
 
 use clippy_config::{Conf, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;

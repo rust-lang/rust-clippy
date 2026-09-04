@@ -1,8 +1,3 @@
-use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
-use clippy_utils::{is_in_const_context, is_no_std_crate, sym};
-use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
-
 mod custom_abs;
 mod expm1;
 mod hypot;
@@ -14,6 +9,11 @@ mod mul_add;
 mod powf;
 mod powi;
 mod radians;
+
+use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
+use clippy_utils::{is_in_const_context, is_no_std_crate, sym};
+use rustc_hir::{Expr, ExprKind};
+use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 
 declare_clippy_lint! {
     /// ### What it does
