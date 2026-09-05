@@ -1,6 +1,6 @@
 use crate::utils::{cargo_cmd, run_exit_on_err};
 use std::env::consts::EXE_SUFFIX;
-use std::env::current_dir;
+use std::env::{current_dir, var_os};
 use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -67,8 +67,10 @@ fn install_bin(bin: &str, dest: &Path, standalone: bool, release: bool) {
     let profile = if release { "release" } else { "debug" };
     let file_name = format!("{bin}{EXE_SUFFIX}");
 
-    let mut src = current_dir().unwrap();
-    src.extend(["target", profile, &file_name]);
+    let mut src = var_os("CARGO_BUILD_TARGET_DIR")
+        .or_else(|| var_os("CARGO_TARGET_DIR"))
+        .map_or_else(|| current_dir().unwrap().join("target"), PathBuf::from);
+    src.extend([profile, &file_name]);
 
     let mut dest = dest.to_path_buf();
     dest.extend(["bin", &file_name]);
