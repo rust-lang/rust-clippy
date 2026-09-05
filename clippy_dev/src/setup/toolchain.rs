@@ -76,7 +76,9 @@ fn install_bin(bin: &str, dest: &Path, standalone: bool, release: bool) {
     dest.extend(["bin", &file_name]);
 
     if standalone {
-        fs::copy(src, dest).unwrap();
+        fs::hard_link(&src, &dest)
+            .or_else(|_| fs::copy(src, dest).map(|_| ()))
+            .unwrap();
     } else {
         symlink(src, dest).unwrap();
     }
