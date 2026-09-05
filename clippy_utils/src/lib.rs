@@ -2443,6 +2443,12 @@ pub fn is_in_cfg_test(tcx: TyCtxt<'_>, id: HirId) -> bool {
     tcx.hir_parent_id_iter(id).any(|parent_id| is_cfg_test(tcx, parent_id))
 }
 
+/// Checks if any parent node of `HirId` has a `#[cfg(...)]` or `#[cfg_attr(...)]` attribute applied.
+pub fn is_under_cfg(tcx: TyCtxt<'_>, id: HirId) -> bool {
+    tcx.hir_parent_id_iter(id)
+        .any(|id| find_attr!(tcx, id, CfgTrace(..) | CfgAttrTrace(..)))
+}
+
 /// Checks if the node is in a `#[test]` function or has any parent node marked `#[cfg(test)]`
 pub fn is_in_test(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
     is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id)
