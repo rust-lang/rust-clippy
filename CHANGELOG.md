@@ -7001,6 +7001,7 @@ Released 2018-09-13
 [`double_must_use`]: https://rust-lang.github.io/rust-clippy/main/index.html#double_must_use
 [`double_neg`]: https://rust-lang.github.io/rust-clippy/main/index.html#double_neg
 [`double_parens`]: https://rust-lang.github.io/rust-clippy/main/index.html#double_parens
+[`double_rev_map`]: https://rust-lang.github.io/rust-clippy/main/index.html#double_rev_map
 [`drain_collect`]: https://rust-lang.github.io/rust-clippy/main/index.html#drain_collect
 [`drop_bounds`]: https://rust-lang.github.io/rust-clippy/main/index.html#drop_bounds
 [`drop_copy`]: https://rust-lang.github.io/rust-clippy/main/index.html#drop_copy
