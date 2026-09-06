@@ -34,7 +34,7 @@ declare_clippy_lint! {
 
 declare_lint_pass!(FnParamRefCloned => [FN_PARAM_REF_CLONED]);
 
-    type Candidates = Vec<((rustc_hir::HirId, Span), Vec<(rustc_hir::HirId, Span)>)>;
+type Candidates = Vec<((rustc_hir::HirId, Span), Vec<(rustc_hir::HirId, Span)>)>;
 
 /// Returns true if `ty` is `&T` where `T` implements any trait in `must_impl_trait`
 pub fn is_candidate_ty<'a>(cx: &LateContext<'a>, ty: Ty<'a>, must_impl_trait: &[DefId]) -> bool {
@@ -143,7 +143,7 @@ fn emit_lint(
     cx: &LateContext<'_>,
     span: Span,
     original_candidate: &(rustc_hir::HirId, Span),
-    rebinds: &SmallVec<[(rustc_hir::HirId, Span); 32]>,
+    rebinds: &Vec<(rustc_hir::HirId, Span)>,
     hir_id: rustc_hir::HirId,
 ) {
     if original_candidate.0 == hir_id {
