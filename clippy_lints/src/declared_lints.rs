@@ -547,6 +547,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::missing_doc::MISSING_DOCS_IN_PRIVATE_ITEMS_INFO,
     crate::missing_enforced_import_rename::MISSING_ENFORCED_IMPORT_RENAMES_INFO,
     crate::missing_fields_in_debug::MISSING_FIELDS_IN_DEBUG_INFO,
+    crate::missing_fused_iterator::MISSING_FUSED_ITERATOR_INFO,
     crate::missing_inline::MISSING_INLINE_IN_PUBLIC_ITEMS_INFO,
     crate::missing_trait_methods::MISSING_TRAIT_METHODS_INFO,
     crate::mixed_read_write_in_expression::DIVERGING_SUB_EXPRESSION_INFO,

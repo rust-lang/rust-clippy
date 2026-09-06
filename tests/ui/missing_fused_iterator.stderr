@@ -1,0 +1,94 @@
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:12:1
+   |
+LL | pub struct PublicStruct;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+   = note: `-D clippy::missing-fused-iterator` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_fused_iterator)]`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:23:1
+   |
+LL | / pub enum PublicEnum {
+LL | |
+LL | |     Empty,
+LL | | }
+   | |_^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:36:1
+   |
+LL | / pub union PublicUnion {
+LL | |
+LL | |     value: u8,
+LL | | }
+   | |_^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:49:1
+   |
+LL | pub struct PublicGeneric<T>(T);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:81:5
+   |
+LL |     pub struct Reexported;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:92:5
+   |
+LL |     pub struct Returned;
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:169:1
+   |
+LL | pub struct DocHidden;
+   | ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:231:5
+   |
+LL |     pub struct RealIterator;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:249:9
+   |
+LL |         pub struct $name;
+   |         ^^^^^^^^^^^^^^^^^
+...
+LL | local_iterator!(LocalMacroIterator);
+   | ----------------------------------- in this macro invocation
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+   = note: this error originates in the macro `local_iterator` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: this publicly reachable type implements `Iterator` but not `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:310:1
+   |
+LL | pub struct AtMsrv;
+   | ^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+
+error: aborting due to 10 previous errors
+
