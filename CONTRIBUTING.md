@@ -227,6 +227,20 @@ Contributions to Clippy should be made in the form of GitHub pull requests. Each
 be reviewed by a core contributor (someone with permission to land patches) and either landed in the
 main tree or given feedback for changes that would be required.
 
+We also have a group of community reviewers, who we ask to help us out by reviewing PRs.
+This system allows us to put review load onto more shoulders and train more people on how clippy internals work.
+The PRs less than two community reviews are [labeled with `S-waiting-on-community-reviews`].
+
+Like the rust compiler, we follow the [`git rebase` workflow].
+This means that a PR is merged as-is via a merge commit rather than being squashed into a single commit.
+Because of this, you may be asked to clean up your commit history before merge.
+This can mean e.g. [squashing] "fix review comments" commits into the commit they belong to, or
+splitting unrelated changes into their own commits.
+Keeping each commit a self-contained, logical change allows us to use [`git bisect`] effectively and
+revert just the commit that broke something, instead of the entire PR.
+Don't worry, this does not make reviews harder.
+A [range-diff] is attached to every review comment, so everyone can see exactly what changed since the last review.
+
 All PRs should include a `changelog` entry with a short comment explaining the change. The rule of thumb is basically,
 "what do you believe is important from an outsider's perspective?" Often, PRs are only related to a single property of a
 lint, and then it's good to mention that one. Otherwise, it's better to include too much detail than too little.
@@ -255,6 +269,11 @@ changelog: Something 2
 changelog: Something 3
 ```
 
+[labeled with `S-waiting-on-community-reviews`]: https://github.com/rust-lang/rust-clippy/issues?q=state%3Aopen%20label%3AS-waiting-on-community-reviews%20label%3AS-waiting-on-review
+[`git rebase` workflow]: https://rustc-dev-guide.rust-lang.org/git.html#no-merge-policy
+[`git bisect`]: https://git-scm.com/docs/git-bisect
+[range-diff]: https://rustc-dev-guide.rust-lang.org/git.html#git-range-diff
+[squashing]: https://rustc-dev-guide.rust-lang.org/git.html#squash-your-commits
 [changelog]: CHANGELOG.md
 
 ## LLM policy
