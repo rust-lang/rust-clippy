@@ -9,8 +9,10 @@ use rustc_errors::Applicability;
 use rustc_hir::attrs::lang_items::LangItem;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Constness, ExprKind, FnDecl, def_id};
+use rustc_index::bit_set::DenseBitSet;
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 use rustc_middle::mir;
+use rustc_middle::mir::visit::Visitor as _;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{BytePos, Span};
@@ -185,30 +187,39 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
                 (local, deref_clone_ret)
             };
 
-            let clone_usage = if local == ret_local {
-                CloneUsage {
-                    cloned_use_loc: None.into(),
-                    cloned_consume_or_mutate_loc: None,
-                    clone_consumed_or_mutated: true,
-                }
+            let (clone_usage, current_analysis_rejects) = if local == ret_local {
+                (
+                    CloneUsage {
+                        cloned_use_loc: None.into(),
+                        cloned_consume_or_mutate_loc: None,
+                        clone_consumed_or_mutated: true,
+                    },
+                    false,
+                )
             } else {
                 let clone_usage = visit_clone_usage(local, ret_local, mir, bb);
-                if clone_usage.cloned_use_loc.maybe_used() && clone_usage.clone_consumed_or_mutated {
+                let mut clone_alive_at = |loc: Option<mir::Location>| {
+                    loc.is_some_and(|loc| possible_borrower.local_is_alive_at(ret_local, loc))
+                };
+                let rejected =
                     // cloned value is used, and the clone is modified or moved
-                    continue;
-                } else if let MirLocalUsage::Used(loc) = clone_usage.cloned_use_loc
-                    && possible_borrower.local_is_alive_at(ret_local, loc)
-                {
-                    // cloned value is used, and the clone is alive.
-                    continue;
-                } else if let Some(loc) = clone_usage.cloned_consume_or_mutate_loc
-                    // cloned value is mutated, and the clone is alive.
-                    && possible_borrower.local_is_alive_at(ret_local, loc)
-                {
-                    continue;
-                }
-                clone_usage
+                    clone_usage.cloned_use_loc.maybe_used() && clone_usage.clone_consumed_or_mutated
+                    // cloned value is used, and the clone is alive
+                    || clone_alive_at(clone_usage.cloned_use_loc.used_loc())
+                    // cloned value is mutated, and the clone is alive
+                    || clone_alive_at(clone_usage.cloned_consume_or_mutate_loc);
+                (clone_usage, rejected)
             };
+
+            // `visit_clone_usage` tracks storage locations, so it cannot distinguish a value which
+            // is overwritten before a loop back-edge from the new value stored in the same local.
+            // When it rejects for that reason, prove that removing the clone does not leave the
+            // original value used before it is overwritten instead.
+            let original_value_is_unused =
+                from_borrow && current_analysis_rejects && local_value_is_unused_after(mir, local, bb);
+            if current_analysis_rejects && !original_value_is_unused {
+                continue;
+            }
 
             let span = terminator.source_info.span;
             let scope = terminator.source_info.scope;
@@ -237,7 +248,7 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
 
                 span_lint_hir_and_then(cx, REDUNDANT_CLONE, node, sugg_span, "redundant clone", |diag| {
                     diag.span_suggestion(sugg_span, "remove this", "", app);
-                    if clone_usage.cloned_use_loc.maybe_used() {
+                    if clone_usage.cloned_use_loc.maybe_used() && !original_value_is_unused {
                         diag.span_note(span, "cloned value is neither consumed nor mutated");
                     } else {
                         diag.span_note(
@@ -369,6 +380,14 @@ impl MirLocalUsage {
     fn maybe_used(&self) -> bool {
         matches!(self, MirLocalUsage::Unknown | MirLocalUsage::Used(_))
     }
+
+    /// The location of the use, if the local is used at a single known location.
+    fn used_loc(&self) -> Option<mir::Location> {
+        match *self {
+            MirLocalUsage::Used(loc) => Some(loc),
+            MirLocalUsage::Unknown | MirLocalUsage::Unused => None,
+        }
+    }
 }
 
 impl From<Option<mir::Location>> for MirLocalUsage {
@@ -421,5 +440,109 @@ fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>,
             cloned_consume_or_mutate_loc: None,
             clone_consumed_or_mutated: true,
         }
+    }
+}
+
+fn local_value_is_unused_after(mir: &mir::Body<'_>, local: mir::Local, bb: mir::BasicBlock) -> bool {
+    let mir::TerminatorKind::Call {
+        target: Some(start), ..
+    } = mir.basic_blocks[bb].terminator().kind
+    else {
+        return false;
+    };
+
+    let mut seen = DenseBitSet::new_empty(mir.basic_blocks.len());
+    let mut worklist = vec![start];
+
+    'next_block: while let Some(bb) = worklist.pop() {
+        if !seen.insert(bb) {
+            continue;
+        }
+
+        let bb_data = &mir.basic_blocks[bb];
+        for (statement_index, statement) in bb_data.statements.iter().enumerate() {
+            let location = mir::Location {
+                block: bb,
+                statement_index,
+            };
+            match &statement.kind {
+                mir::StatementKind::Assign((place, rvalue)) if place.as_local() == Some(local) => {
+                    if rvalue_uses_local(rvalue, local, location) {
+                        return false;
+                    }
+                    continue 'next_block;
+                },
+                mir::StatementKind::StorageDead(dead) if *dead == local => continue 'next_block,
+                _ if statement_uses_local(statement, local, location) => return false,
+                _ => {},
+            }
+        }
+
+        let location = mir::Location {
+            block: bb,
+            statement_index: bb_data.statements.len(),
+        };
+        let terminator = bb_data.terminator();
+        match &terminator.kind {
+            // The value is dropped here, so no successor can refer to it. The unwind successor is
+            // skipped for the same reason.
+            mir::TerminatorKind::Drop { place, .. } if place.as_local() == Some(local) => {},
+            mir::TerminatorKind::Call {
+                func,
+                args,
+                destination,
+                ..
+            } if destination.as_local() == Some(local) => {
+                // The call overwrites `local`, so only its operands can still name the old value.
+                // The unwind successor keeps the old value, but a cleanup block only ever drops it.
+                let mut visitor = LocalUseVisitor::new(local);
+                visitor.visit_operand(func, location);
+                for arg in args {
+                    visitor.visit_operand(&arg.node, location);
+                }
+                if visitor.used {
+                    return false;
+                }
+            },
+            _ if terminator_uses_local(terminator, local, location) => return false,
+            _ => worklist.extend(terminator.successors()),
+        }
+    }
+
+    true
+}
+
+fn rvalue_uses_local(rvalue: &mir::Rvalue<'_>, local: mir::Local, location: mir::Location) -> bool {
+    let mut visitor = LocalUseVisitor::new(local);
+    visitor.visit_rvalue(rvalue, location);
+    visitor.used
+}
+
+fn statement_uses_local(statement: &mir::Statement<'_>, local: mir::Local, location: mir::Location) -> bool {
+    let mut visitor = LocalUseVisitor::new(local);
+    visitor.visit_statement(statement, location);
+    visitor.used
+}
+
+fn terminator_uses_local(terminator: &mir::Terminator<'_>, local: mir::Local, location: mir::Location) -> bool {
+    let mut visitor = LocalUseVisitor::new(local);
+    visitor.visit_terminator(terminator, location);
+    visitor.used
+}
+
+struct LocalUseVisitor {
+    local: mir::Local,
+    used: bool,
+}
+
+impl LocalUseVisitor {
+    fn new(local: mir::Local) -> Self {
+        Self { local, used: false }
+    }
+}
+
+impl<'tcx> mir::visit::Visitor<'tcx> for LocalUseVisitor {
+    fn visit_place(&mut self, place: &mir::Place<'tcx>, _: mir::visit::PlaceContext, _: mir::Location) {
+        self.used |= place.local == self.local;
     }
 }
