@@ -107,11 +107,8 @@ fn msrv_1_17() {
     //~^ redundant_field_names
 }
 
+/// generates `Issue17525 { field: field }`, don't fire in proc-macro code outside of the users controll.
 #[derive(StructLitWithUserFieldSpans)]
 struct Issue17525 {
     field: u32,
 }
-
-// The derive above generates `Issue17525 { field: field }` where the field name span
-// points back at the user's struct definition, while the struct expression itself
-// comes from the derive macro. The lint must not fire on such generated code (#17525).
