@@ -1,5 +1,5 @@
 #![deny(clippy::lint_without_lint_pass)]
-#![allow(clippy::missing_clippy_version_attribute)]
+#![allow(clippy::missing_clippy_version_attribute, clippy::needless_impl_lint_pass)]
 #![feature(rustc_private)]
 
 #[macro_use]
