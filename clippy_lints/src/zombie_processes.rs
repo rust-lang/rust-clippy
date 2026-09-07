@@ -10,6 +10,7 @@ use rustc_hir::intravisit::{Visitor, walk_block, walk_expr};
 use rustc_hir::{Expr, ExprKind, HirId, LetStmt, Node, PatKind, Stmt, StmtKind};
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 use rustc_middle::hir::nested_filter;
+use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 use std::ops::ControlFlow;
 
@@ -59,12 +60,13 @@ declare_lint_pass!(ZombieProcesses => [ZOMBIE_PROCESSES]);
 impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let ExprKind::Call(..) | ExprKind::MethodCall(..) = expr.kind
-            && let child_ty = cx.typeck_results().expr_ty(expr)
-            && child_ty.is_diag_item(cx, sym::Child)
+            && let ty = cx.typeck_results().expr_ty(expr)
+            && let Some(spawned) = SpawnedChild::from_ty(cx, ty)
         {
             match cx.tcx.parent_hir_node(expr.hir_id) {
                 Node::LetStmt(local)
-                    if let PatKind::Binding(_, local_id, ..) = local.pat.kind
+                    if spawned == SpawnedChild::Child
+                        && let PatKind::Binding(_, local_id, ..) = local.pat.kind
                         && let Some(enclosing_block) = get_enclosing_block(cx, expr.hir_id) =>
                 {
                     let mut vis = WaitFinder {
@@ -102,18 +104,54 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
                 },
                 Node::LetStmt(&LetStmt { pat, .. }) if let PatKind::Wild = pat.kind => {
                     // `let _ = child;`, also dropped immediately without `wait()`ing
-                    check(cx, expr, Cause::NeverWait, true);
+                    check(cx, expr, Cause::NeverWait, spawned.suggestion_compiles());
                 },
                 Node::Stmt(&Stmt {
                     kind: StmtKind::Semi(_),
                     ..
                 }) => {
                     // Immediately dropped. E.g. `std::process::Command::new("echo").spawn().unwrap();`
-                    check(cx, expr, Cause::NeverWait, true);
+                    check(cx, expr, Cause::NeverWait, spawned.suggestion_compiles());
                 },
                 _ => {},
             }
         }
+    }
+}
+
+/// How a spawned `Child` is held by the expression that produced it.
+#[derive(PartialEq, Eq, Clone, Copy)]
+enum SpawnedChild {
+    /// The expression evaluates to a `Child`, e.g. `Command::new("").spawn().unwrap()`.
+    Child,
+
+    /// The expression evaluates to a `Result<Child, _>`, e.g. `Command::new("").spawn()`.
+    ///
+    /// Dropping the `Result` drops the `Child` it holds, so this leaves a zombie process behind
+    /// just as dropping the `Child` directly does.
+    ResultChild,
+}
+
+impl SpawnedChild {
+    /// Returns how `ty` holds a `Child`, or `None` if it holds none.
+    fn from_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Self> {
+        match ty.opt_diag_name(cx) {
+            Some(sym::Child) => Some(Self::Child),
+            Some(sym::Result)
+                if let ty::Adt(_, args) = ty.kind()
+                    && args.type_at(0).is_diag_item(cx, sym::Child) =>
+            {
+                Some(Self::ResultChild)
+            },
+            _ => None,
+        }
+    }
+
+    /// Returns whether appending `.wait()` to the spawn expression compiles.
+    ///
+    /// `Result<Child, _>` has no `wait()` method, so only a help message is emitted for it.
+    fn suggestion_compiles(self) -> bool {
+        self == Self::Child
     }
 }
 

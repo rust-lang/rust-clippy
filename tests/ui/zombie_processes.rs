@@ -208,3 +208,23 @@ fn issue14911() -> std::io::Result<String> {
     command.wait()?;
     Ok("".into())
 }
+
+mod issue17692 {
+    use std::process::Command;
+
+    // Dropping the `Result` returned by `spawn()` also drops the `Child` it holds
+    fn discarded_result() {
+        let _ = Command::new("true").spawn();
+        //~^ zombie_processes
+
+        #[expect(unused_must_use)]
+        Command::new("true").spawn();
+        //~^ zombie_processes
+    }
+
+    fn bound_result() {
+        // Not linted, the child may still be waited on through the binding
+        let child = Command::new("true").spawn();
+        child.unwrap().wait().unwrap();
+    }
+}
