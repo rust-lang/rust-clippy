@@ -489,8 +489,7 @@ impl Expander {
 }
 
 /// Generates an impl containing a struct literal whose field name spans point back at the
-/// user's struct definition, like `#[derive(Error)]`-generated `From` impls do
-/// (see clippy issue #17525).
+/// user's struct definition.
 #[proc_macro_derive(StructLitWithUserFieldSpans)]
 pub fn struct_lit_with_user_field_spans(input: TokenStream) -> TokenStream {
     let input = syn::parse_macro_input!(input as syn::DeriveInput);
