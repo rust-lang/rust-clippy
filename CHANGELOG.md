@@ -7053,6 +7053,7 @@ Released 2018-09-13
 [`fallible_impl_from`]: https://rust-lang.github.io/rust-clippy/main/index.html#fallible_impl_from
 [`field_reassign_with_default`]: https://rust-lang.github.io/rust-clippy/main/index.html#field_reassign_with_default
 [`field_scoped_visibility_modifiers`]: https://rust-lang.github.io/rust-clippy/main/index.html#field_scoped_visibility_modifiers
+[`file_creation_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#file_creation_and_set_permissions
 [`filetype_is_file`]: https://rust-lang.github.io/rust-clippy/main/index.html#filetype_is_file
 [`filter_map`]: https://rust-lang.github.io/rust-clippy/main/index.html#filter_map
 [`filter_map_bool_then`]: https://rust-lang.github.io/rust-clippy/main/index.html#filter_map_bool_then
