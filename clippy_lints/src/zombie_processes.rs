@@ -1,6 +1,7 @@
 use ControlFlow::{Break, Continue};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
+use clippy_utils::source::{indent_of, reindent_multiline, snippet};
 use clippy_utils::{fn_def_id, get_enclosing_block, sym};
 use rustc_ast::Mutability;
 use rustc_ast::visit::visit_opt;
@@ -100,18 +101,19 @@ impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
                     };
 
                     // Don't emit a suggestion since the binding is used later
-                    check(cx, expr, cause, false);
+                    check(cx, expr, cause, None);
                 },
-                Node::LetStmt(&LetStmt { pat, .. }) if let PatKind::Wild = pat.kind => {
+                Node::LetStmt(&LetStmt { pat, span, .. }) if let PatKind::Wild = pat.kind => {
                     // `let _ = child;`, also dropped immediately without `wait()`ing
-                    check(cx, expr, Cause::NeverWait, spawned.suggestion_compiles());
+                    check(cx, expr, Cause::NeverWait, Some(spawned.suggestion(cx, expr, span)));
                 },
                 Node::Stmt(&Stmt {
                     kind: StmtKind::Semi(_),
+                    span,
                     ..
                 }) => {
                     // Immediately dropped. E.g. `std::process::Command::new("echo").spawn().unwrap();`
-                    check(cx, expr, Cause::NeverWait, spawned.suggestion_compiles());
+                    check(cx, expr, Cause::NeverWait, Some(spawned.suggestion(cx, expr, span)));
                 },
                 _ => {},
             }
@@ -147,11 +149,19 @@ impl SpawnedChild {
         }
     }
 
-    /// Returns whether appending `.wait()` to the spawn expression compiles.
+    /// Returns the span to replace and the replacement text waiting on the child.
     ///
-    /// `Result<Child, _>` has no `wait()` method, so only a help message is emitted for it.
-    fn suggestion_compiles(self) -> bool {
-        self == Self::Child
+    /// A `Child` only needs a `wait()` call appended to it. A `Result<Child, _>` has no `wait()`
+    /// method, so the child is unwrapped first, which replaces the whole statement.
+    fn suggestion(self, cx: &LateContext<'_>, spawn_expr: &Expr<'_>, stmt_span: Span) -> (Span, String) {
+        match self {
+            Self::Child => (spawn_expr.span.shrink_to_hi(), ".wait()".to_string()),
+            Self::ResultChild => {
+                let spawn_snippet = snippet(cx, spawn_expr.span, "..");
+                let sugg = format!("if let Ok(mut child) = {spawn_snippet} {{\n    let _ = child.wait();\n}}");
+                (stmt_span, reindent_multiline(&sugg, true, indent_of(cx, stmt_span)))
+            },
+        }
     }
 }
 
@@ -332,7 +342,7 @@ impl Cause {
 /// `let _ = <expr that spawns child>;`.
 ///
 /// This checks if the program doesn't unconditionally exit after the spawn expression.
-fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, cause: Cause, emit_suggestion: bool) {
+fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, cause: Cause, suggestion: Option<(Span, String)>) {
     let Some(block) = get_enclosing_block(cx, spawn_expr.hir_id) else {
         return;
     };
@@ -372,13 +382,8 @@ fn check<'tcx>(cx: &LateContext<'tcx>, spawn_expr: &'tcx Expr<'tcx>, cause: Caus
             Cause::NeverWait => {},
         }
 
-        if emit_suggestion {
-            diag.span_suggestion(
-                spawn_expr.span.shrink_to_hi(),
-                "try",
-                ".wait()",
-                Applicability::MaybeIncorrect,
-            );
+        if let Some((span, sugg)) = suggestion {
+            diag.span_suggestion(span, "try", sugg, Applicability::MaybeIncorrect);
         } else {
             diag.help(cause.fallback_help());
         }
