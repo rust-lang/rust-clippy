@@ -1,0 +1,400 @@
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:26:5
+   |
+LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:24:5
+   |
+LL |     std::fs::create_dir(path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:26:5
+   |
+LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+   = note: `-D clippy::file-creation-and-set-permissions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::file_creation_and_set_permissions)]`
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:28:5
+   |
+LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:24:5
+   |
+LL |     std::fs::create_dir(path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:28:5
+   |
+LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:34:13
+   |
+LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:32:13
+   |
+LL |     let _ = std::fs::create_dir(path_two);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:34:13
+   |
+LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:36:13
+   |
+LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:32:13
+   |
+LL |     let _ = std::fs::create_dir(path_two);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:36:13
+   |
+LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:41:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:39:5
+   |
+LL |     std::fs::create_dir("bar");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:41:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:43:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:39:5
+   |
+LL |     std::fs::create_dir("bar");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:43:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:59:5
+   |
+LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:57:5
+   |
+LL |     std::fs::create_dir_all(path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:59:5
+   |
+LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:62:5
+   |
+LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:57:5
+   |
+LL |     std::fs::create_dir_all(path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:62:5
+   |
+LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:68:13
+   |
+LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:66:13
+   |
+LL |     let _ = std::fs::create_dir_all(path_two);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:68:13
+   |
+LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:71:13
+   |
+LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:66:13
+   |
+LL |     let _ = std::fs::create_dir_all(path_two);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:71:13
+   |
+LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:76:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:74:5
+   |
+LL |     std::fs::create_dir_all("bar");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:76:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:79:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:74:5
+   |
+LL |     std::fs::create_dir_all("bar");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:79:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:94:5
+   |
+LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:92:5
+   |
+LL |     std::fs::create_dir(&path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:94:5
+   |
+LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:97:5
+   |
+LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:92:5
+   |
+LL |     std::fs::create_dir(&path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:97:5
+   |
+LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:104:5
+   |
+LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:102:5
+   |
+LL |     std::fs::create_dir_all(&path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:104:5
+   |
+LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:107:5
+   |
+LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:102:5
+   |
+LL |     std::fs::create_dir_all(&path);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:107:5
+   |
+LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory + set certain permissions.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:114:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:112:5
+   |
+LL |     File::create("bar").unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:114:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:117:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:112:5
+   |
+LL |     File::create("bar").unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:117:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:124:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:122:5
+   |
+LL |     File::create_new("bar").unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:124:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:127:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:122:5
+   |
+LL |     File::create_new("bar").unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:127:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:134:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:132:5
+   |
+LL |     File::create_buffered("bar").unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:134:5
+   |
+LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance.
+
+error: modifying permissions of a file that was created through an earlier function call.
+  --> tests/ui/file_creation_and_set_permissions.rs:137:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:132:5
+   |
+LL |     File::create_buffered("bar").unwrap();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here.
+  --> tests/ui/file_creation_and_set_permissions.rs:137:5
+   |
+LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance.
+
+error: aborting due to 22 previous errors
+
