@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::macros::span_is_local;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::implements_trait;
 use rustc_abi::Size;
@@ -61,7 +62,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeFuture {
             && let ExprKind::Call(func, [arg]) = scrutinee.kind
             && let ExprKind::Path(qpath) = func.kind
             && cx.tcx.qpath_is_lang_item(qpath, LangItem::IntoFutureIntoFuture)
-            && !expr.span.from_expansion()
+            && span_is_local(arg.span)
             && let ty = cx.typeck_results().expr_ty(arg)
             && let Some(future_trait_def_id) = cx.tcx.lang_items().future_trait()
             && implements_trait(cx, ty, future_trait_def_id, &[])
