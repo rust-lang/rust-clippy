@@ -1,6 +1,6 @@
 use super::{TRANSMUTE_BYTES_TO_STR, TRANSMUTE_PTR_TO_PTR};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::{std_or_core, sugg};
+use clippy_utils::{is_in_const_context, std_or_core, sugg};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, Mutability};
 use rustc_lint::LateContext;
@@ -14,7 +14,6 @@ pub(super) fn check<'tcx>(
     from_ty: Ty<'tcx>,
     to_ty: Ty<'tcx>,
     arg: &'tcx Expr<'_>,
-    const_context: bool,
 ) -> bool {
     let arg_sugg = || sugg::Sugg::hir_with_context(cx, arg, e.span.ctxt(), "..", &mut Applicability::Unspecified);
     if let (ty::Ref(_, ty_from, from_mutbl), ty::Ref(_, ty_to, to_mutbl)) = (*from_ty.kind(), *to_ty.kind()) {
@@ -22,10 +21,20 @@ pub(super) fn check<'tcx>(
             && ty_to.is_str()
             && let ty::Uint(ty::UintTy::U8) = slice_ty.kind()
             && from_mutbl == to_mutbl
+            && let Some(top_crate) = std_or_core(cx)
         {
-            let Some(top_crate) = std_or_core(cx) else { return true };
-
             let postfix = if from_mutbl == Mutability::Mut { "_mut" } else { "" };
+            // `transmute` became available in const contexts after `from_utf8` and `from_utf8_unchecked`.
+            // `from_utf8_unchecked_mut` and `from_utf8_mut` exist in both contexts only after `transmute`'s const-MSRV,
+            // so are in the precondition for the lint triggering.
+            //
+            // Since we got here (we compiled until here), we know that we are below `transmute`'s MSRV and not const,
+            // or we are above and const. Therefore, no need for `msrv.meets` exists.
+            let sugg = if is_in_const_context(cx) {
+                format!("{top_crate}::str::from_utf8_unchecked{postfix}({})", arg_sugg())
+            } else {
+                format!("{top_crate}::str::from_utf8{postfix}({}).unwrap()", arg_sugg())
+            };
 
             span_lint_and_sugg(
                 cx,
@@ -33,18 +42,15 @@ pub(super) fn check<'tcx>(
                 e.span,
                 format!("transmute from a `{from_ty}` to a `{to_ty}`"),
                 "consider using",
-                if const_context {
-                    format!("{top_crate}::str::from_utf8_unchecked{postfix}({})", arg_sugg())
-                } else {
-                    format!("{top_crate}::str::from_utf8{postfix}({}).unwrap()", arg_sugg())
-                },
+                sugg,
                 Applicability::MaybeIncorrect,
             );
 
             return true;
         }
 
-        if (cx.tcx.erase_and_anonymize_regions(from_ty) != cx.tcx.erase_and_anonymize_regions(to_ty)) && !const_context
+        if (cx.tcx.erase_and_anonymize_regions(from_ty) != cx.tcx.erase_and_anonymize_regions(to_ty))
+            && !is_in_const_context(cx)
         {
             span_lint_and_then(
                 cx,
