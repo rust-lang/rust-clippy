@@ -6,7 +6,8 @@ use std::process::exit;
 
 use xshell::{Shell, cmd};
 
-const JOSH_FILTER: &str = ":rev(2efebd2f0c03dabbe5c3ad7b4ebfbd99238d1fb2:prefix=src/tools/clippy):/src/tools/clippy";
+// `<` has to be written as `%3C` as this filter ends up in the path of an HTTP request
+const JOSH_FILTER: &str = ":~(history=\"keep-trivial-merges,no-splice\")[:rev(%3C=7c06e7c42a8b56f9c1ac20e9ce34cadca0fce100:prefix=src/tools/clippy,%3C=da5114692c9ebe46b869488c5f34f92eb10b98c1:SQUASH)]:/src/tools/clippy";
 const JOSH_PORT: &str = "42042";
 const TOOLCHAIN_TOML: &str = "rust-toolchain.toml";
 const UTILS_README: &str = "clippy_utils/README.md";
