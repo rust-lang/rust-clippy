@@ -1,6 +1,6 @@
 use super::{TRANSMUTE_BYTES_TO_STR, TRANSMUTE_PTR_TO_PTR};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::{std_or_core, sugg};
+use clippy_utils::{is_in_const_context, std_or_core, sugg};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, Mutability};
 use rustc_lint::LateContext;
@@ -14,7 +14,6 @@ pub(super) fn check<'tcx>(
     from_ty: Ty<'tcx>,
     to_ty: Ty<'tcx>,
     arg: &'tcx Expr<'_>,
-    const_context: bool,
 ) -> bool {
     let arg_sugg = || sugg::Sugg::hir_with_context(cx, arg, e.span.ctxt(), "..", &mut Applicability::Unspecified);
     if let (ty::Ref(_, ty_from, from_mutbl), ty::Ref(_, ty_to, to_mutbl)) = (*from_ty.kind(), *to_ty.kind()) {
@@ -33,7 +32,7 @@ pub(super) fn check<'tcx>(
                 e.span,
                 format!("transmute from a `{from_ty}` to a `{to_ty}`"),
                 "consider using",
-                if const_context {
+                if is_in_const_context(cx) {
                     format!("{top_crate}::str::from_utf8_unchecked{postfix}({})", arg_sugg())
                 } else {
                     format!("{top_crate}::str::from_utf8{postfix}({}).unwrap()", arg_sugg())
@@ -44,7 +43,8 @@ pub(super) fn check<'tcx>(
             return true;
         }
 
-        if (cx.tcx.erase_and_anonymize_regions(from_ty) != cx.tcx.erase_and_anonymize_regions(to_ty)) && !const_context
+        if (cx.tcx.erase_and_anonymize_regions(from_ty) != cx.tcx.erase_and_anonymize_regions(to_ty))
+            && !is_in_const_context(cx)
         {
             span_lint_and_then(
                 cx,
