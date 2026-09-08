@@ -1,0 +1,148 @@
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:44:13
+   |
+LL |     let _ = s1.split(' ').filter(|s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::str-split-whitespace` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::str_split_whitespace)]`
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(' ').filter(|s| !s.is_empty());
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:46:13
+   |
+LL |     let _ = s1.split(' ').filter(|s| !s.trim().is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(' ').filter(|s| !s.trim().is_empty());
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:48:13
+   |
+LL |     let _ = s1.split(' ').filter(|&s| !str::is_empty(s));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(' ').filter(|&s| !str::is_empty(s));
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:51:13
+   |
+LL |     let _ = s1.split(' ').filter(|s| s.len() > 0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(' ').filter(|s| s.len() > 0);
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:55:13
+   |
+LL |     let _ = s1.split(' ').filter(|&s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(' ').filter(|&s| !s.is_empty());
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:58:13
+   |
+LL |     let _ = s1.split(' ').filter(|s| { !s.is_empty() });
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(' ').filter(|s| { !s.is_empty() });
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:63:13
+   |
+LL |     let _ = s1.split(" ").filter(|s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(" ").filter(|s| !s.is_empty());
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:66:13
+   |
+LL |     let _ = s1.split(r" ").filter(|s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s1.split(r" ").filter(|s| !s.is_empty());
+LL +     let _ = s1.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:70:13
+   |
+LL |     let _ = s2.split(' ').filter(|s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s2.split(' ').filter(|s| !s.is_empty());
+LL +     let _ = s2.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:75:13
+   |
+LL |     let _ = s3.split(' ').filter(|s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = s3.split(' ').filter(|s| !s.is_empty());
+LL +     let _ = s3.split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:79:13
+   |
+LL |     let _ = make_str().split(' ').filter(|s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = make_str().split(' ').filter(|s| !s.is_empty());
+LL +     let _ = make_str().split_whitespace();
+   |
+
+error: using `str.split().filter()` to discard empty substrings
+  --> tests/ui/str_split_whitespace.rs:83:13
+   |
+LL |     let _ = format!("{s1} {s2}").split(' ').filter(|s| !s.is_empty());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `str.split_whitespace()` instead
+   |
+LL -     let _ = format!("{s1} {s2}").split(' ').filter(|s| !s.is_empty());
+LL +     let _ = format!("{s1} {s2}").split_whitespace();
+   |
+
+error: aborting due to 12 previous errors
+

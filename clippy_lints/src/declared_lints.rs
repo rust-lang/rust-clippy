@@ -488,6 +488,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::SOME_FILTER_INFO,
     crate::methods::STABLE_SORT_PRIMITIVE_INFO,
     crate::methods::STR_SPLIT_AT_NEWLINE_INFO,
+    crate::methods::STR_SPLIT_WHITESPACE_INFO,
     crate::methods::STRING_EXTEND_CHARS_INFO,
     crate::methods::STRING_LIT_CHARS_ANY_INFO,
     crate::methods::SUSPICIOUS_COMMAND_ARG_SPACE_INFO,

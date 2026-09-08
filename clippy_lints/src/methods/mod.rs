@@ -119,6 +119,7 @@ mod sliced_string_as_bytes;
 mod some_filter;
 mod stable_sort_primitive;
 mod str_split;
+mod str_split_whitespace;
 mod str_splitn;
 mod string_extend_chars;
 mod string_lit_chars_any;
@@ -3781,6 +3782,41 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `str::split` on a single space followed by a `filter` that
+    /// discards the empty substrings, e.g. `s.split(" ").filter(|s| !s.is_empty())`.
+    ///
+    /// ### Why is this bad?
+    /// Splitting on a single space produces an empty substring between every
+    /// pair of adjacent separators, which is what the filter is there to undo.
+    /// `str::split_whitespace` does that directly, and additionally splits on
+    /// tabs, newlines and other Unicode whitespace characters, which `split(" ")`
+    /// leaves inside the resulting substrings.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// "some  text  with  padded  spaces".split(' ').filter(|s| !s.is_empty());
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// "some  text  with  padded  spaces".split_whitespace();
+    /// ```
+    ///
+    /// ### Known Problems
+    /// The suggestion is not equivalent. `split_whitespace` also separates on tabs, newlines and
+    /// the other Unicode whitespace characters, which the filtered `split(' ')` yields as part of
+    /// its substrings: for `"a  \t  b"` the original produces `["a", "\t", "b"]` and the
+    /// suggestion produces `["a", "b"]`. This lint cannot detect when separating on the space
+    /// character alone is deliberate, for example when parsing a format in which a tab is data
+    /// rather than a separator.
+    #[clippy::version = "1.100.0"]
+    pub STR_SPLIT_WHITESPACE,
+    pedantic,
+    "filtering out the empty substrings produced by splitting a string on a single space"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for the use of `.extend(s.chars())` where s is a
     /// `&str` or `String`.
     ///
@@ -5081,6 +5117,7 @@ impl_lint_pass!(Methods => [
     STRING_EXTEND_CHARS,
     STRING_LIT_CHARS_ANY,
     STR_SPLIT_AT_NEWLINE,
+    STR_SPLIT_WHITESPACE,
     SUSPICIOUS_COMMAND_ARG_SPACE,
     SUSPICIOUS_MAP,
     SUSPICIOUS_OPEN_OPTIONS,
@@ -5494,6 +5531,7 @@ impl Methods {
                         iter_filter::check(cx, expr, arg, span);
                     }
                     some_filter::check(cx, expr, recv, arg, self.msrv);
+                    str_split_whitespace::check(cx, expr, recv, call_span, arg);
                 },
                 (sym::find, [arg]) => {
                     if let Some((sym::cloned, recv2, [], _span2, _)) = method_call(recv) {
