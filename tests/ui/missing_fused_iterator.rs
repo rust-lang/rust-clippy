@@ -1,79 +1,89 @@
 //@no-rustfix
 //@aux-build:proc_macros.rs
 
-#![allow(dead_code)]
+#![expect(dead_code)]
 #![feature(negative_impls)]
 #![warn(clippy::missing_fused_iterator)]
 
 extern crate proc_macros;
 
-use std::iter::{FusedIterator as RenamedFusedIterator, Iterator as RenamedIterator};
-
-pub struct PublicStruct;
-//~^ missing_fused_iterator
-
-impl Iterator for PublicStruct {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
-
-pub enum PublicEnum {
+pub mod public_struct {
+    pub struct PublicStruct;
     //~^ missing_fused_iterator
-    Empty,
-}
 
-impl Iterator for PublicEnum {
-    type Item = ();
+    impl Iterator for PublicStruct {
+        type Item = ();
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
 }
 
-pub union PublicUnion {
+pub mod public_enum {
+    pub enum PublicEnum {
+        //~^ missing_fused_iterator
+        Empty,
+    }
+
+    impl Iterator for PublicEnum {
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+}
+
+pub mod public_union {
+    pub union PublicUnion {
+        //~^ missing_fused_iterator
+        value: u8,
+    }
+
+    impl Iterator for PublicUnion {
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+}
+
+pub mod public_generic {
+    pub struct PublicGeneric<T>(T);
     //~^ missing_fused_iterator
-    value: u8,
-}
 
-impl Iterator for PublicUnion {
-    type Item = ();
+    impl<T> Iterator for PublicGeneric<T> {
+        type Item = T;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
 }
 
-pub struct PublicGeneric<T>(T);
-//~^ missing_fused_iterator
+pub mod private_type {
+    struct Private;
 
-impl<T> Iterator for PublicGeneric<T> {
-    type Item = T;
+    impl Iterator for Private {
+        type Item = ();
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
 }
 
-struct Private;
+pub mod crate_visible_type {
+    pub(crate) struct CrateVisible;
 
-impl Iterator for Private {
-    type Item = ();
+    impl Iterator for CrateVisible {
+        type Item = ();
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
-
-pub(crate) struct CrateVisible;
-
-impl Iterator for CrateVisible {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
 }
 
@@ -121,99 +131,117 @@ pub fn returned() -> visibility::Returned {
     visibility::returned()
 }
 
-pub struct AlreadyFused;
+pub mod already_fused {
+    pub struct AlreadyFused;
 
-impl Iterator for AlreadyFused {
-    type Item = ();
+    impl Iterator for AlreadyFused {
+        type Item = ();
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    impl std::iter::FusedIterator for AlreadyFused {}
+}
+
+pub mod conditionally_fused {
+    pub struct ConditionallyFused<T>(T);
+
+    impl<T> Iterator for ConditionallyFused<T> {
+        type Item = T;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    // Deliberately does not cover every `T` for which the `Iterator` implementation applies. Any
+    // implementation for the nominal type is enough to suppress the lint.
+    impl<T: Clone> std::iter::FusedIterator for ConditionallyFused<T> {}
+}
+
+pub mod explicitly_not_fused {
+    pub struct ExplicitlyNotFused;
+
+    impl Iterator for ExplicitlyNotFused {
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    // An explicit negative implementation documents that this type is intentionally not fused.
+    impl !std::iter::FusedIterator for ExplicitlyNotFused {}
+}
+
+pub mod explicitly_not_an_iterator {
+    pub struct ExplicitlyNotAnIterator;
+
+    // Negative `Iterator` implementations must not satisfy the positive-implementation check.
+    impl !Iterator for ExplicitlyNotAnIterator {}
+}
+
+pub mod doc_hidden {
+    #[doc(hidden)]
+    pub struct DocHidden;
+    //~^ missing_fused_iterator
+
+    impl Iterator for DocHidden {
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
 }
 
-impl std::iter::FusedIterator for AlreadyFused {}
+pub mod iterator_by_reference {
+    pub struct IteratorByReference;
 
-pub struct ConditionallyFused<T>(T);
+    // The declared nominal type does not itself implement `Iterator`.
+    impl Iterator for &IteratorByReference {
+        type Item = ();
 
-impl<T> Iterator for ConditionallyFused<T> {
-    type Item = T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
 }
 
-// Deliberately does not cover every `T` for which the `Iterator` implementation applies. Any
-// implementation for the nominal type is enough to suppress the lint.
-impl<T: Clone> std::iter::FusedIterator for ConditionallyFused<T> {}
+pub mod opaque {
+    struct OpaqueIterator;
 
-pub struct ExplicitlyNotFused;
+    impl Iterator for OpaqueIterator {
+        type Item = ();
 
-impl Iterator for ExplicitlyNotFused {
-    type Item = ();
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+    // `FusedIterator` would need to be part of this opaque return bound to be exposed publicly.
+    pub fn opaque_iterator() -> impl Iterator<Item = ()> {
+        OpaqueIterator
     }
 }
 
-// An explicit negative implementation documents that this type is intentionally not fused.
-impl !std::iter::FusedIterator for ExplicitlyNotFused {}
+pub mod renamed_traits {
+    use std::iter::{FusedIterator as RenamedFusedIterator, Iterator as RenamedIterator};
 
-pub struct ExplicitlyNotAnIterator;
+    pub struct RenamedTraits;
 
-// Negative `Iterator` implementations must not satisfy the positive-implementation check.
-impl !Iterator for ExplicitlyNotAnIterator {}
+    impl RenamedIterator for RenamedTraits {
+        type Item = ();
 
-#[doc(hidden)]
-pub struct DocHidden;
-//~^ missing_fused_iterator
-
-impl Iterator for DocHidden {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
+
+    impl RenamedFusedIterator for RenamedTraits {}
 }
-
-pub struct IteratorByReference;
-
-// The declared nominal type does not itself implement `Iterator`.
-impl Iterator for &IteratorByReference {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
-
-struct OpaqueIterator;
-
-impl Iterator for OpaqueIterator {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
-
-// `FusedIterator` would need to be part of this opaque return bound to be exposed publicly.
-pub fn opaque_iterator() -> impl Iterator<Item = ()> {
-    OpaqueIterator
-}
-
-pub struct RenamedTraits;
-
-impl RenamedIterator for RenamedTraits {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
-
-impl RenamedFusedIterator for RenamedTraits {}
 
 mod shadow_iterator {
     pub trait Iterator {}
@@ -244,27 +272,55 @@ mod shadow_fused_iterator {
 
 pub use shadow_fused_iterator::RealIterator;
 
-macro_rules! local_iterator {
-    ($name:ident) => {
-        pub struct $name;
-        //~^ missing_fused_iterator
+pub mod local_macro {
+    macro_rules! local_iterator {
+        ($name:ident) => {
+            pub struct $name;
+            //~^ missing_fused_iterator
 
-        impl Iterator for $name {
+            impl Iterator for $name {
+                type Item = ();
+
+                fn next(&mut self) -> Option<Self::Item> {
+                    None
+                }
+            }
+        };
+    }
+
+    local_iterator!(LocalMacroIterator);
+}
+
+pub mod external_macro {
+    proc_macros::external! {
+        pub struct ExternalMacroIterator;
+
+        impl Iterator for ExternalMacroIterator {
             type Item = ();
 
             fn next(&mut self) -> Option<Self::Item> {
                 None
             }
         }
-    };
+    }
 }
 
-local_iterator!(LocalMacroIterator);
+pub mod lint_levels {
+    #[allow(clippy::missing_fused_iterator)]
+    pub struct Allowed;
 
-proc_macros::external! {
-    pub struct ExternalMacroIterator;
+    impl Iterator for Allowed {
+        type Item = ();
 
-    impl Iterator for ExternalMacroIterator {
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    #[expect(clippy::missing_fused_iterator)]
+    pub struct Expected;
+
+    impl Iterator for Expected {
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -273,48 +329,28 @@ proc_macros::external! {
     }
 }
 
-#[allow(clippy::missing_fused_iterator)]
-pub struct Allowed;
+pub mod msrv {
+    #[clippy::msrv = "1.25"]
+    pub struct BeforeMsrv;
 
-impl Iterator for Allowed {
-    type Item = ();
+    impl Iterator for BeforeMsrv {
+        type Item = ();
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
-}
 
-#[expect(clippy::missing_fused_iterator)]
-pub struct Expected;
+    #[clippy::msrv = "1.26"]
+    pub struct AtMsrv;
+    //~^ missing_fused_iterator
 
-impl Iterator for Expected {
-    type Item = ();
+    impl Iterator for AtMsrv {
+        type Item = ();
 
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
-
-#[clippy::msrv = "1.25"]
-pub struct BeforeMsrv;
-
-impl Iterator for BeforeMsrv {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
-    }
-}
-
-#[clippy::msrv = "1.26"]
-pub struct AtMsrv;
-//~^ missing_fused_iterator
-
-impl Iterator for AtMsrv {
-    type Item = ();
-
-    fn next(&mut self) -> Option<Self::Item> {
-        None
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
     }
 }
 

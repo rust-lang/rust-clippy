@@ -1,94 +1,147 @@
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:12:1
+  --> tests/ui/missing_fused_iterator.rs:11:5
    |
-LL | pub struct PublicStruct;
-   | ^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     pub struct PublicStruct;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:14:5
+   |
+LL |     impl Iterator for PublicStruct {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
    = note: `-D clippy::missing-fused-iterator` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::missing_fused_iterator)]`
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:23:1
+  --> tests/ui/missing_fused_iterator.rs:24:5
    |
-LL | / pub enum PublicEnum {
+LL | /     pub enum PublicEnum {
 LL | |
-LL | |     Empty,
-LL | | }
-   | |_^
+LL | |         Empty,
+LL | |     }
+   | |_____^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:29:5
+   |
+LL |     impl Iterator for PublicEnum {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:36:1
+  --> tests/ui/missing_fused_iterator.rs:39:5
    |
-LL | / pub union PublicUnion {
+LL | /     pub union PublicUnion {
 LL | |
-LL | |     value: u8,
-LL | | }
-   | |_^
+LL | |         value: u8,
+LL | |     }
+   | |_____^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:44:5
+   |
+LL |     impl Iterator for PublicUnion {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:49:1
+  --> tests/ui/missing_fused_iterator.rs:54:5
    |
-LL | pub struct PublicGeneric<T>(T);
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     pub struct PublicGeneric<T>(T);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:57:5
+   |
+LL |     impl<T> Iterator for PublicGeneric<T> {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:81:5
+  --> tests/ui/missing_fused_iterator.rs:91:5
    |
 LL |     pub struct Reexported;
    |     ^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:94:5
+   |
+LL |     impl Iterator for Reexported {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:92:5
+  --> tests/ui/missing_fused_iterator.rs:102:5
    |
 LL |     pub struct Returned;
    |     ^^^^^^^^^^^^^^^^^^^^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:105:5
+   |
+LL |     impl Iterator for Returned {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:169:1
+  --> tests/ui/missing_fused_iterator.rs:188:5
    |
-LL | pub struct DocHidden;
-   | ^^^^^^^^^^^^^^^^^^^^^
+LL |     pub struct DocHidden;
+   |     ^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:191:5
+   |
+LL |     impl Iterator for DocHidden {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:231:5
+  --> tests/ui/missing_fused_iterator.rs:259:5
    |
 LL |     pub struct RealIterator;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:262:5
+   |
+LL |     impl std::iter::Iterator for RealIterator {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:249:9
+  --> tests/ui/missing_fused_iterator.rs:278:13
    |
-LL |         pub struct $name;
-   |         ^^^^^^^^^^^^^^^^^
+LL |             pub struct $name;
+   |             ^^^^^^^^^^^^^^^^^
 ...
-LL | local_iterator!(LocalMacroIterator);
-   | ----------------------------------- in this macro invocation
+LL |     local_iterator!(LocalMacroIterator);
+   |     ----------------------------------- in this macro invocation
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:281:13
+   |
+LL |             impl Iterator for $name {
+   |             ^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     local_iterator!(LocalMacroIterator);
+   |     ----------------------------------- in this macro invocation
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
    = note: this error originates in the macro `local_iterator` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error: this publicly reachable type implements `Iterator` but not `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:310:1
+  --> tests/ui/missing_fused_iterator.rs:345:5
    |
-LL | pub struct AtMsrv;
-   | ^^^^^^^^^^^^^^^^^^
+LL |     pub struct AtMsrv;
+   |     ^^^^^^^^^^^^^^^^^^
    |
-   = help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+help: if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`
+  --> tests/ui/missing_fused_iterator.rs:348:5
+   |
+LL |     impl Iterator for AtMsrv {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused
 
 error: aborting due to 10 previous errors
 

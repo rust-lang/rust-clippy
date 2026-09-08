@@ -1,5 +1,5 @@
 use clippy_config::Conf;
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_lint_allowed;
 use clippy_utils::macros::span_is_local;
 use clippy_utils::msrvs::Msrv;
@@ -52,6 +52,11 @@ declare_clippy_lint! {
     /// Clippy cannot prove that an iterator remains exhausted after returning `None`. In
     /// addition, any positive or negative `FusedIterator` implementation for the type suppresses
     /// this lint, even if its generic bounds do not match every `Iterator` implementation.
+    ///
+    /// An iterator which is deliberately not fused is best documented with
+    /// `#[allow(clippy::missing_fused_iterator)]` and a comment saying why. A negative
+    /// implementation, `impl !std::iter::FusedIterator for Empty {}`, also suppresses this lint,
+    /// but negative implementations are unstable and only available on nightly.
     #[clippy::version = "1.100.0"]
     pub MISSING_FUSED_ITERATOR,
     pedantic,
@@ -72,53 +77,56 @@ impl MissingFusedIterator {
 
 impl<'tcx> LateLintPass<'tcx> for MissingFusedIterator {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
-        if !matches!(
+        if matches!(
             item.kind,
             ItemKind::Struct(..) | ItemKind::Enum(..) | ItemKind::Union(..)
-        ) || !span_is_local(item.span)
-            || !cx.effective_visibilities.is_reachable(item.owner_id.def_id)
-            || is_lint_allowed(cx, MISSING_FUSED_ITERATOR, item.hir_id())
+        ) && span_is_local(item.span)
+            && cx.effective_visibilities.is_reachable(item.owner_id.def_id)
+            && !is_lint_allowed(cx, MISSING_FUSED_ITERATOR, item.hir_id())
+            && let Some(iterator_trait) = cx.tcx.lang_items().iterator_trait()
+            && let Some(fused_iterator_trait) = cx.tcx.lang_items().fused_iterator_trait()
+            && self.msrv.is_stable(cx, fused_iterator_trait)
+            && let ty = cx.tcx.type_of(item.owner_id).instantiate_identity().skip_norm_wip()
+            && cx
+                .tcx
+                .non_blanket_impls_for_ty(iterator_trait, ty)
+                .any(|impl_id| cx.tcx.impl_polarity(impl_id) == ty::ImplPolarity::Positive)
+            // Any implementation, including a conditional or negative one, indicates that the
+            // `FusedIterator` status of this nominal type has been considered explicitly.
+            && cx
+                .tcx
+                .non_blanket_impls_for_ty(fused_iterator_trait, ty)
+                .next()
+                .is_none()
         {
-            return;
-        }
+            // Point at the `Iterator` implementation which made this type an iterator. It may live
+            // far away from the type definition, even in another file.
+            let iterator_impl_span = cx
+                .tcx
+                .non_blanket_impls_for_ty(iterator_trait, ty)
+                .filter(|&impl_id| cx.tcx.impl_polarity(impl_id) == ty::ImplPolarity::Positive)
+                .filter_map(|impl_id| impl_id.as_local())
+                .map(|impl_id| cx.tcx.def_span(impl_id))
+                .filter(|&span| span_is_local(span))
+                .min_by_key(|span| span.lo());
 
-        let Some(iterator_trait) = cx.tcx.lang_items().iterator_trait() else {
-            return;
-        };
-        let Some(fused_iterator_trait) = cx.tcx.lang_items().fused_iterator_trait() else {
-            return;
-        };
-        if !self.msrv.is_stable(cx, fused_iterator_trait) {
-            return;
+            span_lint_and_then(
+                cx,
+                MISSING_FUSED_ITERATOR,
+                item.span,
+                "this publicly reachable type implements `Iterator` but not `FusedIterator`",
+                |diag| {
+                    let help = "if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`";
+                    if let Some(iterator_impl_span) = iterator_impl_span {
+                        diag.span_help(iterator_impl_span, help);
+                    } else {
+                        diag.help(help);
+                    }
+                    diag.help(
+                        "otherwise, add `#[allow(clippy::missing_fused_iterator)]` with a comment saying why this iterator is not fused",
+                    );
+                },
+            );
         }
-
-        let ty = cx.tcx.type_of(item.owner_id).instantiate_identity().skip_norm_wip();
-        if !cx
-            .tcx
-            .non_blanket_impls_for_ty(iterator_trait, ty)
-            .any(|impl_id| cx.tcx.impl_polarity(impl_id) == ty::ImplPolarity::Positive)
-        {
-            return;
-        }
-
-        // Any implementation, including a conditional or negative one, indicates that the
-        // `FusedIterator` status of this nominal type has been considered explicitly.
-        if cx
-            .tcx
-            .non_blanket_impls_for_ty(fused_iterator_trait, ty)
-            .next()
-            .is_some()
-        {
-            return;
-        }
-
-        span_lint_and_help(
-            cx,
-            MISSING_FUSED_ITERATOR,
-            item.span,
-            "this publicly reachable type implements `Iterator` but not `FusedIterator`",
-            None,
-            "if this iterator remains exhausted after returning `None`, consider implementing `FusedIterator`",
-        );
     }
 }
