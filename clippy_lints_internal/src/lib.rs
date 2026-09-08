@@ -51,6 +51,7 @@ static LINTS: &[&Lint] = &[
     unnecessary_def_path::UNNECESSARY_DEF_PATH,
     unsorted_clippy_utils_paths::UNSORTED_CLIPPY_UTILS_PATHS,
     unusual_names::UNUSUAL_NAMES,
+    repeated_is_diagnostic_item::REPEATED_IS_DIAGNOSTIC_ITEM,
 ];
 
 pub fn register_lints(store: &mut LintStore) {
