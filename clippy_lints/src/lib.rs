@@ -629,7 +629,7 @@ rustc_lint::late_lint_methods!(
         CopyAndPaste: ifs::CopyAndPaste<'tcx> = ifs::CopyAndPaste::new(tcx, conf),
         CopyIterator: copy_iterator::CopyIterator = copy_iterator::CopyIterator,
         UselessFormat: format::UselessFormat = format::UselessFormat::new(format_args.clone()),
-        Swap: swap::Swap = swap::Swap,
+        Swap: swap::Swap = swap::Swap::new(conf),
         PanickingOverflowChecks: panicking_overflow_checks::PanickingOverflowChecks = panicking_overflow_checks::PanickingOverflowChecks,
         NewWithoutDefault: new_without_default::NewWithoutDefault = <new_without_default::NewWithoutDefault>::default(),
         DisallowedNames: disallowed_names::DisallowedNames = disallowed_names::DisallowedNames::new(conf),
