@@ -107,7 +107,7 @@ fn msrv_1_17() {
     //~^ redundant_field_names
 }
 
-/// generates `Issue17525 { field: field }`, don't fire in proc-macro code outside of the users controll.
+/// Generates `Issue17525 { field: field }`.
 #[derive(StructLitWithUserFieldSpans)]
 struct Issue17525 {
     field: u32,
