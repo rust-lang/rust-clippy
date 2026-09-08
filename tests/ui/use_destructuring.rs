@@ -1,5 +1,5 @@
 #![warn(clippy::use_destructuring)]
-#![allow(unused, clippy::no_effect, clippy::needless_pass_by_value)]
+#![allow(unused, clippy::needless_pass_by_value, clippy::no_effect)]
 
 use std::fmt;
 
