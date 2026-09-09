@@ -52,7 +52,85 @@ LL |         vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:41:5
+  --> tests/ui/manual_pop_if_unfixable.rs:42:12
+   |
+LL |     } else if vec.last().is_some_and(|x| *x > 2) {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         vec.pop();
+   |         ^^^^^^^^^
+   |
+   = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:48:5
+   |
+LL |     if vec.last().is_some_and(|x| *x > 2) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         println!("Popping");
+LL |         vec.pop();
+   |         ^^^^^^^^^
+   |
+   = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:54:5
+   |
+LL |     if vec.last().is_some_and(|x| *x > 2) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         // a comment before the pop
+LL |         vec.pop();
+   |         ^^^^^^^^^
+   |
+   = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:60:5
+   |
+LL |     if vec.last().is_some_and(|x| *x > 2) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         vec.pop();
+   |         ^^^^^^^^^
+   |
+   = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:66:5
+   |
+LL |     if let Some(x) = vec.last() {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         if *x > 2 {
+   |         ^^^^^^^^^
+LL |             // a comment before the pop
+LL |             vec.pop();
+   |             ^^^^^^^^^
+   |
+   = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:73:5
+   |
+LL | /     if let Some(x) = vec.last()
+LL | |         && *x > 2
+   | |_________________^
+...
+LL |           vec.pop();
+   |           ^^^^^^^^^
+   |
+   = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:81:5
+   |
+LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         // a comment before the pop
+LL |         vec.pop();
+   |         ^^^^^^^^^
+   |
+   = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
+
+error: manual implementation of `Vec::pop_if`
+  --> tests/ui/manual_pop_if_unfixable.rs:89:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -64,7 +142,7 @@ LL |             let val = vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:49:5
+  --> tests/ui/manual_pop_if_unfixable.rs:97:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -76,7 +154,7 @@ LL |             println!("Popped: {}", vec.pop().unwrap());
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:56:5
+  --> tests/ui/manual_pop_if_unfixable.rs:104:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -89,7 +167,7 @@ LL |             vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:64:5
+  --> tests/ui/manual_pop_if_unfixable.rs:112:5
    |
 LL |     if let Some(x) = vec.last() {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -101,7 +179,7 @@ LL |             vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:74:5
+  --> tests/ui/manual_pop_if_unfixable.rs:122:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -113,7 +191,7 @@ LL |           let val = vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:82:5
+  --> tests/ui/manual_pop_if_unfixable.rs:130:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -125,7 +203,7 @@ LL |           println!("Popped: {}", vec.pop().unwrap());
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:89:5
+  --> tests/ui/manual_pop_if_unfixable.rs:137:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -137,7 +215,7 @@ LL |           vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:97:5
+  --> tests/ui/manual_pop_if_unfixable.rs:145:5
    |
 LL | /     if let Some(x) = vec.last()
 LL | |         && *x > 2
@@ -149,7 +227,7 @@ LL |           vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:107:5
+  --> tests/ui/manual_pop_if_unfixable.rs:155:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -159,7 +237,7 @@ LL |         let val = vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:113:5
+  --> tests/ui/manual_pop_if_unfixable.rs:161:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -169,7 +247,7 @@ LL |         println!("Popped: {}", vec.pop().unwrap());
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:118:5
+  --> tests/ui/manual_pop_if_unfixable.rs:166:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -180,7 +258,7 @@ LL |         vec.pop().unwrap();
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
 error: manual implementation of `Vec::pop_if`
-  --> tests/ui/manual_pop_if_unfixable.rs:124:5
+  --> tests/ui/manual_pop_if_unfixable.rs:172:5
    |
 LL |     if vec.last().map(|x| *x > 2).unwrap_or(false) {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -189,5 +267,5 @@ LL |         vec.pop().unwrap();
    |
    = help: try refactoring the code using `vec.pop_if(|x| *x > 2);`
 
-error: aborting due to 17 previous errors
+error: aborting due to 24 previous errors
 

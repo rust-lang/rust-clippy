@@ -36,6 +36,54 @@ fn is_some_and_pattern(mut vec: Vec<i32>) {
     }
 }
 
+fn discarded_pop(mut vec: Vec<i32>) {
+    if false {
+        // something
+    } else if vec.last().is_some_and(|x| *x > 2) {
+        vec.pop();
+    }
+    //~^^^ manual_pop_if
+
+    //~v manual_pop_if
+    if vec.last().is_some_and(|x| *x > 2) {
+        println!("Popping");
+        vec.pop();
+    }
+
+    //~v manual_pop_if
+    if vec.last().is_some_and(|x| *x > 2) {
+        // a comment before the pop
+        vec.pop();
+    }
+
+    //~v manual_pop_if
+    if vec.last().is_some_and(|x| *x > 2) {
+        vec.pop();
+        // a comment after the pop
+    }
+
+    //~v manual_pop_if
+    if let Some(x) = vec.last() {
+        if *x > 2 {
+            // a comment before the pop
+            vec.pop();
+        }
+    }
+
+    if let Some(x) = vec.last() //~ manual_pop_if
+        && *x > 2
+    {
+        // a comment before the pop
+        vec.pop();
+    }
+
+    //~v manual_pop_if
+    if vec.last().map(|x| *x > 2).unwrap_or(false) {
+        // a comment before the pop
+        vec.pop();
+    }
+}
+
 fn if_let_pattern(mut vec: Vec<i32>) {
     //~v manual_pop_if
     if let Some(x) = vec.last() {
