@@ -117,7 +117,39 @@ fn issue11982_no_conversion() {
         Ok(())
     }
 }
+#[allow(clippy::unnecessary_literal_unwrap)]
+fn issue17421_no_lint_partial_move_after_if_let() -> Result<(), String> {
+    let v: Result<String, String> = Err("".to_string());
+    if let Err(e) = v {
+        return Err(e)?;
+    }
+    let v = v.unwrap();
+    println!("{}", v);
+    Ok(())
+}
 
+#[allow(clippy::let_unit_value, clippy::unnecessary_literal_unwrap)]
+fn issue17421_ref_binding_still_lints() -> Result<(), String> {
+    let v: Result<(), String> = Err("foo".to_string());
+    if let Err(ref _u) = v {
+        return Err("bar".to_string())?;
+        //~^ needless_return_with_question_mark
+    }
+    let _ = v.unwrap();
+    Ok(())
+}
+#[allow(clippy::single_match, clippy::let_unit_value, clippy::unnecessary_literal_unwrap)]
+fn issue17421_no_lint_partial_move_after_match() -> Result<(), String> {
+    let v: Result<(), String> = Err("foo".to_string());
+    match v {
+        _whole @ Err(_) => {
+            return Err("bar".to_string())?;
+        },
+        Ok(_) => {},
+    }
+    let _ = v.unwrap();
+    Ok(())
+}
 fn general_return() {
     fn foo(ok: bool) -> Result<(), ()> {
         let bar = Result::Ok(Result::<(), ()>::Ok(()));
