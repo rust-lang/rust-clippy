@@ -45,6 +45,8 @@ static DEFAULT_DOC_VALID_IDENTS: &[&str] = &[
     "TeX", "LaTeX", "BibTeX", "BibLaTeX",
     "MinGW",
     "CamelCase",
+    "x86_64",
+    "CommonMark", "IntelliJ",
 ];
 static DEFAULT_DISALLOWED_NAMES: &[&str] = &["foo", "baz", "quux"];
 static DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS: &[&str] = &["i", "j", "x", "y", "z", "w", "n"];
