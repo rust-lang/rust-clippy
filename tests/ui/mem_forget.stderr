@@ -32,5 +32,19 @@ LL |     std::mem::forget(string);
    |
    = note: argument has type `std::string::String`
 
-error: aborting due to 4 previous errors
+error: forgetting a Future might cause problems with cancellation
+  --> tests/ui/mem_forget.rs:31:5
+   |
+LL |     std::mem::forget(fut);
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+note: argument has type `{async block@tests/ui/mem_forget.rs:30:15: 30:20}`
+  --> tests/ui/mem_forget.rs:31:22
+   |
+LL |     std::mem::forget(fut);
+   |                      ^^^
+   = note: `-D clippy::forget-future` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::forget_future)]`
+
+error: aborting due to 5 previous errors
 

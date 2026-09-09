@@ -26,5 +26,10 @@ fn main() {
     std::mem::forget(string);
     //~^ mem_forget
 
+    // In case a future is forgotten the more specific forget_future lint is emitted
+    let fut = async {};
+    std::mem::forget(fut);
+    //~^ forget_future
+
     std::mem::forget(7);
 }
