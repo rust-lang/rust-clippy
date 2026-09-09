@@ -1,8 +1,5 @@
 #![feature(rustc_private)]
-#![expect(
-    clippy::missing_clippy_version_attribute, // None of these lints need a version.
-    clippy::symbol_as_str
-)]
+#![expect(clippy::symbol_as_str)]
 #![warn(
     rust_2018_idioms,
     trivial_casts,
@@ -15,7 +12,6 @@
 #![allow(rustc::potential_query_instability)]
 
 extern crate rustc_ast;
-extern crate rustc_attr_parsing;
 extern crate rustc_data_structures;
 extern crate rustc_errors;
 extern crate rustc_hir;
@@ -41,7 +37,6 @@ static LINTS: &[&Lint] = &[
     almost_standard_lint_formulation::ALMOST_STANDARD_LINT_FORMULATION,
     collapsible_span_lint_calls::COLLAPSIBLE_SPAN_LINT_CALLS,
     lint_without_lint_pass::DEFAULT_LINT,
-    lint_without_lint_pass::INVALID_CLIPPY_VERSION_ATTRIBUTE,
     lint_without_lint_pass::LINT_WITHOUT_LINT_PASS,
     lint_without_lint_pass::MISSING_CLIPPY_VERSION_ATTRIBUTE,
     msrv_attr_impl::MISSING_MSRV_ATTR_IMPL,
