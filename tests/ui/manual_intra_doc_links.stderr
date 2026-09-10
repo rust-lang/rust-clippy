@@ -1,0 +1,316 @@
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:4:15
+   |
+LL | //! Link with [refdef] and <https://docs.rs/external_item/latest/external_item/index.html>
+   |               ^^^^^^^^
+   |
+   = note: `-D clippy::manual-intra-doc-links` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_intra_doc_links)]`
+help: consider linking by path instead
+   |
+LL - //! [refdef]: index.html
+LL + //! [refdef]: mod@crate
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:4:28
+   |
+LL | //! Link with [refdef] and <https://docs.rs/external_item/latest/external_item/index.html>
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - //! Link with [refdef] and <https://docs.rs/external_item/latest/external_item/index.html>
+LL + //! Link with [refdef] and [mod@crate::extern_crate::external_item][]
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:5:9
+   |
+LL | //! and [inner link][refdef].
+   |         ^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - //! [refdef]: index.html
+LL + //! [refdef]: mod@crate
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:18:13
+   |
+LL | /// Link to [external item](https://docs.rs/external_item/latest/external_item/struct._ExternalStruct.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](https://docs.rs/external_item/latest/external_item/struct._ExternalStruct.html)
+LL + /// Link to [external item](struct@crate::extern_crate::external_item::_ExternalStruct)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:22:13
+   |
+LL | /// Link to [external item](https://docs.rs/external_item/latest/external_item/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](https://docs.rs/external_item/latest/external_item/index.html)
+LL + /// Link to [external item](mod@crate::extern_crate::external_item)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:26:13
+   |
+LL | /// Link to [external item](https://docs.rs/external_item/latest/external_item/module/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](https://docs.rs/external_item/latest/external_item/module/index.html)
+LL + /// Link to [external item](mod@crate::extern_crate::external_item::module)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:34:13
+   |
+LL | /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/constant.MAGIC_NUMBER.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/constant.MAGIC_NUMBER.html)
+LL + /// Link to [external const](constant@external_consts::MAGIC_NUMBER)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:37:13
+   |
+LL | /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/index.html)
+LL + /// Link to [external const](mod@external_consts)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:40:13
+   |
+LL | /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/module/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/module/index.html)
+LL + /// Link to [external const](mod@external_consts::module)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:44:13
+   |
+LL | /// Link to [external item](../external_item/struct._ExternalStruct.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](../external_item/struct._ExternalStruct.html)
+LL + /// Link to [external item](struct@crate::extern_crate::external_item::_ExternalStruct)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:47:13
+   |
+LL | /// Link to [external item](../external_item/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](../external_item/index.html)
+LL + /// Link to [external item](mod@crate::extern_crate::external_item)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:50:13
+   |
+LL | /// Link to [external item](../external_item/module/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](../external_item/module/index.html)
+LL + /// Link to [external item](mod@crate::extern_crate::external_item::module)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:54:13
+   |
+LL | /// Link to [external item](../external_consts/constant.MAGIC_NUMBER.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](../external_consts/constant.MAGIC_NUMBER.html)
+LL + /// Link to [external item](constant@external_consts::MAGIC_NUMBER)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:57:13
+   |
+LL | /// Link to [external item](../external_consts/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](../external_consts/index.html)
+LL + /// Link to [external item](mod@external_consts)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:60:13
+   |
+LL | /// Link to [external item](../external_consts/module/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [external item](../external_consts/module/index.html)
+LL + /// Link to [external item](mod@external_consts::module)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:64:13
+   |
+LL | /// Link to [local item](struct.FooBar.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [local item](struct.FooBar.html)
+LL + /// Link to [local item](struct@crate::FooBar)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:68:13
+   |
+LL | /// Link to [myself](index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [myself](index.html)
+LL + /// Link to [myself](mod@crate::my_mod)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:71:17
+   |
+LL |     /// Link to [local item](struct.FooBar.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [local item](struct.FooBar.html)
+LL +     /// Link to [local item](struct@crate::my_mod::FooBar)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:74:17
+   |
+LL |     /// Link to [local item](../struct.FooBar.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [local item](../struct.FooBar.html)
+LL +     /// Link to [local item](struct@crate::FooBar)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:77:17
+   |
+LL |     /// Link to [local item](mod_2/struct.FooBar.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [local item](mod_2/struct.FooBar.html)
+LL +     /// Link to [local item](struct@crate::my_mod::mod_2::FooBar)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:80:17
+   |
+LL |     /// Link to [local item](index.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [local item](index.html)
+LL +     /// Link to [local item](mod@crate::my_mod)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:83:17
+   |
+LL |     /// Link to [local item](../index.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [local item](../index.html)
+LL +     /// Link to [local item](mod@crate)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:94:17
+   |
+LL |     /// Link to [external item](https://docs.rs/external_item/latest/external_item/struct._ExternalStruct.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [external item](https://docs.rs/external_item/latest/external_item/struct._ExternalStruct.html)
+LL +     /// Link to [external item](struct@crate::extern_crate::external_item::_ExternalStruct)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:97:17
+   |
+LL |     /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/constant.MAGIC_NUMBER.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/constant.MAGIC_NUMBER.html)
+LL +     /// Link to [external const](constant@external_consts::MAGIC_NUMBER)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:100:17
+   |
+LL |     /// Link to [external item](../../external_item/struct._ExternalStruct.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [external item](../../external_item/struct._ExternalStruct.html)
+LL +     /// Link to [external item](struct@crate::extern_crate::external_item::_ExternalStruct)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:103:17
+   |
+LL |     /// Link to [external item](../../external_consts/constant.MAGIC_NUMBER.html)
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL -     /// Link to [external item](../../external_consts/constant.MAGIC_NUMBER.html)
+LL +     /// Link to [external item](constant@external_consts::MAGIC_NUMBER)
+   |
+
+error: aborting due to 26 previous errors
+
