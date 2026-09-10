@@ -2,9 +2,9 @@ use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
 use clippy_utils::{is_entrypoint_fn, is_trait_impl_item};
-use rustc_data_structures::fx::FxHashSet;
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_errors::Applicability;
-use rustc_hir::{Attribute, FieldDef, ImplItemKind, ItemKind, Node, Safety, TraitItemKind};
+use rustc_hir::{Attribute, FieldDef, ImplItemKind, ItemKind, Node, OwnerId, Safety, TraitItemKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_resolve::rustdoc::pulldown_cmark::Event::{
     Code, DisplayMath, End, FootnoteReference, HardBreak, Html, InlineHtml, InlineMath, Rule, SoftBreak, Start,
@@ -29,6 +29,7 @@ mod doc_suspicious_footnotes;
 mod include_in_doc_without_cfg;
 mod lazy_continuation;
 mod link_with_quotes;
+mod manual_intra_doc_links;
 mod markdown;
 mod missing_headers;
 mod needless_doctest_main;
@@ -421,6 +422,31 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Detects links that are written as URLs, but could have been written as Rust paths.
+    ///
+    /// ### Why is this bad?
+    /// Path-based intra-doc links are:
+    /// - warned about if they don't resolve
+    /// - rewritten if `#[doc(inline)]` changes the item's URL
+    ///
+    /// ### Example
+    /// ```no_run
+    /// /// [module link](index.html)
+    /// # pub struct Foo;
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// /// [module link](crate)
+    /// # pub struct Foo;
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub MANUAL_INTRA_DOC_LINKS,
+    pedantic,
+    "lint hardcoded `.html` links to docs"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks the doc comments of publicly visible functions that
     /// return a `Result` type and warns if there is no `# Errors` section.
     ///
@@ -716,6 +742,7 @@ impl_lint_pass!(Documentation => [
     DOC_PARAGRAPHS_MISSING_PUNCTUATION,
     DOC_SUSPICIOUS_FOOTNOTES,
     EMPTY_DOCS,
+    MANUAL_INTRA_DOC_LINKS,
     MISSING_ERRORS_DOC,
     MISSING_PANICS_DOC,
     MISSING_SAFETY_DOC,
@@ -748,7 +775,12 @@ impl EarlyLintPass for Documentation {
 
 impl<'tcx> LateLintPass<'tcx> for Documentation {
     fn check_attributes(&mut self, cx: &LateContext<'tcx>, attrs: &'tcx [Attribute]) {
-        let Some(headers) = check_attrs(cx, self.valid_idents, attrs) else {
+        let current_item = cx
+            .last_node_with_lint_attrs
+            .as_owner()
+            .unwrap_or_else(|| cx.tcx.hir_get_parent_item(cx.last_node_with_lint_attrs));
+
+        let Some(headers) = check_attrs(cx, self.valid_idents, attrs, current_item) else {
             return;
         };
 
@@ -862,7 +894,12 @@ struct DocHeaders {
 /// Others are checked elsewhere, e.g. in `check_doc` if they need access to markdown, or
 /// back in the various late lint pass methods if they need the final doc headers, like "Safety" or
 /// "Panics" sections.
-fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[Attribute]) -> Option<DocHeaders> {
+fn check_attrs(
+    cx: &LateContext<'_>,
+    valid_idents: &FxHashSet<String>,
+    attrs: &[Attribute],
+    current_item: OwnerId,
+) -> Option<DocHeaders> {
     // We don't want the parser to choke on intra doc links. Since we don't
     // actually care about rendering them, just pretend that all broken links
     // point to a fake address.
@@ -959,6 +996,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
             fragments: &fragments,
         },
         attrs,
+        current_item,
     ))
 }
 
@@ -1101,13 +1139,14 @@ impl CodeTags {
 /// so lints here will generally access that information.
 /// Returns documentation headers -- whether a "Safety", "Errors", "Panic" section was found
 #[expect(clippy::too_many_lines, reason = "big match statement")]
-fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize>)>>(
+fn check_doc<'p, C: pulldown_cmark::BrokenLinkCallback<'p>>(
     cx: &LateContext<'_>,
     valid_idents: &FxHashSet<String>,
-    events: Events,
+    events: pulldown_cmark::OffsetIter<'p, C>,
     doc: &str,
     fragments: Fragments<'_>,
     attrs: &[Attribute],
+    current_item: OwnerId,
 ) -> DocHeaders {
     // true if a safety header was found
     let mut headers = DocHeaders::default();
@@ -1127,6 +1166,13 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
 
     // Skip collecting text and the per-word scan when `DOC_MARKDOWN` (pedantic) is allowed.
     let check_doc_markdown = !clippy_utils::is_lint_allowed(cx, DOC_MARKDOWN, cx.last_node_with_lint_attrs);
+
+    // Once the iterator is wrapped in Peekable, there's no way to call this method.
+    let reference_definitions: FxHashMap<Box<str>, Range<usize>> = events
+        .reference_definitions()
+        .iter()
+        .map(|(name, def)| (name.into(), def.span.clone()))
+        .collect();
 
     let mut events = events.peekable();
 
@@ -1183,7 +1229,19 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                 });
             },
             End(TagEnd::CodeBlock) => code = None,
-            Start(Link { dest_url, .. }) => in_link = Some(dest_url),
+            Start(Link { dest_url, link_type, id, .. }) => {
+                manual_intra_doc_links::check(current_item.def_id,
+                    &dest_url,
+                    doc,
+                    range.clone(),
+                    &fragments,
+                    &reference_definitions,
+                    link_type,
+                    &id,
+                    cx,
+                );
+                in_link = Some(dest_url);
+            },
             End(TagEnd::Link) => in_link = None,
             Start(Heading { .. } | Paragraph | Item) => {
                 if let Start(Heading { .. }) = event {
