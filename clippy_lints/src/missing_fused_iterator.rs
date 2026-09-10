@@ -3,6 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_lint_allowed;
 use clippy_utils::macros::span_is_local;
 use clippy_utils::msrvs::Msrv;
+use rustc_hir::def_id::DefId;
 use rustc_hir::{Item, ItemKind};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty;
@@ -105,7 +106,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingFusedIterator {
                 .tcx
                 .non_blanket_impls_for_ty(iterator_trait, ty)
                 .filter(|&impl_id| cx.tcx.impl_polarity(impl_id) == ty::ImplPolarity::Positive)
-                .filter_map(|impl_id| impl_id.as_local())
+                .filter_map(DefId::as_local)
                 .map(|impl_id| cx.tcx.def_span(impl_id))
                 .filter(|&span| span_is_local(span))
                 .min_by_key(|span| span.lo());
