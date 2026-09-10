@@ -1,9 +1,9 @@
 use crate::{is_in_const_context, sym};
 use rustc_ast::Attribute;
 use rustc_ast::attr::AttributeExt;
+use rustc_attr_ir::RustcVersion;
 use rustc_attr_parsing::parse_version;
 use rustc_data_structures::smallvec::SmallVec;
-use rustc_hir::attrs::RustcVersion;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Constness, HirId, StabilityLevel, StableSince};
