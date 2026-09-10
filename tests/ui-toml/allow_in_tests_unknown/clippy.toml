@@ -1,0 +1,8 @@
+allow-in-tests = [
+    # not a lint at all
+    "unwrap_use",
+    # a renamed lint
+    "clippy::stutter",
+    # a rustc lint
+    "unused_variables",
+]

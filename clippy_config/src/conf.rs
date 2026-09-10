@@ -10,7 +10,7 @@ use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::attrs::RustcVersion;
 use rustc_session::Session;
-use rustc_span::{Pos as _, SourceFile, Symbol};
+use rustc_span::{Pos as _, SourceFile, Spanned, Symbol};
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 use std::{env, fs, io};
@@ -77,6 +77,16 @@ macro_rules! define_Conf {
             $(#[doc = $doc:literal])*
             $(#[default_text = $default_text:literal])?
             $(#[rename = $new_name:ident])?
+            // Marks a `bool` field superseded by `allow-in-tests`, recording the lints its
+            // replacement should list. Documentation only for now: the option keeps working and
+            // says so in its docs, but setting it does not warn.
+            //
+            // TODO: once `allow-in-tests` has shipped in a stable release, emit a deprecation
+            // warning from here when the field is set to `true`. Setting one to `false` is the
+            // default and should stay silent, as `allow-in-tests` has no equivalent for it.
+            //
+            // Must precede `#[lints]`, which `cargo dev fmt` always re-emits last.
+            $(#[replaced_by_allow_in_tests($($replacement_lints:ident),* $(,)?)])?
             $(#[lints($($for_lints:ident),* $(,)?)])?
             // The type must exist for regular fields and shouldn't exist for deprecated ones.
             $name:ident($name_str:literal) $(: $ty:ty $(= $default:expr)?)?,
@@ -215,6 +225,25 @@ macro_rules! define_Conf {
         fn check_conf_names() {$(
             assert_eq!(stringify!($name).replace('_', "-"), $name_str);
         )*}
+
+        /// `#[replaced_by_allow_in_tests]` records the replacement in machine-readable form, but
+        /// until it emits a diagnostic the text users actually see lives in the doc comment. Keep
+        /// the two from drifting apart.
+        #[test]
+        fn check_replaced_by_allow_in_tests_docs() {$(
+            let _doc = concat!($($doc, '\n',)*);
+            $(
+                let expected = format!(
+                    "`allow-in-tests = [{}]`",
+                    [$(concat!("\"", stringify!($replacement_lints), "\"")),*].join(", "),
+                );
+                assert!(
+                    _doc.contains(&expected),
+                    "`{}` is marked `#[replaced_by_allow_in_tests]` but its docs don't mention {expected}",
+                    $name_str,
+                );
+            )?
+        )*}
     };
 }
 
@@ -236,6 +265,10 @@ define_Conf! {
     #[lints(modulo_arithmetic)]
     allow_comparison_to_zero("allow-comparison-to-zero"): bool = true,
     /// Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`
+    ///
+    /// Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+    /// `allow-in-tests = ["dbg_macro"]` instead. This option still works.
+    #[replaced_by_allow_in_tests(dbg_macro)]
     #[lints(dbg_macro)]
     allow_dbg_in_tests("allow-dbg-in-tests"): bool = false,
     /// Whether an item should be allowed to have the same name as its containing module
@@ -245,9 +278,56 @@ define_Conf! {
     #[lints(expect_used)]
     allow_expect_in_consts("allow-expect-in-consts"): bool = true,
     /// Whether `expect` should be allowed in test functions or `#[cfg(test)]`
+    ///
+    /// Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+    /// `allow-in-tests = ["expect_used"]` instead. This option still works.
+    #[replaced_by_allow_in_tests(expect_used)]
     #[lints(expect_used)]
     allow_expect_in_tests("allow-expect-in-tests"): bool = false,
+    /// A list of Clippy lints to suppress in test functions and `#[cfg(test)]` items.
+    ///
+    /// Entries are **lint names**, and only the lints named here are affected. This is not a
+    /// blanket "allow everything in tests" switch: a lint you don't list keeps firing in test
+    /// code, and lints added to Clippy in future releases are never included unless you add
+    /// them.
+    ///
+    /// ```toml
+    /// # `.expect()` is allowed in tests; `dbg!` is still reported there.
+    /// allow-in-tests = ["expect_used"]
+    /// ```
+    ///
+    /// #### Replaces the per-lint options
+    ///
+    /// The older options are deprecated but still honored. Note that an option's name does not
+    /// always match the lint's, so the replacements are:
+    ///
+    /// | deprecated option | write instead |
+    /// | --- | --- |
+    /// | `allow-dbg-in-tests = true` | `allow-in-tests = ["dbg_macro"]` |
+    /// | `allow-expect-in-tests = true` | `allow-in-tests = ["expect_used"]` |
+    /// | `allow-indexing-slicing-in-tests = true` | `allow-in-tests = ["indexing_slicing"]` |
+    /// | `allow-panic-in-tests = true` | `allow-in-tests = ["panic"]` |
+    /// | `allow-print-in-tests = true` | `allow-in-tests = ["print_stderr", "print_stdout"]` |
+    /// | `allow-unwrap-in-tests = true` | `allow-in-tests = ["unwrap_used"]` |
+    /// | `allow-useless-vec-in-tests = true` | `allow-in-tests = ["useless_vec"]` |
+    ///
+    /// The two combine permissively: a lint is suppressed in test code if it is listed here
+    /// **or** its own option is set to `true`. Setting that option to `false` does not cancel a
+    /// listing here.
+    ///
+    /// #### Noteworthy
+    ///
+    /// - This only suppresses lints. It cannot make a lint fire in test code that would not
+    ///   fire otherwise.
+    /// - Suppressing a lint leaves an `#[expect]` for it in test code unfulfilled, so such an
+    ///   attribute will report `unfulfilled_lint_expectations`. This matches how the older
+    ///   per-lint options have always behaved.
+    allow_in_tests("allow-in-tests"): Vec<Spanned<String>>,
     /// Whether `indexing_slicing` should be allowed in test functions or `#[cfg(test)]`
+    ///
+    /// Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+    /// `allow-in-tests = ["indexing_slicing"]` instead. This option still works.
+    #[replaced_by_allow_in_tests(indexing_slicing)]
     #[lints(indexing_slicing)]
     allow_indexing_slicing_in_tests("allow-indexing-slicing-in-tests"): bool = false,
     /// Whether functions inside `#[cfg(test)]` modules or test functions should be checked.
@@ -260,9 +340,17 @@ define_Conf! {
     #[lints(needless_raw_string_hashes)]
     allow_one_hash_in_raw_strings("allow-one-hash-in-raw-strings"): bool = false,
     /// Whether `panic` should be allowed in test functions or `#[cfg(test)]`
+    ///
+    /// Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+    /// `allow-in-tests = ["panic"]` instead. This option still works.
+    #[replaced_by_allow_in_tests(panic)]
     #[lints(panic)]
     allow_panic_in_tests("allow-panic-in-tests"): bool = false,
     /// Whether print macros (ex. `println!`) should be allowed in test functions or `#[cfg(test)]`
+    ///
+    /// Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+    /// `allow-in-tests = ["print_stderr", "print_stdout"]` instead. This option still works.
+    #[replaced_by_allow_in_tests(print_stderr, print_stdout)]
     #[lints(print_stderr, print_stdout)]
     allow_print_in_tests("allow-print-in-tests"): bool = false,
     /// Whether to allow module inception if it's not public.
@@ -287,6 +375,10 @@ define_Conf! {
     #[lints(unwrap_used)]
     allow_unwrap_in_consts("allow-unwrap-in-consts"): bool = true,
     /// Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
+    ///
+    /// Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+    /// `allow-in-tests = ["unwrap_used"]` instead. This option still works.
+    #[replaced_by_allow_in_tests(unwrap_used)]
     #[lints(unwrap_used)]
     allow_unwrap_in_tests("allow-unwrap-in-tests"): bool = false,
     /// List of types to allow `unwrap()` and `expect()` on.
@@ -299,6 +391,10 @@ define_Conf! {
     #[lints(expect_used, unwrap_used)]
     allow_unwrap_types("allow-unwrap-types"): Vec<String>,
     /// Whether `useless_vec` should ignore test functions or `#[cfg(test)]`
+    ///
+    /// Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+    /// `allow-in-tests = ["useless_vec"]` instead. This option still works.
+    #[replaced_by_allow_in_tests(useless_vec)]
     #[lints(useless_vec)]
     allow_useless_vec_in_tests("allow-useless-vec-in-tests"): bool = false,
     /// Additional dotfiles (files or directories starting with a dot) to allow

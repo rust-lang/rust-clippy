@@ -418,8 +418,11 @@ mod zombie_processes;
 use clippy_config::{Conf, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_lint::is_lint_pass_required;
+use rustc_errors::{Applicability, DiagCtxtHandle};
+use rustc_lint::{Lint, is_lint_pass_required};
 use rustc_middle::ty::TyCtxt;
+use rustc_span::edit_distance::find_best_match_for_name;
+use rustc_span::{Spanned, Symbol};
 use utils::attr_collector::AttrStorage;
 
 pub fn explain(name: &str) -> i32 {
@@ -443,10 +446,70 @@ pub fn explain(name: &str) -> i32 {
     }
 }
 
+/// Resolves one lint name from the `allow-in-tests` configuration.
+///
+/// Accepts `unwrap_used`, `clippy::unwrap_used` and `unwrap-used` alike. A name which doesn't
+/// refer to a Clippy lint is reported and ignored.
+fn resolve_configured_lint(dcx: DiagCtxtHandle<'_>, name: &Spanned<String>) -> Option<&'static Lint> {
+    let bare_name = name.node.strip_prefix("clippy::").unwrap_or(&name.node);
+    let lint_name = format!("clippy::{}", bare_name.replace('-', "_").to_ascii_uppercase());
+
+    if let Some(info) = declared_lints::LINTS.iter().find(|info| info.lint.name == lint_name) {
+        return Some(info.lint);
+    }
+
+    let mut diag = dcx.struct_span_warn(name.span, format!("unknown lint: `{}`", name.node));
+    diag.note("`allow-in-tests` only accepts Clippy lints");
+    let renamed = deprecated_lints::RENAMED
+        .iter()
+        .find(|(old_name, _)| old_name.eq_ignore_ascii_case(&lint_name));
+    if let Some((_, new_name)) = renamed {
+        let new_name = new_name.strip_prefix("clippy::").unwrap_or(new_name);
+        diag.span_suggestion(
+            name.span,
+            format!("`{}` has been renamed", name.node),
+            format!("\"{new_name}\""),
+            Applicability::MachineApplicable,
+        );
+    } else if let Some(sugg) = find_best_match_for_name(&lint_symbols(), Symbol::intern(bare_name), None) {
+        diag.span_suggestion(
+            name.span,
+            "did you mean",
+            format!("\"{sugg}\""),
+            Applicability::MaybeIncorrect,
+        );
+    }
+    diag.emit();
+    None
+}
+
+/// Resolves the lint names given in the `allow-in-tests` configuration and hands them to
+/// `clippy_utils`, which drops their diagnostics when they are emitted from test code.
+///
+/// Names which don't refer to a Clippy lint are reported and ignored.
+fn register_lints_allowed_in_tests(dcx: DiagCtxtHandle<'_>, conf: &'static Conf) {
+    let allowed: Vec<_> = conf
+        .allow_in_tests
+        .iter()
+        .filter_map(|name| Some(resolve_configured_lint(dcx, name)?.name))
+        .collect();
+    clippy_utils::diagnostics::set_lints_allowed_in_tests(allowed);
+}
+
+/// The names of all Clippy lints, without the `clippy::` prefix, for use in suggestions.
+fn lint_symbols() -> Vec<Symbol> {
+    declared_lints::LINTS
+        .iter()
+        .map(|info| Symbol::intern(info.lint.name_lower().strip_prefix("clippy::").unwrap()))
+        .collect()
+}
+
 /// Register all lints and lint groups with the rustc lint store
 ///
 /// Used in `./src/driver.rs`.
-pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
+pub fn register_lint_passes(dcx: DiagCtxtHandle<'_>, store: &mut rustc_lint::LintStore, conf: &'static Conf) {
+    register_lints_allowed_in_tests(dcx, conf);
+
     for (old_name, new_name) in deprecated_lints::RENAMED {
         store.register_renamed(old_name, new_name);
     }
@@ -492,6 +555,8 @@ pub fn register_lint_passes(store: &mut rustc_lint::LintStore, conf: &'static Co
 rustc_lint::early_lint_methods!(
     crate::combined_early_lint_pass,
     [CombinedEarlyLintPass, (conf: &'static Conf, format_args: FormatArgsStorage, attrs: AttrStorage), [
+        // Must stay first: later passes consult the spans it records via `span_lint_and_then`.
+        TestSpanCollector: utils::test_span_collector::TestSpanCollector = utils::test_span_collector::TestSpanCollector,
         FormatArgsCollector: utils::format_args_collector::FormatArgsCollector = utils::format_args_collector::FormatArgsCollector::new(format_args.clone()),
         AttrCollector: utils::attr_collector::AttrCollector = utils::attr_collector::AttrCollector::new(attrs.clone()),
         PostExpansionEarlyAttributes: attrs::PostExpansionEarlyAttributes = attrs::PostExpansionEarlyAttributes::new(conf),

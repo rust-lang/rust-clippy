@@ -13,7 +13,6 @@ fn metadata() -> impl Iterator<Item = ConfMetadata> {
     Conf::get_metadata()
         .into_iter()
         .filter(|config| config.renamed_to.is_none())
-        .filter(|config| !config.lints.is_empty())
 }
 
 #[test]
