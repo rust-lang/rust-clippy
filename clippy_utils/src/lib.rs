@@ -104,6 +104,7 @@ use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use rustc_lint::{LateContext, Level, Lint, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::PlaceBase;
+use rustc_middle::middle::codegen_fn_attrs::CodegenFnAttrFlags;
 use rustc_middle::mir::{AggregateKind, Operand, RETURN_PLACE, Rvalue, StatementKind, TerminatorKind};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, DerefAdjustKind, PointerCoercion};
 use rustc_middle::ty::layout::IntegerExt as _;
@@ -719,12 +720,28 @@ fn is_default_equivalent_from(cx: &LateContext<'_>, from_func: &Expr<'_>, arg: &
     false
 }
 
+fn is_track_caller(cx: &LateContext<'_>, def_id: DefId) -> bool {
+    cx.tcx
+        .codegen_fn_attrs(def_id)
+        .flags
+        .contains(CodegenFnAttrFlags::TRACK_CALLER)
+}
+
+fn would_change_caller_location(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let Some(callee) = fn_def_id(cx, expr) else {
+        return false;
+    };
+    let enclosing_body = cx.tcx.hir_enclosing_body_owner(expr.hir_id);
+    is_track_caller(cx, enclosing_body.to_def_id()) && is_track_caller(cx, callee)
+}
+
 /// Checks if the top level expression can be moved into a closure as is.
 /// Currently checks for:
 /// * Break/Continue outside the given loop HIR ids.
 /// * Yield/Return statements.
 /// * Inline assembly.
 /// * Usages of a field of a local where the type of the local can be partially moved.
+/// * Calls which would stop propagation from an enclosing `#[track_caller]` function.
 ///
 /// For example, given the following function:
 ///
@@ -756,6 +773,10 @@ pub fn can_move_expr_to_closure_no_visit<'tcx>(
     loop_ids: &[HirId],
     ignore_locals: &HirIdSet,
 ) -> bool {
+    if would_change_caller_location(cx, expr) {
+        return false;
+    }
+
     match expr.kind {
         ExprKind::Break(Destination { target_id: Ok(id), .. }, _)
         | ExprKind::Continue(Destination { target_id: Ok(id), .. })
