@@ -1,4 +1,5 @@
 #![warn(clippy::str_split_whitespace)]
+#![allow(clippy::comparison_to_empty, clippy::len_zero)]
 
 use std::ops::Deref;
 
@@ -9,6 +10,22 @@ struct NotStr<'a> {
 impl<'a> NotStr<'a> {
     fn split(&'a self, pat: char) -> impl Iterator<Item = &'a str> {
         self.s.split(pat)
+    }
+}
+
+struct Custom;
+
+impl Custom {
+    fn is_empty(s: &str) -> bool {
+        s == "-"
+    }
+
+    fn len(s: &str) -> usize {
+        s.chars().count()
+    }
+
+    fn trim(s: &str) -> &str {
+        s.trim_matches('-')
     }
 }
 
@@ -40,18 +57,78 @@ fn main() {
 
     // CASES THAT SHOULD EMIT A LINT
 
-    // The four accepted shapes of the filtering closure
+    // A negated `is_empty` check, as a method or a path call
     let _ = s1.split_whitespace();
     //~^ str_split_whitespace
     let _ = s1.split_whitespace();
     //~^ str_split_whitespace
-    let _ = s1.split_whitespace();
-    //~^ str_split_whitespace
-    #[allow(clippy::len_zero)]
     let _ = s1.split_whitespace();
     //~^ str_split_whitespace
 
-    // The parameter may be written as a reference pattern, and the body may be a block
+    // The checked substring may be trimmed first
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+
+    // A comparison of the length against zero or one
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+
+    // The same comparisons with the operands swapped
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+
+    // A comparison against the empty string, on either side
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+
+    // The parameter may be written as a reference pattern, may have a type annotation, and the
+    // body may be a block
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
+    let _ = s1.split_whitespace();
+    //~^ str_split_whitespace
     let _ = s1.split_whitespace();
     //~^ str_split_whitespace
     #[rustfmt::skip]
@@ -104,8 +181,27 @@ fn main() {
     // A closure testing something other than its own parameter should not warn
     let _ = s1.split(' ').filter(|_| !s2.is_empty());
     let _ = s1.split(' ').filter(|s| !s.starts_with('a'));
-    #[allow(clippy::len_zero)]
+    let _ = s1.split(' ').filter(|_| s2.len() > 0);
+    let _ = s1.split(' ').filter(|_| 0 < 1);
+
+    // A closure that keeps the empty substrings, or not only them, should not warn
+    let _ = s1.split(' ').filter(|s| s.is_empty());
+    let _ = s1.split(' ').filter(|s| s.len() == 0);
     let _ = s1.split(' ').filter(|s| s.len() > 1);
+    let _ = s1.split(' ').filter(|s| s.len() != 1);
+    let _ = s1.split(' ').filter(|s| s.len() >= 2);
+    let _ = s1.split(' ').filter(|s| 1 < s.len());
+    let _ = s1.split(' ').filter(|s| *s == "");
+    let _ = s1.split(' ').filter(|s| *s != "a");
+
+    // Only `trim`, `trim_start` and `trim_end` may be applied to the substring
+    let _ = s1.split(' ').filter(|s| !s.to_uppercase().is_empty());
+    let _ = s1.split(' ').filter(|s| !s.trim_matches('a').is_empty());
+
+    // An associated function of a type other than `str` may mean anything
+    let _ = s1.split(' ').filter(|&s| !Custom::is_empty(s));
+    let _ = s1.split(' ').filter(|&s| Custom::len(s) > 0);
+    let _ = s1.split(' ').filter(|&s| !str::is_empty(Custom::trim(s)));
 
     // `split` on a type that is not a `str` should not warn
     let not_str = NotStr { s: s1 };
