@@ -1,5 +1,10 @@
+//@aux-build:proc_macros.rs
 #![warn(clippy::unused_format_precision)]
-#![allow(clippy::zero_ptr, clippy::manual_dangling_ptr, clippy::useless_borrows_in_formatting)]
+#![allow(clippy::manual_dangling_ptr, clippy::useless_borrows_in_formatting, clippy::zero_ptr)]
+
+extern crate proc_macros;
+
+use std::fmt::Write as _;
 
 fn main() {
     let v = 42_u8;
@@ -115,5 +120,74 @@ fn main() {
     // Generics: not linted, since we don't know the type
     fn generic<T: std::fmt::Display>(x: T) {
         println!("{:.1}", x);
+    }
+
+    other_format_macros();
+    panicking_format_macros(42_u8);
+    inside_a_macro();
+}
+
+// All the other formatting macros are linted the same way as `println!`
+fn other_format_macros() {
+    let v = 42_u8;
+
+    let _ = format!("{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    print!("{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    eprint!("{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    eprintln!("{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+
+    let mut s = String::new();
+    let _ = write!(s, "{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    let _ = writeln!(s, "{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+
+    assert!(v == 42, "{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    assert_eq!(v, 42, "{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    assert_ne!(v, 0, "{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    debug_assert!(v == 42, "{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+
+    // Not linted for the same reasons as `println!`
+    let _ = format!("{:.1}", "hello");
+    let _ = format!("{:.1}", 1.0f64);
+    let _ = write!(s, "{:.1}", 1.0f64);
+    assert!(v == 42, "{:.1}", 1.0f64);
+}
+
+// Diverging formatting macros
+fn panicking_format_macros(v: u8) {
+    if v == 0 {
+        panic!("{v:.1}"); //~ ERROR: precision has no effect for type `u8`
+    }
+    // Not linted: `todo!` and `unimplemented!` wrap their arguments in a nested `format_args!`
+    // call, which none of the `format_args` lints look into
+    if v == 1 {
+        unimplemented!("{v:.1}");
+    }
+    todo!("{v:.1}");
+}
+
+// Not linted: the formatting macro is called from inside a macro, so the type of the
+// argument is not known at the macro definition site and nothing can be fixed there.
+macro_rules! print_with_precision {
+    ($e:expr) => {
+        println!("{:.1}", $e)
+    };
+}
+
+macro_rules! print_captured_with_precision {
+    () => {{
+        let v = 42_u8;
+        println!("{v:.1}");
+    }};
+}
+
+fn inside_a_macro() {
+    print_with_precision!(42_u8);
+    print_with_precision!("hello");
+    print_with_precision!(1.0f64);
+    print_captured_with_precision!();
+
+    // Not linted: code coming from an external macro
+    proc_macros::external! {
+        println!("{:.1}", 42_u8);
     }
 }

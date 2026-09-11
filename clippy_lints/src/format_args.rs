@@ -236,21 +236,22 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for format precision for standard non-float types where it has no effect
-    /// (integers, bool, char, pointers). Precision is meaningful for floats, `str` (truncation), or user types.
+    /// (integers, `char`, pointers). Precision is meaningful for floats, `str` and `bool`
+    /// (truncation), or user types.
     ///
     /// ### Why is this bad?
     /// Specifying precision for these types is misleading and may indicate a bug. The value is ignored by the formatter.
     ///
     /// ### Example
     /// ```no_run
-    /// println!("{:.5}", 42);   // precision ignored for integers
-    /// println!("{:.3}", true); // precision ignored for bool
-    /// println!("{:.2}", 'x');  // precision ignored for char
+    /// println!("{:.5}", 42); // precision ignored for integers
+    /// println!("{:.2}", 'x'); // precision ignored for char
+    /// println!("{:.2p}", &42 as *const i32); // precision ignored for pointers
     /// ```
     #[clippy::version = "1.95.0"]
     pub UNUSED_FORMAT_PRECISION,
     correctness,
-    "precision has no effect for this type"
+    "format precision specified for a type that ignores it, such as an integer, `char` or a pointer"
 }
 
 declare_clippy_lint! {
@@ -574,7 +575,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
     }
 
     /// Lint when precision is specified but the argument type is a standard non-float type
-    /// (integer, bool, char, pointer) where precision has no effect.
+    /// (integer, char, pointer) where precision has no effect.
     fn check_unused_format_precision(&self, placeholder: &FormatPlaceholder, arg_expr: &Expr<'_>) {
         if placeholder.format_options.precision.is_some()
             && let Some(placeholder_span) = placeholder.span
