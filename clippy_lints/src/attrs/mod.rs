@@ -1,8 +1,7 @@
 mod allow_attributes;
 mod allow_attributes_without_reason;
 mod blanket_clippy_restriction_lints;
-mod deprecated_attributes_without_note;
-mod deprecated_attributes_without_since;
+mod deprecated_attributes_without_fields;
 mod deprecated_cfg_attr;
 mod deprecated_semver;
 mod duplicated_attributes;
@@ -663,8 +662,7 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
             && !attr.span.in_external_macro(cx.sess().source_map())
             && !is_from_proc_macro(cx, attr)
         {
-            deprecated_attributes_without_note::check(cx, attr.meta_item_list().as_deref(), attr);
-            deprecated_attributes_without_since::check(cx, attr.meta_item_list().as_deref(), attr);
+            deprecated_attributes_without_fields::check_fields(cx, attr.meta_item_list().as_deref(), attr);
         }
 
         if attr.has_name(sym::should_panic) {
