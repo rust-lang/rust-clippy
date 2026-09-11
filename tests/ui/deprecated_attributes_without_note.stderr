@@ -16,5 +16,17 @@ error: `deprecated` attribute without note could be confusing
 LL |     #[deprecated(since = "1.42.100")]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a note: `#[deprecated(since = "1.42.100", note = /* note */)]`
 
-error: aborting due to 2 previous errors
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:18:22
+   |
+LL |     #[cfg_attr(true, deprecated(since = "0.0.0"))]
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a note: `#[deprecated(since = "0.0.0", note = /* note */)]`
+
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:22:22
+   |
+LL |     #[cfg_attr(true, deprecated)]
+   |                      ^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: aborting due to 4 previous errors
 
