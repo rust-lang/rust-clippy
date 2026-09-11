@@ -78,4 +78,7 @@ fn main() {
 
     #[cfg_attr(false, deprecated = "the note above me never lies")]
     fn cfg_false_has_note_eq() {}
+
+    #[deprecated = ""]
+    fn empty_note() {}
 }
