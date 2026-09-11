@@ -9,9 +9,9 @@ extern crate proc_macros;
 
 pub mod public_struct {
     pub struct PublicStruct;
-    //~^ missing_fused_iterator
 
     impl Iterator for PublicStruct {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -22,11 +22,11 @@ pub mod public_struct {
 
 pub mod public_enum {
     pub enum PublicEnum {
-        //~^ missing_fused_iterator
         Empty,
     }
 
     impl Iterator for PublicEnum {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -37,11 +37,11 @@ pub mod public_enum {
 
 pub mod public_union {
     pub union PublicUnion {
-        //~^ missing_fused_iterator
         value: u8,
     }
 
     impl Iterator for PublicUnion {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -52,9 +52,9 @@ pub mod public_union {
 
 pub mod public_generic {
     pub struct PublicGeneric<T>(T);
-    //~^ missing_fused_iterator
 
     impl<T> Iterator for PublicGeneric<T> {
+        //~^ missing_fused_iterator
         type Item = T;
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -89,9 +89,9 @@ pub mod crate_visible_type {
 
 mod visibility {
     pub struct Reexported;
-    //~^ missing_fused_iterator
 
     impl Iterator for Reexported {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -100,9 +100,9 @@ mod visibility {
     }
 
     pub struct Returned;
-    //~^ missing_fused_iterator
 
     impl Iterator for Returned {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -186,9 +186,9 @@ pub mod explicitly_not_an_iterator {
 pub mod doc_hidden {
     #[doc(hidden)]
     pub struct DocHidden;
-    //~^ missing_fused_iterator
 
     impl Iterator for DocHidden {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -257,9 +257,9 @@ mod shadow_fused_iterator {
     pub trait FusedIterator {}
 
     pub struct RealIterator;
-    //~^ missing_fused_iterator
 
     impl std::iter::Iterator for RealIterator {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -276,9 +276,9 @@ pub mod local_macro {
     macro_rules! local_iterator {
         ($name:ident) => {
             pub struct $name;
-            //~^ missing_fused_iterator
 
             impl Iterator for $name {
+                //~^ missing_fused_iterator
                 type Item = ();
 
                 fn next(&mut self) -> Option<Self::Item> {
@@ -306,9 +306,9 @@ pub mod external_macro {
 }
 
 pub mod lint_levels {
-    #[allow(clippy::missing_fused_iterator)]
     pub struct Allowed;
 
+    #[allow(clippy::missing_fused_iterator)]
     impl Iterator for Allowed {
         type Item = ();
 
@@ -317,9 +317,9 @@ pub mod lint_levels {
         }
     }
 
-    #[expect(clippy::missing_fused_iterator)]
     pub struct Expected;
 
+    #[expect(clippy::missing_fused_iterator)]
     impl Iterator for Expected {
         type Item = ();
 
@@ -330,9 +330,9 @@ pub mod lint_levels {
 }
 
 pub mod msrv {
-    #[clippy::msrv = "1.25"]
     pub struct BeforeMsrv;
 
+    #[clippy::msrv = "1.25"]
     impl Iterator for BeforeMsrv {
         type Item = ();
 
@@ -341,11 +341,102 @@ pub mod msrv {
         }
     }
 
-    #[clippy::msrv = "1.26"]
     pub struct AtMsrv;
-    //~^ missing_fused_iterator
 
+    #[clippy::msrv = "1.26"]
     impl Iterator for AtMsrv {
+        //~^ missing_fused_iterator
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    pub struct AtLintReasons;
+
+    // `#[expect]` and `reason` need 1.81, below that the suppression suggestion uses `#[allow]`.
+    #[clippy::msrv = "1.81"]
+    impl Iterator for AtLintReasons {
+        //~^ missing_fused_iterator
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+}
+
+pub mod multiple_impls {
+    pub struct Multiple<T>(T);
+
+    impl Iterator for Multiple<u8> {
+        //~^ missing_fused_iterator
+        type Item = u8;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    impl Iterator for Multiple<u16> {
+        //~^ missing_fused_iterator
+        type Item = u16;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+}
+
+pub mod bounded_generic {
+    pub struct Bounded<T>(T);
+
+    //~v missing_fused_iterator
+    impl<T: Clone> Iterator for Bounded<T>
+    where
+        T: Default,
+        T: Copy,
+    {
+        type Item = T;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+}
+
+pub mod conditional {
+    pub struct Conditional;
+
+    #[cfg(not(test))]
+    impl Iterator for Conditional {
+        //~^ missing_fused_iterator
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    pub struct ConditionalAttr;
+
+    #[cfg_attr(not(test), cfg(not(test)))]
+    impl Iterator for ConditionalAttr {
+        //~^ missing_fused_iterator
+        type Item = ();
+
+        fn next(&mut self) -> Option<Self::Item> {
+            None
+        }
+    }
+
+    pub struct InactiveConditionalAttr;
+
+    #[cfg(not(test))]
+    #[cfg_attr(test, cfg(any()))]
+    impl Iterator for InactiveConditionalAttr {
+        //~^ missing_fused_iterator
         type Item = ();
 
         fn next(&mut self) -> Option<Self::Item> {
