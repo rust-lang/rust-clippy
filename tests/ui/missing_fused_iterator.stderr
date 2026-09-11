@@ -205,7 +205,7 @@ LL ~     impl Iterator for AtLintReasons {
    |
 
 error: publicly reachable type with `Iterator` implementation does not implement `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:374:5
+  --> tests/ui/missing_fused_iterator.rs:373:5
    |
 LL |     impl Iterator for Multiple<u8> {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `FusedIterator` implementation
@@ -224,7 +224,7 @@ LL ~     impl Iterator for Multiple<u8> {
    |
 
 error: publicly reachable type with `Iterator` implementation does not implement `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:383:5
+  --> tests/ui/missing_fused_iterator.rs:382:5
    |
 LL |     impl Iterator for Multiple<u16> {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `FusedIterator` implementation
@@ -243,7 +243,7 @@ LL ~     impl Iterator for Multiple<u16> {
    |
 
 error: publicly reachable type with `Iterator` implementation does not implement `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:397:5
+  --> tests/ui/missing_fused_iterator.rs:396:5
    |
 LL | /     impl<T: Clone> Iterator for Bounded<T>
 LL | |     where
@@ -269,7 +269,7 @@ LL ~     impl<T: Clone> Iterator for Bounded<T>
    |
 
 error: publicly reachable type with `Iterator` implementation does not implement `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:416:5
+  --> tests/ui/missing_fused_iterator.rs:413:5
    |
 LL |     impl Iterator for Conditional {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `FusedIterator` implementation
@@ -289,7 +289,7 @@ LL ~     impl Iterator for Conditional {
    |
 
 error: publicly reachable type with `Iterator` implementation does not implement `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:429:5
+  --> tests/ui/missing_fused_iterator.rs:425:5
    |
 LL |     impl Iterator for ConditionalAttr {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `FusedIterator` implementation
@@ -309,7 +309,7 @@ LL ~     impl Iterator for ConditionalAttr {
    |
 
 error: publicly reachable type with `Iterator` implementation does not implement `FusedIterator`
-  --> tests/ui/missing_fused_iterator.rs:443:5
+  --> tests/ui/missing_fused_iterator.rs:438:5
    |
 LL |     impl Iterator for InactiveConditionalAttr {
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ missing `FusedIterator` implementation

@@ -395,7 +395,7 @@ pub mod bounded_generic {
     //~v missing_fused_iterator
     impl<T: Clone> Iterator for Bounded<T>
     where
-        T: Default,
+        T: Default, // needed for the default value
         T: Copy,
     {
         type Item = T;
