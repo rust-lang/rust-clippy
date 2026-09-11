@@ -41,7 +41,7 @@ pub(super) fn check<'cx>(cx: &EarlyContext<'cx>, items: Option<&[MetaItemInner]>
         cx,
         DEPRECATED_ATTRIBUTES_WITHOUT_NOTE,
         attr.span,
-        "`deprecated` attribute without note",
+        "`deprecated` attribute without note could be confusing",
         "add a note",
         suggestion,
         applicability,
