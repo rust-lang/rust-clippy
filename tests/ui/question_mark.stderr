@@ -516,5 +516,119 @@ LL +         (a, b) = x
 LL +     }
    |
 
-error: aborting due to 47 previous errors
+error: this `match` expression can be replaced with `?`
+  --> tests/ui/question_mark.rs:741:9
+   |
+LL | /         match return_ref_option() {
+LL | |
+LL | |             Some(it) => {
+LL | |                 dbg!(it);
+LL | |             },
+LL | |             None => return None,
+LL | |         };
+   | |_________^
+   |
+help: try instead
+   |
+LL ~         {
+LL +             let it = return_ref_option().as_ref()?;
+LL +             dbg!(it);
+LL ~         };
+   |
+
+error: this `match` expression can be replaced with `?`
+  --> tests/ui/question_mark.rs:748:24
+   |
+LL |           let _x: &i32 = match return_ref_option() {
+   |  ________________________^
+LL | |
+LL | |             Some(it) => it,
+LL | |             None => return None,
+LL | |         };
+   | |_________^ help: try instead: `return_ref_option().as_ref()?`
+
+error: this `match` expression can be replaced with `?`
+  --> tests/ui/question_mark.rs:754:9
+   |
+LL | /         match return_ref_mut_option() {
+LL | |
+LL | |             Some(it) => {
+LL | |                 *it += 1;
+LL | |             },
+LL | |             None => return None,
+LL | |         };
+   | |_________^
+   |
+help: try instead
+   |
+LL ~         {
+LL +             let it = return_ref_mut_option().as_mut()?;
+LL +             *it += 1;
+LL ~         };
+   |
+
+error: this `match` expression can be replaced with `?`
+  --> tests/ui/question_mark.rs:761:28
+   |
+LL |           let _x: &mut i32 = match return_ref_mut_option() {
+   |  ____________________________^
+LL | |
+LL | |             Some(it) => it,
+LL | |             None => return None,
+LL | |         };
+   | |_________^ help: try instead: `return_ref_mut_option().as_mut()?`
+
+error: this `match` expression can be replaced with `?`
+  --> tests/ui/question_mark.rs:767:9
+   |
+LL | /         match &v {
+LL | |
+LL | |             Some(n) => {
+LL | |                 println!("{n}");
+...  |
+LL | |             None => return None,
+LL | |         };
+   | |_________^
+   |
+help: try instead
+   |
+LL ~         {
+LL +             let n = &v?;
+LL +             println!("{n}");
+LL +             Some(42)
+LL ~         };
+   |
+
+error: this `match` expression can be replaced with `?`
+  --> tests/ui/question_mark.rs:780:9
+   |
+LL | /         match return_ref_result() {
+LL | |
+LL | |             Ok(val) => {
+LL | |                 dbg!(val);
+LL | |             },
+LL | |             Err(e) => return Err(e),
+LL | |         };
+   | |_________^
+   |
+help: try instead
+   |
+LL ~         {
+LL +             let val = return_ref_result().as_ref()?;
+LL +             dbg!(val);
+LL ~         };
+   |
+
+error: this `match` expression can be replaced with `?`
+  --> tests/ui/question_mark.rs:787:24
+   |
+LL |           let _x: &i32 = match return_ref_result() {
+   |  ________________________^
+LL | |
+LL | |             Ok(val) => val,
+LL | |             Err(e) => return Err(e),
+LL | |         };
+   | |_________^ help: try instead: `return_ref_result().as_ref()?`
+
+error: aborting due to 54 previous errors
 
