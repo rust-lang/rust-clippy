@@ -4,13 +4,15 @@ use crate::visitors::{Descend, Visitable, for_each_expr, for_each_expr_without_c
 use crate::{self as utils, get_enclosing_loop_or_multi_call_closure, sym};
 use core::ops::ControlFlow;
 use hir::def::Res;
-use rustc_hir::intravisit::{self, Visitor};
-use rustc_hir::{self as hir, Expr, ExprKind, HirId, HirIdSet};
+use rustc_data_structures::fx::FxHashSet;
+use rustc_hir::intravisit::{self, Visitor, walk_block, walk_expr, walk_path, walk_stmt};
+use rustc_hir::{self as hir, Block, Expr, ExprKind, HirId, HirIdSet, Pat, Path, Stmt, StmtKind};
 use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, Place, PlaceBase, PlaceWithHirId};
 use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
+use rustc_span::Symbol;
 
 /// Returns a set of mutated local variable IDs, or `None` if mutations could not be determined.
 pub fn mutated_variables<'tcx>(expr: &'tcx Expr<'_>, cx: &LateContext<'tcx>) -> Option<HirIdSet> {
@@ -102,7 +104,7 @@ impl<'tcx> ParamBindingIdCollector {
     }
 }
 impl<'tcx> Visitor<'tcx> for ParamBindingIdCollector {
-    fn visit_pat(&mut self, pat: &'tcx hir::Pat<'tcx>) {
+    fn visit_pat(&mut self, pat: &'tcx Pat<'tcx>) {
         if let hir::PatKind::Binding(_, hir_id, ..) = pat.kind {
             self.binding_hir_ids.push(hir_id);
         }
@@ -127,7 +129,7 @@ impl<'tcx> Visitor<'tcx> for BindingUsageFinder<'_, 'tcx> {
     type Result = ControlFlow<()>;
     type NestedFilter = nested_filter::OnlyBodies;
 
-    fn visit_path(&mut self, path: &hir::Path<'tcx>, _: HirId) -> Self::Result {
+    fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) -> Self::Result {
         if let Res::Local(id) = path.res
             && self.binding_ids.contains(&id)
         {
@@ -158,7 +160,7 @@ pub fn is_todo_unimplemented_stub(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool
         }
 
         return block.stmts.last().is_some_and(|stmt| {
-            if let hir::StmtKind::Expr(expr) | hir::StmtKind::Semi(expr) = stmt.kind {
+            if let StmtKind::Expr(expr) | StmtKind::Semi(expr) = stmt.kind {
                 return is_todo_unimplemented_macro(cx, expr);
             }
             false
@@ -236,4 +238,160 @@ pub fn local_used_after_expr(cx: &LateContext<'_>, local_id: HirId, after: &Expr
         }
     })
     .is_some()
+}
+
+struct VariableNameUsageVisitor<'a, 'tcx> {
+    cx: &'a LateContext<'tcx>,
+    expr_id: HirId,
+    names: FxHashSet<Symbol>,
+    past_expr: bool,
+}
+
+impl<'tcx> Visitor<'tcx> for VariableNameUsageVisitor<'_, 'tcx> {
+    type Result = ControlFlow<()>;
+
+    fn visit_path(&mut self, path: &Path<'tcx>, _: HirId) -> Self::Result {
+        if self.past_expr
+            && let Res::Local(_) = path.res
+            && let [segment] = path.segments
+            && self.names.contains(&segment.ident.name)
+        {
+            return ControlFlow::Break(());
+        }
+
+        walk_path(self, path)
+    }
+
+    fn visit_block(&mut self, block: &'tcx Block<'tcx>) -> Self::Result {
+        if self.past_expr {
+            let before = self.names.clone();
+            walk_block(self, block)?;
+            self.names = before;
+            return ControlFlow::Continue(());
+        }
+        walk_block(self, block)
+    }
+
+    fn visit_stmt(&mut self, stmt: &'tcx Stmt<'tcx>) -> Self::Result {
+        if self.past_expr
+            && let StmtKind::Let(let_stmt) = stmt.kind
+        {
+            if let Some(init) = let_stmt.init {
+                self.visit_expr(init)?;
+            }
+
+            let_stmt.pat.each_binding(|_, _, _, ident| {
+                self.names.remove(&ident.name);
+            });
+        }
+        walk_stmt(self, stmt)
+    }
+
+    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) -> Self::Result {
+        if self.past_expr {
+            return match expr.kind {
+                ExprKind::If(
+                    Expr {
+                        kind: ExprKind::Let(let_expr),
+                        ..
+                    },
+                    then,
+                    else_,
+                ) => {
+                    self.visit_expr(let_expr.init)?;
+                    let before = self.names.clone();
+                    let_expr.pat.each_binding(|_, _, _, ident| {
+                        self.names.remove(&ident.name);
+                    });
+
+                    self.visit_expr(then)?;
+                    self.names = before;
+                    if let Some(else_) = else_ {
+                        self.visit_expr(else_)?;
+                    }
+                    ControlFlow::Continue(())
+                },
+                ExprKind::Closure(closure) => {
+                    let body = self.cx.tcx.hir_body(closure.body);
+                    let before = self.names.clone();
+                    for param in body.params {
+                        param.pat.each_binding(|_, _, _, ident| {
+                            self.names.remove(&ident.name);
+                        });
+                    }
+                    self.visit_expr(body.value)?;
+                    self.names = before;
+                    ControlFlow::Continue(())
+                },
+                ExprKind::Match(expr, arms, _) => {
+                    self.visit_expr(expr)?;
+                    for arm in arms {
+                        let before = self.names.clone();
+                        arm.pat.each_binding(|_, _, _, ident| {
+                            self.names.remove(&ident.name);
+                        });
+                        if let Some(guard) = arm.guard {
+                            self.visit_expr(guard)?;
+                        }
+                        self.visit_expr(arm.body)?;
+                        self.names = before;
+                    }
+                    ControlFlow::Continue(())
+                },
+                _ => walk_expr(self, expr),
+            };
+        }
+
+        self.past_expr = expr.hir_id == self.expr_id;
+        if !self.past_expr {
+            return walk_expr(self, expr);
+        }
+
+        ControlFlow::Continue(())
+    }
+}
+
+/// Checks if any of the given variable names are used after the given expression. This can be
+/// helpful to check if removing a block would cause shadowing of variables declared outside the
+/// block.
+#[expect(
+    clippy::implicit_hasher,
+    reason = "`FxHashSet` is preferred for rustc data structures"
+)]
+pub fn variable_names_used_after_expr(cx: &LateContext<'_>, names: FxHashSet<Symbol>, after: &Expr<'_>) -> bool {
+    let Some(block) = utils::get_enclosing_block(cx, after.hir_id) else {
+        return false;
+    };
+
+    let loop_start = get_enclosing_loop_or_multi_call_closure(cx, after).map(|e| e.hir_id);
+
+    let mut visitor = VariableNameUsageVisitor {
+        cx,
+        expr_id: loop_start.unwrap_or(after.hir_id),
+        names,
+        past_expr: false,
+    };
+    visitor.visit_block(block).is_break() || !visitor.past_expr
+}
+
+/// Returns the set of variable names declared in the given pattern.
+pub fn variable_names_of_pat(pat: &Pat<'_>) -> FxHashSet<Symbol> {
+    let mut names = FxHashSet::default();
+    pat.each_binding(|_, _, _, ident| {
+        names.insert(ident.name);
+    });
+    names
+}
+
+/// Returns the set of variable names declared in the given block.
+pub fn variable_names_of_block(block: &Block<'_>) -> FxHashSet<Symbol> {
+    let mut names = FxHashSet::default();
+    for stmt in block.stmts {
+        if let StmtKind::Let(let_stmt) = stmt.kind {
+            let_stmt.pat.each_binding(|_, _, _, ident| {
+                names.insert(ident.name);
+            });
+        }
+    }
+    names
 }
