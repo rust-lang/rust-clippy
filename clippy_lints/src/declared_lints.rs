@@ -687,6 +687,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::regex::INVALID_REGEX_INFO,
     crate::regex::REGEX_CREATION_IN_LOOPS_INFO,
     crate::regex::TRIVIAL_REGEX_INFO,
+    crate::relative_paths::RELATIVE_PATHS_INFO,
     crate::repeat_vec_with_capacity::REPEAT_VEC_WITH_CAPACITY_INFO,
     crate::replace_box::REPLACE_BOX_INFO,
     crate::reserve_after_initialization::RESERVE_AFTER_INITIALIZATION_INFO,
