@@ -1,5 +1,5 @@
 error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:11:5
+  --> tests/ui/cast_alignment.rs:12:5
    |
 LL |     (&1u8 as *const u8) as *const u16;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -8,22 +8,118 @@ LL |     (&1u8 as *const u8) as *const u16;
    = help: to override `-D warnings` add `#[allow(clippy::cast_ptr_alignment)]`
 
 error: casting from `*mut u8` to a more-strictly-aligned pointer (`*mut u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:14:5
+  --> tests/ui/cast_alignment.rs:15:5
    |
 LL |     (&mut 1u8 as *mut u8) as *mut u16;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:18:5
+  --> tests/ui/cast_alignment.rs:19:5
    |
 LL |     (&1u8 as *const u8).cast::<u16>();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: casting from `*mut u8` to a more-strictly-aligned pointer (`*mut u16`) (1 < 2 bytes)
-  --> tests/ui/cast_alignment.rs:21:5
+  --> tests/ui/cast_alignment.rs:22:5
    |
 LL |     (&mut 1u8 as *mut u8).cast::<u16>();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 4 previous errors
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:77:19
+   |
+LL |         let ptr = (&1u8 as *const u8).cast::<u16>();
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:89:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:102:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:131:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:144:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:161:19
+   |
+LL |         let ptr = data.as_ptr().cast::<u16>();
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:176:19
+   |
+LL |         let ptr = data.as_ptr().cast::<u16>();
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:193:19
+   |
+LL |         let ptr = data.as_ptr().cast::<u16>();
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:257:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:269:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:285:25
+   |
+LL |         let unchecked = data[2..].as_ptr().cast::<u16>();
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:297:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:310:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:322:19
+   |
+LL |         let ptr = (&1u8 as *const u8) as *const u16;
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:336:23
+   |
+LL |         let mut ptr = (&1u8 as *const u8) as *const u16;
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting from `*const u8` to a more-strictly-aligned pointer (`*const u16`) (1 < 2 bytes)
+  --> tests/ui/cast_alignment.rs:348:23
+   |
+LL |         let (ptr,) = (((&1u8 as *const u8) as *const u16),);
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 20 previous errors
 
