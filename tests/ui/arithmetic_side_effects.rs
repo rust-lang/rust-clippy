@@ -760,4 +760,33 @@ pub fn issue_17005() {
     let _ = 0xf301_0000u32 + id_u16() as u32;
 }
 
+pub fn issue_17263(f: u64) -> u64 {
+    const SIZE: u64 = std::mem::size_of::<u64>() as u64;
+
+    let _ = f.saturating_div(SIZE);
+    let _ = f.saturating_div(const { SIZE });
+    let _ = f.saturating_div(const { std::mem::size_of::<u64>() as u64 });
+    let _ = f / const { std::mem::size_of::<u64>() as u64 };
+    let _ = f % const { std::mem::size_of::<u64>() as u64 };
+
+    const fn one() -> u64 {
+        1
+    }
+    let _ = f.saturating_div(const { one() });
+
+    let _ = f.saturating_div(const { std::mem::size_of::<()>() as u64 });
+    //~^ arithmetic_side_effects
+    let _ = f / const { std::mem::size_of::<()>() as u64 };
+    //~^ arithmetic_side_effects
+    let _ = f % const { std::mem::size_of::<()>() as u64 };
+    //~^ arithmetic_side_effects
+
+    f
+}
+
+pub fn issue_17263_generic<T>(f: u64) -> u64 {
+    f.saturating_div(const { std::mem::size_of::<T>() as u64 })
+    //~^ arithmetic_side_effects
+}
+
 fn main() {}
