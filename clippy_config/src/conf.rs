@@ -955,9 +955,16 @@ impl Conf {
             Conf::default()
         };
 
-        let cargo_msrv = env::var("CARGO_PKG_RUST_VERSION")
-            .ok()
-            .and_then(|v| parse_version(Symbol::intern(&v)));
+        let cargo_msrv = if sess.is_nightly_build()
+            && let Some(msrv) = sess.opts.unstable_opts.hint_msrv
+        {
+            Some(msrv)
+        } else {
+            env::var("CARGO_PKG_RUST_VERSION")
+                .ok()
+                .and_then(|v| parse_version(Symbol::intern(&v)))
+        };
+
         match (&conf.msrv, cargo_msrv) {
             (None, Some(cargo_msrv)) => conf.msrv = Some(cargo_msrv),
             (Some(clippy_msrv), Some(cargo_msrv)) => {
