@@ -1,6 +1,7 @@
 #![warn(clippy::suboptimal_flops)]
 
 /// Allow suboptimal_ops in constant context
+#[clippy::msrv = "1.93"]
 pub const fn in_const_context() {
     let a: f64 = 1234.567;
     let b: f64 = 45.67834;
@@ -8,6 +9,18 @@ pub const fn in_const_context() {
 
     let _ = a * b + c;
     let _ = c + a * b;
+}
+
+#[clippy::msrv = "1.94"]
+const fn in_const_context_with_mul_add() {
+    let a: f64 = 1234.567;
+    let b: f64 = 45.67834;
+    let c: f64 = 0.0004;
+
+    let _ = a * b + c;
+    //~^ suboptimal_flops
+    let _ = c + a * b;
+    //~^ suboptimal_flops
 }
 
 fn main() {
