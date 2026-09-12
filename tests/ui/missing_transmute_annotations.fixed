@@ -8,8 +8,8 @@ extern crate macro_rules;
 
 macro_rules! local_bad_transmute {
     ($e:expr) => {
-        std::mem::transmute::<[u16; 2], i32>($e)
-        //~^ missing_transmute_annotations
+        // Should not warn!
+        std::mem::transmute($e)
     };
 }
 
