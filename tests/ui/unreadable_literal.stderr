@@ -1,65 +1,148 @@
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:31:17
+  --> tests/ui/unreadable_literal.rs:15:17
    |
 LL |     let _bad = (0b110110_i64, 0x12345678_usize, 123456_f32, 1.234567_f32);
-   |                 ^^^^^^^^^^^^ help: consider: `0b11_0110_i64`
+   |                 ^^^^^^^^^^^^
    |
    = note: `-D clippy::unreadable-literal` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unreadable_literal)]`
+help: separate the digits
+   |
+LL |     let _bad = (0b11_0110_i64, 0x12345678_usize, 123456_f32, 1.234567_f32);
+   |                     +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:31:31
+  --> tests/ui/unreadable_literal.rs:15:31
    |
 LL |     let _bad = (0b110110_i64, 0x12345678_usize, 123456_f32, 1.234567_f32);
-   |                               ^^^^^^^^^^^^^^^^ help: consider: `0x1234_5678_usize`
+   |                               ^^^^^^^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _bad = (0b110110_i64, 0x1234_5678_usize, 123456_f32, 1.234567_f32);
+   |                                     +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:31:49
+  --> tests/ui/unreadable_literal.rs:15:49
    |
 LL |     let _bad = (0b110110_i64, 0x12345678_usize, 123456_f32, 1.234567_f32);
-   |                                                 ^^^^^^^^^^ help: consider: `123_456_f32`
+   |                                                 ^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _bad = (0b110110_i64, 0x12345678_usize, 123_456_f32, 1.234567_f32);
+   |                                                    +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:31:61
+  --> tests/ui/unreadable_literal.rs:15:61
    |
 LL |     let _bad = (0b110110_i64, 0x12345678_usize, 123456_f32, 1.234567_f32);
-   |                                                             ^^^^^^^^^^^^ help: consider: `1.234_567_f32`
+   |                                                             ^^^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _bad = (0b110110_i64, 0x12345678_usize, 123456_f32, 1.234_567_f32);
+   |                                                                  +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:37:20
+  --> tests/ui/unreadable_literal.rs:21:20
    |
 LL |     let _bad_sci = 1.123456e1;
-   |                    ^^^^^^^^^^ help: consider: `1.123_456e1`
+   |                    ^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _bad_sci = 1.123_456e1;
+   |                         +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:40:18
+  --> tests/ui/unreadable_literal.rs:24:18
    |
 LL |     let _fail1 = 0xabcdef;
-   |                  ^^^^^^^^ help: consider: `0x00ab_cdef`
+   |                  ^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _fail1 = 0xab_cdef;
+   |                      +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:42:23
+  --> tests/ui/unreadable_literal.rs:26:23
    |
 LL |     let _fail2: u32 = 0xBAFEBAFE;
-   |                       ^^^^^^^^^^ help: consider: `0xBAFE_BAFE`
+   |                       ^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _fail2: u32 = 0xBAFE_BAFE;
+   |                             +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:44:18
+  --> tests/ui/unreadable_literal.rs:28:18
    |
 LL |     let _fail3 = 0xabcdeff;
-   |                  ^^^^^^^^^ help: consider: `0x0abc_deff`
+   |                  ^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _fail3 = 0xabc_deff;
+   |                       +
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:46:24
+  --> tests/ui/unreadable_literal.rs:30:24
    |
 LL |     let _fail4: i128 = 0xabcabcabcabcabcabc;
-   |                        ^^^^^^^^^^^^^^^^^^^^ help: consider: `0x00ab_cabc_abca_bcab_cabc`
+   |                        ^^^^^^^^^^^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL -     let _fail4: i128 = 0xabcabcabcabcabcabc;
+LL +     let _fail4: i128 = 0xab_cabc_abca_bcab_cabc;
+   |
 
 error: long literal lacking separators
-  --> tests/ui/unreadable_literal.rs:48:18
+  --> tests/ui/unreadable_literal.rs:32:18
    |
 LL |     let _fail5 = 1.100300400;
-   |                  ^^^^^^^^^^^ help: consider: `1.100_300_400`
+   |                  ^^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL -     let _fail5 = 1.100300400;
+LL +     let _fail5 = 1.100_300_400;
+   |
 
-error: aborting due to 10 previous errors
+error: long literal lacking separators
+  --> tests/ui/unreadable_literal.rs:41:21
+   |
+LL |                 Foo(123123123123)
+   |                     ^^^^^^^^^^^^
+...
+LL |         let _ = foo!();
+   |                 ------ in this macro invocation
+   |
+   = note: this error originates in the macro `foo` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: separate the digits
+   |
+LL -                 Foo(123123123123)
+LL +                 Foo(123_123_123_123)
+   |
+
+error: long literal lacking separators
+  --> tests/ui/unreadable_literal.rs:46:21
+   |
+LL |                 Bar(100200300400.100200300400500)
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |         let _ = bar!();
+   |                 ------ in this macro invocation
+   |
+   = note: this error originates in the macro `bar` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: separate the digits
+   |
+LL -                 Bar(100200300400.100200300400500)
+LL +                 Bar(100_200_300_400.100_200_300_400_500)
+   |
+
+error: aborting due to 12 previous errors
 

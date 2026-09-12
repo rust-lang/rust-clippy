@@ -1,21 +1,5 @@
 #![warn(clippy::unreadable_literal)]
 
-struct Foo(u64);
-
-macro_rules! foo {
-    () => {
-        Foo(123123123123)
-    };
-}
-
-struct Bar(f32);
-
-macro_rules! bar {
-    () => {
-        Bar(100200300400.100200300400500)
-    };
-}
-
 fn main() {
     let _good = (
         0b1011_i64,
@@ -48,6 +32,21 @@ fn main() {
     let _fail5 = 1.100300400;
     //~^ unreadable_literal
 
-    let _ = foo!();
-    let _ = bar!();
+    {
+        struct Foo(u64);
+        struct Bar(f32);
+
+        macro_rules! foo {
+            () => {
+                Foo(123123123123) //~ unreadable_literal
+            };
+        }
+        macro_rules! bar {
+            () => {
+                Bar(100200300400.100200300400500) //~ unreadable_literal
+            };
+        }
+        let _ = foo!();
+        let _ = bar!();
+    }
 }

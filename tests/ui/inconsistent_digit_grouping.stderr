@@ -1,71 +1,128 @@
-error: digits grouped inconsistently by underscores
-  --> tests/ui/inconsistent_digit_grouping.rs:25:16
+error: digits in groups of unequal sizes
+  --> tests/ui/inconsistent_digit_grouping.rs:14:16
    |
-LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1_234.5678_f32, 1.234_5678_f32);
-   |                ^^^^^^^^ help: consider: `123_456`
+LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1.234_5678_f32);
+   |                ^^^^^^^^
    |
    = note: `-D clippy::inconsistent-digit-grouping` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::inconsistent_digit_grouping)]`
-
-error: digits grouped inconsistently by underscores
-  --> tests/ui/inconsistent_digit_grouping.rs:25:26
+help: group the digits with a consistent size
    |
-LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1_234.5678_f32, 1.234_5678_f32);
-   |                          ^^^^^^^^^^ help: consider: `12_345_678`
-
-error: digits grouped inconsistently by underscores
-  --> tests/ui/inconsistent_digit_grouping.rs:25:38
+LL -     let bad = (1_23_456, 1_234_5678, 1234_567, 1.234_5678_f32);
+LL +     let bad = (123_456, 1_234_5678, 1234_567, 1.234_5678_f32);
    |
-LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1_234.5678_f32, 1.234_5678_f32);
-   |                                      ^^^^^^^^ help: consider: `1_234_567`
 
-error: digits grouped inconsistently by underscores
-  --> tests/ui/inconsistent_digit_grouping.rs:25:48
+error: digits in groups of unequal sizes
+  --> tests/ui/inconsistent_digit_grouping.rs:14:26
    |
-LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1_234.5678_f32, 1.234_5678_f32);
-   |                                                ^^^^^^^^^^^^^^ help: consider: `1_234.567_8_f32`
+LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1.234_5678_f32);
+   |                          ^^^^^^^^^^
+   |
+help: group the digits with a consistent size
+   |
+LL -     let bad = (1_23_456, 1_234_5678, 1234_567, 1.234_5678_f32);
+LL +     let bad = (1_23_456, 12_345_678, 1234_567, 1.234_5678_f32);
+   |
 
-error: digits grouped inconsistently by underscores
-  --> tests/ui/inconsistent_digit_grouping.rs:25:64
+error: digits in groups of unequal sizes
+  --> tests/ui/inconsistent_digit_grouping.rs:14:38
    |
-LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1_234.5678_f32, 1.234_5678_f32);
-   |                                                                ^^^^^^^^^^^^^^ help: consider: `1.234_567_8_f32`
+LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1.234_5678_f32);
+   |                                      ^^^^^^^^
+   |
+help: group the digits with a consistent size
+   |
+LL |     let bad = (1_23_456, 1_234_5678, 1_234_567, 1.234_5678_f32);
+   |                                       +
+
+error: digits in groups of unequal sizes
+  --> tests/ui/inconsistent_digit_grouping.rs:14:48
+   |
+LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1.234_5678_f32);
+   |                                                ^^^^^^^^^^^^^^
+   |
+help: group the digits with a consistent size
+   |
+LL |     let bad = (1_23_456, 1_234_5678, 1234_567, 1.234_567_8_f32);
+   |                                                         +
 
 error: long literal lacking separators
-  --> tests/ui/inconsistent_digit_grouping.rs:33:13
+  --> tests/ui/inconsistent_digit_grouping.rs:21:13
    |
 LL |     let _ = 0x100000;
-   |             ^^^^^^^^ help: consider: `0x0010_0000`
+   |             ^^^^^^^^
    |
 note: the lint level is defined here
   --> tests/ui/inconsistent_digit_grouping.rs:2:8
    |
 LL | #[deny(clippy::unreadable_literal)]
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: separate the digits
+   |
+LL |     let _ = 0x10_0000;
+   |                 +
 
 error: long literal lacking separators
-  --> tests/ui/inconsistent_digit_grouping.rs:35:13
+  --> tests/ui/inconsistent_digit_grouping.rs:23:13
    |
 LL |     let _ = 0x1000000;
-   |             ^^^^^^^^^ help: consider: `0x0100_0000`
+   |             ^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _ = 0x100_0000;
+   |                  +
 
 error: long literal lacking separators
-  --> tests/ui/inconsistent_digit_grouping.rs:37:13
+  --> tests/ui/inconsistent_digit_grouping.rs:25:13
    |
 LL |     let _ = 0x10000000;
-   |             ^^^^^^^^^^ help: consider: `0x1000_0000`
+   |             ^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL |     let _ = 0x1000_0000;
+   |                   +
 
 error: long literal lacking separators
-  --> tests/ui/inconsistent_digit_grouping.rs:39:13
+  --> tests/ui/inconsistent_digit_grouping.rs:27:13
    |
 LL |     let _ = 0x100000000_u64;
-   |             ^^^^^^^^^^^^^^^ help: consider: `0x0001_0000_0000_u64`
+   |             ^^^^^^^^^^^^^^^
+   |
+help: separate the digits
+   |
+LL -     let _ = 0x100000000_u64;
+LL +     let _ = 0x1_0000_0000_u64;
+   |
 
-error: digits grouped inconsistently by underscores
-  --> tests/ui/inconsistent_digit_grouping.rs:43:18
+error: digits in groups of unequal sizes
+  --> tests/ui/inconsistent_digit_grouping.rs:31:18
    |
 LL |     let _: f32 = 1_23_456.;
-   |                  ^^^^^^^^^ help: consider: `123_456.`
+   |                  ^^^^^^^^^
+   |
+help: group the digits with a consistent size
+   |
+LL -     let _: f32 = 1_23_456.;
+LL +     let _: f32 = 123_456.;
+   |
+
+error: digits in groups of unequal sizes
+  --> tests/ui/inconsistent_digit_grouping.rs:40:17
+   |
+LL |                 1_23_456
+   |                 ^^^^^^^^
+...
+LL |         let _ = mac1!();
+   |                 ------- in this macro invocation
+   |
+   = note: this error originates in the macro `mac1` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: group the digits with a consistent size
+   |
+LL -                 1_23_456
+LL +                 123_456
+   |
 
 error: aborting due to 10 previous errors
 

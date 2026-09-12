@@ -127,35 +127,57 @@ error: integer type suffix should not be separated by an underscore
 LL |     let ok17 = 0x123_4567_8901_usize;
    |                ^^^^^^^^^^^^^^^^^^^^^ help: remove the underscore: `0x123_4567_8901usize`
 
-error: digits grouped inconsistently by underscores
+error: digits in groups of unequal sizes
   --> tests/ui/literals.rs:62:18
    |
 LL |     let fail19 = 12_3456_21;
-   |                  ^^^^^^^^^^ help: consider: `12_345_621`
+   |                  ^^^^^^^^^^
    |
    = note: `-D clippy::inconsistent-digit-grouping` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::inconsistent_digit_grouping)]`
+help: group the digits with a consistent size
+   |
+LL -     let fail19 = 12_3456_21;
+LL +     let fail19 = 12_345_621;
+   |
 
-error: digits grouped inconsistently by underscores
+error: digits in groups of unequal sizes
   --> tests/ui/literals.rs:65:18
    |
 LL |     let fail22 = 3__4___23;
-   |                  ^^^^^^^^^ help: consider: `3_423`
+   |                  ^^^^^^^^^
+   |
+help: group the digits with a consistent size
+   |
+LL -     let fail22 = 3__4___23;
+LL +     let fail22 = 3_423;
+   |
 
-error: digits grouped inconsistently by underscores
+error: digits in groups of unequal sizes
   --> tests/ui/literals.rs:68:18
    |
 LL |     let fail23 = 3__16___23;
-   |                  ^^^^^^^^^^ help: consider: `31_623`
+   |                  ^^^^^^^^^^
+   |
+help: group the digits with a consistent size
+   |
+LL -     let fail23 = 3__16___23;
+LL +     let fail23 = 31_623;
+   |
 
-error: digits of hex, binary or octal literal not in groups of equal size
+error: digits in groups of unequal sizes
   --> tests/ui/literals.rs:71:18
    |
 LL |     let fail24 = 0xAB_ABC_AB;
-   |                  ^^^^^^^^^^^ help: consider: `0x0ABA_BCAB`
+   |                  ^^^^^^^^^^^
    |
    = note: `-D clippy::unusual-byte-groupings` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unusual_byte_groupings)]`
+help: group the digits with a consistent size
+   |
+LL -     let fail24 = 0xAB_ABC_AB;
+LL +     let fail24 = 0xABA_BCAB;
+   |
 
 error: this is a decimal constant
   --> tests/ui/literals.rs:81:13
