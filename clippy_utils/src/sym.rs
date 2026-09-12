@@ -573,6 +573,7 @@ generate! {
     sqrt,
     starts_with,
     std_detect,
+    std_wildcard_imports,
     step_by,
     str_chars,
     str_ends_with,

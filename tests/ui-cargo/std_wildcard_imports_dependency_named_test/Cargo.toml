@@ -1,0 +1,10 @@
+[package]
+name = "std_wildcard_imports_dependency_named_test"
+edition = "2024"
+publish = false
+version = "0.1.0"
+
+[workspace]
+
+[dependencies]
+fake_test = { package = "test", path = "test" }
