@@ -135,4 +135,33 @@ fn main() {
     // the comparison should also look through references
     &0.0 == &ZERO;
     &&&&0.0 == &&&&ZERO;
+
+    // `assert_eq` and `assert_ne` are not covered by `float_cmp`.
+    // Instead, they are covered by `float_cmp_const`.
+    let a = twice(0.0);
+    let b = twice(1.0);
+    assert_eq!(a, 0.0);
+    assert_ne!(b, 0.0);
+    assert_eq!(0.0, a);
+    assert_ne!(0.0, b);
+
+    assert_eq!(a, 2.0);
+    assert_ne!(b, 3.0);
+    assert_eq!(4.0, a);
+    assert_ne!(5.0, b);
+
+    // However, comparisons are covered.
+    assert!(a == 0.0);
+    assert!(b == 0.0);
+    assert!(0.0 == a);
+    assert!(0.0 == b);
+
+    assert!(a != 2.0);
+    //~^ float_cmp
+    assert!(b != 3.0);
+    //~^ float_cmp
+    assert!(4.0 != a);
+    //~^ float_cmp
+    assert!(5.0 != b);
+    //~^ float_cmp
 }
