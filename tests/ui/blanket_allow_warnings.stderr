@@ -1,0 +1,63 @@
+error: `warnings` group in `allow` attribute
+  --> tests/ui/blanket_allow_warnings.rs:3:10
+   |
+LL | #![allow(warnings)]
+   |          ^^^^^^^^
+   |
+   = help: `allow` lints individually or in smaller groups
+note: the lint level is defined here
+  --> tests/ui/blanket_allow_warnings.rs:2:9
+   |
+LL | #![deny(clippy::blanket_allow_warnings)]
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `warnings` group in `expect` attribute
+  --> tests/ui/blanket_allow_warnings.rs:5:11
+   |
+LL | #![expect(warnings)]
+   |           ^^^^^^^^
+   |
+   = help: `expect` lints individually or in smaller groups
+
+error: `warnings` group in `allow` attribute
+  --> tests/ui/blanket_allow_warnings.rs:9:5
+   |
+LL |     warnings,
+   |     ^^^^^^^^
+   |
+   = help: `allow` lints individually or in smaller groups
+
+error: `warnings` group in `expect` attribute
+  --> tests/ui/blanket_allow_warnings.rs:16:5
+   |
+LL |     warnings
+   |     ^^^^^^^^
+   |
+   = help: `expect` lints individually or in smaller groups
+
+error: `warnings` group in `allow` attribute
+  --> tests/ui/blanket_allow_warnings.rs:19:10
+   |
+LL | #![allow(warnings, reason = "shrug")]
+   |          ^^^^^^^^
+   |
+   = help: `allow` lints individually or in smaller groups
+
+error: `warnings` group in `expect` attribute
+  --> tests/ui/blanket_allow_warnings.rs:21:11
+   |
+LL | #![expect(warnings, reason = "shrug")]
+   |           ^^^^^^^^
+   |
+   = help: `expect` lints individually or in smaller groups
+
+error: `warnings` group in `allow` attribute
+  --> tests/ui/blanket_allow_warnings.rs:24:9
+   |
+LL | #[allow(warnings)]
+   |         ^^^^^^^^
+   |
+   = help: `allow` lints individually or in smaller groups
+
+error: aborting due to 7 previous errors
+
