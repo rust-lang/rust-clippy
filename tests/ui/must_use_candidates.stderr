@@ -72,5 +72,29 @@ LL + #[must_use]
 LL | pub fn result_uninhabited_1() -> Result<i32, std::convert::Infallible> {
    |
 
-error: aborting due to 6 previous errors
+error: this function could have a `#[must_use]` attribute
+  --> tests/ui/must_use_candidates.rs:126:12
+   |
+LL |     pub fn pure(i: u8) -> u8 {
+   |            ^^^^
+   |
+help: add the attribute
+   |
+LL ~     #[must_use = "<REASON>"]
+LL ~     pub fn pure(i: u8) -> u8 {
+   |
+
+error: this function could have a `#[must_use]` attribute
+  --> tests/ui/must_use_candidates.rs:132:12
+   |
+LL |     pub fn reason_lint_allowed(i: u8) -> u8 {
+   |            ^^^^^^^^^^^^^^^^^^^
+   |
+help: add the attribute
+   |
+LL ~     #[must_use]
+LL ~     pub fn reason_lint_allowed(i: u8) -> u8 {
+   |
+
+error: aborting due to 8 previous errors
 
