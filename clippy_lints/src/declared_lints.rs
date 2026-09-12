@@ -548,6 +548,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::missing_enforced_import_rename::MISSING_ENFORCED_IMPORT_RENAMES_INFO,
     crate::missing_fields_in_debug::MISSING_FIELDS_IN_DEBUG_INFO,
     crate::missing_inline::MISSING_INLINE_IN_PUBLIC_ITEMS_INFO,
+    crate::missing_panic_message::MISSING_PANIC_MESSAGE_INFO,
     crate::missing_trait_methods::MISSING_TRAIT_METHODS_INFO,
     crate::mixed_read_write_in_expression::DIVERGING_SUB_EXPRESSION_INFO,
     crate::mixed_read_write_in_expression::MIXED_READ_WRITE_IN_EXPRESSION_INFO,
