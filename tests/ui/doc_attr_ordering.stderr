@@ -1,0 +1,88 @@
+error: doc comments and attributes should precede other attributes
+  --> tests/ui/doc_attr_ordering.rs:8:1
+   |
+LL | /// Type
+   | ^^^^^^^^
+   |
+help: place any doc comments and attributes before this attribute
+  --> tests/ui/doc_attr_ordering.rs:7:1
+   |
+LL | #[repr(u8)]
+   | ^^^^^^^^^^^
+   = note: `-D clippy::doc-attr-ordering` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_attr_ordering)]`
+
+error: doc comments and attributes should precede other attributes
+  --> tests/ui/doc_attr_ordering.rs:15:1
+   |
+LL | /// Function
+   | ^^^^^^^^^^^^
+   |
+help: place any doc comments and attributes before this attribute
+  --> tests/ui/doc_attr_ordering.rs:14:1
+   |
+LL | #[must_use]
+   | ^^^^^^^^^^^
+
+error: doc comments and attributes should precede other attributes
+  --> tests/ui/doc_attr_ordering.rs:19:5
+   |
+LL |     /// Statement
+   |     ^^^^^^^^^^^^^
+   |
+help: place any doc comments and attributes before this attribute
+  --> tests/ui/doc_attr_ordering.rs:18:5
+   |
+LL |     #[allow(unused_doc_comments)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: doc comments and attributes should precede other attributes
+  --> tests/ui/doc_attr_ordering.rs:25:1
+   |
+LL | /// Proc macro
+   | ^^^^^^^^^^^^^^
+   |
+help: place any doc comments and attributes before this attribute
+  --> tests/ui/doc_attr_ordering.rs:24:1
+   |
+LL | #[proc_macro]
+   | ^^^^^^^^^^^^^
+
+error: doc comments and attributes should precede other attributes
+  --> tests/ui/doc_attr_ordering.rs:33:1
+   |
+LL | /// ...wraps other attributes
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: place any doc comments and attributes before this attribute
+  --> tests/ui/doc_attr_ordering.rs:32:1
+   |
+LL | #[must_use]
+   | ^^^^^^^^^^^
+
+error: doc comments and attributes should precede other attributes
+  --> tests/ui/doc_attr_ordering.rs:38:1
+   |
+LL | /// Documentation in between other attributes
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: place any doc comments and attributes before this attribute
+  --> tests/ui/doc_attr_ordering.rs:37:1
+   |
+LL | #[must_use]
+   | ^^^^^^^^^^^
+
+error: doc comments and attributes should precede other attributes
+  --> tests/ui/doc_attr_ordering.rs:64:1
+   |
+LL | /// Only outer attributes are checked
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: place any doc comments and attributes before this attribute
+  --> tests/ui/doc_attr_ordering.rs:63:1
+   |
+LL | #[allow(dead_code)]
+   | ^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 7 previous errors
+
