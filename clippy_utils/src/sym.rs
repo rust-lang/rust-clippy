@@ -555,6 +555,7 @@ generate! {
     sort,
     sort_by,
     sort_unstable_by,
+    source,
     span_help,
     span_lint_and_then,
     span_note,
