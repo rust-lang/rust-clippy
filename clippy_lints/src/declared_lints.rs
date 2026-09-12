@@ -683,6 +683,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::redundant_type_annotations::REDUNDANT_TYPE_ANNOTATIONS_INFO,
     crate::ref_option_ref::REF_OPTION_REF_INFO,
     crate::ref_patterns::REF_PATTERNS_INFO,
+    crate::refcell_cell::REFCELL_CELL_INFO,
     crate::reference::DEREF_ADDROF_INFO,
     crate::regex::INVALID_REGEX_INFO,
     crate::regex::REGEX_CREATION_IN_LOOPS_INFO,
