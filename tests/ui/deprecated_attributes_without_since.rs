@@ -37,7 +37,24 @@ fn main() {
 
     #[deprecated(note = "kinda weird to deprecate everything inside too")]
     //~^ deprecated_attributes_without_since
-    mod module {}
+    mod module {
+        #[deprecated]
+        //~^ deprecated_attributes_without_since
+        struct DeprecatedStruct {
+            #[deprecated]
+            //~^ deprecated_attributes_without_since
+            deprecated_field: u32,
+        }
+
+        #[expect(deprecated, reason = "using a deprecated struct by way of impl for it")]
+        #[deprecated]
+        //~^ deprecated_attributes_without_since
+        impl DeprecatedStruct {
+            #[deprecated]
+            //~^ deprecated_attributes_without_since
+            fn deprecated_method() {}
+        }
+    }
 
     // These should be fine
     #[allow(deprecated)]

@@ -52,5 +52,29 @@ error: `deprecated` attribute without specifying what version of the crate depre
 LL |     #[deprecated(note = "kinda weird to deprecate everything inside too")]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "kinda weird to deprecate everything inside too", since = /* version */)]`
 
-error: aborting due to 8 previous errors
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:41:9
+   |
+LL |         #[deprecated]
+   |         ^^^^^^^^^^^^^ help: add a version: `#[deprecated(since = /* version */)]`
+
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:44:13
+   |
+LL |             #[deprecated]
+   |             ^^^^^^^^^^^^^ help: add a version: `#[deprecated(since = /* version */)]`
+
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:50:9
+   |
+LL |         #[deprecated]
+   |         ^^^^^^^^^^^^^ help: add a version: `#[deprecated(since = /* version */)]`
+
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:53:13
+   |
+LL |             #[deprecated]
+   |             ^^^^^^^^^^^^^ help: add a version: `#[deprecated(since = /* version */)]`
+
+error: aborting due to 12 previous errors
 
