@@ -98,6 +98,8 @@ LL | foobar = 42
            unnecessary-box-size
            unreadable-literal-lint-fractions
            upper-case-acronyms-aggressive
+           use-destructuring-min-fields
+           use-destructuring-scope
            vec-box-size-threshold
            verbose-bit-mask-threshold
            warn-on-all-wildcard-imports

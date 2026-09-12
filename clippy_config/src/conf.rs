@@ -1,9 +1,10 @@
 use crate::ConfMetadata;
 use crate::de::{DeserializeOrDefault, DiagCtxt, FromDefault, create_value_list_msg, find_closest_match};
 use crate::types::{
-    DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher, MatchLintBehaviour,
-    PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering, SourceItemOrderingModuleItemGroupings,
-    SourceItemOrderingTraitAssocItemKinds, SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
+    DestructuringScope, DisallowedPath, DisallowedPathWithoutReplacement, InherentImplLintScope, MacroMatcher,
+    MatchLintBehaviour, PubUnderscoreFieldsBehaviour, Rename, SourceItemOrdering,
+    SourceItemOrderingModuleItemGroupings, SourceItemOrderingTraitAssocItemKinds,
+    SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
 };
 use rustc_attr_ir::RustcVersion;
 use rustc_attr_parsing::parse_version;
@@ -814,6 +815,14 @@ define_Conf! {
     /// Enables verbose mode. Triggers if there is more than one uppercase char next to each other
     #[lints(upper_case_acronyms)]
     upper_case_acronyms_aggressive("upper-case-acronyms-aggressive"): bool = false,
+    /// The minimum number of struct fields for the `use_destructuring` lint to trigger.
+    #[lints(use_destructuring)]
+    use_destructuring_min_fields("use-destructuring-min-fields"): u64 = 3,
+    /// Which struct types the `use_destructuring` lint applies to:
+    /// `"self"` (only the `self` parameter), `"Self"` (any variable whose type
+    /// is `Self`), `"crate"` (types from the current crate), or `"*"` (all types).
+    #[lints(use_destructuring)]
+    use_destructuring_scope("use-destructuring-scope"): DestructuringScope = DestructuringScope::SelfBinding,
     /// The size of the boxed type in bytes, where boxing in a `Vec` is allowed
     #[lints(vec_box)]
     vec_box_size_threshold("vec-box-size-threshold"): u64 = 4096,

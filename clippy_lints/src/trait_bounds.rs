@@ -380,10 +380,15 @@ struct ComparableTraitRef<'a, 'tcx> {
 
 impl PartialEq for ComparableTraitRef<'_, '_> {
     fn eq(&self, other: &Self) -> bool {
-        SpanlessEq::eq_modifiers(self.modifiers, other.modifiers)
-            && SpanlessEq::new(self.cx).paths_by_resolution().eq_path(
+        let Self {
+            cx,
+            trait_ref,
+            modifiers,
+        } = *self;
+        SpanlessEq::eq_modifiers(modifiers, other.modifiers)
+            && SpanlessEq::new(cx).paths_by_resolution().eq_path(
                 SyntaxContext::root(),
-                self.trait_ref.path,
+                trait_ref.path,
                 other.trait_ref.path,
             )
     }
@@ -391,9 +396,14 @@ impl PartialEq for ComparableTraitRef<'_, '_> {
 impl Eq for ComparableTraitRef<'_, '_> {}
 impl Hash for ComparableTraitRef<'_, '_> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let mut s = SpanlessHash::new(self.cx).paths_by_resolution();
-        s.hash_path(self.trait_ref.path);
-        s.hash_modifiers(self.modifiers);
+        let Self {
+            cx,
+            trait_ref,
+            modifiers,
+        } = self;
+        let mut s = SpanlessHash::new(cx).paths_by_resolution();
+        s.hash_path(trait_ref.path);
+        s.hash_modifiers(*modifiers);
         state.write_u64(s.finish());
     }
 }
