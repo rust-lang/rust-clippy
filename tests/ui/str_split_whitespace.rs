@@ -1,0 +1,212 @@
+#![warn(clippy::str_split_whitespace)]
+#![allow(clippy::comparison_to_empty, clippy::len_zero)]
+
+use std::ops::Deref;
+
+struct NotStr<'a> {
+    s: &'a str,
+}
+
+impl<'a> NotStr<'a> {
+    fn split(&'a self, pat: char) -> impl Iterator<Item = &'a str> {
+        self.s.split(pat)
+    }
+}
+
+struct Custom;
+
+impl Custom {
+    fn is_empty(s: &str) -> bool {
+        s == "-"
+    }
+
+    fn len(s: &str) -> usize {
+        s.chars().count()
+    }
+
+    fn trim(s: &str) -> &str {
+        s.trim_matches('-')
+    }
+}
+
+struct DerefsIntoStr<'a> {
+    s: &'a str,
+}
+
+impl<'a> Deref for DerefsIntoStr<'a> {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        self.s
+    }
+}
+
+fn make_str() -> String {
+    "hello  world  again".to_owned()
+}
+
+macro_rules! split_filter {
+    ( $x:expr, $y:expr ) => {
+        $x.split($y).filter(|s| !s.is_empty())
+    };
+}
+
+fn main() {
+    let s1 = "hello  world  again";
+    let s2 = s1.to_owned();
+
+    // CASES THAT SHOULD EMIT A LINT
+
+    // A negated `is_empty` check, as a method or a path call
+    let _ = s1.split(' ').filter(|s| !s.is_empty());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| !str::is_empty(s));
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| !<str>::is_empty(s));
+    //~^ str_split_whitespace
+
+    // The checked substring may be trimmed first
+    let _ = s1.split(' ').filter(|s| !s.trim().is_empty());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| !s.trim_start().is_empty());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| !s.trim_end().is_empty());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| !s.trim_start().trim_end().is_empty());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| !str::is_empty(s.trim()));
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| !str::is_empty(str::trim(s)));
+    //~^ str_split_whitespace
+
+    // A comparison of the length against zero or one
+    let _ = s1.split(' ').filter(|s| s.len() > 0);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| s.len() != 0);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| s.len() >= 1);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| s.len() > 0usize);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| s.trim().len() > 0);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| str::len(s) > 0);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| str::len(s.trim()) > 0);
+    //~^ str_split_whitespace
+
+    // The same comparisons with the operands swapped
+    let _ = s1.split(' ').filter(|s| 0 < s.len());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| 0 != s.len());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| 1 <= s.len());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| 0 < str::len(s));
+    //~^ str_split_whitespace
+
+    // A comparison against the empty string, on either side
+    let _ = s1.split(' ').filter(|s| *s != "");
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| s != &"");
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| s != "");
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| s.trim() != "");
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| "" != *s);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| &"" != s);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s| "" != s);
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s| "" != s.trim());
+    //~^ str_split_whitespace
+
+    // The parameter may be written as a reference pattern, may have a type annotation, and the
+    // body may be a block
+    let _ = s1.split(' ').filter(|&s| !s.is_empty());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|s: &&str| !s.is_empty());
+    //~^ str_split_whitespace
+    let _ = s1.split(' ').filter(|&s: &&str| !s.is_empty());
+    //~^ str_split_whitespace
+    #[rustfmt::skip]
+    let _ = s1.split(' ').filter(|s| { !s.is_empty() });
+    //~^ str_split_whitespace
+
+    // The separator may be a string literal, raw or not
+    #[allow(clippy::single_char_pattern)]
+    let _ = s1.split(" ").filter(|s| !s.is_empty());
+    //~^ str_split_whitespace
+    #[allow(clippy::single_char_pattern)]
+    let _ = s1.split(r" ").filter(|s| !s.is_empty());
+    //~^ str_split_whitespace
+
+    // Splitting a `String` should warn, since it derefs into `str`
+    let _ = s2.split(' ').filter(|s| !s.is_empty());
+    //~^ str_split_whitespace
+
+    // So should splitting a value that derefs into `str`
+    let s3 = DerefsIntoStr { s: s1 };
+    let _ = s3.split(' ').filter(|s| !s.is_empty());
+    //~^ str_split_whitespace
+
+    // The receiver may be an arbitrary expression, which must be left untouched
+    let _ = make_str().split(' ').filter(|s| !s.is_empty());
+    //~^ str_split_whitespace
+
+    // A receiver generated by a macro should not be expanded in the suggested fix
+    let _ = format!("{s1} {s2}").split(' ').filter(|s| !s.is_empty());
+    //~^ str_split_whitespace
+
+    // CASES THAT SHOULD NOT EMIT A LINT
+
+    // Splitting on a single space without filtering out the empty substrings is left alone: the
+    // empty substrings may well be wanted.
+    let _ = s1.split(' ');
+
+    // Splitting on anything other than a single space should not warn
+    let _ = s1.split("  ").filter(|s| !s.is_empty());
+    let _ = s1.split('\t').filter(|s| !s.is_empty());
+    let _ = s1.split(", ").filter(|s| !s.is_empty());
+
+    // A non-literal separator should not warn, even when it holds a single space
+    let sep = ' ';
+    let _ = s1.split(sep).filter(|s| !s.is_empty());
+
+    // `splitn` limits the number of substrings, so it is not equivalent
+    let _ = s1.splitn(2, ' ').filter(|s| !s.is_empty());
+
+    // A closure testing something other than its own parameter should not warn
+    let _ = s1.split(' ').filter(|_| !s2.is_empty());
+    let _ = s1.split(' ').filter(|s| !s.starts_with('a'));
+    let _ = s1.split(' ').filter(|_| s2.len() > 0);
+    let _ = s1.split(' ').filter(|_| 0 < 1);
+
+    // A closure that keeps the empty substrings, or not only them, should not warn
+    let _ = s1.split(' ').filter(|s| s.is_empty());
+    let _ = s1.split(' ').filter(|s| s.len() == 0);
+    let _ = s1.split(' ').filter(|s| s.len() > 1);
+    let _ = s1.split(' ').filter(|s| s.len() != 1);
+    let _ = s1.split(' ').filter(|s| s.len() >= 2);
+    let _ = s1.split(' ').filter(|s| 1 < s.len());
+    let _ = s1.split(' ').filter(|s| *s == "");
+    let _ = s1.split(' ').filter(|s| *s != "a");
+
+    // Only `trim`, `trim_start` and `trim_end` may be applied to the substring
+    let _ = s1.split(' ').filter(|s| !s.to_uppercase().is_empty());
+    let _ = s1.split(' ').filter(|s| !s.trim_matches('a').is_empty());
+
+    // An associated function of a type other than `str` may mean anything
+    let _ = s1.split(' ').filter(|&s| !Custom::is_empty(s));
+    let _ = s1.split(' ').filter(|&s| Custom::len(s) > 0);
+    let _ = s1.split(' ').filter(|&s| !str::is_empty(Custom::trim(s)));
+
+    // `split` on a type that is not a `str` should not warn
+    let not_str = NotStr { s: s1 };
+    let _ = not_str.split(' ').filter(|s| !s.is_empty());
+
+    // The lint should not fire inside a macro, whose body the user cannot change
+    let _ = split_filter!(s1, ' ');
+}
