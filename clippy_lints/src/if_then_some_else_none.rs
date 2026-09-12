@@ -11,7 +11,7 @@ use clippy_utils::{
 };
 use core::ops::ControlFlow;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::{Arm, Expr, ExprKind, HirId, MatchSource};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 
 declare_clippy_lint! {
@@ -61,6 +61,18 @@ impl IfThenSomeElseNone {
     }
 }
 
+/// Returns whether a desugared `?` arm breaks to a target outside the block
+/// that would be moved into the new closure.
+fn is_invalid_try_break(arm: &Arm<'_>, then_block: HirId, cx: &LateContext<'_>) -> bool {
+    let ExprKind::Break(destination, _) = arm.body.kind else {
+        return false;
+    };
+    let Ok(target) = destination.target_id else {
+        return true;
+    };
+    target != then_block && !cx.tcx.hir_parent_iter(target).any(|(id, _)| id == then_block)
+}
+
 impl<'tcx> LateLintPass<'tcx> for IfThenSomeElseNone {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let Some(higher::If {
@@ -77,12 +89,14 @@ impl<'tcx> LateLintPass<'tcx> for IfThenSomeElseNone {
             && !is_else_clause(cx.tcx, expr)
             && !is_in_const_context(cx)
             && self.msrv.meets(cx, msrvs::BOOL_THEN)
-            && for_each_expr_without_closures(then_block, |e| {
-                if matches!(e.kind, ExprKind::Ret(..) | ExprKind::Yield(..)) {
+            && for_each_expr_without_closures(then_block, |e| match e.kind {
+                ExprKind::Ret(..) | ExprKind::Yield(..) => ControlFlow::Break(()),
+                ExprKind::Match(_, arms, MatchSource::TryDesugar(_))
+                    if arms.iter().any(|arm| is_invalid_try_break(arm, then_block.hir_id, cx)) =>
+                {
                     ControlFlow::Break(())
-                } else {
-                    ControlFlow::Continue(())
-                }
+                },
+                _ => ControlFlow::Continue(()),
             })
             .is_none()
         {
