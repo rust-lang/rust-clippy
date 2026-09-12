@@ -52,3 +52,10 @@ fn issue_13503() {
     // Test arguments as well
     println!("{}", r"foobar".len());
 }
+
+fn issue_11737() {
+    r##"task test(execute: "") {r#""#}"##;
+    r##"a quote pair followed by a hash: ""#"##;
+    r##"a gap between the quotes: r#"_"#"##;
+    r##"a gap between the quotes: "_"#"##;
+}
