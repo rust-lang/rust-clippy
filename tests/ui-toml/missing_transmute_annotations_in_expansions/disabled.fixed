@@ -1,0 +1,18 @@
+#![warn(clippy::missing_transmute_annotations)]
+
+macro_rules! local_bad_transmute {
+    ($e:expr) => {
+        std::mem::transmute($e)
+        // when `in_expansions` is `true` (its default), there is a
+        // transmute_missing_annotations error expected here
+    };
+}
+
+fn main() {
+    unsafe {
+        let mut i: i32 = 0;
+        i = std::mem::transmute::<[u16; 2], i32>([1u16, 2u16]);
+        //~^ missing_transmute_annotations
+        i = local_bad_transmute!([1u16, 2u16]);
+    }
+}

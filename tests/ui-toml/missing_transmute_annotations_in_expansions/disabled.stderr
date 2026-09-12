@@ -1,0 +1,11 @@
+error: transmute used without annotations
+  --> tests/ui-toml/missing_transmute_annotations_in_expansions/disabled.rs:14:23
+   |
+LL |         i = std::mem::transmute([1u16, 2u16]);
+   |                       ^^^^^^^^^ help: consider adding missing annotations: `transmute::<[u16; 2], i32>`
+   |
+   = note: `-D clippy::missing-transmute-annotations` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_transmute_annotations)]`
+
+error: aborting due to 1 previous error
+
