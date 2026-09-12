@@ -34,5 +34,29 @@ error: `deprecated` attribute without note could be confusing
 LL |     #[deprecated(since = "4.31.10")]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a note: `#[deprecated(since = "4.31.10", note = /* note */)]`
 
-error: aborting due to 5 previous errors
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:29:9
+   |
+LL |         #[deprecated]
+   |         ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:32:13
+   |
+LL |             #[deprecated]
+   |             ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:38:9
+   |
+LL |         #[deprecated]
+   |         ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:41:13
+   |
+LL |             #[deprecated]
+   |             ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: aborting due to 9 previous errors
 
