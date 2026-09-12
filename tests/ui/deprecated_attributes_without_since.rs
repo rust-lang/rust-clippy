@@ -19,6 +19,10 @@ fn main() {
     //~^ deprecated_attributes_without_since
     fn has_note_eq() {}
 
+    #[deprecated = ""]
+    //~^ deprecated_attributes_without_since
+    fn empty_note() {}
+
     #[cfg_attr(true, deprecated)]
     //~^ deprecated_attributes_without_since
     fn cfg_true_no_fields() {}
