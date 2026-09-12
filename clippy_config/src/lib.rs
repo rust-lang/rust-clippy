@@ -23,5 +23,5 @@ mod conf;
 mod metadata;
 pub mod types;
 
-pub use conf::{Conf, sanitize_explanation};
+pub use conf::{Conf, load_conf_file, sanitize_explanation};
 pub use metadata::ConfMetadata;

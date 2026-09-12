@@ -860,7 +860,7 @@ pub fn sanitize_explanation(raw_docs: &str) -> String {
 /// # Errors
 ///
 /// Returns any unexpected filesystem error encountered when searching for the config file
-fn load_conf_file(sess: &Session) -> Option<Arc<SourceFile>> {
+pub fn load_conf_file(sess: &Session) -> Option<Arc<SourceFile>> {
     /// Possible filename to search for.
     const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
 

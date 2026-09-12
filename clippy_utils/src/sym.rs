@@ -180,6 +180,7 @@ generate! {
     chunks_exact,
     chunks_exact_mut,
     clamp,
+    clippy_toml_does_not_exist,
     clippy_utils,
     clone_into,
     cloned,
