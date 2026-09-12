@@ -22,5 +22,23 @@ error: `deprecated` attribute without specifying what version of the crate depre
 LL |     #[deprecated = "probably a bad idea to use this"]
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "probably a bad idea to use this", since = /* version */)]`
 
-error: aborting due to 3 previous errors
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:22:22
+   |
+LL |     #[cfg_attr(true, deprecated)]
+   |                      ^^^^^^^^^^ help: add a version: `#[deprecated(since = /* version */)]`
+
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:26:22
+   |
+LL |     #[cfg_attr(true, deprecated(note = "look down!"))]
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "look down!", since = /* version */)]`
+
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:30:22
+   |
+LL |     #[cfg_attr(true, deprecated = "the note below me always lies")]
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "the note below me always lies", since = /* version */)]`
+
+error: aborting due to 6 previous errors
 

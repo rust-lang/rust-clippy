@@ -19,6 +19,18 @@ fn main() {
     //~^ deprecated_attributes_without_since
     fn has_note_eq() {}
 
+    #[cfg_attr(true, deprecated)]
+    //~^ deprecated_attributes_without_since
+    fn cfg_true_no_fields() {}
+
+    #[cfg_attr(true, deprecated(note = "look down!"))]
+    //~^ deprecated_attributes_without_since
+    fn cfg_true_has_note() {}
+
+    #[cfg_attr(true, deprecated = "the note below me always lies")]
+    //~^ deprecated_attributes_without_since
+    fn cfg_true_has_note_eq() {}
+
     // These should be fine
     #[allow(deprecated)]
     #[allow(dead_code, reason = "This should be allowed")]
@@ -47,4 +59,25 @@ fn main() {
 
     #[deprecated(since = "1.42.100")]
     fn has_since() {}
+
+    #[cfg_attr(true, deprecated(since = "0.0.0"))]
+    fn cfg_true_has_since() {}
+
+    #[cfg_attr(false, deprecated(since = "255.255.255"))]
+    fn cfg_false_has_since() {}
+
+    #[cfg_attr(false, deprecated)]
+    fn cfg_false_no_fields() {}
+
+    #[cfg_attr(true, deprecated(note = "use cfg_false_has_both instead", since = "16.16.16"))]
+    fn cfg_true_has_both() {}
+
+    #[cfg_attr(false, deprecated(note = "use cfg_true_has_both instead", since = "19.19.19"))]
+    fn cfg_false_has_both() {}
+
+    #[cfg_attr(false, deprecated(note = "look up!"))]
+    fn cfg_false_has_note() {}
+
+    #[cfg_attr(false, deprecated = "the note above me never lies")]
+    fn cfg_false_has_note_eq() {}
 }
