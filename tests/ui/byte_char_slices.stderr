@@ -55,5 +55,23 @@ error: can be more succinctly written as a byte str
 LL |     takes_array_ref_ref(&&[b'a', b'b']);
    |                          ^^^^^^^^^^^^^ help: try: `b"ab"`
 
-error: aborting due to 9 previous errors
+error: can be more succinctly written as a byte str
+  --> tests/ui/byte_char_slices.rs:57:24
+   |
+LL |     let mutable = &mut [b'a', b'b'];
+   |                        ^^^^^^^^^^^^ help: try: `{ *b"ab" }`
+
+error: can be more succinctly written as a byte str
+  --> tests/ui/byte_char_slices.rs:59:30
+   |
+LL |     takes_mut_array_ref(&mut [b'a', b'b']);
+   |                              ^^^^^^^^^^^^ help: try: `{ *b"ab" }`
+
+error: can be more succinctly written as a byte str
+  --> tests/ui/byte_char_slices.rs:62:56
+   |
+LL |         let _ = std::str::from_utf8_unchecked_mut(&mut [b'c', b'l', b'i', b'p', b'p', b'y']);
+   |                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `{ *b"clippy" }`
+
+error: aborting due to 12 previous errors
 
