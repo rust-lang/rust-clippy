@@ -25,6 +25,7 @@ mod needless_bitwise_bool;
 mod numeric_arithmetic;
 mod op_ref;
 mod self_assignment;
+mod trivial_var_primitive_disjunction;
 mod verbose_bit_mask;
 
 pub(crate) mod arithmetic_side_effects;
@@ -966,6 +967,39 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    ///
+    /// Flags a relatively common error, where users comparing a variable to a primitive use `||` instead of `&&`, in conjunction
+    /// with `!=`. This lint was originally meant for simple `n != 1 || n != 2` type expressions, but the lint will now detect
+    /// the primitive and variable in any order for any length, as long as the variable stays the same, and the conditional
+    /// is always made of 1 primitive and 1 variable.
+    ///
+    /// ### Why is this bad?
+    ///
+    /// This is bad because however complex this expression is, its meaning is the same - `true`, and thus
+    /// the code can be greatly simplified by replacing it with that value.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let foo = "anything";
+    /// if foo != "thing1" || foo != "thing2" {
+    ///     println!("always executes");
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let foo = "anything";
+    /// if foo != "thing1" && foo != "thing2" {
+    ///     println!("sometimes executes");
+    /// }
+    /// ```
+     #[clippy::version = "1.100.0"]
+    pub TRIVIAL_VAR_PRIMITIVE_DISJUNCTION,
+    nursery,
+    "flags trivial disjunctions involving only a var and a primitive"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for bit masks that can be replaced by a call
     /// to `trailing_zeros`
     ///
@@ -1023,6 +1057,7 @@ impl_lint_pass!(Operators => [
     OP_REF,
     REDUNDANT_COMPARISONS,
     SELF_ASSIGNMENT,
+    TRIVIAL_VAR_PRIMITIVE_DISJUNCTION,
     VERBOSE_BIT_MASK,
 ]);
 
@@ -1064,6 +1099,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, self.msrv);
                     manual_isolate_lowest_one::check(cx, e, op.node, lhs, rhs, self.msrv);
                     decimal_bitwise_operands::check(cx, op.node, lhs, rhs);
+                    trivial_var_primitive_disjunction::check(cx, e, lhs, rhs, op.node);
                 }
                 self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
                 bit_mask::check(cx, e, op.node, lhs, rhs);
