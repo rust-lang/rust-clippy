@@ -106,3 +106,9 @@ fn msrv_1_17() {
     let _ = RangeFrom { start };
     //~^ redundant_field_names
 }
+
+/// Generates `Issue17525 { field: field }`.
+#[derive(StructLitWithUserFieldSpans)]
+struct Issue17525 {
+    field: u32,
+}

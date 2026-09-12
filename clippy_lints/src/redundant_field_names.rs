@@ -58,6 +58,7 @@ impl EarlyLintPass for RedundantFieldNames {
                     && segment.args.is_none()
                     && segment.ident == field.ident
                     && field.span.eq_ctxt(field.ident.span)
+                    && !expr.span.in_external_macro(cx.sess().source_map())
                     && !field.span.in_external_macro(cx.sess().source_map())
                 {
                     span_lint_and_sugg(
