@@ -38,12 +38,38 @@ impl S {
     fn a(&self) -> i32 {
         0
     }
+
+    fn is_special(&self) -> bool {
+        true
+    }
+
+    fn is_file(&self) -> bool {
+        true
+    }
+
+    fn has_authority(&self) -> bool {
+        true
+    }
 }
 
 fn do_not_give_bad_suggestions_for_this_unusual_expr(s1: &S, s2: &SaOnly) -> bool {
     // This is superficially similar to `buggy_ab_cmp`, but we should not suggest
     // `s2.b` since that is invalid.
     s1.a < s2.a && s1.a() < s1.b
+}
+
+fn do_not_suggest_a_different_method(s1: &S, s2: &S) -> bool {
+    // The different method names are intentional and must not be treated as a
+    // typo in the receiver.
+    (s1.is_special() && !s2.is_special())
+        || (!s1.is_special() && s2.is_special())
+        || (s1.is_file() && s2.has_authority())
+}
+
+#[expect(clippy::suspicious_operation_groupings)]
+fn still_detects_a_receiver_typo_with_the_same_method(s1: &S, s2: &S) -> i32 {
+    // The method names match, so a receiver mismatch remains suspicious.
+    s1.a() * s2.a() + s1.a() * s1.a()
 }
 
 fn do_not_give_bad_suggestions_for_this_macro_expr(s1: &S, s2: &SaOnly) -> bool {
