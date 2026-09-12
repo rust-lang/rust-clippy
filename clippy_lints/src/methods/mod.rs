@@ -16,6 +16,7 @@ mod clone_on_copy;
 mod clone_on_ref_ptr;
 mod cloned_instead_of_copied;
 mod collapsible_str_replace;
+mod const_size_windows;
 mod double_ended_iterator_last;
 mod drain_collect;
 mod err_expect;
@@ -539,6 +540,38 @@ declare_clippy_lint! {
     pub CONST_IS_EMPTY,
     suspicious,
     "is_empty() called on strings known at compile time"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `slice::windows` with a constant window size that can be replaced
+    /// with `slice::array_windows`.
+    ///
+    /// ### Why is this bad?
+    /// `slice::windows` yields `&[T]` slices, whose length is only known at runtime.
+    /// `slice::array_windows` yields fixed-size `&[T; N]` arrays instead, so the
+    /// length is known at compile time and each window can be destructured directly.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// fn foo(values: &[u8]) {
+    ///     for pair in values.windows(2) {
+    ///         println!("{} {}", pair[0], pair[1]);
+    ///     }
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// fn foo(values: &[u8]) {
+    ///     for [left, right] in values.array_windows() {
+    ///         println!("{left} {right}");
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.99.0"]
+    pub CONST_SIZE_WINDOWS,
+    style,
+    "using `slice::windows` with a constant size instead of `slice::array_windows`"
 }
 
 declare_clippy_lint! {
@@ -4970,6 +5003,7 @@ impl_lint_pass!(Methods => [
     CLONE_ON_REF_PTR,
     COLLAPSIBLE_STR_REPLACE,
     CONST_IS_EMPTY,
+    CONST_SIZE_WINDOWS,
     DOUBLE_ENDED_ITERATOR_LAST,
     DRAIN_COLLECT,
     ERR_EXPECT,
@@ -6036,6 +6070,9 @@ impl Methods {
                 },
                 (sym::zip, [arg]) => {
                     option_zip_none::check_method(cx, expr, recv, arg);
+                },
+                (sym::windows, [size_arg]) => {
+                    const_size_windows::check(cx, expr, recv, size_arg, call_span, self.msrv);
                 },
                 _ => {},
             }

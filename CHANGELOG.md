@@ -6949,6 +6949,7 @@ Released 2018-09-13
 [`comparison_to_empty`]: https://rust-lang.github.io/rust-clippy/main/index.html#comparison_to_empty
 [`confusing_method_to_numeric_cast`]: https://rust-lang.github.io/rust-clippy/main/index.html#confusing_method_to_numeric_cast
 [`const_is_empty`]: https://rust-lang.github.io/rust-clippy/main/index.html#const_is_empty
+[`const_size_windows`]: https://rust-lang.github.io/rust-clippy/main/index.html#const_size_windows
 [`const_static_lifetime`]: https://rust-lang.github.io/rust-clippy/main/index.html#const_static_lifetime
 [`copy_iterator`]: https://rust-lang.github.io/rust-clippy/main/index.html#copy_iterator
 [`crate_in_macro_def`]: https://rust-lang.github.io/rust-clippy/main/index.html#crate_in_macro_def
