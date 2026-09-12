@@ -1,0 +1,120 @@
+#![warn(clippy::parsed_string_literals)]
+#![expect(clippy::needless_late_init)]
+
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+fn v4() {
+    // Explicit type: use constructor
+    let original = "137.194.161.2".parse::<Ipv4Addr>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = Ipv4Addr::new(137, 194, 161, 2);
+
+    // Explicit type: ensure that the HIR type name is used
+    type V4 = Ipv4Addr;
+    let original = "137.194.161.2".parse::<V4>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = V4::new(137, 194, 161, 2);
+
+    // If the type comes from the context, use conversion.
+    let original: V4 = "137.194.161.2".parse().unwrap();
+    //~^ parsed_string_literals
+    let fixed = V4::new(137, 194, 161, 2);
+
+    // Type from context: use `.into()` to avoid referencing
+    // a type which might not be imported
+    let original: Ipv4Addr;
+    original = "137.194.161.2".parse().unwrap();
+    //~^ parsed_string_literals
+    let fixed: Ipv4Addr = [137, 194, 161, 2].into();
+
+    // Explicit type: use constant
+    let original = "127.0.0.1".parse::<V4>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = V4::LOCALHOST;
+
+    // Type from context: do not use constant
+    let original: V4;
+    original = "127.0.0.1".parse().unwrap();
+    //~^ parsed_string_literals
+    let fixed: V4 = [127, 0, 0, 1].into();
+
+    // Type from context: do not use constant
+    let original = IpAddr::V4("127.0.0.1".parse().unwrap());
+    //~^ parsed_string_literals
+    let fixed = IpAddr::V4([127, 0, 0, 1].into());
+
+    // Various constants
+    let cst_broadcast = "255.255.255.255".parse::<V4>().unwrap();
+    //~^ parsed_string_literals
+    let cst_unspecified = "0.0.0.0".parse::<V4>().unwrap();
+    //~^ parsed_string_literals
+}
+
+fn v6() {
+    // Explicit type: use constructor
+    let original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse::<Ipv6Addr>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = Ipv6Addr::new(0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd);
+
+    // Explicit type: ensure that the HIR type name is used
+    type V6 = Ipv6Addr;
+    let original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse::<V6>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = V6::new(0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd);
+
+    // Type from context: use `.into()` to avoid referencing
+    // a type which might not be imported
+    let original: V6;
+    original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse().unwrap();
+    //~^ parsed_string_literals
+    let fixed: V6 = [0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd].into();
+
+    // Explicit type: use constant
+    let original = "::1".parse::<V6>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = V6::LOCALHOST;
+
+    // Type from context: do not use constant. Here, we have no lint because not
+    // using the constant makes it too long.
+    let do_not_lint: V6;
+    do_not_lint = "::1".parse().unwrap();
+
+    // Various constants
+    let cst_unspecified = "::".parse::<V6>().unwrap();
+    //~^ parsed_string_literals
+}
+
+fn ipaddr() {
+    // Explicit type is given: use proper constructor and `.into()` for the
+    // arg to avoid using `Ipv4Addr`/`Ipv6Addr` which might not be in scope.
+    let original = "137.194.161.2".parse::<IpAddr>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = IpAddr::V4([137, 194, 161, 2].into());
+    let original = "2a04:0000:0000:0000:0000:0000:0000:abcd".parse::<IpAddr>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = IpAddr::V6([0x2a04, 0, 0, 0, 0, 0, 0, 0xabcd].into());
+
+    // Explicit type is given: use proper constructor and `.into()` instead
+    // of the constant which would need to be prefixed with its type which might
+    // not be imported.
+    let original = "127.0.0.1".parse::<IpAddr>().unwrap();
+    //~^ parsed_string_literals
+    let fixed = IpAddr::V4([127, 0, 0, 1].into());
+
+    // The absence of explicit type doesn't allow the use of the constructor.
+    let original: IpAddr;
+    original = "137.194.161.2".parse().unwrap();
+    //~^ parsed_string_literals
+    let fixed: IpAddr = [137, 194, 161, 2].into();
+
+    // `_` must not be considered an explicit type.
+    let original: IpAddr;
+    original = "137.194.161.2".parse::<_>().unwrap();
+    //~^ parsed_string_literals
+    let fixed: IpAddr = [137, 194, 161, 2].into();
+}
+
+#[clippy::msrv = "1.29"]
+fn msrv_under() {
+    _ = "::".parse::<Ipv6Addr>().unwrap();
+}
