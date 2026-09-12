@@ -1,0 +1,27 @@
+#![warn(clippy::invalid_nonzero)]
+#![allow(clippy::unnecessary_literal_unwrap)]
+
+use std::num::{NonZero, NonZeroI32, NonZeroU8, NonZeroU16, NonZeroUsize};
+
+const ZERO: u8 = 0;
+
+fn main() {
+    let _ = None::<std::num::NonZero<u16>>;
+    //~^ invalid_nonzero
+    let _ = None::<std::num::NonZero<u16>>.unwrap();
+    //~^ invalid_nonzero
+    let _ = None::<std::num::NonZero<u8>>;
+    //~^ invalid_nonzero
+    let _ = None::<std::num::NonZero<i32>>;
+    //~^ invalid_nonzero
+    let _ = None::<std::num::NonZero<usize>>;
+    //~^ invalid_nonzero
+    let _: Option<NonZeroUsize> = None::<std::num::NonZero<usize>>;
+    //~^ invalid_nonzero
+
+    // Should not lint.
+    let _ = NonZeroU16::new(1);
+    let _ = NonZeroU16::new(1).unwrap();
+    let x = 5;
+    let _ = NonZeroU8::new(x);
+}

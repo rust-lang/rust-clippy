@@ -7146,6 +7146,7 @@ Released 2018-09-13
 [`into_iter_on_ref`]: https://rust-lang.github.io/rust-clippy/main/index.html#into_iter_on_ref
 [`into_iter_without_iter`]: https://rust-lang.github.io/rust-clippy/main/index.html#into_iter_without_iter
 [`invalid_atomic_ordering`]: https://rust-lang.github.io/rust-clippy/main/index.html#invalid_atomic_ordering
+[`invalid_nonzero`]: https://rust-lang.github.io/rust-clippy/main/index.html#invalid_nonzero
 [`invalid_null_ptr_usage`]: https://rust-lang.github.io/rust-clippy/main/index.html#invalid_null_ptr_usage
 [`invalid_ref`]: https://rust-lang.github.io/rust-clippy/main/index.html#invalid_ref
 [`invalid_regex`]: https://rust-lang.github.io/rust-clippy/main/index.html#invalid_regex
