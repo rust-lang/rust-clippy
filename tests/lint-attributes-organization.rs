@@ -22,14 +22,15 @@ use walkdir::{DirEntry, WalkDir};
 
 mod test_utils;
 
-const SKIPPED_FILES: [&str; 7] = [
-    "./tests/lint-attributes-organization.rs", // this file, for the sanity checks
+const SKIPPED_FILES: [&str; 8] = [
+    "./clippy_dev/src/new_lint.rs",                   // regex can't parse the file correctly
+    "./tests/lint-attributes-organization.rs",        // this file, for the sanity checks
     "./tests/ui/blanket_clippy_restriction_lints.rs", // separate lines are better
-    "./tests/ui/deprecated.rs",                // generated
-    "./tests/ui/duplicated_attributes.rs",     // obviously
-    "./tests/ui/rename.rs",                    // generated
-    "./tests/ui/unknown_clippy_lints.rs",      // separate lines are better
-    "./target/",                               // generated files
+    "./tests/ui/deprecated.rs",                       // generated
+    "./tests/ui/duplicated_attributes.rs",            // obviously
+    "./tests/ui/rename.rs",                           // generated
+    "./tests/ui/unknown_clippy_lints.rs",             // separate lines are better
+    "./target/",                                      // generated files
 ];
 
 #[test]
