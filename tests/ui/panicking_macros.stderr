@@ -124,5 +124,29 @@ error: usage of the `unreachable!` macro
 LL |     unreachable!();
    |     ^^^^^^^^^^^^^^
 
-error: aborting due to 19 previous errors
+error: `panic` should not be present in production code
+  --> tests/ui/panicking_macros.rs:136:12
+   |
+LL |     outer!(panic!("macro passed to macro"));
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `todo` should not be present in production code
+  --> tests/ui/panicking_macros.rs:137:12
+   |
+LL |     outer!(todo!("macro passed to macro"));
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `unimplemented` should not be present in production code
+  --> tests/ui/panicking_macros.rs:138:12
+   |
+LL |     outer!(unimplemented!("macro passed to macro"));
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: usage of the `unreachable!` macro
+  --> tests/ui/panicking_macros.rs:139:12
+   |
+LL |     outer!(unreachable!("macro passed to macro"));
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 23 previous errors
 
