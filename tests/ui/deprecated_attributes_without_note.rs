@@ -23,6 +23,10 @@ fn main() {
     //~^ deprecated_attributes_without_note
     fn cfg_true_no_fields() {}
 
+    #[deprecated(since = "4.31.10")]
+    //~^ deprecated_attributes_without_note
+    mod module {}
+
     // These should be fine
     #[allow(deprecated)]
     #[allow(dead_code, reason = "This should be allowed")]

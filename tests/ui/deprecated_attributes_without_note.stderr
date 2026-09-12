@@ -28,5 +28,11 @@ error: `deprecated` attribute without note could be confusing
 LL |     #[cfg_attr(true, deprecated)]
    |                      ^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
 
-error: aborting due to 4 previous errors
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:26:5
+   |
+LL |     #[deprecated(since = "4.31.10")]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a note: `#[deprecated(since = "4.31.10", note = /* note */)]`
+
+error: aborting due to 5 previous errors
 
