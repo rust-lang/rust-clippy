@@ -1,5 +1,5 @@
 #![warn(clippy::excessive_precision)]
-#![expect(overflowing_literals, clippy::approx_constant)]
+#![expect(overflowing_literals, clippy::approx_constant, clippy::static_mut_vars)]
 
 macro_rules! make_pi {
     ($i:ident : $t:ty) => {
