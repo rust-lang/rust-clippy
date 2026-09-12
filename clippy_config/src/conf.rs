@@ -472,7 +472,13 @@ define_Conf! {
     #[lints(inconsistent_struct_constructor)]
     check_inconsistent_struct_field_initializers("check-inconsistent-struct-field-initializers"): bool = false,
     /// Whether to also run the listed lints on private items.
-    #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
+    #[lints(
+        missing_errors_doc,
+        missing_panics_doc,
+        missing_safety_doc,
+        too_long_first_doc_paragraph,
+        unnecessary_safety_doc,
+    )]
     check_private_items("check-private-items"): bool = false,
     /// The maximum cognitive complexity a function can have
     #[lints(cognitive_complexity)]
