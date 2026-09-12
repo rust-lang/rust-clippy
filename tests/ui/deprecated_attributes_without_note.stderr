@@ -58,5 +58,23 @@ error: `deprecated` attribute without note could be confusing
 LL |             #[deprecated]
    |             ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
 
-error: aborting due to 9 previous errors
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:46:9
+   |
+LL |         #[deprecated]
+   |         ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:49:13
+   |
+LL |             #[deprecated]
+   |             ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: `deprecated` attribute without note could be confusing
+  --> tests/ui/deprecated_attributes_without_note.rs:53:13
+   |
+LL |             #[deprecated]
+   |             ^^^^^^^^^^^^^ help: add a note: `#[deprecated(note = /* note */)]`
+
+error: aborting due to 12 previous errors
 

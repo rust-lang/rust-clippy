@@ -42,6 +42,18 @@ fn main() {
             //~^ deprecated_attributes_without_note
             fn deprecated_method() {}
         }
+
+        #[deprecated]
+        //~^ deprecated_attributes_without_note
+        trait DeprecatedTrait {
+            #[deprecated]
+            //~^ deprecated_attributes_without_note
+            fn trait_method();
+
+            #[deprecated]
+            //~^ deprecated_attributes_without_note
+            fn default_trait_method() {}
+        }
     }
 
     // These should be fine
