@@ -222,6 +222,9 @@ fn main() {
             }
         }
     }
+
+    let _ = unsafe {{{{{{{{{{{ todo!() }}}}}}}}}}};
+    //~^ excessive_nesting
 }
 
 async fn b() -> u32 {
