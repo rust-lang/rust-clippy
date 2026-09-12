@@ -41,6 +41,10 @@ jobs:
     - name: Test
       run: cargo test --features internal
 
+    - name: Test clippy_data_structures
+      run: cargo test
+      working-directory: clippy_data_structures
+
     - name: Test clippy_lints
       run: cargo test
       working-directory: clippy_lints
