@@ -1,17 +1,6 @@
 #![expect(clippy::question_mark)]
 #![warn(clippy::filter_map_bool_then)]
 
-fn issue11617() {
-    let mut x: Vec<usize> = vec![0; 10];
-    let _ = (0..x.len()).zip(x.clone().iter()).filter_map(|(i, v)| {
-        //~^ filter_map_bool_then
-        (x[i] != *v).then(|| {
-            x[i] = i;
-            i
-        })
-    });
-}
-
 mod issue14368 {
 
     fn do_something(_: ()) -> bool {

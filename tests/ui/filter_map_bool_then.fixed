@@ -109,3 +109,30 @@ fn issue15047() {
         .filter(|&(t, s, i)| matches!(t, MyEnum::A if s.starts_with("bar"))).map(|(t, s, i)| foo!(x));
     //~^ filter_map_bool_then
 }
+
+// The predicate and the body of `then` both reach the same binding, and one of them needs it
+// mutably, so the two halves cannot live in a `filter` and a `map` at the same time.
+mod no_lint_on_conflicting_captures {
+    fn issue11617() {
+        let mut x: Vec<usize> = vec![0; 10];
+        let _ = (0..x.len()).zip(x.clone().iter()).filter_map(|(i, v)| {
+            (x[i] != *v).then(|| {
+                x[i] = i;
+                i
+            })
+        });
+    }
+
+    fn issue17629() {
+        let mut last = None;
+        let _: Vec<u32> = [1, 2, 2, 3]
+            .into_iter()
+            .filter_map(|val| {
+                (last != Some(val)).then(|| {
+                    last = Some(val);
+                    val
+                })
+            })
+            .collect();
+    }
+}
