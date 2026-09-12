@@ -41,6 +41,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::bool_assert_comparison::BOOL_ASSERT_COMPARISON_INFO,
     crate::bool_comparison::BOOL_COMPARISON_INFO,
     crate::bool_to_int_with_if::BOOL_TO_INT_WITH_IF_INFO,
+    crate::booleans::CONSTANT_BOOL_EXPR_INFO,
     crate::booleans::NONMINIMAL_BOOL_INFO,
     crate::booleans::OVERLY_COMPLEX_BOOL_EXPR_INFO,
     crate::borrow_deref_ref::BORROW_DEREF_REF_INFO,
