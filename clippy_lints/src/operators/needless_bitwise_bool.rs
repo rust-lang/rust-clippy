@@ -1,13 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::source::snippet_with_context;
 use rustc_errors::Applicability;
-use rustc_hir::{BinOpKind, Expr, ExprKind};
+use rustc_hir::{BinOp, BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 
 use super::NEEDLESS_BITWISE_BOOL;
 
-pub(super) fn check(cx: &LateContext<'_>, e: &Expr<'_>, op: BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>) {
-    let op_str = match op {
+pub(super) fn check(cx: &LateContext<'_>, e: &Expr<'_>, op: BinOp, rhs: &Expr<'_>) {
+    let op_str = match op.node {
         BinOpKind::BitAnd => "&&",
         BinOpKind::BitOr => "||",
         _ => return,
@@ -24,12 +23,7 @@ pub(super) fn check(cx: &LateContext<'_>, e: &Expr<'_>, op: BinOpKind, lhs: &Exp
             e.span,
             "use of bitwise operator instead of lazy operator between booleans",
             |diag| {
-                let mut applicability = Applicability::MachineApplicable;
-                let expr_span_ctxt = e.span.ctxt();
-                let (lhs_snip, _) = snippet_with_context(cx, lhs.span, expr_span_ctxt, "..", &mut applicability);
-                let (rhs_snip, _) = snippet_with_context(cx, rhs.span, expr_span_ctxt, "..", &mut applicability);
-
-                diag.span_suggestion(e.span, "try", format!("{lhs_snip} {op_str} {rhs_snip}"), applicability);
+                diag.span_suggestion_verbose(op.span, "try", op_str, Applicability::MachineApplicable);
             },
         );
     }
