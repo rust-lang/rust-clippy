@@ -517,6 +517,47 @@ define_Conf! {
     /// default configuration of Clippy. By default, any configuration will replace the default value.
     #[lints(disallowed_names)]
     disallowed_names("disallowed-names"): Vec<String> = DEFAULT_DISALLOWED_NAMES,
+    /// The list of disallowed trait usages. Each entry names one trait and the types it may not
+    /// be used on.
+    ///
+    /// **Fields:**
+    /// - `trait` (required): the fully qualified path to the disallowed trait (e.g. `"std::fmt::Debug"`)
+    /// - `types` (optional): concrete types the trait is disallowed for (e.g. `"i32"`, `"std::path::PathBuf"`)
+    /// - `implements` (optional): traits whose implementors the trait is disallowed for
+    /// - `reason` (optional): explanation why this trait usage is disallowed
+    ///
+    /// The entries of `types` and `implements` are either a plain path or a table with the same
+    /// fields as [`disallowed-types`](#disallowed-types), minus `replacement`. They can carry a
+    /// `reason` of their own, in addition to the one of the entry.
+    ///
+    /// An entry with neither `types` nor `implements` disallows the trait for every type, and can
+    /// be written as a plain path.
+    ///
+    /// ### Example
+    /// ```toml
+    /// [[disallowed-trait-usage]]
+    /// trait = "std::fmt::Debug"
+    /// reason = "Debug output is not meant for end users"
+    /// # Forbid `Debug` formatting of specific types:
+    /// types = [
+    ///     { path = "std::path::PathBuf", reason = "Use path.display() instead" },
+    ///     "std::path::Path",
+    /// ]
+    /// # Forbid `Debug` formatting of every type implementing these traits:
+    /// implements = [
+    ///     { path = "std::error::Error", reason = "Use Display for errors" },
+    /// ]
+    ///
+    /// # Forbid a trait for every type:
+    /// [[disallowed-trait-usage]]
+    /// trait = "std::fmt::Pointer"
+    /// reason = "Do not print addresses"
+    ///
+    /// # …or, without a reason:
+    /// disallowed-trait-usage = ["std::fmt::Pointer"]
+    /// ```
+    #[lints(disallowed_trait_usage)]
+    disallowed_trait_usage("disallowed-trait-usage"): Vec<crate::types::DisallowedTraitUsage>,
     /// The list of disallowed types, written as fully qualified paths.
     ///
     /// **Fields:**
