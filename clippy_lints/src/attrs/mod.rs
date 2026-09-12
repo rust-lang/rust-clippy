@@ -148,6 +148,29 @@ declare_clippy_lint! {
     /// #[deprecated(since = "5.2.0")]
     /// pub fn foo() { /* ... */ }
     /// ```
+    ///
+    /// ### Note
+    /// If you're using `git` for version control and tagging releases, you may
+    /// be able to find the correct value for the `since` field fairly easily.
+    ///
+    /// If the `deprecated` attribute missing the `since` field is in the file
+    /// `foo/bar/baz.rs` on line 42, then:
+    ///
+    /// ```bash
+    /// git blame -L 42 -- foo/bar/baz.rs
+    /// ```
+    ///
+    /// May help you find the commit that originally deprecated the item. From
+    /// there, if the commit that deprecated the item was commit
+    /// `d34dbe3fd34dbe3fd34dbe3fd34dbe3fd34dbe3f`, you can do:
+    ///
+    /// ```bash
+    /// git tag --contains d34dbe3fd34dbe3fd34dbe3fd34dbe3fd34dbe3f
+    /// ```
+    ///
+    /// To list the tags which contain that commit, the earliest of which
+    /// corresponds to a release would be the version the item was deprecated
+    /// in.
     #[clippy::version = "1.100.0"]
     pub DEPRECATED_ATTRIBUTES_WITHOUT_SINCE,
     pedantic,
