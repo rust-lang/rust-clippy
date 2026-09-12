@@ -74,7 +74,7 @@ fn check_consecutive_replace_calls<'tcx>(
     let from_args = &replace_methods.from_args;
     let from_arg_reprs: Vec<String> = from_args
         .iter()
-        .map(|from_arg| snippet(cx, from_arg.span, "..").to_string())
+        .map(|from_arg| snippet(cx, from_arg.span, "..").into_owned())
         .collect();
     let app = Applicability::MachineApplicable;
     let earliest_replace_call = replace_methods.methods.front().unwrap();

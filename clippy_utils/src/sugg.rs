@@ -948,7 +948,7 @@ impl<'tcx> Delegate<'tcx> for DerefDelegate<'_, 'tcx> {
             // identifier referring to the variable currently triggered (i.e.: `fp`)
             let ident_str = self.cx.tcx.hir_name(id).to_string();
             // full identifier that includes projection (i.e.: `fp.field`)
-            let ident_str_with_proj = snippet(self.cx, span, "..").to_string();
+            let ident_str_with_proj = snippet(self.cx, span, "..").into_owned();
 
             // Make sure to get in all projections if we're on a `matches!`
             if let Node::Pat(pat) = self.cx.tcx.hir_node(id)

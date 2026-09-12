@@ -310,7 +310,7 @@ fn detect_lint(cx: &LateContext<'_>, expr: &Expr<'_>, arg: &Expr<'_>) -> Option<
             }
             if !reverse && is_copy(cx, left_expr_ty) {
                 let mut closure_body =
-                    snippet_with_applicability(cx, closure_body.span, "_", &mut applicability).to_string();
+                    snippet_with_applicability(cx, closure_body.span, "_", &mut applicability).into_owned();
                 if left_ident_n_refs == 0 {
                     closure_body = format!("*{closure_body}");
                 }
