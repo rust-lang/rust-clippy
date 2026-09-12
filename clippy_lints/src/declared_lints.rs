@@ -738,6 +738,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::swap_ptr_to_ref::SWAP_PTR_TO_REF_INFO,
     crate::tabs_in_doc_comments::TABS_IN_DOC_COMMENTS_INFO,
     crate::temporary_assignment::TEMPORARY_ASSIGNMENT_INFO,
+    crate::test_without_assertions::TEST_WITHOUT_ASSERTIONS_INFO,
     crate::tests_outside_test_module::TESTS_OUTSIDE_TEST_MODULE_INFO,
     crate::time_subtraction::MANUAL_INSTANT_ELAPSED_INFO,
     crate::time_subtraction::UNCHECKED_TIME_SUBTRACTION_INFO,

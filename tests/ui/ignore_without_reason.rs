@@ -1,4 +1,5 @@
 #![warn(clippy::ignore_without_reason)]
+#![expect(clippy::test_without_assertions)]
 
 fn main() {}
 

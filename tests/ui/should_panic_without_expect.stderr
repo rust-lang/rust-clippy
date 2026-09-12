@@ -1,5 +1,5 @@
 error: #[should_panic] attribute without a reason
-  --> tests/ui/should_panic_without_expect.rs:5:1
+  --> tests/ui/should_panic_without_expect.rs:6:1
    |
 LL | #[should_panic]
    | ^^^^^^^^^^^^^^^ help: consider specifying the expected panic: `#[should_panic(expected = /* panic message */)]`
