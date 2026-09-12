@@ -28,6 +28,8 @@ use wildcard_imports_helper::inner::inner_for_self_import::*;
 //~^ wildcard_imports
 use wildcard_imports_helper::*;
 //~^ wildcard_imports
+use std::any::*;
+//~^ wildcard_imports
 
 use std::io::prelude::*;
 use wildcard_imports_helper::extern_prelude::v1::*;
@@ -112,6 +114,7 @@ fn main() {
     inner_mod::foo();
     extern_foo();
     inner_extern_bar();
+    let _ = type_name::<i32>();
 
     let _ = A;
     let _ = inner_struct_mod::C;

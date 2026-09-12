@@ -38,61 +38,67 @@ LL | use wildcard_imports_helper::*;
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `wildcard_imports_helper::{extern_foo, ExternA}`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:100:13
+  --> tests/ui/wildcard_imports.rs:31:5
+   |
+LL | use std::any::*;
+   |     ^^^^^^^^^^^ help: try: `std::any::type_name`
+
+error: usage of wildcard import
+  --> tests/ui/wildcard_imports.rs:102:13
    |
 LL |         use self::exports_underscore_ish::*;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `self::exports_underscore_ish::{_Deref, dummy}`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:132:13
+  --> tests/ui/wildcard_imports.rs:135:13
    |
 LL |         use crate::fn_mod::*;
    |             ^^^^^^^^^^^^^^^^ help: try: `crate::fn_mod::foo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:139:75
+  --> tests/ui/wildcard_imports.rs:142:75
    |
 LL |         use wildcard_imports_helper::inner::inner_for_self_import::{self, *};
    |                                                                           ^ help: try: `inner_extern_foo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:141:13
+  --> tests/ui/wildcard_imports.rs:144:13
    |
 LL |         use wildcard_imports_helper::*;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `wildcard_imports_helper::{extern_foo, ExternA}`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:154:20
+  --> tests/ui/wildcard_imports.rs:157:20
    |
 LL |         use self::{inner::*, inner2::*};
    |                    ^^^^^^^^ help: try: `inner::inner_foo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:154:30
+  --> tests/ui/wildcard_imports.rs:157:30
    |
 LL |         use self::{inner::*, inner2::*};
    |                              ^^^^^^^^^ help: try: `inner2::inner_bar`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:163:13
+  --> tests/ui/wildcard_imports.rs:166:13
    |
 LL |         use wildcard_imports_helper::*;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `wildcard_imports_helper::{extern_exported, ExternExportedStruct, ExternExportedEnum}`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:193:9
+  --> tests/ui/wildcard_imports.rs:196:9
    |
 LL |     use crate::in_fn_test::*;
    |         ^^^^^^^^^^^^^^^^^^^^ help: try: `crate::in_fn_test::{exported, ExportedStruct, ExportedEnum}`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:203:9
+  --> tests/ui/wildcard_imports.rs:206:9
    |
 LL |     use crate:: in_fn_test::  * ;
    |         ^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `crate:: in_fn_test::exported`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:205:9
+  --> tests/ui/wildcard_imports.rs:208:9
    |
 LL |       use crate:: fn_mod::
    |  _________^
@@ -101,40 +107,40 @@ LL | |         *;
    | |_________^ help: try: `crate:: fn_mod::foo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:217:13
+  --> tests/ui/wildcard_imports.rs:220:13
    |
 LL |         use super::*;
    |             ^^^^^^^^ help: try: `super::foofoo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:256:17
+  --> tests/ui/wildcard_imports.rs:259:17
    |
 LL |             use super::*;
    |                 ^^^^^^^^ help: try: `super::insidefoo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:265:13
+  --> tests/ui/wildcard_imports.rs:268:13
    |
 LL |         use crate::super_imports::*;
    |             ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `crate::super_imports::foofoo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:275:17
+  --> tests/ui/wildcard_imports.rs:278:17
    |
 LL |             use super::super::*;
    |                 ^^^^^^^^^^^^^^^ help: try: `super::super::foofoo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:285:13
+  --> tests/ui/wildcard_imports.rs:288:13
    |
 LL |         use super::super::super_imports::*;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `super::super::super_imports::foofoo`
 
 error: usage of wildcard import
-  --> tests/ui/wildcard_imports.rs:294:13
+  --> tests/ui/wildcard_imports.rs:297:13
    |
 LL |         use super::*;
    |             ^^^^^^^^ help: try: `super::foofoo`
 
-error: aborting due to 22 previous errors
+error: aborting due to 23 previous errors
 

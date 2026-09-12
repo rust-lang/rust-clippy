@@ -45,6 +45,7 @@ pub(super) fn check(cx: &EarlyContext<'_>, item: &Item, attrs: &[Attribute]) {
                             && matches!(
                                 name,
                                 sym::wildcard_imports
+                                    | sym::std_wildcard_imports
                                     | sym::enum_glob_use
                                     | sym::redundant_pub_crate
                                     | sym::macro_use_imports

@@ -1,0 +1,59 @@
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:12:5
+   |
+LL | use alloc::boxed::*;
+   |     ^^^^^^^^^^^^^^^ help: try: `alloc::boxed::Box`
+   |
+   = note: `-D clippy::std-wildcard-imports` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::std_wildcard_imports)]`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:14:5
+   |
+LL | use core::cell::*;
+   |     ^^^^^^^^^^^^^ help: try: `core::cell::Cell`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:16:5
+   |
+LL | use proc_macro::*;
+   |     ^^^^^^^^^^^^^ help: try: `proc_macro::is_available`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:18:5
+   |
+LL | use std::any::*;
+   |     ^^^^^^^^^^^ help: try: `std::any::type_name`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:20:27
+   |
+LL | use standard::mem::{swap, *};
+   |                           ^ help: try: `align_of`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:22:5
+   |
+LL | use test_crate::bench::*;
+   |     ^^^^^^^^^^^^^^^^^^^^ help: try: `test_crate::bench::black_box`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:24:5
+   |
+LL | use ::std::fs::*;
+   |     ^^^^^^^^^^^^ help: try: `::std::fs::File`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:26:5
+   |
+LL | use wildcard_imports_helper::fmt::*;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `wildcard_imports_helper::fmt::Debug`
+
+error: usage of wildcard import from the standard library
+  --> tests/ui/std_wildcard_imports.rs:71:9
+   |
+LL |     use std::rc::*;
+   |         ^^^^^^^^^^ help: try: `std::rc::Rc`
+
+error: aborting due to 9 previous errors
+
