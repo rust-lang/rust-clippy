@@ -9,11 +9,11 @@ fn main() {
     // These should trigger the lint
     #[deprecated]
     //~^ deprecated_attributes_without_note
-    fn foo() {}
+    fn no_fields() {}
 
     #[deprecated(since = "1.42.100")]
     //~^ deprecated_attributes_without_note
-    fn quux() {}
+    fn has_since() {}
 
     #[cfg_attr(true, deprecated(since = "0.0.0"))]
     //~^ deprecated_attributes_without_note
@@ -76,17 +76,17 @@ fn main() {
         fn b() {}
     }
 
-    #[deprecated(since = "TBD", note = "use qux instead")]
-    fn baz() {}
+    #[deprecated(since = "TBD", note = "use has_both_note_first instead")]
+    fn has_both_since_first() {}
 
-    #[deprecated(note = "use quux instead", since = "0.0.1")]
-    fn qux() {}
+    #[deprecated(note = "use has_since instead", since = "0.0.1")]
+    fn has_both_note_first() {}
 
     #[deprecated(note = "I don't feel like maintaining this anymore, sorry")]
-    fn bar() {}
+    fn has_note() {}
 
     #[deprecated = "probably a bad idea to use this"]
-    fn weird() {}
+    fn has_note_eq() {}
 
     #[cfg_attr(false, deprecated(since = "255.255.255"))]
     fn cfg_false_has_since() {}
