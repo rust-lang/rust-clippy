@@ -57,4 +57,10 @@ fn test() -> Result<(), ()> {
     Ok(())
 }
 
+#[test]
+fn test_with_panic() {
+    let result: Result<i32, &str> = Ok(1);
+    result.unwrap();
+}
+
 fn main() {}
