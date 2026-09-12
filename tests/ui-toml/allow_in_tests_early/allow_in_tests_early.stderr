@@ -1,0 +1,35 @@
+error: single-character lifetime names are likely uninformative
+  --> tests/ui-toml/allow_in_tests_early/allow_in_tests_early.rs:15:15
+   |
+LL | fn not_a_test<'a>(x: &'a u32) -> &'a u32 {
+   |               ^^
+   |
+   = help: use a more informative name
+   = note: `-D clippy::single-char-lifetime-names` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::single_char_lifetime_names)]`
+
+error: unnecessary raw string literal
+  --> tests/ui-toml/allow_in_tests_early/allow_in_tests_early.rs:17:13
+   |
+LL |     let _ = r"no escapes here";
+   |             ^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::needless-raw-strings` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_raw_strings)]`
+help: use a plain string literal instead
+   |
+LL -     let _ = r"no escapes here";
+LL +     let _ = "no escapes here";
+   |
+
+error: integer type suffix should be separated by an underscore
+  --> tests/ui-toml/allow_in_tests_early/allow_in_tests_early.rs:26:13
+   |
+LL |     let _ = 123i32;
+   |             ^^^^^^ help: add an underscore: `123_i32`
+   |
+   = note: `-D clippy::unseparated-literal-suffix` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unseparated_literal_suffix)]`
+
+error: aborting due to 3 previous errors
+

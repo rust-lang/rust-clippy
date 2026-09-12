@@ -112,6 +112,7 @@ use rustc_middle::ty::{
     self as rustc_ty, Binder, BorrowKind, ClosureKind, EarlyBinder, GenericArgKind, GenericArgsRef, IntTy, Ty, TyCtxt,
     TypeFlags, TypeVisitableExt as _, TypeckResults, UintTy, UpvarCapture,
 };
+use rustc_session::Session;
 use rustc_session::config::Input;
 use rustc_span::hygiene::{ExpnKind, MacroKind};
 use rustc_span::source_map::SourceMap;
@@ -2447,13 +2448,16 @@ pub fn is_in_cfg_test(tcx: TyCtxt<'_>, id: HirId) -> bool {
 
 /// Checks if the node is in a `#[test]` function or has any parent node marked `#[cfg(test)]`
 pub fn is_in_test(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
-    is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id) || is_in_integration_test_file(tcx)
+    is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id) || is_in_integration_test_file(tcx.sess)
 }
 
-/// Check if the node is in an integration test file (i.e. under `tests/`).
-fn is_in_integration_test_file(tcx: TyCtxt<'_>) -> bool {
-    if let Input::File(ref path) = tcx.sess.io.input
-        && !tcx.sess.opts.unstable_opts.ui_testing
+/// Check if the crate being compiled is an integration test file (i.e. under `tests/`).
+///
+/// Takes a [`Session`] rather than a [`TyCtxt`] so that early lint passes, which run before the
+/// HIR exists, can answer the same question as late ones.
+pub fn is_in_integration_test_file(sess: &Session) -> bool {
+    if let Input::File(ref path) = sess.io.input
+        && !sess.opts.unstable_opts.ui_testing
     {
         path.starts_with("tests")
     } else {

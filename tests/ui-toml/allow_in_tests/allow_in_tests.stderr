@@ -1,0 +1,46 @@
+error: the `dbg!` macro is intended as a debugging tool
+  --> tests/ui-toml/allow_in_tests/allow_in_tests.rs:10:5
+   |
+LL |     dbg!(x);
+   |     ^^^^^^^
+   |
+   = note: `-D clippy::dbg-macro` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::dbg_macro)]`
+help: remove the invocation before committing it to a version control system
+   |
+LL -     dbg!(x);
+LL +     x;
+   |
+
+error: indexing may panic
+  --> tests/ui-toml/allow_in_tests/allow_in_tests.rs:12:5
+   |
+LL |     s[0];
+   |     ^^^^
+   |
+   = help: consider using `.get(n)` or `.get_mut(n)` instead
+   = note: `-D clippy::indexing-slicing` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::indexing_slicing)]`
+
+error: used `unwrap()` on an `Option` value
+  --> tests/ui-toml/allow_in_tests/allow_in_tests.rs:14:5
+   |
+LL |     x.unwrap()
+   |     ^^^^^^^^^^
+   |
+   = note: if this value is `None`, it will panic
+   = help: consider using `expect()` to provide a better panic message
+   = note: `-D clippy::unwrap-used` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unwrap_used)]`
+
+error: `panic` should not be present in production code
+  --> tests/ui-toml/allow_in_tests/allow_in_tests.rs:26:5
+   |
+LL |     panic!("boom");
+   |     ^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::panic` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::panic)]`
+
+error: aborting due to 4 previous errors
+

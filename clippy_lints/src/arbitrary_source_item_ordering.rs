@@ -4,14 +4,14 @@ use clippy_config::types::{
     SourceItemOrderingTraitAssocItemKind, SourceItemOrderingTraitAssocItemKinds,
     SourceItemOrderingWithinModuleItemGroupings, TraitImplItemOrder,
 };
-use clippy_utils::diagnostics::span_lint_and_note;
+use clippy_utils::diagnostics::{ClippyLintContext, span_lint_and_note};
 use clippy_utils::is_cfg_test;
 use rustc_attr_ir::AttributeKind;
 use rustc_hir::{
     Attribute, FieldDef, HirId, ImplItemId, IsAuto, Item, ItemKind, Mod, OwnerId, QPath, TraitItemId, TyKind, Variant,
     VariantData,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_middle::ty::{AssocKind, TyCtxt};
 use rustc_span::{Ident, Symbol};
 
@@ -226,7 +226,7 @@ impl ArbitrarySourceItemOrdering {
     }
 
     /// Produces a linting warning for incorrectly ordered item members.
-    fn lint_member_name<T: LintContext>(cx: &T, ident: Ident, before_ident: Ident) {
+    fn lint_member_name<T: ClippyLintContext>(cx: &T, ident: Ident, before_ident: Ident) {
         span_lint_and_note(
             cx,
             ARBITRARY_SOURCE_ITEM_ORDERING,
