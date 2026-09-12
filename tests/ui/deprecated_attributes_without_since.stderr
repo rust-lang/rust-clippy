@@ -46,5 +46,11 @@ error: `deprecated` attribute without specifying what version of the crate depre
 LL |     #[cfg_attr(true, deprecated = "the note below me always lies")]
    |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "the note below me always lies", since = /* version */)]`
 
-error: aborting due to 7 previous errors
+error: `deprecated` attribute without specifying what version of the crate deprecated the item
+  --> tests/ui/deprecated_attributes_without_since.rs:38:5
+   |
+LL |     #[deprecated(note = "kinda weird to deprecate everything inside too")]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: add a version: `#[deprecated(note = "kinda weird to deprecate everything inside too", since = /* version */)]`
+
+error: aborting due to 8 previous errors
 

@@ -35,6 +35,10 @@ fn main() {
     //~^ deprecated_attributes_without_since
     fn cfg_true_has_note_eq() {}
 
+    #[deprecated(note = "kinda weird to deprecate everything inside too")]
+    //~^ deprecated_attributes_without_since
+    mod module {}
+
     // These should be fine
     #[allow(deprecated)]
     #[allow(dead_code, reason = "This should be allowed")]
