@@ -50,12 +50,12 @@ fn constant_int(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u128> {
     };
     let value = constant_int(cx, operand)?;
     let value = match *from_ty.kind() {
-        ty::Int(ity) => unsext(cx.tcx, value as i128, ity),
+        ty::Int(ity) => unsext(cx.tcx, value.cast_signed(), ity),
         ty::Uint(_) => value,
         _ => return None,
     };
     match *to_ty.kind() {
-        ty::Int(ity) => Some(sext(cx.tcx, value, ity) as u128),
+        ty::Int(ity) => Some(sext(cx.tcx, value, ity).cast_unsigned()),
         ty::Uint(uty) => Some(clip(cx.tcx, value, uty)),
         _ => None,
     }
