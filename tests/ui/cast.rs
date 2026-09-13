@@ -251,6 +251,13 @@ fn main() {
     999999u64.clamp(0, 256) as u8;
     //~^ cast_possible_truncation
 
+    // Issue #17722: a `min` bound written as a non-literal constant
+    // still bounds the value, do not lint
+    let x = 999999u64;
+    x.min(u8::MAX as u64) as u8;
+    x.min(u8::MAX.into()) as u8;
+    x.min(u64::from(u8::MAX)) as u8;
+
     #[derive(Clone, Copy)]
     enum E1 {
         A,
