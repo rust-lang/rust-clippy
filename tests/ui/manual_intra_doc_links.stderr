@@ -312,5 +312,77 @@ LL -     /// Link to [external item](../../external_consts/constant.MAGIC_NUMBER
 LL +     /// Link to [external item](constant@external_consts::MAGIC_NUMBER)
    |
 
-error: aborting due to 26 previous errors
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:118:13
+   |
+LL | /// Link to [libstd vec](https://doc.rust-lang.org/nightly/std/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [libstd vec](https://doc.rust-lang.org/nightly/std/index.html)
+LL + /// Link to [libstd vec](mod@crate::std)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:122:13
+   |
+LL | /// Link to [libstd vec](https://doc.rust-lang.org/beta/std/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [libstd vec](https://doc.rust-lang.org/beta/std/index.html)
+LL + /// Link to [libstd vec](mod@crate::std)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:126:13
+   |
+LL | /// Link to [libstd vec](https://doc.rust-lang.org/stable/std/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [libstd vec](https://doc.rust-lang.org/stable/std/index.html)
+LL + /// Link to [libstd vec](mod@crate::std)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:130:13
+   |
+LL | /// Link to [libstd vec](https://doc.rust-lang.org/std/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [libstd vec](https://doc.rust-lang.org/std/index.html)
+LL + /// Link to [libstd vec](mod@crate::std)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:136:13
+   |
+LL | /// Link to [liballoc vec](https://doc.rust-lang.org/nightly/alloc/vec/index.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [liballoc vec](https://doc.rust-lang.org/nightly/alloc/vec/index.html)
+LL + /// Link to [liballoc vec](mod@crate::alloc::vec)
+   |
+
+error: manual intra-doc link
+  --> tests/ui/manual_intra_doc_links.rs:142:13
+   |
+LL | /// Link to [libcore iterator](https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: consider linking by path instead
+   |
+LL - /// Link to [libcore iterator](https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html)
+LL + /// Link to [libcore iterator](trait@crate::core::iter::Iterator)
+   |
+
+error: aborting due to 32 previous errors
 
