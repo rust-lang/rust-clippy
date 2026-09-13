@@ -251,13 +251,6 @@ fn main() {
     999999u64.clamp(0, 256) as u8;
     //~^ cast_possible_truncation
 
-    // Issue #17722: a `min` bound written as a non-literal constant
-    // still bounds the value, do not lint
-    let x = 999999u64;
-    x.min(u8::MAX as u64) as u8;
-    x.min(u8::MAX.into()) as u8;
-    x.min(u64::from(u8::MAX)) as u8;
-
     #[derive(Clone, Copy)]
     enum E1 {
         A,
@@ -607,5 +600,44 @@ fn issue_17501() {
         };
     }
     let _ = cast_from_macro!() as i32;
+    //~^ cast_possible_truncation
+}
+
+fn issue17722() {
+    // A `min`/`clamp`/`&`/`%`/`>>` bound written as a non-literal constant still
+    // bounds the value the same way a literal would: do not lint.
+    let x = 999999u64;
+    x.min(u8::MAX as u64) as u8;
+    x.min(u8::MAX.into()) as u8;
+    x.min(u64::from(u8::MAX)) as u8;
+    x.clamp(0, u8::MAX.into()) as u8;
+    (x & (u8::MAX as u64)) as u8;
+    (x % u64::from(u8::MAX)) as u8;
+    (x >> u64::from(56u8)) as u8;
+
+    // The bound is a non-literal constant, but it does not actually fit in the
+    // target type: should still be linted.
+    x.min(u16::MAX as u64) as u8;
+    //~^ cast_possible_truncation
+    x.min(u64::from(u16::MAX)) as u8;
+    //~^ cast_possible_truncation
+
+    // Regression test: a signed constant cast/converted to a wider unsigned type must
+    // be sign-extended before being re-encoded at the target width, the same way `as`
+    // would. `-1i8 as u64` is `u64::MAX`, not `0xff`, so this does not bound `x` and
+    // must still be linted.
+    x.min(-1i8 as u64) as u8;
+    //~^ cast_possible_truncation
+    //~| cast_sign_loss
+
+    // A method named `into` that isn't `Into::into` must not be treated as a
+    // widening/narrowing conversion.
+    struct NotInto;
+    impl NotInto {
+        fn into(self) -> u64 {
+            999999
+        }
+    }
+    x.min(NotInto.into()) as u8;
     //~^ cast_possible_truncation
 }

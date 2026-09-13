@@ -48,15 +48,20 @@ fn constant_int(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u128> {
         },
         _ => return None,
     };
+    // `constant_int` stores signed values width-masked to their own type (e.g. `-1i8` as
+    // `0xff`), not sign-extended. To reproduce `as`-cast semantics we first sign-extend a
+    // signed operand to its true mathematical value, then re-encode that value at the
+    // target width. Sign-extending with the *target* type's width (as opposed to the
+    // *source* type's) here would silently drop the sign for a widening cast.
     let value = constant_int(cx, operand)?;
-    let value = match *from_ty.kind() {
-        ty::Int(ity) => unsext(cx.tcx, value.cast_signed(), ity),
-        ty::Uint(_) => value,
+    let value: i128 = match *from_ty.kind() {
+        ty::Int(ity) => sext(cx.tcx, value, ity),
+        ty::Uint(_) => value.cast_signed(),
         _ => return None,
     };
     match *to_ty.kind() {
-        ty::Int(ity) => Some(sext(cx.tcx, value, ity).cast_unsigned()),
-        ty::Uint(uty) => Some(clip(cx.tcx, value, uty)),
+        ty::Int(ity) => Some(unsext(cx.tcx, value, ity)),
+        ty::Uint(uty) => Some(clip(cx.tcx, value.cast_unsigned(), uty)),
         _ => None,
     }
 }
