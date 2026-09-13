@@ -173,4 +173,18 @@ fn main() {
 
     let z = Z::<i32>(1);
     z[0];
+
+    let supported: &[u8] = &[1, 2, 3];
+
+    match supported.len() {
+        0 => {}
+        1 => println!("{}", supported[0]),
+        _ => println!("{} or {}", supported[0], supported[1]),
+    }
+
+    let x = match supported.len() {
+        0 => 0,
+        1 => supported[0],
+        _ => supported[1],
+    };
 }
