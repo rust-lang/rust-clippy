@@ -114,3 +114,35 @@ pub struct RelativeLinkNonDependency;
 pub struct RelativeLinkOutsideCrate;
 /// Link to [external item](../index.html)
 pub struct RelativeLinkOutsideCrateIndexHtml;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/nightly/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkNightly;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/beta/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkBeta;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/stable/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkStable;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkNoVersion;
+
+extern crate alloc;
+
+/// Link to [liballoc vec](https://doc.rust-lang.org/nightly/alloc/vec/index.html)
+//~^ manual_intra_doc_links
+pub struct AllocLink;
+
+extern crate core;
+
+/// Link to [libcore iterator](https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html)
+//~^ manual_intra_doc_links
+pub struct CoreLink;
+
+/// Link to [book](https://doc.rust-lang.org/nightly/book/index.html)
+/// not a real intra-doc link.
+pub struct BookLink;
