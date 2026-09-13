@@ -86,4 +86,12 @@ struct D {
     ),
 }
 
+// Issue #17195: should not warn, a type containing `impl Trait` cannot be
+// factored into a type alias on stable Rust
+fn issue17195()
+-> std::iter::Map<std::iter::Zip<std::vec::IntoIter<u32>, std::vec::IntoIter<u32>>, impl FnMut((u32, u32)) -> [u32; 2]>
+{
+    vec![1u32].into_iter().zip(vec![2u32]).map(<[u32; 2]>::from)
+}
+
 fn main() {}
