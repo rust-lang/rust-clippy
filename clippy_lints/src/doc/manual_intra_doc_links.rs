@@ -1,5 +1,6 @@
 use crate::doc::{Fragments, MANUAL_INTRA_DOC_LINKS};
 use clippy_utils::diagnostics::span_lint_and_then;
+use rustc_attr_ir::find_attr;
 use rustc_crate_store::ExternCrateSource;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
@@ -7,7 +8,7 @@ use rustc_hir::def::DefKind;
 use rustc_hir::definitions::DefPathData;
 use rustc_lint::LateContext;
 use rustc_resolve::rustdoc::pulldown_cmark::LinkType;
-use rustc_span::def_id::LocalDefId;
+use rustc_span::def_id::{CrateNum, LocalDefId};
 use rustc_span::{Symbol, kw};
 use std::ops::Range;
 
@@ -23,7 +24,10 @@ pub(crate) fn check(
     link_id: &str,
     cx: &LateContext<'_>,
 ) {
-    let Some(intra_doc_link) = check_docsrs(dest_url, cx).or_else(|| check_relative(current_item, dest_url, cx)) else {
+    let Some(intra_doc_link) = check_docsrs(dest_url, cx)
+        .or_else(|| check_html_root_url(dest_url, cx))
+        .or_else(|| check_relative(current_item, dest_url, cx))
+    else {
         return;
     };
     let Some(span) = fragments.span(cx, doc_span.clone()) else {
@@ -242,6 +246,81 @@ fn check_docsrs(mut dest_url: &str, cx: &LateContext<'_>) -> Option<String> {
             "::"
         }
     ))
+}
+
+/// Parse links based on the [`#[doc(html_root_url)]`][1] crate attribute.
+///
+/// [1]: https://doc.rust-lang.org/nightly/rustdoc/write-documentation/the-doc-attribute.html#html_root_url
+fn check_html_root_url(dest_url: &str, cx: &LateContext<'_>) -> Option<String> {
+    cx.tcx
+        .crates(())
+        .iter()
+        .find_map(|cnum| check_html_root_url_inner(dest_url, cx, *cnum))
+}
+
+/// Check if a link matches the `html_root_url` for a specific crate.
+///
+/// If this crate doesn't have one, or it doesn't match, this function returns `None`.
+fn check_html_root_url_inner(dest_url: &str, cx: &LateContext<'_>, cnum: CrateNum) -> Option<String> {
+    let html_root_url =
+        find_attr!(cx.tcx, cnum.as_def_id(), Doc(doc) if doc.html_root_url.is_some() => doc.html_root_url.unwrap().0)?;
+    let html_root_url = cleanup_html_root_url(html_root_url.as_str());
+    let path = dest_url.strip_prefix(&html_root_url)?;
+    let path = if html_root_url == "https://doc.rust-lang.org/"
+        && let Some(("nightly" | "beta" | "stable", path)) = path.split_once('/')
+    {
+        path
+    } else {
+        path
+    };
+    let (crate_name, path) = path.split_once('/')?;
+    let crate_path = {
+        let extern_crate = cx.tcx.extern_crate(cnum)?;
+        // manual links are only redundant if the crate is already a dependency
+        if !extern_crate.is_direct() || cx.tcx.crate_name(cnum).as_str() != crate_name {
+            return None;
+        }
+        match extern_crate.src {
+            ExternCrateSource::Path => vec![cx.tcx.crate_name(cnum)],
+            ExternCrateSource::Extern(did) => symbols_for_def_path_data(
+                &std::iter::once(DefPathData::CrateRoot)
+                    .chain(cx.tcx.def_path(did).data.iter().map(|data| data.data))
+                    .collect::<Vec<_>>(),
+            ),
+        }
+    };
+
+    let crate_path = crate_path.iter().map(Symbol::as_str).collect::<Vec<&str>>().join("::");
+
+    if path == "index.html" || path.is_empty() {
+        return Some(format!("mod@{crate_path}"));
+    }
+
+    let (path_components, disambiguator, item_name) = check_url_inner(path)?;
+
+    let path = path_components.join("::");
+    Some(format!(
+        "{disambiguator}@{crate_path}{sep}{path}::{item_name}",
+        sep = if crate_path.is_empty() || path.is_empty() {
+            ""
+        } else {
+            "::"
+        }
+    ))
+}
+
+fn cleanup_html_root_url(url: &str) -> String {
+    let mut cleaned = url.to_string();
+    if !cleaned.ends_with('/') {
+        cleaned.push('/');
+    }
+    if cleaned == "https://doc.rust-lang.org/nightly/"
+        || cleaned == "https://doc.rust-lang.org/beta/"
+        || cleaned == "https://doc.rust-lang.org/stable/"
+    {
+        return "https://doc.rust-lang.org/".to_string();
+    }
+    cleaned
 }
 
 fn check_url_inner(mut path: &str) -> Option<(Vec<&str>, &str, &str)> {
