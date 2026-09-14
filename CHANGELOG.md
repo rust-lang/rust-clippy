@@ -7622,6 +7622,7 @@ Released 2018-09-13
 [`to_digit_is_some`]: https://rust-lang.github.io/rust-clippy/main/index.html#to_digit_is_some
 [`to_string_in_display`]: https://rust-lang.github.io/rust-clippy/main/index.html#to_string_in_display
 [`to_string_in_format_args`]: https://rust-lang.github.io/rust-clippy/main/index.html#to_string_in_format_args
+[`to_string_lossy_in_format_args`]: https://rust-lang.github.io/rust-clippy/main/index.html#to_string_lossy_in_format_args
 [`to_string_trait_impl`]: https://rust-lang.github.io/rust-clippy/main/index.html#to_string_trait_impl
 [`todo`]: https://rust-lang.github.io/rust-clippy/main/index.html#todo
 [`too_long_first_doc_paragraph`]: https://rust-lang.github.io/rust-clippy/main/index.html#too_long_first_doc_paragraph

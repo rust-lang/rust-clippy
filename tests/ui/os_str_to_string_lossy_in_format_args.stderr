@@ -1,0 +1,41 @@
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/os_str_to_string_lossy_in_format_args.rs:27:27
+   |
+LL |     println!("{}", os_str.to_string_lossy());
+   |                           ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = note: `-D clippy::to-string-lossy-in-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::to_string_lossy_in_format_args)]`
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/os_str_to_string_lossy_in_format_args.rs:28:30
+   |
+LL |     println!("{}", os_string.to_string_lossy());
+   |                              ^^^^^^^^^^^^^^^ help: use: `display`
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/os_str_to_string_lossy_in_format_args.rs:30:42
+   |
+LL |     let _: String = format!("{}", os_str.to_string_lossy());
+   |                                          ^^^^^^^^^^^^^^^ help: use: `display`
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/os_str_to_string_lossy_in_format_args.rs:31:45
+   |
+LL |     let _: String = format!("{}", os_string.to_string_lossy());
+   |                                             ^^^^^^^^^^^^^^^ help: use: `display`
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/os_str_to_string_lossy_in_format_args.rs:34:33
+   |
+LL |     println!("{}", deref_os_str.to_string_lossy());
+   |                                 ^^^^^^^^^^^^^^^ help: use: `display`
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/os_str_to_string_lossy_in_format_args.rs:46:27
+   |
+LL |     println!("{}", os_str.to_string_lossy());
+   |                           ^^^^^^^^^^^^^^^ help: use: `display`
+
+error: aborting due to 6 previous errors
+

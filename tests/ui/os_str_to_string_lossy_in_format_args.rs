@@ -1,0 +1,48 @@
+#![warn(clippy::to_string_lossy_in_format_args)]
+#![expect(unused)]
+
+use std::ffi::OsStr;
+use std::ops::Deref;
+
+struct DerefOsStr<'a> {
+    os_str: &'a OsStr,
+}
+
+impl Deref for DerefOsStr<'_> {
+    type Target = OsStr;
+    fn deref(&self) -> &Self::Target {
+        self.os_str
+    }
+}
+
+fn main() {
+    let os_str = OsStr::new("abc");
+    let os_string = os_str.to_os_string();
+
+    // negative tests
+    println!("{}", os_str.display());
+    println!("{}", os_string.display());
+
+    // positive tests
+    println!("{}", os_str.to_string_lossy()); //~ to_string_lossy_in_format_args
+    println!("{}", os_string.to_string_lossy()); //~ to_string_lossy_in_format_args
+
+    let _: String = format!("{}", os_str.to_string_lossy()); //~ to_string_lossy_in_format_args
+    let _: String = format!("{}", os_string.to_string_lossy()); //~ to_string_lossy_in_format_args
+
+    let deref_os_str = DerefOsStr { os_str };
+    println!("{}", deref_os_str.to_string_lossy()); //~ to_string_lossy_in_format_args
+}
+
+#[clippy::msrv = "1.86"]
+fn msrv_1_86() {
+    let os_str = OsStr::new("test");
+    println!("{}", os_str.to_string_lossy());
+}
+
+#[clippy::msrv = "1.87"]
+fn msrv_1_87() {
+    let os_str = OsStr::new("test");
+    println!("{}", os_str.to_string_lossy());
+    //~^ to_string_lossy_in_format_args
+}
