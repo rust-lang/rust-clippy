@@ -128,10 +128,6 @@ fn main() {
     let y = x as u64;
     fake_libc::getpid_SAFE_TRUTH(&0u32) as i32;
     extern_fake_libc::getpid_SAFE_TRUTH() as i32;
-    // Issue #17166: calls to associated functions of external types suppress
-    // the lint just like calls to free functions do
-    let s = extern_fake_libc::Statvfs::init();
-    s.f_blocks as u64;
     let pid = unsafe { fake_libc::getpid() };
     pid as i32;
     aaa() as u32;
@@ -681,3 +677,8 @@ const _: () = {
     assert!(0x7f_ff_ff_ff_ff_ff_ff_ffu64 == identity(!0 as u64 + 0).overflowing_shr(1_u32).0);
     //~^ unnecessary_cast
 };
+
+fn issue17166() {
+    let s = extern_fake_libc::Statvfs::init();
+    s.f_blocks as u64;
+}
