@@ -1,6 +1,5 @@
 mod collapsible_match;
 mod infallible_destructuring_match;
-pub(crate) mod manual_filter;
 mod manual_map;
 mod manual_ok_err;
 mod manual_unwrap_or;
@@ -23,6 +22,8 @@ mod significant_drop_in_scrutinee;
 mod single_match;
 mod try_err;
 mod wild_in_or_pats;
+
+pub(crate) mod manual_filter;
 
 use clippy_config::Conf;
 use clippy_utils::msrvs::{self, Msrv};
