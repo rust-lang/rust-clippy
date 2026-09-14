@@ -72,9 +72,10 @@ mod useless_attribute {
     use std::collections::HashMap;
 }
 
-// Regression test for https://github.com/rust-lang/rust-clippy/issues/17718
-external! {
-    fn in_external_macro() -> std::collections::HashMap<(), ()> {
-        std::collections::HashMap::new()
+fn issue17718() {
+    external! {
+        fn in_external_macro() -> std::collections::HashMap<(), ()> {
+            std::collections::HashMap::new()
+        }
     }
 }
