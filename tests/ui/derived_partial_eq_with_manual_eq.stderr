@@ -1,0 +1,83 @@
+error: `Eq` should be derived automatically when `PartialEq` is derived
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:18:10
+   |
+LL | #[derive(PartialEq)]
+   |          ^^^^^^^^^
+   |
+note: `Eq` implemented here
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:20:1
+   |
+LL | impl Eq for OneImplManual {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^
+   = note: `-D clippy::derived-partial-eq-with-manual-eq` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::derived_partial_eq_with_manual_eq)]`
+
+error: `Eq` should be derived automatically when `PartialEq` is derived
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:36:10
+   |
+LL | #[derive(PartialEq, Debug, Default, PartialOrd, Copy, Clone, Ord)]
+   |          ^^^^^^^^^
+   |
+note: `Eq` implemented here
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:41:1
+   |
+LL | impl Eq for WithTypeDefinition2 {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `Eq` should be derived automatically when `PartialEq` is derived
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:44:10
+   |
+LL | #[derive(PartialEq)]
+   |          ^^^^^^^^^
+   |
+note: `Eq` implemented here
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:48:1
+   |
+LL | impl<T> Eq for WithTypeDefinition3<T> where T: PartialEq {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `Eq` should be derived automatically when `PartialEq` is derived
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:51:10
+   |
+LL | #[derive(PartialEq)]
+   |          ^^^^^^^^^
+   |
+note: `Eq` implemented here
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:55:1
+   |
+LL | impl<T: PartialEq> Eq for WithTypeDefinition4<T> {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `Eq` should be derived automatically when `PartialEq` is derived
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:58:10
+   |
+LL | #[derive(PartialEq)]
+   |          ^^^^^^^^^
+   |
+note: `Eq` implemented here
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:63:1
+   |
+LL | impl Eq for EnumWithManualEq {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: `Eq` should be derived automatically when `PartialEq` is derived
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:105:18
+   |
+LL |         #[derive(PartialEq)]
+   |                  ^^^^^^^^^
+...
+LL | mk_type!(StructEqFromExpansion);
+   | ------------------------------- in this macro invocation
+   |
+note: `Eq` implemented here
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:107:9
+   |
+LL |         impl Eq for $name {}
+   |         ^^^^^^^^^^^^^^^^^
+...
+LL | mk_type!(StructEqFromExpansion);
+   | ------------------------------- in this macro invocation
+   = note: this error originates in the derive macro `PartialEq` which comes from the expansion of the macro `mk_type` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 6 previous errors
+
