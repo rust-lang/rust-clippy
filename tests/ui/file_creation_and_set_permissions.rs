@@ -2,9 +2,9 @@
 #![feature(set_permissions_nofollow)]
 #![feature(file_buffered)]
 
-use std::path::Path;
 use std::fs::{File, Permissions};
 use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 
 fn main() {
     // don't lint here
