@@ -4,9 +4,9 @@ use clippy_utils::peel_blocks;
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_copy, should_call_clone_as_function};
-use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
+use rustc_hir::attrs::lang_items::LangItem;
 use rustc_hir::def_id::DefId;
 use rustc_lint::LateContext;
 use rustc_middle::mir::{Mutability, Pinnedness};
@@ -126,7 +126,10 @@ fn handle_path(
         && lst.iter().all(|l| l.no_bound_vars().unwrap().as_type() == Some(*ty))
         && !should_call_clone_as_function(cx, *ty)
     {
-        lint_path(cx, e.span, recv.span, is_copy(cx, ty.peel_refs()));
+        let rustc_hir::ExprKind::MethodCall(_path_segment, _expr, _exprs, span) = e.kind else {
+            unreachable!("This only gets ran when ExprKind is MethodCall");
+        };
+        lint_path(cx, span, is_copy(cx, ty.peel_refs()));
     }
 }
 
@@ -150,9 +153,7 @@ fn lint_needless_cloning(cx: &LateContext<'_>, root: Span, receiver: Span) {
     );
 }
 
-fn lint_path(cx: &LateContext<'_>, replace: Span, root: Span, is_copy: bool) {
-    let mut applicability = Applicability::MachineApplicable;
-
+fn lint_path(cx: &LateContext<'_>, replace: Span, is_copy: bool) {
     let replacement = if is_copy { "copied" } else { "cloned" };
 
     span_lint_and_sugg(
@@ -160,12 +161,9 @@ fn lint_path(cx: &LateContext<'_>, replace: Span, root: Span, is_copy: bool) {
         MAP_CLONE,
         replace,
         "you are explicitly cloning with `.map()`",
-        format!("consider calling the dedicated `{replacement}` method"),
-        format!(
-            "{}.{replacement}()",
-            snippet_with_applicability(cx, root, "..", &mut applicability),
-        ),
-        applicability,
+        "consider calling the dedicated method",
+        format!("{replacement}()"),
+        Applicability::MachineApplicable,
     );
 }
 
