@@ -565,7 +565,6 @@ generate! {
     serde,
     set_len,
     set_mode,
-    set_permissions,
     set_readonly,
     signum,
     single_component_path_imports,
