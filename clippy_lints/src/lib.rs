@@ -349,6 +349,7 @@ mod single_range_in_vec_init;
 mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
+mod stacked_if_match;
 mod std_instead_of_core;
 mod string_patterns;
 mod strings;
@@ -544,6 +545,7 @@ rustc_lint::early_lint_methods!(
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
         DefinitionInModuleRoot: definition_in_module_root::DefinitionInModuleRoot = definition_in_module_root::DefinitionInModuleRoot::default(),
+        StackedIfMatch: stacked_if_match::StackedIfMatch = stacked_if_match::StackedIfMatch,
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );

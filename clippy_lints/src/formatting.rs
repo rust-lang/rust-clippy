@@ -1,10 +1,9 @@
-use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note, span_lint_and_then};
+use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note};
 use clippy_utils::is_span_if;
 use clippy_utils::source::snippet_opt;
-use rustc_ast::ast::{BinOpKind, Block, Expr, ExprKind, MatchKind, StmtKind};
-use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
+use rustc_ast::ast::{BinOpKind, Block, Expr, ExprKind, StmtKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, declare_lint_pass};
-use rustc_span::{BytePos, Span};
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -50,66 +49,6 @@ declare_clippy_lint! {
     pub POSSIBLE_MISSING_ELSE,
     suspicious,
     "possibly missing `else`"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks for `if if` and `match match` expressions with formatting that
-    /// makes it difficult to see where the outer expression starts.
-    /// It does not check mixed `if match` or `match if` expressions, because
-    /// their distinct keywords make the outer expression clear.
-    ///
-    /// ### Why is this bad?
-    /// Stacking `if` or `match` expressions this way is hard to read.
-    ///
-    /// ### Example
-    /// ```no_run
-    /// # let value = Some(1);
-    /// if if value.is_some() {
-    ///     true
-    /// } else {
-    ///     false
-    /// }
-    /// {
-    ///     println!("value is present");
-    /// }
-    ///
-    /// # let value = 1;
-    /// match match value {
-    ///     0 => 1,
-    ///     _ => 2,
-    /// } {
-    ///     1 => println!("one"),
-    ///     _ => println!("other"),
-    /// }
-    /// ```
-    ///
-    /// Use instead:
-    /// ```no_run
-    /// # let value = Some(1);
-    /// let is_present = if value.is_some() {
-    ///     true
-    /// } else {
-    ///     false
-    /// };
-    /// if is_present {
-    ///     println!("value is present");
-    /// }
-    ///
-    /// # let value = 1;
-    /// let result = match value {
-    ///     0 => 1,
-    ///     _ => 2,
-    /// };
-    /// match result {
-    ///     1 => println!("one"),
-    ///     _ => println!("other"),
-    /// }
-    /// ```
-    #[clippy::version = "1.99.0"]
-    pub STACKED_IF_MATCH,
-    nursery,
-    "visually stacked `if` or `match` expressions"
 }
 
 declare_clippy_lint! {
@@ -200,7 +139,6 @@ declare_clippy_lint! {
 declare_lint_pass!(Formatting => [
     POSSIBLE_MISSING_COMMA,
     POSSIBLE_MISSING_ELSE,
-    STACKED_IF_MATCH,
     SUSPICIOUS_ASSIGNMENT_FORMATTING,
     SUSPICIOUS_ELSE_FORMATTING,
     SUSPICIOUS_UNARY_OP_FORMATTING,
@@ -220,160 +158,7 @@ impl EarlyLintPass for Formatting {
         check_unop(cx, expr);
         check_else(cx, expr);
         check_array(cx, expr);
-        check_stacked_if_match(cx, expr);
     }
-}
-
-#[derive(Clone, Copy)]
-enum StackedExprKind {
-    If,
-    Match,
-}
-
-impl StackedExprKind {
-    fn name(self) -> &'static str {
-        match self {
-            Self::If => "if",
-            Self::Match => "match",
-        }
-    }
-
-    fn matches(self, expr: &Expr) -> bool {
-        match self {
-            Self::If => matches!(&expr.kind, ExprKind::If(..)),
-            Self::Match => matches!(&expr.kind, ExprKind::Match(.., MatchKind::Prefix)),
-        }
-    }
-}
-
-fn check_stacked_if_match(cx: &EarlyContext<'_>, expr: &Expr) {
-    if expr.span.is_dummy() || expr.span.from_expansion() || expr.span.in_external_macro(cx.sess().source_map()) {
-        return;
-    }
-
-    let (condition, kind, body_line) = match &expr.kind {
-        ExprKind::If(condition, then, _) => (condition, StackedExprKind::If, line_of_pos(cx, then.span.lo())),
-        ExprKind::Match(scrutinee, _, MatchKind::Prefix) => {
-            (scrutinee, StackedExprKind::Match, match_body_line(cx, scrutinee, expr))
-        },
-        _ => return,
-    };
-
-    let (Some(outer_keyword_line), Some(body_line)) = (line_of_pos(cx, expr.span.lo()), body_line) else {
-        return;
-    };
-
-    if let Some(inner) = find_stacked_expr(cx, condition, expr.span, kind, outer_keyword_line, body_line) {
-        let keyword = kind.name();
-        span_lint_and_then(
-            cx,
-            STACKED_IF_MATCH,
-            inner.span,
-            format!("this `{keyword}` expression is visually stacked inside another `{keyword}` expression"),
-            |diag| {
-                // Hoisting into a `let` is only safe for the whole condition or scrutinee; a binary
-                // operand may rely on short-circuiting or earlier `let` bindings, so suggest parentheses
-                // there. Parentheses around the whole condition would trigger `unused_parens`.
-                if inner.span == condition.span {
-                    diag.help(format!(
-                        "consider binding the inner `{keyword}` expression to a local before the outer `{keyword}`"
-                    ));
-                    // An inner `if` always yields a `bool`, so hoisting it is always safe. An inner `match`
-                    // may yield a borrow of a scrutinee temporary that would not outlive a `let`.
-                    if matches!(kind, StackedExprKind::Match) {
-                        diag.help(
-                            "if the inner `match` borrows from its scrutinee, bind the scrutinee to a local first",
-                        );
-                    }
-                } else {
-                    diag.help(format!(
-                        "consider wrapping the inner `{keyword}` expression in parentheses"
-                    ));
-                }
-            },
-        );
-    }
-}
-
-fn find_stacked_expr<'a>(
-    cx: &EarlyContext<'_>,
-    expr: &'a Expr,
-    outer_span: Span,
-    kind: StackedExprKind,
-    outer_keyword_line: usize,
-    body_line: usize,
-) -> Option<&'a Expr> {
-    let candidate = is_stacked_expr(cx, expr, outer_span, kind, outer_keyword_line, body_line).then_some(expr);
-
-    if let ExprKind::Binary(_, lhs, rhs) = &expr.kind {
-        nearest_expr(
-            candidate,
-            nearest_expr(
-                find_stacked_expr(cx, lhs, outer_span, kind, outer_keyword_line, body_line),
-                find_stacked_expr(cx, rhs, outer_span, kind, outer_keyword_line, body_line),
-            ),
-        )
-    } else {
-        candidate
-    }
-}
-
-fn is_stacked_expr(
-    cx: &EarlyContext<'_>,
-    expr: &Expr,
-    outer_span: Span,
-    kind: StackedExprKind,
-    outer_keyword_line: usize,
-    body_line: usize,
-) -> bool {
-    if expr.span.is_dummy()
-        || expr.span.from_expansion()
-        || expr.span.in_external_macro(cx.sess().source_map())
-        || !expr.span.eq_ctxt(outer_span)
-        || !kind.matches(expr)
-    {
-        return false;
-    }
-
-    let Some(inner_end) = expr.span.hi().0.checked_sub(1).map(BytePos) else {
-        return false;
-    };
-    let (Some(inner_start_line), Some(inner_end_line)) = (line_of_pos(cx, expr.span.lo()), line_of_pos(cx, inner_end))
-    else {
-        return false;
-    };
-
-    inner_start_line == outer_keyword_line && (body_line == inner_end_line || body_line == inner_end_line + 1)
-}
-
-fn nearest_expr<'a>(lhs: Option<&'a Expr>, rhs: Option<&'a Expr>) -> Option<&'a Expr> {
-    match (lhs, rhs) {
-        (Some(lhs), Some(rhs)) if lhs.span.hi() >= rhs.span.hi() => Some(lhs),
-        (Some(_), Some(rhs)) => Some(rhs),
-        (Some(expr), None) | (None, Some(expr)) => Some(expr),
-        (None, None) => None,
-    }
-}
-
-fn match_body_line(cx: &EarlyContext<'_>, scrutinee: &Expr, expr: &Expr) -> Option<usize> {
-    let after_scrutinee = scrutinee.span.with_lo(scrutinee.span.hi()).with_hi(expr.span.hi());
-    let source = snippet_opt(cx, after_scrutinee)?;
-    let mut offset = 0;
-
-    for token in tokenize(&source, FrontmatterAllowed::No) {
-        match token.kind {
-            TokenKind::Whitespace | TokenKind::LineComment { .. } | TokenKind::BlockComment { .. } => {},
-            TokenKind::OpenBrace => return line_of_pos(cx, scrutinee.span.hi() + BytePos(offset)),
-            _ => return None,
-        }
-        offset += token.len;
-    }
-
-    None
-}
-
-fn line_of_pos(cx: &EarlyContext<'_>, pos: BytePos) -> Option<usize> {
-    cx.sess().source_map().lookup_line(pos).ok().map(|line| line.line)
 }
 
 /// Implementation of the `SUSPICIOUS_ASSIGNMENT_FORMATTING` lint.

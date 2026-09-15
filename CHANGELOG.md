@@ -7581,7 +7581,8 @@ Released 2018-09-13
 [`slow_vector_initialization`]: https://rust-lang.github.io/rust-clippy/main/index.html#slow_vector_initialization
 [`some_filter`]: https://rust-lang.github.io/rust-clippy/main/index.html#some_filter
 [`stable_sort_primitive`]: https://rust-lang.github.io/rust-clippy/main/index.html#stable_sort_primitive
-[`stacked_if_match`]: https://rust-lang.github.io/rust-clippy/main/index.html#stacked_if_match
+[`stacked_if`]: https://rust-lang.github.io/rust-clippy/main/index.html#stacked_if
+[`stacked_match`]: https://rust-lang.github.io/rust-clippy/main/index.html#stacked_match
 [`std_instead_of_alloc`]: https://rust-lang.github.io/rust-clippy/main/index.html#std_instead_of_alloc
 [`std_instead_of_core`]: https://rust-lang.github.io/rust-clippy/main/index.html#std_instead_of_core
 [`str_split_at_newline`]: https://rust-lang.github.io/rust-clippy/main/index.html#str_split_at_newline

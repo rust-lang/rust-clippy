@@ -1,4 +1,5 @@
 #![warn(clippy::match_single_binding)]
+#![allow(clippy::stacked_match)]
 
 fn main() {
     // Lint (additional curly braces needed, see #6572)

@@ -1,0 +1,94 @@
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:21:12
+   |
+LL |           if if first {
+   |  ____________^
+LL | |
+LL | |             second
+LL | |         } else {
+LL | |             third
+LL | |         } {
+   | |_________^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+   = note: `-D clippy::stacked-if` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::stacked_if)]`
+
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:32:12
+   |
+LL |         if if first { second } else { third } && fourth {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:37:12
+   |
+LL |         if if first { 1 } else { 2 } == 1 {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:42:12
+   |
+LL |         if if first { 1u32 } else { 2 }.pow(2) == 1 {
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:49:12
+   |
+LL |           if if let Some(number) = option {
+   |  ____________^
+LL | |
+LL | |             number > 0
+LL | |         } else {
+LL | |             false
+LL | |         } {
+   | |_________^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:60:12
+   |
+LL |           if if if first {
+   |  ____________^
+LL | |
+LL | |
+LL | |             second
+...  |
+LL | |             third
+LL | |         } {
+   | |_________^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:60:15
+   |
+LL |           if if if first {
+   |  _______________^
+LL | |
+LL | |
+LL | |             second
+LL | |         } else {
+LL | |             third
+LL | |         } {
+   | |_________^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+
+error: this `if` expression is stacked inside the condition of another `if`
+  --> tests/ui/stacked_if.rs:75:39
+   |
+LL |     const STACKED_IN_CONST: bool = if if true { false } else { true } {
+   |                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider binding the inner `if` expression to a local before the outer `if`
+
+error: aborting due to 8 previous errors
+

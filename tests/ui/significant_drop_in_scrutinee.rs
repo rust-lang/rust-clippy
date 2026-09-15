@@ -1,7 +1,7 @@
 // FIXME: Ideally these suggestions would be fixed via rustfix. Blocked by rust-lang/rust#53934
 //@no-rustfix
 #![warn(clippy::significant_drop_in_scrutinee)]
-#![expect(clippy::match_single_binding, clippy::single_match)]
+#![expect(clippy::match_single_binding, clippy::single_match, clippy::stacked_match)]
 
 use std::num::ParseIntError;
 use std::ops::Deref;
