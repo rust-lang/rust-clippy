@@ -14,6 +14,7 @@ LL | foobar = 42
            allow-exact-repetitions
            allow-expect-in-consts
            allow-expect-in-tests
+           allow-in-tests
            allow-indexing-slicing-in-tests
            allow-large-stack-frames-in-tests
            allow-mixed-uninlined-format-args
