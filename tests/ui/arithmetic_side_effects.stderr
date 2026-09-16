@@ -787,5 +787,29 @@ error: arithmetic operation that can potentially result in unexpected side-effec
 LL |     let _ = Duration::from_secs(86400 * shift(1));
    |                                 ^^^^^^^^^^^^^^^^
 
-error: aborting due to 131 previous errors
+error: arithmetic operation that can potentially result in unexpected side-effects
+  --> tests/ui/arithmetic_side_effects.rs:777:30
+   |
+LL |     let _ = f.saturating_div(const { std::mem::size_of::<()>() as u64 });
+   |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+  --> tests/ui/arithmetic_side_effects.rs:779:13
+   |
+LL |     let _ = f / const { std::mem::size_of::<()>() as u64 };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+  --> tests/ui/arithmetic_side_effects.rs:781:13
+   |
+LL |     let _ = f % const { std::mem::size_of::<()>() as u64 };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: arithmetic operation that can potentially result in unexpected side-effects
+  --> tests/ui/arithmetic_side_effects.rs:788:22
+   |
+LL |     f.saturating_div(const { std::mem::size_of::<T>() as u64 })
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 135 previous errors
 

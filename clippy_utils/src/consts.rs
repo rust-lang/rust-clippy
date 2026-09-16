@@ -21,9 +21,11 @@ use rustc_lexer::{FrontmatterAllowed, tokenize};
 use rustc_lint::LateContext;
 use rustc_middle::mir::ConstValue;
 use rustc_middle::mir::interpret::{Scalar, alloc_range};
-use rustc_middle::ty::{self, FloatTy, IntTy, ScalarInt, Ty, TyCtxt, TypeckResults, UintTy};
+use rustc_middle::ty::{
+    self, FloatTy, InlineConstArgs, InlineConstArgsParts, IntTy, ScalarInt, Ty, TyCtxt, TypeckResults, UintTy,
+};
 use rustc_middle::{bug, mir, span_bug};
-use rustc_span::{Symbol, SyntaxContext};
+use rustc_span::{Span, Symbol, SyntaxContext};
 use std::cell::Cell;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -618,11 +620,43 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
             .and_then(|c| mir_to_const(self.tcx, c, self.typeck.node_type(hir_id)))
     }
 
+    /// Folds the body of an inline const block, falling back to the compiler's const evaluator for
+    /// bodies which can't be folded here, e.g. `const { size_of::<u64>() }`.
+    fn const_block(&self, block: &ConstBlock, span: Span) -> Option<Constant> {
+        if let Some(c) = self.expr(self.tcx.hir_body(block.body).value) {
+            return Some(c);
+        }
+
+        let did = block.def_id.to_def_id();
+        let typeck_root_def_id = self.tcx.typeck_root_def_id(did);
+        let identity_args = ty::GenericArgs::identity_for_item(self.tcx, typeck_root_def_id);
+        // Don't try to fully evaluate consts inside code whose bounds can't be satisfied. The
+        // compiler never evaluates such a body itself, so doing it here would report errors for
+        // code which builds fine.
+        if self
+            .tcx
+            .instantiate_and_check_impossible_clauses((typeck_root_def_id, identity_args))
+        {
+            return None;
+        }
+
+        // The value depends on items the folding above can't see, so it isn't locally defined.
+        self.source.set(ConstantSource::NonLocal);
+        let ty = self.typeck.node_type(block.hir_id);
+        let parent_args = self.tcx.erase_and_anonymize_regions(identity_args);
+        let args = InlineConstArgs::new(self.tcx, InlineConstArgsParts { parent_args, ty }).args;
+        let val = self
+            .tcx
+            .const_eval_resolve(self.typing_env, mir::UnevaluatedConst::new(did, args), span)
+            .ok()?;
+        mir_to_const(self.tcx, val, ty)
+    }
+
     /// Simple constant folding: Insert an expression, get a constant or none.
     fn expr(&self, e: &Expr<'_>) -> Option<Constant> {
         self.check_ctxt(e.span.ctxt());
         match e.kind {
-            ExprKind::ConstBlock(ConstBlock { body, .. }) => self.expr(self.tcx.hir_body(body).value),
+            ExprKind::ConstBlock(ref block) => self.const_block(block, e.span),
             ExprKind::DropTemps(e) => self.expr(e),
             ExprKind::Path(ref qpath) => self.qpath(qpath, e.hir_id),
             ExprKind::Block(block, _) => {
