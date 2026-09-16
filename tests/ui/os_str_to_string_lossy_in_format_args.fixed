@@ -4,6 +4,12 @@
 use std::ffi::OsStr;
 use std::ops::Deref;
 
+macro_rules! os_str_to_string {
+    ($os_str:expr) => {
+        $os_str.to_string_lossy()
+    };
+}
+
 struct DerefOsStr<'a> {
     os_str: &'a OsStr,
 }
@@ -22,6 +28,8 @@ fn main() {
     // negative tests
     println!("{}", os_str.display());
     println!("{}", os_string.display());
+
+    println!("{}", os_str_to_string!(os_str));
 
     // positive tests
     println!("{}", os_str.display()); //~ to_string_lossy_in_format_args

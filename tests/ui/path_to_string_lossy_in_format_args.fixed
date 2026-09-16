@@ -3,6 +3,12 @@
 use std::ops::Deref;
 use std::path::Path;
 
+macro_rules! path_to_string {
+    ($path:expr) => {
+        $path.to_string_lossy()
+    };
+}
+
 struct DerefPath<'a> {
     path: &'a Path,
 }
@@ -21,6 +27,8 @@ fn main() {
     // negative tests
     println!("{}", path.display());
     println!("{}", path_buf.display());
+
+    println!("{}", path_to_string!(path));
 
     // positive tests
     println!("{}", path.display()); //~ to_string_lossy_in_format_args

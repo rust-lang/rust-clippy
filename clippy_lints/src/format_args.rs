@@ -763,14 +763,20 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
             && let receiver_ty = cx.typeck_results().expr_ty(receiver)
             && self.can_display_format(receiver_ty)
         {
-            span_lint_and_sugg(
+            span_lint_and_then(
                 cx,
                 TO_STRING_LOSSY_IN_FORMAT_ARGS,
                 method_name.ident.span,
                 format!("`to_string_lossy` instead of `display` in `{name}!` args"),
-                "use",
-                String::from("display"),
-                Applicability::MachineApplicable,
+                |diag| {
+                    diag.span_suggestion(
+                        method_name.ident.span,
+                        "use",
+                        "display",
+                        Applicability::MachineApplicable,
+                    );
+                    diag.help("using `display` can avoid an allocation`");
+                },
             );
         }
     }
