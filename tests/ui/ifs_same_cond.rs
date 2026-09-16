@@ -5,6 +5,8 @@
     clippy::needless_else
 )]
 
+use std::cell::Cell;
+
 fn ifs_same_cond() {
     let a = 0;
     let b = false;
@@ -76,11 +78,41 @@ fn issue10272() {
     } else {
     }
 
-    let x = std::cell::Cell::new(true);
+    let x = Cell::new(true);
     if x.get() {
     } else if !x.take() {
     } else if x.get() {
         // ok, x is interior mutable type
+    } else {
+    }
+}
+
+fn issue13865() {
+    #[clippy::private_interior_mutability]
+    struct X<T>(Cell<T>);
+
+    // delegate some methods so that the test case works
+    impl<T> X<T> {
+        fn get(&self) -> T
+        where
+            T: Copy,
+        {
+            self.0.get()
+        }
+        fn take(&self) -> T
+        where
+            T: Default,
+        {
+            self.0.take()
+        }
+    }
+
+    let x = X(Cell::new(true));
+    if x.get() {
+        //~^ ifs_same_cond
+        // x is interior mutable type, but that should be ignored, so we lint
+    } else if !x.take() {
+    } else if x.get() {
     } else {
     }
 }

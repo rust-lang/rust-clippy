@@ -51,3 +51,30 @@ impl<'a> Drop for CounterWrapper<'a> {
     }
 }
 ```
+
+## `#[clippy::private_interior_mutability]`
+
+_Available since Clippy v1.100_
+
+The `clippy::private_interior_mutability` attribute can be added to types which
+internally contain interior-mutable types, but don't expose this fact in their
+API. This is identical to the `ignore-interior-mutability` configuration option,
+but can be placed on the offending type instead of in Clippy's configuration file.
+
+### Example
+
+```rust
+use std::{cell::Cell, collections::HashMap};
+
+#[clippy::private_interior_mutability]
+struct ActuallyFineAsAKey {
+    id: usize,
+    other_data: Cell<i32>,
+}
+
+fn main() {
+    // `mut_key` will not fire here, as `ActuallyFineAsAKey` is considered to
+    // lack interior mutability
+    let _map: HashMap<ActuallyFineAsAKey, String> = HashMap::new();
+}
+```
