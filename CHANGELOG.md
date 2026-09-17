@@ -6953,6 +6953,9 @@ Released 2018-09-13
 [`copy_iterator`]: https://rust-lang.github.io/rust-clippy/main/index.html#copy_iterator
 [`crate_in_macro_def`]: https://rust-lang.github.io/rust-clippy/main/index.html#crate_in_macro_def
 [`create_dir`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_dir
+[`create_dir_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_dir_and_set_permissions
+[`create_regular_file_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_regular_file_and_set_permissions
+[`create_symlink_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_symlink_and_set_permissions
 [`crosspointer_transmute`]: https://rust-lang.github.io/rust-clippy/main/index.html#crosspointer_transmute
 [`cyclomatic_complexity`]: https://rust-lang.github.io/rust-clippy/main/index.html#cyclomatic_complexity
 [`dbg_macro`]: https://rust-lang.github.io/rust-clippy/main/index.html#dbg_macro
@@ -7053,7 +7056,6 @@ Released 2018-09-13
 [`fallible_impl_from`]: https://rust-lang.github.io/rust-clippy/main/index.html#fallible_impl_from
 [`field_reassign_with_default`]: https://rust-lang.github.io/rust-clippy/main/index.html#field_reassign_with_default
 [`field_scoped_visibility_modifiers`]: https://rust-lang.github.io/rust-clippy/main/index.html#field_scoped_visibility_modifiers
-[`file_creation_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#file_creation_and_set_permissions
 [`filetype_is_file`]: https://rust-lang.github.io/rust-clippy/main/index.html#filetype_is_file
 [`filter_map`]: https://rust-lang.github.io/rust-clippy/main/index.html#filter_map
 [`filter_map_bool_then`]: https://rust-lang.github.io/rust-clippy/main/index.html#filter_map_bool_then

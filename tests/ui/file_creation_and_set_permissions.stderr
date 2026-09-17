@@ -1,400 +1,548 @@
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:26:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:34:9
    |
-LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:24:5
-   |
-LL |     std::fs::create_dir(path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
-note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:26:5
-   |
-LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
-   = note: `-D clippy::file-creation-and-set-permissions` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::file_creation_and_set_permissions)]`
-
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:28:5
-   |
-LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:24:5
+  --> tests/ui/file_creation_and_set_permissions.rs:32:9
    |
-LL |     std::fs::create_dir(path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:28:5
+  --> tests/ui/file_creation_and_set_permissions.rs:34:9
    |
-LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+   = note: `-D clippy::create-dir-and-set-permissions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::create_dir_and_set_permissions)]`
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:34:13
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:36:9
    |
-LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:32:13
+  --> tests/ui/file_creation_and_set_permissions.rs:32:9
    |
-LL |     let _ = std::fs::create_dir(path_two);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:34:13
+  --> tests/ui/file_creation_and_set_permissions.rs:36:9
    |
-LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:36:13
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:43:17
    |
-LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:32:13
+  --> tests/ui/file_creation_and_set_permissions.rs:42:17
    |
-LL |     let _ = std::fs::create_dir(path_two);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::create_dir(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:36:13
+  --> tests/ui/file_creation_and_set_permissions.rs:43:17
    |
-LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:41:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:45:17
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:39:5
+  --> tests/ui/file_creation_and_set_permissions.rs:42:17
    |
-LL |     std::fs::create_dir("bar");
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::create_dir(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:41:5
+  --> tests/ui/file_creation_and_set_permissions.rs:45:17
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:43:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:49:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:39:5
+  --> tests/ui/file_creation_and_set_permissions.rs:48:9
    |
-LL |     std::fs::create_dir("bar");
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:43:5
+  --> tests/ui/file_creation_and_set_permissions.rs:49:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:59:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:51:9
    |
-LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:57:5
+  --> tests/ui/file_creation_and_set_permissions.rs:48:9
    |
-LL |     std::fs::create_dir_all(path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:59:5
+  --> tests/ui/file_creation_and_set_permissions.rs:51:9
    |
-LL |     std::fs::set_permissions(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:62:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:66:9
    |
-LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:57:5
+  --> tests/ui/file_creation_and_set_permissions.rs:65:9
    |
-LL |     std::fs::create_dir_all(path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir_all(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:62:5
+  --> tests/ui/file_creation_and_set_permissions.rs:66:9
    |
-LL |     std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:68:13
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:68:9
    |
-LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:66:13
+  --> tests/ui/file_creation_and_set_permissions.rs:65:9
    |
-LL |     let _ = std::fs::create_dir_all(path_two);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir_all(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:68:13
+  --> tests/ui/file_creation_and_set_permissions.rs:68:9
    |
-LL |     let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:71:13
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:75:17
    |
-LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:66:13
+  --> tests/ui/file_creation_and_set_permissions.rs:74:17
    |
-LL |     let _ = std::fs::create_dir_all(path_two);
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::create_dir_all(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:71:13
+  --> tests/ui/file_creation_and_set_permissions.rs:75:17
    |
-LL |     let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:76:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:77:17
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:74:5
+  --> tests/ui/file_creation_and_set_permissions.rs:74:17
    |
-LL |     std::fs::create_dir_all("bar");
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::create_dir_all(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:76:5
+  --> tests/ui/file_creation_and_set_permissions.rs:77:17
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:79:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:81:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:74:5
+  --> tests/ui/file_creation_and_set_permissions.rs:80:9
    |
-LL |     std::fs::create_dir_all("bar");
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir_all("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:79:5
+  --> tests/ui/file_creation_and_set_permissions.rs:81:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:94:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:83:9
    |
-LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:92:5
+  --> tests/ui/file_creation_and_set_permissions.rs:80:9
    |
-LL |     std::fs::create_dir(&path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir_all("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:94:5
+  --> tests/ui/file_creation_and_set_permissions.rs:83:9
    |
-LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:97:5
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:99:9
    |
-LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:92:5
+  --> tests/ui/file_creation_and_set_permissions.rs:98:9
    |
-LL |     std::fs::create_dir(&path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         symlink(path, link);
+   |         ^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:97:5
+  --> tests/ui/file_creation_and_set_permissions.rs:99:9
    |
-LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
+   = note: `-D clippy::create-symlink-and-set-permissions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::create_symlink_and_set_permissions)]`
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:104:5
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:101:9
    |
-LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:102:5
+  --> tests/ui/file_creation_and_set_permissions.rs:98:9
    |
-LL |     std::fs::create_dir_all(&path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         symlink(path, link);
+   |         ^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:104:5
+  --> tests/ui/file_creation_and_set_permissions.rs:101:9
    |
-LL |     std::fs::set_permissions(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:107:5
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:109:17
    |
-LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:102:5
+  --> tests/ui/file_creation_and_set_permissions.rs:108:17
    |
-LL |     std::fs::create_dir_all(&path);
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = symlink(path_two, link_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:107:5
+  --> tests/ui/file_creation_and_set_permissions.rs:109:17
    |
-LL |     std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a directory via `std::fs::create_dir` or `std::fs::create_dir_all` and modifying permissions of the directory can lead to a TOCTOU race condition; on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:114:5
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:111:17
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:112:5
+  --> tests/ui/file_creation_and_set_permissions.rs:108:17
    |
-LL |     File::create("bar").unwrap();
-   |     ^^^^^^^^^^^^^^^^^^^
+LL |         let _ = symlink(path_two, link_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:114:5
+  --> tests/ui/file_creation_and_set_permissions.rs:111:17
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:117:5
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:115:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:112:5
+  --> tests/ui/file_creation_and_set_permissions.rs:114:9
    |
-LL |     File::create("bar").unwrap();
-   |     ^^^^^^^^^^^^^^^^^^^
+LL |         symlink("bar", "symlink_foo");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:117:5
+  --> tests/ui/file_creation_and_set_permissions.rs:115:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:124:5
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:117:9
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:122:5
+  --> tests/ui/file_creation_and_set_permissions.rs:114:9
    |
-LL |     File::create_new("bar").unwrap();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^
+LL |         symlink("bar", "symlink_foo");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:124:5
+  --> tests/ui/file_creation_and_set_permissions.rs:117:9
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:127:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:246:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:122:5
+  --> tests/ui/file_creation_and_set_permissions.rs:245:9
    |
-LL |     File::create_new("bar").unwrap();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:127:5
+  --> tests/ui/file_creation_and_set_permissions.rs:246:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:134:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:248:9
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:132:5
+  --> tests/ui/file_creation_and_set_permissions.rs:245:9
    |
-LL |     File::create_buffered("bar").unwrap();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:134:5
+  --> tests/ui/file_creation_and_set_permissions.rs:248:9
    |
-LL |     std::fs::set_permissions("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: modifying permissions of a file that was created through an earlier function call
-  --> tests/ui/file_creation_and_set_permissions.rs:137:5
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:256:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:132:5
+  --> tests/ui/file_creation_and_set_permissions.rs:255:9
    |
-LL |     File::create_buffered("bar").unwrap();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |         std::fs::create_dir_all(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/file_creation_and_set_permissions.rs:137:5
+  --> tests/ui/file_creation_and_set_permissions.rs:256:9
    |
-LL |     std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = help: creating a regular file via `File::create*` and modifying the permissions of the file via its path in separate calls can lead to a TOCTOU race condition; consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
 
-error: aborting due to 22 previous errors
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:258:9
+   |
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:255:9
+   |
+LL |         std::fs::create_dir_all(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:258:9
+   |
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:266:9
+   |
+LL |         std::fs::set_permissions(&original, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:265:9
+   |
+LL |         symlink(&original, &link);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:266:9
+   |
+LL |         std::fs::set_permissions(&original, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:268:9
+   |
+LL |         std::fs::set_permissions_nofollow(&original, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:265:9
+   |
+LL |         symlink(&original, &link);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:268:9
+   |
+LL |         std::fs::set_permissions_nofollow(&original, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: creating a symlink and modifying the permissions of that symlink should be avoided altogether
+
+error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:318:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:317:9
+   |
+LL |         File::create("bar").unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:318:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+   = note: `-D clippy::create-regular-file-and-set-permissions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::create_regular_file_and_set_permissions)]`
+
+error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:320:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:317:9
+   |
+LL |         File::create("bar").unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:320:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+
+error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:328:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:327:9
+   |
+LL |         File::create_new("bar").unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:328:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+
+error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:330:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:327:9
+   |
+LL |         File::create_new("bar").unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:330:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+
+error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:338:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:337:9
+   |
+LL |         File::create_buffered("bar").unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:338:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+
+error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/file_creation_and_set_permissions.rs:340:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:337:9
+   |
+LL |         File::create_buffered("bar").unwrap();
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/file_creation_and_set_permissions.rs:340:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
+
+error: aborting due to 30 previous errors
 
