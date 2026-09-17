@@ -168,22 +168,13 @@ fn no_lint() {
     }
 }
 
-#[clippy::msrv = "1.25"]
+#[clippy::msrv = "1.98"]
 fn msrv_1_25() {
     let one = Box::new(1);
     let _ = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
 }
 
-#[clippy::msrv = "1.26"]
-fn msrv_1_26() {
-    let one = Box::new(1);
-    let _ = unsafe {
-        //~^ nonnull_unchecked_on_box_ptr
-        NonNull::new_unchecked(Box::into_raw(one))
-    };
-}
-
-#[clippy::msrv = "1.89"]
+#[clippy::msrv = "1.99"]
 fn msrv_1_89() {
     let one = Box::new(1);
     let _ = unsafe {
