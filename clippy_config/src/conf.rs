@@ -861,8 +861,13 @@ pub fn sanitize_explanation(raw_docs: &str) -> String {
 ///
 /// Returns any unexpected filesystem error encountered when searching for the config file
 fn load_conf_file(sess: &Session) -> Option<Arc<SourceFile>> {
-    /// Possible filename to search for.
-    const CONFIG_FILE_NAMES: [&str; 2] = [".clippy.toml", "clippy.toml"];
+    /// Relative config paths in order of priority.
+    const CONFIG_FILE_PATHS: [&str; 4] = [
+        ".clippy.toml",
+        "clippy.toml",
+        ".cargo/clippy.toml",
+        ".config/clippy.toml",
+    ];
 
     // Start looking for a config file in CLIPPY_CONF_DIR, or failing that, CARGO_MANIFEST_DIR.
     // If neither of those exist, use ".". (Update documentation if this priority changes)
@@ -887,11 +892,11 @@ fn load_conf_file(sess: &Session) -> Option<Arc<SourceFile>> {
 
     let mut loaded_config: Option<(PathBuf, Arc<SourceFile>)> = None;
     loop {
-        for config_file_name in CONFIG_FILE_NAMES {
-            if let Ok(config_path) = current.join(config_file_name).canonicalize() {
+        for config_file_path in CONFIG_FILE_PATHS {
+            if let Ok(config_path) = current.join(config_file_path).canonicalize() {
                 if let Some((loaded_path, _)) = &loaded_config {
                     if fs::metadata(loaded_path).is_ok_and(|x| x.is_file()) {
-                        // Warn if `.clippy.toml` and `clippy.toml` exist
+                        // Warn if multiple config files exist at this search level.
                         sess.dcx().warn(format!(
                             "using config file `{}`, `{}` will be ignored",
                             loaded_path.display(),
