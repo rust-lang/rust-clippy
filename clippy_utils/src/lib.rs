@@ -3248,26 +3248,53 @@ pub fn is_never_expr<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) -> Option<
 ///
 /// Returned path can be either absolute (for methods defined non-locally), or relative (for local
 /// methods).
+///
+/// Returns `None` when the method can only be reached through a path that cannot be written at
+/// `from`, in which case no suggestion should be made.
 pub fn get_path_from_caller_to_method_type<'tcx>(
     tcx: TyCtxt<'tcx>,
     from: LocalDefId,
     method: DefId,
     args: GenericArgsRef<'tcx>,
-) -> String {
+) -> Option<String> {
     let assoc_item = tcx.associated_item(method);
     let def_id = assoc_item.container_id(tcx);
     match assoc_item.container {
-        rustc_ty::AssocContainer::Trait => get_path_to_callee(tcx, from, def_id),
+        rustc_ty::AssocContainer::Trait => Some(get_path_to_callee(tcx, from, def_id)),
         rustc_ty::AssocContainer::InherentImpl | rustc_ty::AssocContainer::TraitImpl(_) => {
             let ty = tcx.type_of(def_id).instantiate_identity().skip_norm_wip();
-            get_path_to_ty(tcx, from, ty, args)
+            get_path_to_ty(tcx, from, ty, args, tcx.item_name(method))
         },
     }
 }
 
-fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args: GenericArgsRef<'tcx>) -> String {
+/// Whether more than one inherent impl of `adt` defines a value named `name`.
+///
+/// Such a name cannot be reached through a bare `Adt::name` path: unlike a method call, a path
+/// carries no receiver to narrow the impls down, so resolution reports E0034. Associated types are
+/// not counted, living in their own namespace.
+fn inherent_name_is_ambiguous(tcx: TyCtxt<'_>, adt: DefId, name: Symbol) -> bool {
+    tcx.inherent_impls(adt)
+        .iter()
+        .filter(|&&imp| {
+            tcx.associated_items(imp)
+                .filter_by_name_unhygienic(name)
+                .any(|item| item.tag() != rustc_ty::AssocTag::Type)
+        })
+        .nth(1)
+        .is_some()
+}
+
+fn get_path_to_ty<'tcx>(
+    tcx: TyCtxt<'tcx>,
+    from: LocalDefId,
+    ty: Ty<'tcx>,
+    args: GenericArgsRef<'tcx>,
+    name: Symbol,
+) -> Option<String> {
     match ty.kind() {
-        rustc_ty::Adt(adt, _) => get_path_to_callee(tcx, from, adt.did()),
+        rustc_ty::Adt(adt, _) if inherent_name_is_ambiguous(tcx, adt.did(), name) => None,
+        rustc_ty::Adt(adt, _) => Some(get_path_to_callee(tcx, from, adt.did())),
         // TODO these types need to be recursively resolved as well
         rustc_ty::Array(..)
         | rustc_ty::Dynamic(..)
@@ -3275,11 +3302,11 @@ fn get_path_to_ty<'tcx>(tcx: TyCtxt<'tcx>, from: LocalDefId, ty: Ty<'tcx>, args:
         | rustc_ty::RawPtr(_, _)
         | rustc_ty::Ref(..)
         | rustc_ty::Slice(_)
-        | rustc_ty::Tuple(_) => format!(
+        | rustc_ty::Tuple(_) => Some(format!(
             "<{}>",
             EarlyBinder::bind(tcx, ty).instantiate(tcx, args).skip_norm_wip()
-        ),
-        _ => ty.to_string(),
+        )),
+        _ => Some(ty.to_string()),
     }
 }
 

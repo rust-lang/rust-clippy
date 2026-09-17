@@ -687,3 +687,30 @@ mod issue_13094 {
             .collect()
     }
 }
+
+mod issue_17730 {
+    pub struct W<T>(pub T);
+
+    impl<T: Copy> W<&T> {
+        pub fn get(self) -> T {
+            *self.0
+        }
+    }
+
+    impl<T: Copy> W<&mut T> {
+        pub fn get(self) -> T {
+            *self.0
+        }
+    }
+
+    // `copied` is defined by an inherent impl on both `Option<&T>` and `Option<&mut T>`. A bare
+    // `Option::copied` path has no receiver to narrow those down and would not resolve, so no
+    // suggestion is made.
+    fn ambiguous_std(x: Option<Option<&i32>>) -> Option<Option<i32>> {
+        x.map(|o| o.copied())
+    }
+
+    fn ambiguous_local(x: Option<W<&i32>>) -> Option<i32> {
+        x.map(|w| w.get())
+    }
+}
