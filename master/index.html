@@ -16728,7 +16728,7 @@ could be used.</p>
 <h3>Why is this bad?</h3>
 <p>In those cases, the <code>TryInto</code> and <code>TryFrom</code> trait implementation is a blanket impl that forwards
 to <code>Into</code> or <code>From</code>, which always succeeds.
-The returned <code>Result&lt;_, Infallible&gt;</code> requires error handling to get the contained value
+The returned <code>Result&lt;_, !&gt;</code> requires error handling to get the contained value
 even though the conversion can never fail.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let _: Result&lt;i64, _&gt; = 1i32.try_into();
