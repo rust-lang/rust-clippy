@@ -17,10 +17,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, extend_receiver: &Exp
         let ty = cx.typeck_results().expr_ty(extend_receiver).peel_refs();
         if ty.is_diag_item(cx, sym::Vec)
             && let src_ty = cx.typeck_results().expr_ty(drain_vec)
-            //check if actual src type is mutable for code suggestion
-            && let immutable = src_ty.is_mutable_ptr()
-            && let src_ty = src_ty.peel_refs()
-            && src_ty.is_diag_item(cx, sym::Vec)
+            && src_ty.peel_refs().is_diag_item(cx, sym::Vec)
             //check drain range
             && let src_ty_range = cx.typeck_results().expr_ty(drain_arg).peel_refs()
             && src_ty_range.is_lang_item(cx, LangItem::RangeFull)
@@ -35,7 +32,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, extend_receiver: &Exp
                 format!(
                     "{}.append({}{})",
                     snippet_with_applicability(cx, extend_receiver.span, "..", &mut applicability),
-                    if immutable { "" } else { "&mut " },
+                    if src_ty.is_mutable_ptr() { "" } else { "&mut " },
                     snippet_with_applicability(cx, drain_vec.span, "..", &mut applicability)
                 ),
                 applicability,
