@@ -14,11 +14,12 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, extend_receiver: &Exp
     if let ExprKind::MethodCall(src_method, drain_vec, [drain_arg], _) = &arg.kind
         && src_method.ident.name == sym::drain
     {
-        let ty = cx.typeck_results().expr_ty(extend_receiver).peel_refs();
-        if ty.is_diag_item(cx, sym::Vec)
-            && let src_ty = cx.typeck_results().expr_ty(drain_vec)
-            && src_ty.peel_refs().is_diag_item(cx, sym::Vec)
-            //check drain range
+        let extend_collection_ty = cx.typeck_results().expr_ty(extend_receiver).peel_refs();
+        let drain_receiver_ty = cx.typeck_results().expr_ty(drain_vec);
+
+        if extend_collection_ty.is_diag_item(cx, sym::Vec)
+            && drain_receiver_ty.peel_refs().is_diag_item(cx, sym::Vec)
+            // Check that the drain range is full, not partial
             && let src_ty_range = cx.typeck_results().expr_ty(drain_arg).peel_refs()
             && src_ty_range.is_lang_item(cx, LangItem::RangeFull)
         {
@@ -32,7 +33,11 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, extend_receiver: &Exp
                 format!(
                     "{}.append({}{})",
                     snippet_with_applicability(cx, extend_receiver.span, "..", &mut applicability),
-                    if src_ty.is_mutable_ptr() { "" } else { "&mut " },
+                    if drain_receiver_ty.is_mutable_ptr() {
+                        ""
+                    } else {
+                        "&mut "
+                    },
                     snippet_with_applicability(cx, drain_vec.span, "..", &mut applicability)
                 ),
                 applicability,
