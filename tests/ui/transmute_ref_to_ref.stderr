@@ -37,5 +37,20 @@ error: transmute from a reference to a reference
 LL |         let _: &f32 = std::mem::transmute(take_ref!(1u32));
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `&*(take_ref!(1u32) as *const u32 as *const f32)`
 
-error: aborting due to 5 previous errors
+error: transmute from a reference to a reference
+  --> tests/ui/transmute_ref_to_ref.rs:43:36
+   |
+LL |         let _: &mut str = unsafe { std::mem::transmute(mb) };
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^^ help: try: `&mut *(mb as *mut [u8] as *mut str)`
+
+error: transmute from a `&mut [u8]` to a `&mut str`
+  --> tests/ui/transmute_ref_to_ref.rs:49:36
+   |
+LL |         let _: &mut str = unsafe { std::mem::transmute(mb) };
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `std::str::from_utf8_mut(mb).unwrap()`
+   |
+   = note: `-D clippy::transmute-bytes-to-str` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::transmute_bytes_to_str)]`
+
+error: aborting due to 7 previous errors
 

@@ -36,3 +36,17 @@ fn issue16104(make_ptr: fn() -> *const u32) {
         //~^ transmute_ptr_to_ptr
     }
 }
+
+mod msrv_from_utf8_mut {
+    #[clippy::msrv = "1.87"]
+    fn bytes_to_str_mut_below_msrv(mb: &mut [u8]) {
+        let _: &mut str = unsafe { std::mem::transmute(mb) };
+        //~^ transmute_ptr_to_ptr
+    }
+
+    #[clippy::msrv = "1.88"]
+    fn bytes_to_str_mut_after_msrv(mb: &mut [u8]) {
+        let _: &mut str = unsafe { std::mem::transmute(mb) };
+        //~^ transmute_bytes_to_str
+    }
+}

@@ -136,4 +136,17 @@ fn issue16104() {
     }
 }
 
+mod msrv_from_utf8_mut {
+    #[clippy::msrv = "1.87"]
+    fn bytes_to_str_mut_below_msrv(mb: &mut [u8]) {
+        let _: &mut str = unsafe { std::mem::transmute(mb) };
+    }
+
+    #[clippy::msrv = "1.88"]
+    fn bytes_to_str_mut_after_msrv(mb: &mut [u8]) {
+        let _: &mut str = unsafe { std::mem::transmute(mb) };
+        //~^ transmute_bytes_to_str
+    }
+}
+
 fn main() {}
