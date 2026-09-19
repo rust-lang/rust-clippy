@@ -3,10 +3,13 @@ use super::manual_utils::{SomeExpr, check_with};
 use clippy_utils::diagnostics::span_lint_and_sugg;
 
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _};
+use clippy_utils::source::snippet_opt;
+use clippy_utils::{span_contains_non_whitespace, tokenize_with_text};
 use rustc_attr_ir::lang_items::LangItem::OptionSome;
 use rustc_hir::{Arm, Block, BlockCheckMode, Expr, ExprKind, Pat, UnsafeSource};
+use rustc_lexer::TokenKind;
 use rustc_lint::LateContext;
-use rustc_span::SyntaxContext;
+use rustc_span::{BytePos, Pos as _, SyntaxContext};
 
 pub(super) fn check_match<'tcx>(
     cx: &LateContext<'tcx>,
@@ -99,15 +102,30 @@ fn get_some_expr<'tcx>(
                     stmts: [],
                     expr: Some(expr),
                     rules,
+                    span,
                     ..
                 },
                 _,
-            ) => get_some_expr_internal(
-                cx,
-                expr,
-                needs_unsafe_block || *rules == BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
-                ctxt,
-            ),
+            ) => {
+                if !span.eq_ctxt(expr.span) {
+                    return None;
+                }
+                // Empty macros and cfg-disabled statements don't show up in HIR. Find the opening brace as a token
+                // because unsafe blocks can have `unsafe` and comments before it.
+                let prefix = span.until(expr.span);
+                let snippet = snippet_opt(cx, prefix)?;
+                let (_, _, brace) = tokenize_with_text(&snippet).find(|(kind, ..)| *kind == TokenKind::OpenBrace)?;
+                let before_expr = prefix.with_lo(prefix.lo() + BytePos::from_usize(brace.end));
+                if span_contains_non_whitespace(cx, before_expr, true) {
+                    return None;
+                }
+                get_some_expr_internal(
+                    cx,
+                    expr,
+                    needs_unsafe_block || *rules == BlockCheckMode::UnsafeBlock(UnsafeSource::UserProvided),
+                    ctxt,
+                )
+            },
             _ => None,
         }
     }
