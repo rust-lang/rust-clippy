@@ -37,5 +37,29 @@ error: strict comparison of `f32` or `f64`
 LL |     a1[0] == a2[0];
    |     ^^^^^^^^^^^^^^ help: consider comparing them within some margin of error: `(a1[0] - a2[0]).abs() < error_margin`
 
-error: aborting due to 6 previous errors
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:159:13
+   |
+LL |     assert!(a != 2.0);
+   |             ^^^^^^^^ help: consider comparing them within some margin of error: `(a - 2.0).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:161:13
+   |
+LL |     assert!(b != 3.0);
+   |             ^^^^^^^^ help: consider comparing them within some margin of error: `(b - 3.0).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:163:13
+   |
+LL |     assert!(4.0 != a);
+   |             ^^^^^^^^ help: consider comparing them within some margin of error: `(4.0 - a).abs() > error_margin`
+
+error: strict comparison of `f32` or `f64`
+  --> tests/ui/float_cmp.rs:165:13
+   |
+LL |     assert!(5.0 != b);
+   |             ^^^^^^^^ help: consider comparing them within some margin of error: `(5.0 - b).abs() > error_margin`
+
+error: aborting due to 10 previous errors
 
