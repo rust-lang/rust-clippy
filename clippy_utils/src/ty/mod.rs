@@ -748,6 +748,7 @@ impl<'tcx> ExprFnSig<'tcx> {
         }
     }
 
+    /// Gets the `DefId` of the item whose predicates apply to this signature, if one could be found.
     pub fn predicates_id(&self) -> Option<DefId> {
         if let ExprFnSig::Sig(_, id) | ExprFnSig::Trait(_, _, id) = *self {
             id
@@ -971,6 +972,9 @@ pub fn is_c_void(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     }
 }
 
+/// Calls `f` for each late-bound region in `ty` that is bound by the enclosing binder.
+///
+/// This ignores regions bound by nested binders.
 pub fn for_each_top_level_late_bound_region<'cx, B>(
     ty: Ty<'cx>,
     f: impl FnMut(BoundRegion<'cx>) -> ControlFlow<B>,
@@ -1285,6 +1289,7 @@ impl<'tcx> InteriorMut<'tcx> {
         }
     }
 
+    /// Creates a new [`InteriorMut`] instance that ignores raw pointers.
     pub fn without_pointers(tcx: TyCtxt<'tcx>, ignore_interior_mutability: &[String]) -> Self {
         Self {
             ignore_pointers: true,
@@ -1384,6 +1389,10 @@ impl<'tcx> InteriorMut<'tcx> {
     }
 }
 
+/// Tries to normalize a projection type without erasing regions.
+///
+/// Returns `None` if the projection can't be built or normalized.
+/// With `debug_assertions` enabled, this will panic instead of returning `None`.
 pub fn make_normalized_projection_with_regions<'tcx>(
     tcx: TyCtxt<'tcx>,
     typing_env: ty::TypingEnv<'tcx>,
@@ -1423,6 +1432,8 @@ pub fn make_normalized_projection_with_regions<'tcx>(
     helper(tcx, typing_env, make_projection(tcx, container_id, assoc_ty, args)?)
 }
 
+/// Normalizes the given type, without erasing regions.
+/// If normalization fails it falls back to returning the original un-normalized type.
 pub fn normalize_with_regions<'tcx>(tcx: TyCtxt<'tcx>, typing_env: ty::TypingEnv<'tcx>, ty: Ty<'tcx>) -> Ty<'tcx> {
     let cause = ObligationCause::dummy();
     let (infcx, param_env) = tcx.infer_ctxt().build_with_typing_env(typing_env);
@@ -1479,6 +1490,8 @@ pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) ->
     }
 }
 
+/// Attempts to find the field's `DefId` by name.
+/// Returns `None` if the type is not an ADT or the field is not found.
 pub fn get_field_def_id_by_name(ty: Ty<'_>, name: Symbol) -> Option<DefId> {
     let ty::Adt(adt_def, ..) = ty.kind() else { return None };
     adt_def
@@ -1562,6 +1575,8 @@ pub fn is_slice_like<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     ty.is_slice() || ty.is_array() || ty.is_diag_item(cx, sym::Vec)
 }
 
+/// Attempts to find the field's index by name, for unions, structs and tuples.
+/// Note: for tuples, `name` is just parsed as an index.
 pub fn get_field_idx_by_name(ty: Ty<'_>, name: Symbol) -> Option<usize> {
     match *ty.kind() {
         ty::Adt(def, _) if def.is_union() || def.is_struct() => {
