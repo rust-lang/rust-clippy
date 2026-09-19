@@ -465,8 +465,9 @@ struct SpanlessExpr<'cx, 'tcx> {
 
 impl PartialEq for SpanlessExpr<'_, '_> {
     fn eq(&self, other: &Self) -> bool {
-        let mut eq = SpanlessEq::new(self.cx);
-        eq.eq_expr(self.ctxt, self.expr, other.expr)
+        let Self { cx, expr, ctxt } = *self;
+        let mut eq = SpanlessEq::new(cx);
+        eq.eq_expr(ctxt, expr, other.expr)
     }
 }
 
