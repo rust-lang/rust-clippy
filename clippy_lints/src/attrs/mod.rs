@@ -446,6 +446,7 @@ declare_clippy_lint! {
     /// * clippy::module_name_repetitions
     /// * clippy::redundant_pub_crate
     /// * clippy::single_component_path_imports
+    /// * clippy::std_wildcard_imports
     /// * clippy::unsafe_removed_from_name
     /// * clippy::wildcard_imports
     ///

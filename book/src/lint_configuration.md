@@ -323,6 +323,7 @@ allowed-wildcard-imports = [ "utils", "common" ]
 1. This configuration has no effects if used with `warn_on_all_wildcard_imports = true`.
 2. Paths with any segment that containing the word 'prelude'
 are already allowed by default.
+3. This configuration does not affect `std_wildcard_imports`.
 
 **Default Value:** `[]`
 

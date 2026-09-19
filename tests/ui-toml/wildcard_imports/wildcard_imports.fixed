@@ -1,5 +1,5 @@
 //@aux-build:../../ui/auxiliary/proc_macros.rs
-#![warn(clippy::wildcard_imports)]
+#![warn(clippy::std_wildcard_imports, clippy::wildcard_imports)]
 
 mod prelude {
     pub const FOO: u8 = 1;
@@ -26,6 +26,8 @@ use my_crate::utils::my_util_fn;
 //~^ ERROR: usage of wildcard import
 use prelude::FOO;
 //~^ ERROR: usage of wildcard import
+use std::io::prelude::Read;
+//~^ ERROR: usage of wildcard import
 
 proc_macros::external! {
     use my_crate::utils2::*;
@@ -38,4 +40,16 @@ fn main() {
     let _ = BAR;
     print();
     my_util_fn();
+    let mut reader = Reader;
+    needs_read(&mut reader);
 }
+
+struct Reader;
+
+impl Read for Reader {
+    fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+        Ok(0)
+    }
+}
+
+fn needs_read(_: &mut dyn Read) {}

@@ -70,6 +70,14 @@ pub use std::io::prelude::*;
 #[allow(clippy::enum_glob_use)]
 pub use std::cmp::Ordering::*;
 
+// don't lint on clippy::std_wildcard_imports for `use` items
+#[allow(clippy::std_wildcard_imports)]
+use std::any::*;
+
+// don't lint on `expect(clippy::std_wildcard_imports)` for `use` items
+#[expect(clippy::std_wildcard_imports)]
+use std::mem::*;
+
 // don't lint on clippy::redundant_pub_crate
 mod c {
     #[allow(clippy::redundant_pub_crate)]
@@ -95,7 +103,10 @@ mod module {
 #[allow(unused_braces)]
 use module::{Struct};
 
-fn main() {}
+fn main() {
+    let _ = type_name::<i32>();
+    let _ = size_of::<i32>();
+}
 
 // Regression test for https://github.com/rust-lang/rust-clippy/issues/4467
 #[allow(dead_code)]

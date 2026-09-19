@@ -1,4 +1,5 @@
 pub use crate::extern_exports::*;
+pub use std::fmt;
 
 pub fn extern_foo() {}
 pub fn extern_bar() {}
