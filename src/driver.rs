@@ -15,6 +15,7 @@ extern crate rustc_span;
 // Override the C allocator in the same way that the `rustc` binary would do.
 rustc_driver::override_c_allocator_in_binary!();
 
+use clippy_config::load_conf_file;
 use clippy_utils::sym;
 use declare_clippy_lint::LintListBuilder;
 use rustc_interface::interface;
@@ -93,6 +94,7 @@ fn track_clippy_args(sess: &Session, args_env_var: Option<&str>) {
 /// when any of them are modified
 fn track_files(sess: &Session) {
     let mut file_depinfo = sess.file_depinfo.borrow_mut();
+    let mut env_depinfo = sess.env_depinfo.borrow_mut();
 
     // Used by `clippy::cargo` lints and to determine the MSRV. `cargo clippy` executes `clippy-driver`
     // with the current directory set to `CARGO_MANIFEST_DIR` so a relative path is fine
@@ -100,7 +102,12 @@ fn track_files(sess: &Session) {
         file_depinfo.insert(sym::Cargo_toml);
     }
 
-    // `clippy.toml` will be automatically tracked as it's loaded with `sess.source_map().load_file()`
+    // Try loading clippy.toml, if it does not exist, track it's non-existence
+    if load_conf_file(sess).is_none() {
+        env_depinfo.insert((sym::clippy_toml_does_not_exist, None));
+    } else {
+        env_depinfo.swap_remove(&(sym::clippy_toml_does_not_exist, None));
+    }
 
     // During development track the `clippy-driver` executable so that cargo will re-run clippy whenever
     // it is rebuilt

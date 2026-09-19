@@ -1,3 +1,5 @@
+use std::fs::OpenOptions;
+use std::io::Write as _;
 use std::path::PathBuf;
 use std::process::Command;
 use test_utils::{CARGO_CLIPPY_PATH, IS_RUSTC_TEST_SUITE};
@@ -63,6 +65,10 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
         .args(["-p", "path_dep"])
         .output()
         .unwrap();
+
+    // Cleanup the temporary clippy.toml, just in case.
+    let clippy_toml_path = cwd.join("subcrate").join("clippy.toml");
+    let _ = std::fs::remove_file(&clippy_toml_path);
 
     // `path_dep` is a path dependency of `subcrate` that would trigger a denied lint.
     // Make sure that with the `--no-deps` argument Clippy does not run on `path_dep`.
@@ -130,20 +136,40 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
         println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
         println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
 
-        assert!(output.status.success());
-
         output
     };
 
     // Trigger a successful build, so Cargo would like to cache the build result.
-    successful_build();
+    assert!(successful_build().status.success());
 
+    let output = successful_build();
+    assert!(output.status.success());
     // Make sure there's no spurious rebuild when nothing changes.
-    let stderr = String::from_utf8(successful_build().stderr).unwrap();
+    let stderr: String = String::from_utf8(output.stderr).unwrap();
+
     assert!(!stderr.contains("Compiling"));
     assert!(!stderr.contains("Checking"));
     assert!(stderr.contains("Finished"));
 
     // Make sure Cargo is aware of the new `--cfg` flag.
     lint_path_dep();
+
+    // Create an invalid clippy.toml, and make sure that we track that a new file exists and parse
+    // it. See #9928
+
+    let mut file = OpenOptions::new()
+        .create(true)
+        .truncate(true)
+        .write(true)
+        .open(&clippy_toml_path)
+        .unwrap();
+    writeln!(&mut file, "msrv = \"invalid\"").expect("Could not write to shim clippy.toml");
+
+    let output = successful_build();
+    assert!(!output.status.success());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains("failed to parse rust version"));
+
+    // Cleanup
+    std::fs::remove_file(clippy_toml_path).unwrap();
 }
