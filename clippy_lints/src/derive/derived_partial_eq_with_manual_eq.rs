@@ -45,12 +45,15 @@ pub(super) fn check<'tcx>(
                         DERIVED_PARTIAL_EQ_WITH_MANUAL_EQ,
                         adt_hir_id,
                         span,
-                        "`Eq` should be derived automatically when `PartialEq` is derived",
+                        "when `PartialEq` is derived, `Eq` should be derived too",
                         |diag| {
-                            // We don't need note for the PartialEq impl because it's already shown in the primary span.
                             if let Some(eq_local_def_id) = eq_impl_id.as_local() {
                                 let hir_id = cx.tcx.local_def_id_to_hir_id(eq_local_def_id);
-                                diag.span_note(cx.tcx.hir_span(hir_id), "`Eq` implemented here");
+                                diag.span_label(cx.tcx.hir_span(hir_id), "manual implementation here");
+                            }
+                            if let Some(peq_local_def_id) = peq_impl_id.as_local() {
+                                let hir_id = cx.tcx.local_def_id_to_hir_id(peq_local_def_id);
+                                diag.span_label(cx.tcx.hir_span(hir_id), "`PartialEq` is derived here");
                             }
                         },
                     );
