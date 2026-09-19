@@ -579,11 +579,17 @@ fn ident_difference_expr_with_base_location(
         | (Unary(_, _), Unary(_, _))
         | (Binary(_, _, _), Binary(_, _, _))
         | (Tup(_), Tup(_))
-        | (MethodCall(_), MethodCall(_))
         | (Call(_, _), Call(_, _))
         | (ConstBlock(_), ConstBlock(_))
         | (Array(_), Array(_)) => {
             // keep going
+        },
+        (MethodCall(left, ..), MethodCall(right, ..)) => {
+            // A method name is part of the expression's structure, not a
+            // candidate for the identifier swap this lint is looking for.
+            if !eq_id(left.seg.ident, right.seg.ident) {
+                return (IdentDifference::NonIdent, base);
+            }
         },
         _ => {
             return (IdentDifference::NonIdent, base);
