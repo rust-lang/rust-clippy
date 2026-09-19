@@ -497,3 +497,30 @@ fn issue14493() {
         _ => println!("neq"),
     }
 }
+
+fn issue17756(a: bool, b: bool, x: u8, y: u8) {
+    match x < y {
+        true => println!("lt"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a && b {
+        false => println!("not both"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x + 1 {
+        3 => println!("three"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    const T: bool = true;
+    match x < y {
+        T => println!("lt"),
+        _ => (),
+    }
+    //~^^^^ single_match
+}

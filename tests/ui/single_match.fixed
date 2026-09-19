@@ -396,3 +396,18 @@ fn issue14493() {
         _ => println!("neq"),
     }
 }
+
+fn issue17756(a: bool, b: bool, x: u8, y: u8) {
+    if x < y { println!("lt") }
+    //~^^^^ single_match
+
+    if !(a && b) { println!("not both") }
+    //~^^^^ single_match
+
+    if x + 1 == 3 { println!("three") }
+    //~^^^^ single_match
+
+    const T: bool = true;
+    if (x < y) == T { println!("lt") }
+    //~^^^^ single_match
+}
