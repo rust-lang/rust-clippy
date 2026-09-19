@@ -783,5 +783,63 @@ LL -     let _ = cast_from_macro!() as i32;
 LL +     let _ = i32::try_from(cast_from_macro!());
    |
 
-error: aborting due to 96 previous errors
+error: casting `u64` to `u8` may truncate the value
+  --> tests/ui/cast.rs:620:5
+   |
+LL |     x.min(u16::MAX as u64) as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+help: ... or use `try_from` and handle the error accordingly
+   |
+LL -     x.min(u16::MAX as u64) as u8;
+LL +     u8::try_from(x.min(u16::MAX as u64));
+   |
+
+error: casting `u64` to `u8` may truncate the value
+  --> tests/ui/cast.rs:622:5
+   |
+LL |     x.min(u64::from(u16::MAX)) as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+help: ... or use `try_from` and handle the error accordingly
+   |
+LL -     x.min(u64::from(u16::MAX)) as u8;
+LL +     u8::try_from(x.min(u64::from(u16::MAX)));
+   |
+
+error: casting `u64` to `u8` may truncate the value
+  --> tests/ui/cast.rs:629:5
+   |
+LL |     x.min(-1i8 as u64) as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+help: ... or use `try_from` and handle the error accordingly
+   |
+LL -     x.min(-1i8 as u64) as u8;
+LL +     u8::try_from(x.min(-1i8 as u64));
+   |
+
+error: casting `i8` to `u64` may lose the sign of the value
+  --> tests/ui/cast.rs:629:11
+   |
+LL |     x.min(-1i8 as u64) as u8;
+   |           ^^^^^^^^^^^
+
+error: casting `u64` to `u8` may truncate the value
+  --> tests/ui/cast.rs:641:5
+   |
+LL |     x.min(NotInto.into()) as u8;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+help: ... or use `try_from` and handle the error accordingly
+   |
+LL -     x.min(NotInto.into()) as u8;
+LL +     u8::try_from(x.min(NotInto.into()));
+   |
+
+error: aborting due to 101 previous errors
 
