@@ -677,3 +677,8 @@ const _: () = {
     assert!(0x7f_ff_ff_ff_ff_ff_ff_ffu64 == identity(!0 as u64 + 0).overflowing_shr(1_u32).0);
     //~^ unnecessary_cast
 };
+
+fn issue17166() {
+    let s = extern_fake_libc::Statvfs::init();
+    s.f_blocks as u64;
+}
