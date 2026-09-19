@@ -1,0 +1,44 @@
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/path_to_string_lossy_in_format_args.rs:34:25
+   |
+LL |     println!("{}", path.to_string_lossy());
+   |                         ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation`
+   = note: `-D clippy::to-string-lossy-in-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::to_string_lossy_in_format_args)]`
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/path_to_string_lossy_in_format_args.rs:35:29
+   |
+LL |     println!("{}", path_buf.to_string_lossy());
+   |                             ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation`
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/path_to_string_lossy_in_format_args.rs:37:40
+   |
+LL |     let _: String = format!("{}", path.to_string_lossy());
+   |                                        ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation`
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/path_to_string_lossy_in_format_args.rs:38:44
+   |
+LL |     let _: String = format!("{}", path_buf.to_string_lossy());
+   |                                            ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation`
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/path_to_string_lossy_in_format_args.rs:41:31
+   |
+LL |     println!("{}", deref_path.to_string_lossy());
+   |                               ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation`
+
+error: aborting due to 5 previous errors
+

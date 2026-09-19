@@ -114,6 +114,33 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `.to_string_lossy()` applied to an `OsStr` or `Path` in a macro that does
+    /// formatting.
+    ///
+    /// ### Why is this bad?
+    /// `OsStr` or `Path` each provide a `display` method. Using `.display()` instead of
+    /// `.to_string_lossy()` can avoid an allocation.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # use std::path::Path;
+    /// let path = Path::new("...");
+    /// println!("The path is {}", path.to_string_lossy());
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # use std::path::Path;
+    /// let path = Path::new("...");
+    /// println!("The path is {}", path.display());
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub TO_STRING_LOSSY_IN_FORMAT_ARGS,
+    pedantic,
+    "`.to_string_lossy()` applied to an `OsStr` or `Path` in a macro that does formatting"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Detect when a variable is not inlined in a format string,
     /// and suggests to inline it.
     ///
@@ -306,6 +333,7 @@ impl_lint_pass!(FormatArgs<'_> => [
     FORMAT_IN_FORMAT_ARGS,
     POINTER_FORMAT,
     TO_STRING_IN_FORMAT_ARGS,
+    TO_STRING_LOSSY_IN_FORMAT_ARGS,
     UNINLINED_FORMAT_ARGS,
     UNNECESSARY_DEBUG_FORMATTING,
     UNNECESSARY_TRAILING_COMMA,
@@ -430,6 +458,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     let name = self.cx.tcx.item_name(self.macro_call.def_id);
                     self.check_format_in_format_args(name, arg_expr);
                     self.check_to_string_in_format_args(name, arg_expr);
+                    self.check_to_string_lossy_in_format_args(name, arg_expr);
                 }
 
                 if placeholder.format_trait == Debug {
@@ -723,6 +752,32 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                     Applicability::MachineApplicable,
                 );
             }
+        }
+    }
+
+    fn check_to_string_lossy_in_format_args(&self, name: Symbol, value: &Expr<'_>) {
+        let cx = self.cx;
+        if !value.span.from_expansion()
+            && let ExprKind::MethodCall(method_name, receiver, [], _) = value.kind
+            && method_name.ident.name == sym::to_string_lossy
+            && let receiver_ty = cx.typeck_results().expr_ty(receiver)
+            && self.can_display_format(receiver_ty)
+        {
+            span_lint_and_then(
+                cx,
+                TO_STRING_LOSSY_IN_FORMAT_ARGS,
+                method_name.ident.span,
+                format!("`to_string_lossy` instead of `display` in `{name}!` args"),
+                |diag| {
+                    diag.span_suggestion(
+                        method_name.ident.span,
+                        "use",
+                        "display",
+                        Applicability::MachineApplicable,
+                    );
+                    diag.help("using `display` can avoid an allocation`");
+                },
+            );
         }
     }
 

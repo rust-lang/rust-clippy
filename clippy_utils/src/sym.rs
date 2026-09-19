@@ -601,6 +601,7 @@ generate! {
     to_os_string,
     to_owned,
     to_path_buf,
+    to_string_lossy,
     to_string_method,
     to_uppercase,
     tokio,
