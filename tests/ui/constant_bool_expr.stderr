@@ -1,0 +1,77 @@
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:7:8
+   |
+LL |     if a != 100 || a != 101 {}
+   |        ^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::constant-bool-expr` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::constant_bool_expr)]`
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:9:8
+   |
+LL |     if a == 100 && a == 101 {}
+   |        ^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:12:14
+   |
+LL |     let _b = a != 100 || a != 101;
+   |              ^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:14:14
+   |
+LL |     let _b = a == 100 && a == 101;
+   |              ^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:19:14
+   |
+LL |     let _b = a != A || a != 101;
+   |              ^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:21:14
+   |
+LL |     let _b = a == A && a == 101;
+   |              ^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:24:14
+   |
+LL |     let _b = a != A || a != const { 100 + 1 };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:26:14
+   |
+LL |     let _b = a == A && a == const { 100 + 1 };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:33:17
+   |
+LL | const _: bool = C != B || C != const { 100 + 1 };
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:35:17
+   |
+LL | const _: bool = C == B && C == const { 100 + 1 };
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `true`
+  --> tests/ui/constant_bool_expr.rs:38:18
+   |
+LL | static D: bool = C != B || C != const { 100 + 1 };
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expression always evaluates to `false`
+  --> tests/ui/constant_bool_expr.rs:40:18
+   |
+LL | static E: bool = C == B && C == const { 100 + 1 };
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 12 previous errors
+
