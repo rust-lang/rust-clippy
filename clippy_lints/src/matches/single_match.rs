@@ -212,10 +212,7 @@ fn equality_cond(
             lhs.to_string()
         } else if let ExprKind::Binary(op, op_lhs, _) = ex.kind
             && matches!(op.node, BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge)
-            && !cx
-                .tcx
-                .get_diagnostic_item(sym::Ord)
-                .is_some_and(|id| implements_trait(cx, cx.typeck_results().expr_ty(op_lhs), id, &[]))
+            && !implements_ord(cx, op_lhs)
         {
             // Inverting `a < b` into `a >= b` is only valid for totally ordered types
             make_unop("!", lhs).to_string()
@@ -233,6 +230,14 @@ fn equality_cond(
         );
         make_binop(BinOpKind::Eq, &lhs, &rhs).to_string()
     }
+}
+
+/// Checks if the type of `expr` implements `Ord`.
+fn implements_ord(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let ty = cx.typeck_results().expr_ty(expr);
+    cx.tcx
+        .get_diagnostic_item(sym::Ord)
+        .is_some_and(|id| implements_trait(cx, ty, id, &[]))
 }
 
 struct PatVisitor<'tcx> {
