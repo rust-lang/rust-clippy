@@ -147,3 +147,65 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
     // Make sure Cargo is aware of the new `--cfg` flag.
     lint_path_dep();
 }
+
+#[test]
+fn test_fix_does_not_cache_capped_lints() {
+    if IS_RUSTC_TEST_SUITE {
+        return;
+    }
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let target_dir = root.join("target").join("workspace_test_fix_cache");
+    let cwd = root.join("tests/workspace_test");
+
+    Command::new("cargo")
+        .current_dir(&cwd)
+        .env("CARGO_TARGET_DIR", &target_dir)
+        .arg("clean")
+        .args(["-p", "fix-cache"])
+        .output()
+        .unwrap();
+
+    let fix = Command::new(&*CARGO_CLIPPY_PATH)
+        .current_dir(&cwd)
+        .env("CARGO_INCREMENTAL", "0")
+        .env("CARGO_TARGET_DIR", &target_dir)
+        .arg("clippy")
+        .args([
+            "-p",
+            "fix-cache",
+            "--no-deps",
+            "--all-targets",
+            "--fix",
+            "--allow-dirty",
+            "--allow-staged",
+        ])
+        .arg("--")
+        .arg("-Cdebuginfo=0")
+        .arg("-Dwarnings")
+        .output()
+        .unwrap();
+
+    assert!(
+        fix.status.success(),
+        "status: {}\nstdout: {}\nstderr: {}",
+        fix.status,
+        String::from_utf8_lossy(&fix.stdout),
+        String::from_utf8_lossy(&fix.stderr)
+    );
+
+    let check = Command::new(&*CARGO_CLIPPY_PATH)
+        .current_dir(&cwd)
+        .env("CARGO_INCREMENTAL", "0")
+        .env("CARGO_TARGET_DIR", &target_dir)
+        .arg("clippy")
+        .args(["-p", "fix-cache", "--no-deps", "--all-targets"])
+        .arg("--")
+        .arg("-Cdebuginfo=0")
+        .arg("-Dwarnings")
+        .output()
+        .unwrap();
+
+    let stderr = String::from_utf8_lossy(&check.stderr);
+    assert!(!check.status.success(), "status: {}\nstderr: {stderr}", check.status);
+    assert!(stderr.contains("error: use of `println!`"), "{stderr}");
+}
