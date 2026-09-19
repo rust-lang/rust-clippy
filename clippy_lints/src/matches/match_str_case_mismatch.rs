@@ -97,6 +97,20 @@ fn verify_case<'a>(case_method: &'a CaseMethod, arms: &'a [Arm<'_>]) -> Option<(
         {
             return Some((lit.span, symbol));
         }
+        if let PatKind::Or(fields) = arm.pat.kind {
+            for field in fields {
+                if let PatKind::Expr(PatExpr {
+                    kind: PatExprKind::Lit { lit, negated: false },
+                    ..
+                }) = field.kind
+                    && let LitKind::Str(symbol, _) = lit.node
+                    && let input = symbol.as_str()
+                    && !case_check(input)
+                {
+                    return Some((lit.span, symbol));
+                }
+            }
+        }
     }
 
     None
