@@ -6985,6 +6985,7 @@ Released 2018-09-13
 [`disallowed_type`]: https://rust-lang.github.io/rust-clippy/main/index.html#disallowed_type
 [`disallowed_types`]: https://rust-lang.github.io/rust-clippy/main/index.html#disallowed_types
 [`diverging_sub_expression`]: https://rust-lang.github.io/rust-clippy/main/index.html#diverging_sub_expression
+[`doc_attr_ordering`]: https://rust-lang.github.io/rust-clippy/main/index.html#doc_attr_ordering
 [`doc_broken_link`]: https://rust-lang.github.io/rust-clippy/main/index.html#doc_broken_link
 [`doc_comment_double_space_linebreaks`]: https://rust-lang.github.io/rust-clippy/main/index.html#doc_comment_double_space_linebreaks
 [`doc_include_without_cfg`]: https://rust-lang.github.io/rust-clippy/main/index.html#doc_include_without_cfg
