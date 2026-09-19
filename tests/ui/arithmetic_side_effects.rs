@@ -26,6 +26,16 @@ pub struct Custom;
 #[derive(proc_macro_derive::ShadowDerive)]
 pub struct Nothing;
 
+pub trait CustomPow {
+    fn pow(self, exp: u32) -> u32;
+}
+
+impl CustomPow for &u32 {
+    fn pow(self, _: u32) -> u32 {
+        0
+    }
+}
+
 macro_rules! impl_arith {
     ( $( $_trait:ident, $lhs:ty, $rhs:ty, $method:ident; )* ) => {
         $(
@@ -185,6 +195,12 @@ pub fn hard_coded_allowed() {
     let _ = inferred_saturating + inferred_saturating;
     let _ = inferred_string + "";
     let _ = inferred_wrapping + inferred_wrapping;
+
+    // Only the integer `pow` is linted, so the allowed types keep theirs.
+    let float: f32 = 2.0;
+    let _ = float.powi(30);
+    let _ = float.powf(30.0);
+    let _ = saturating.pow(30);
 }
 
 #[rustfmt::skip]
@@ -291,6 +307,17 @@ pub fn non_overflowing_ops_or_ops_already_handled_by_the_compiler_should_not_tri
     _n.checked_div(1);
     _n.checked_rem(1);
     _n.checked_rem_euclid(1);
+
+    _n.pow(0);
+    _n.pow(1);
+    _n.checked_pow(2);
+    _n.overflowing_pow(2);
+    _n.saturating_pow(2);
+    _n.wrapping_pow(2);
+
+    // Only the inherent `pow` of the integer types is linted.
+    let _u = 2u32;
+    let _ = (&_u).pow(_u);
 
     // Unary
     _n = -2147483647;
@@ -509,6 +536,11 @@ pub fn unknown_ops_or_runtime_ops_that_can_overflow() {
     //~^ arithmetic_side_effects
 
     _n.saturating_div(*Box::new(_n));
+    //~^ arithmetic_side_effects
+
+    _n.pow(2);
+    //~^ arithmetic_side_effects
+    _n.pow(_n.unsigned_abs());
     //~^ arithmetic_side_effects
 
     // Unary
@@ -758,6 +790,19 @@ pub fn issue_17005() {
     let _ = 1u64 + id_u16() as u64;
     let _ = 1u64 + id_u32() as u64;
     let _ = 0xf301_0000u32 + id_u16() as u32;
+}
+
+pub fn pow_with_an_arithmetic_exponent(base: u32, x: u32, y: u32) {
+    // A linted `pow` reports the whole call, which covers the exponent, the same way the diagnostic
+    // on `base * (x + y)` covers the addition.
+    let _ = base.pow(x + y);
+    //~^ arithmetic_side_effects
+    let _ = base * (x + y);
+    //~^ arithmetic_side_effects
+
+    // Resolves to `CustomPow`, so the call is not linted and the exponent is reported on its own.
+    let _ = (&base).pow(x + y);
+    //~^ arithmetic_side_effects
 }
 
 fn main() {}
