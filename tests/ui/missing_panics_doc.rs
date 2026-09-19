@@ -1,6 +1,10 @@
 //@aux-build:macro_rules.rs
 #![warn(clippy::missing_panics_doc)]
-#![expect(clippy::option_map_unit_fn, clippy::unnecessary_literal_unwrap)]
+#![expect(
+    clippy::invalid_nonzero,
+    clippy::option_map_unit_fn,
+    clippy::unnecessary_literal_unwrap
+)]
 
 #[macro_use]
 extern crate macro_rules;
