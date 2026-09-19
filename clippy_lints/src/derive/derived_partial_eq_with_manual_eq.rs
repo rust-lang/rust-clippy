@@ -55,6 +55,9 @@ pub(super) fn check<'tcx>(
                                 let hir_id = cx.tcx.local_def_id_to_hir_id(peq_local_def_id);
                                 diag.span_label(cx.tcx.hir_span(hir_id), "`PartialEq` is derived here");
                             }
+                            diag.note(
+                                "manually implementing `Eq` may violate its requirement that equality is reflexive",
+                            );
                         },
                     );
                 }

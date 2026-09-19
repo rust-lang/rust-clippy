@@ -125,12 +125,19 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for types that derive `PartialEq` but manually implement `Eq`.
+    /// Checks for types that derive [`PartialEq`] but manually implement `Eq`.
     ///
     /// ### Why is this bad?
     /// A manually implemented `Eq` may accidentally claim that a type satisfies the
-    /// properties required by `Eq` even when the derived `PartialEq` implementation
+    /// properties required by `Eq` even when the derived [`PartialEq`] implementation
     /// does not establish them.
+    ///
+    /// `Eq`, which builds on top of [`PartialEq`] also implies:
+    ///
+    /// - reflexive: `a == a`
+    ///
+    /// Floating point types such as [`f32`] and [`f64`] implement only
+    /// [`PartialEq`] but *not* `Eq` because `NaN` != `NaN`.
     ///
     /// ### Example
     /// ```no_run
