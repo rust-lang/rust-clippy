@@ -1,30 +1,15 @@
 error: usage of `bool::then` in `filter_map`
-  --> tests/ui/filter_map_bool_then_unfixable.rs:6:48
+  --> tests/ui/filter_map_bool_then_unfixable.rs:11:26
    |
-LL |       let _ = (0..x.len()).zip(x.clone().iter()).filter_map(|(i, v)| {
-   |  ________________________________________________^
-LL | |
-LL | |         (x[i] != *v).then(|| {
-LL | |             x[i] = i;
-LL | |             i
-LL | |         })
-LL | |     });
-   | |______^
+LL |         let _ = x.iter().filter_map(|&x| x?.then(|| do_something(())));
+   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = help: consider using `filter` then `map` instead
    = note: `-D clippy::filter-map-bool-then` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::filter_map_bool_then)]`
 
 error: usage of `bool::then` in `filter_map`
-  --> tests/ui/filter_map_bool_then_unfixable.rs:22:26
-   |
-LL |         let _ = x.iter().filter_map(|&x| x?.then(|| do_something(())));
-   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = help: consider using `filter` then `map` instead
-
-error: usage of `bool::then` in `filter_map`
-  --> tests/ui/filter_map_bool_then_unfixable.rs:26:14
+  --> tests/ui/filter_map_bool_then_unfixable.rs:15:14
    |
 LL |             .filter_map(|&x| if let Some(x) = x { x } else { return None }.then(|| do_something(())));
    |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -32,7 +17,7 @@ LL |             .filter_map(|&x| if let Some(x) = x { x } else { return None }.
    = help: consider using `filter` then `map` instead
 
 error: usage of `bool::then` in `filter_map`
-  --> tests/ui/filter_map_bool_then_unfixable.rs:28:26
+  --> tests/ui/filter_map_bool_then_unfixable.rs:17:26
    |
 LL |           let _ = x.iter().filter_map(|&x| {
    |  __________________________^
@@ -47,7 +32,7 @@ LL | |         });
    = help: consider using `filter` then `map` instead
 
 error: usage of `bool::then` in `filter_map`
-  --> tests/ui/filter_map_bool_then_unfixable.rs:46:26
+  --> tests/ui/filter_map_bool_then_unfixable.rs:35:26
    |
 LL |           let _ = x.iter().filter_map(|&x| {
    |  __________________________^
@@ -61,5 +46,5 @@ LL | |         });
    |
    = help: consider using `filter` then `map` instead
 
-error: aborting due to 5 previous errors
+error: aborting due to 4 previous errors
 
