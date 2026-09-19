@@ -600,3 +600,42 @@ fn issue17756_comparisons(x: u8, y: u8) {
     }
     //~^^^^ single_match
 }
+
+#[allow(clippy::neg_cmp_op_on_partial_ord)]
+fn issue17756_partial_ord(a: f64, b: f64) {
+    match a == b {
+        false => println!("=="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a != b {
+        false => println!("!="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a < b {
+        false => println!("<"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a <= b {
+        false => println!("<="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a > b {
+        false => println!(">"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a >= b {
+        false => println!(">="),
+        _ => (),
+    }
+    //~^^^^ single_match
+}

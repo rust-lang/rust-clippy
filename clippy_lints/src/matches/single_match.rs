@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
     SpanExt as _, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
-use clippy_utils::sugg::{Sugg, make_binop};
+use clippy_utils::sugg::{Sugg, make_binop, make_unop};
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
 use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
 use core::ops::ControlFlow;
@@ -208,7 +208,20 @@ fn equality_cond(
         && cx.typeck_results().expr_ty(ex).is_bool()
     {
         // `x == true` is `x`, and `x == false` is `!x`
-        if val { lhs.to_string() } else { (!lhs).to_string() }
+        if val {
+            lhs.to_string()
+        } else if let ExprKind::Binary(op, op_lhs, _) = ex.kind
+            && matches!(op.node, BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge)
+            && !cx
+                .tcx
+                .get_diagnostic_item(sym::Ord)
+                .is_some_and(|id| implements_trait(cx, cx.typeck_results().expr_ty(op_lhs), id, &[]))
+        {
+            // Inverting `a < b` into `a >= b` is only valid for totally ordered types
+            make_unop("!", lhs).to_string()
+        } else {
+            (!lhs).to_string()
+        }
     } else {
         let rhs = Sugg::NonParen(
             format!(
