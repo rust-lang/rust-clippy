@@ -1,4 +1,5 @@
 #![warn(clippy::manual_find)]
+#![expect(clippy::stacked_if)]
 //@no-rustfix
 fn vec_string(strings: Vec<String>) -> Option<String> {
     for s in strings {
