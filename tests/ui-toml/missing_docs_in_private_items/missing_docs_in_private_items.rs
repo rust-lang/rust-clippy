@@ -1165,3 +1165,8 @@ external! {
         pub struct VisFromOutside; //~ missing_docs_in_private_items
     )}
 }
+
+pub struct SizeCheck;
+impl SizeCheck {
+    const _SIZE_ASSERT: () = {}; //~[default,crate_root] missing_docs_in_private_items
+}
