@@ -489,10 +489,14 @@ impl_lint_pass!(Transmute => [
 
 pub struct Transmute {
     msrv: Msrv,
+    annotations_in_expansions: bool,
 }
 impl Transmute {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv.into() }
+        Self {
+            msrv: conf.msrv.into(),
+            annotations_in_expansions: conf.missing_transmute_annotations_in_expansions,
+        }
     }
 
     /// When transmuting, a struct containing a single field works like the field.
@@ -554,7 +558,15 @@ impl<'tcx> LateLintPass<'tcx> for Transmute {
                 | transmuting_null::check(cx, e, arg, to_ty)
                 | transmute_null_to_fn::check(cx, e, arg, to_ty)
                 | transmute_ptr_to_ref::check(cx, e, from_field_ty, to_ty, from_field_expr.clone(), path, self.msrv)
-                | missing_transmute_annotations::check(cx, path, arg, from_ty, to_ty, e.hir_id)
+                | missing_transmute_annotations::check(
+                    cx,
+                    path,
+                    arg,
+                    from_ty,
+                    to_ty,
+                    e.hir_id,
+                    self.annotations_in_expansions,
+                )
                 | transmute_ref_to_ref::check(cx, e, from_ty, to_ty, arg, const_context)
                 | transmute_ptr_to_ptr::check(cx, e, from_field_ty, to_ty, from_field_expr, self.msrv)
                 | transmute_int_to_bool::check(cx, e, from_ty, to_ty, arg)

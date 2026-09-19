@@ -628,6 +628,9 @@ define_Conf! {
     /// crate. For example, `pub(crate)` items.
     #[lints(missing_docs_in_private_items)]
     missing_docs_in_crate_items("missing-docs-in-crate-items"): bool = false,
+    /// Whether to check for missing transmute annotations inside expansions. For example, macros.
+    #[lints(missing_transmute_annotations)]
+    missing_transmute_annotations_in_expansions("missing-transmute-annotations-in-expansions"): bool = true,
     /// The named groupings of different source item kinds within modules.
     #[lints(arbitrary_source_item_ordering)]
     module_item_order_groupings("module-item-order-groupings"): SourceItemOrderingModuleItemGroupings,

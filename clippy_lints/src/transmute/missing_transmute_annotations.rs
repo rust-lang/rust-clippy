@@ -47,12 +47,17 @@ pub(super) fn check<'tcx>(
     from_ty: Ty<'tcx>,
     to_ty: Ty<'tcx>,
     expr_hir_id: HirId,
+    annotations_in_expansions: bool,
 ) -> bool {
     let last = path.segments.last().unwrap();
-    if last.ident.span.in_external_macro(cx.tcx.sess.source_map()) {
-        // If it comes from a non-local macro, we ignore it.
+    if last.ident.span.from_expansion()
+        && (!annotations_in_expansions || last.ident.span.in_external_macro(cx.tcx.sess.source_map()))
+    {
+        // If it comes from an expansion and this lint is disabled there or it is a non-local macro, we
+        // ignore it.
         return false;
     }
+
     let args = last.args;
     let missing_generic = match args {
         Some(args) if !args.args.is_empty() => args.args.iter().any(|arg| matches!(arg, GenericArg::Infer(_))),
