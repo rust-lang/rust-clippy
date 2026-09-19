@@ -318,3 +318,32 @@ mod issue16505 {
         };
     }
 }
+
+mod issue16356 {
+    macro_rules! different_export_names {
+        () => {{
+            #[unsafe(export_name = concat!("option_", line!()))]
+            static S: u8 = 0;
+            &S
+        }};
+    }
+
+    fn different_attributes(condition: bool) {
+        let _ = if condition {
+            different_export_names!()
+        } else {
+            different_export_names!()
+        };
+    }
+
+    fn without_attributes(condition: bool) {
+        //~v if_same_then_else
+        let _ = if condition {
+            static S: u8 = 0;
+            &S
+        } else {
+            static S: u8 = 0;
+            &S
+        };
+    }
+}
