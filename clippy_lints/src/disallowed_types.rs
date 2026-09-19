@@ -6,7 +6,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{AmbigArg, Item, ItemKind, PolyTraitRef, PrimTy, Ty, TyKind, UseKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 
@@ -77,6 +77,9 @@ impl DisallowedTypes {
     }
 
     fn check_res_emit(&self, cx: &LateContext<'_>, res: &Res, span: Span) {
+        if span.in_external_macro(cx.sess().source_map()) {
+            return;
+        }
         let (path, disallowed_path) = match res {
             Res::Def(_, did) if let Some(&x) = self.def_ids.get(did) => x,
             Res::PrimTy(prim) if let Some(&x) = self.prim_tys.get(prim) => x,
