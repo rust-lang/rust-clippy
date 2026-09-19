@@ -1,6 +1,6 @@
 //@require-annotations-for-level: WARN
 #![warn(clippy::single_match)]
-#![allow(clippy::redundant_pattern_matching, clippy::neg_cmp_op_on_partial_ord)]
+#![allow(clippy::neg_cmp_op_on_partial_ord, clippy::redundant_pattern_matching)]
 fn dummy() {}
 
 fn single_match() {
