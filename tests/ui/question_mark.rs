@@ -722,3 +722,73 @@ fn issue_destructuring_assignment() -> Option<(i32, i32)> {
     }
     Some((a, b))
 }
+
+mod issue17386 {
+    fn return_ref_option() -> &'static Option<i32> {
+        &None
+    }
+
+    fn return_ref_mut_option() -> &'static mut Option<i32> {
+        Box::leak(Box::new(Some(42)))
+    }
+
+    fn return_ref_result() -> &'static Result<i32, i32> {
+        &Ok(42)
+    }
+
+    fn option_match(v: Option<usize>) -> Option<usize> {
+        // `match` on a function returning `&Option` — needs `.as_ref()?`
+        match return_ref_option() {
+            //~^ question_mark
+            Some(it) => {
+                dbg!(it);
+            },
+            None => return None,
+        };
+        let _x: &i32 = match return_ref_option() {
+            //~^ question_mark
+            Some(it) => it,
+            None => return None,
+        };
+        // `match` on a function returning `&mut Option` — needs `.as_mut()?`
+        match return_ref_mut_option() {
+            //~^ question_mark
+            Some(it) => {
+                *it += 1;
+            },
+            None => return None,
+        };
+        let _x: &mut i32 = match return_ref_mut_option() {
+            //~^ question_mark
+            Some(it) => it,
+            None => return None,
+        };
+        // `match &v` still produces `&v?`, unchanged
+        match &v {
+            //~^ question_mark
+            Some(n) => {
+                println!("{n}");
+                Some(42)
+            },
+            None => return None,
+        };
+        Some(42)
+    }
+
+    fn result_match() -> Result<(), &'static i32> {
+        // `match` on a function returning `&Result` — needs `.as_ref()?`
+        match return_ref_result() {
+            //~^ question_mark
+            Ok(val) => {
+                dbg!(val);
+            },
+            Err(e) => return Err(e),
+        };
+        let _x: &i32 = match return_ref_result() {
+            //~^ question_mark
+            Ok(val) => val,
+            Err(e) => return Err(e),
+        };
+        Ok(())
+    }
+}
