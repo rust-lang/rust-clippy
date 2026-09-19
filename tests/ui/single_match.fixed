@@ -411,3 +411,43 @@ fn issue17756(a: bool, b: bool, x: u8, y: u8) {
     if (x < y) == T { println!("lt") }
     //~^^^^ single_match
 }
+
+fn issue17756_comparisons(x: u8, y: u8) {
+    const T: bool = true;
+
+    if x != y { println!("==") }
+    //~^^^^ single_match
+
+    if (x == y) == T { println!("==") }
+    //~^^^^ single_match
+
+    if x == y { println!("!=") }
+    //~^^^^ single_match
+
+    if (x != y) == T { println!("!=") }
+    //~^^^^ single_match
+
+    if x >= y { println!("<") }
+    //~^^^^ single_match
+
+    if (x < y) == T { println!("<") }
+    //~^^^^ single_match
+
+    if x > y { println!("<=") }
+    //~^^^^ single_match
+
+    if (x <= y) == T { println!("<=") }
+    //~^^^^ single_match
+
+    if x <= y { println!(">") }
+    //~^^^^ single_match
+
+    if (x > y) == T { println!(">") }
+    //~^^^^ single_match
+
+    if x < y { println!(">=") }
+    //~^^^^ single_match
+
+    if (x >= y) == T { println!(">=") }
+    //~^^^^ single_match
+}

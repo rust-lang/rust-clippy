@@ -524,3 +524,79 @@ fn issue17756(a: bool, b: bool, x: u8, y: u8) {
     }
     //~^^^^ single_match
 }
+
+fn issue17756_comparisons(x: u8, y: u8) {
+    const T: bool = true;
+
+    match x == y {
+        false => println!("=="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x == y {
+        T => println!("=="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x != y {
+        false => println!("!="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x != y {
+        T => println!("!="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x < y {
+        false => println!("<"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x < y {
+        T => println!("<"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x <= y {
+        false => println!("<="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x <= y {
+        T => println!("<="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x > y {
+        false => println!(">"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x > y {
+        T => println!(">"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x >= y {
+        false => println!(">="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x >= y {
+        T => println!(">="),
+        _ => (),
+    }
+    //~^^^^ single_match
+}
