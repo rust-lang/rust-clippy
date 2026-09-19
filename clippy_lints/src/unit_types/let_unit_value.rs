@@ -1,7 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_under_cfg;
 use clippy_utils::macros::{FormatArgsStorage, find_format_arg_expr, is_format_macro, root_macro_call_first_node};
+use clippy_utils::res::MaybeResPath as _;
 use clippy_utils::source::{snippet_indent, walk_span_to_context};
-use clippy_utils::visitors::{for_each_local_assignment, for_each_value_source};
+use clippy_utils::visitors::{for_each_expr, for_each_local_assignment, for_each_value_source};
 use core::ops::ControlFlow;
 use rustc_ast::{FormatArgs, FormatArgumentKind};
 use rustc_errors::Applicability;
@@ -27,6 +29,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, format_args: &FormatArgsStorag
         && !local.span.in_external_macro(cx.sess().source_map())
         && !local.span.is_from_async_await()
         && cx.typeck_results().pat_ty(local.pat).is_unit()
+        && !binding_used_under_cfg(cx, local)
     {
         // skip `let awa = ()`
         if let ExprKind::Tup([]) = init.kind {
@@ -330,4 +333,21 @@ fn needs_inferred_result_ty(
     } else {
         false
     }
+}
+
+fn binding_used_under_cfg<'tcx>(cx: &LateContext<'tcx>, local: &'tcx LetStmt<'_>) -> bool {
+    let PatKind::Binding(_, binding_id, ..) = local.pat.kind else {
+        return false;
+    };
+    let Some(body_id) = cx.enclosing_body else {
+        return false;
+    };
+    for_each_expr(cx.tcx, cx.tcx.hir_body(body_id).value, |e| {
+        if e.res_local_id() == Some(binding_id) && is_under_cfg(cx.tcx, e.hir_id) {
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
+        }
+    })
+    .is_some()
 }

@@ -234,3 +234,22 @@ fn issue15789() {
 
     Foo { value: () };
 }
+
+mod issue15790 {
+    fn takes_str(_: &str) {}
+    fn takes_unit(_: ()) {}
+
+    fn foo() {
+        let value = {
+            #[cfg(test)]
+            {
+                "not a unit"
+            }
+        };
+
+        #[cfg(test)]
+        takes_str(value);
+        #[cfg(not(test))]
+        takes_unit(value);
+    }
+}
