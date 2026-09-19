@@ -2,21 +2,21 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::{If, IfLetOrMatch};
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::MaybeResPath as _;
-use clippy_utils::source::{IntoSpan as _, SpanExt as _, snippet};
+use clippy_utils::source::{FileRangeExt as _, SpanExt as _, StrExt as _, snippet};
 use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
     SpanlessEq, get_ref_operators, is_none_pattern, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators,
-    span_contains_non_whitespace,
 };
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::{Arm, Expr, ExprKind, HirId, HirIdSet, Pat, PatKind};
 use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
+use rustc_lexer::is_whitespace;
 use rustc_lint::LateContext;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
-use rustc_span::{BytePos, Ident, Span, SyntaxContext};
+use rustc_span::{Ident, Span, SyntaxContext};
 
 use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
 use crate::collapsible_if::{parens_around, peel_parens};
@@ -167,18 +167,35 @@ fn check_arm<'tcx>(
             (Some(a), Some(b)) => SpanlessEq::new(cx).eq_expr(ctxt, a, b),
         }
         && !pat_bindings_moved_or_mutated(cx, outer_pat, inner.cond)
-    {
-        let outer_then_open_bracket = outer_then_body
-            .span
-            .split_at(1)
-            .0
-            .with_leading_whitespace(cx)
-            .into_span();
-        let contains_block = matches!(outer_then_body.kind, ExprKind::Block(..));
-        if contains_block && span_contains_non_whitespace(cx, outer_then_open_bracket.between(inner_expr.span), false) {
-            return;
+        && let Some([paren_start, inner_if_span, paren_end]) = peel_parens(cx, inner_expr.span)
+        && let Some((scx, outer_then_range)) = outer_then_body.span.mk_edit_cx(cx)
+        && let Some(inner_if_range) = scx
+            .span_to_file_range(inner_if_span)
+            .map_range_text(&scx, |s| s.split_prefix("if").map(|[x, _]| x))
+        && let outer_arrow_lo = outer_guard.map_or(outer_pat.span, |g| g.span).hi_ctxt()
+        && let Some((outer_then_start, outer_then_end)) = if matches!(outer_then_body.kind, ExprKind::Block(..)) {
+            outer_then_range
+                .clone()
+                .map_split_range_text(&scx, |s| s.get_prefix_suffix('{', '}'))
+                .filter(|[pre, _]| {
+                    // Don't collapse if there's anything before the inner if (comments, cfgs, etc.).
+                    (pre.end..pre.end)
+                        .extend_end_to(&scx, paren_start.lo_ctxt())
+                        .and_then(|r| scx.get_text(r))
+                        .is_some_and(|src| src.chars().all(is_whitespace))
+                })
+                .and_then(|[start, end]| {
+                    Some((
+                        start.extend_start_to(&scx, outer_arrow_lo)?,
+                        Some(end.with_leading_whitespace(&scx)?),
+                    ))
+                })
+        } else {
+            (inner_if_range.start..inner_if_range.start)
+                .extend_start_to(&scx, outer_arrow_lo)
+                .map(|x| (x, None))
         }
-
+    {
         span_lint_hir_and_then(
             cx,
             COLLAPSIBLE_MATCH,
@@ -186,30 +203,18 @@ fn check_arm<'tcx>(
             inner_expr.span,
             "this `if` can be collapsed into the outer `match`",
             |diag| {
-                let outer_arrow_end = if let Some(outer_guard) = outer_guard {
-                    outer_guard.span.shrink_to_hi()
-                } else {
-                    outer_pat.span.shrink_to_hi()
-                };
-                let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner_expr.span);
-                let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
-                if contains_block {
-                    let outer_then_closing_bracket = {
-                        let end = outer_then_body.span.shrink_to_hi();
-                        end.with_lo(end.lo() - BytePos(1))
-                            .with_leading_whitespace(cx)
-                            .into_span()
-                    };
-                    sugg.push((outer_arrow_end.to(outer_then_open_bracket), String::new()));
-                    sugg.push((outer_then_closing_bracket, String::new()));
+
+                if let Some(outer_then_end) = outer_then_end {
+                    sugg.push((scx.mk_span(outer_then_start, None), String::new()));
+                    sugg.push((scx.mk_span(outer_then_end, None), String::new()));
                 } else {
-                    sugg.push((outer_arrow_end.until(inner_if), " ".to_string()));
+                    sugg.push((scx.mk_span(outer_then_start, None), String::from(" ")));
                 }
 
                 if let Some(outer_guard) = outer_guard {
                     sugg.extend(parens_around(outer_guard));
-                    sugg.push((inner_if, "&&".to_string()));
+                    sugg.push((scx.mk_span(inner_if_range, None), "&&".to_string()));
                 }
 
                 if !paren_start.is_empty() {
