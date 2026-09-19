@@ -6953,6 +6953,9 @@ Released 2018-09-13
 [`copy_iterator`]: https://rust-lang.github.io/rust-clippy/main/index.html#copy_iterator
 [`crate_in_macro_def`]: https://rust-lang.github.io/rust-clippy/main/index.html#crate_in_macro_def
 [`create_dir`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_dir
+[`create_dir_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_dir_and_set_permissions
+[`create_regular_file_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_regular_file_and_set_permissions
+[`create_symlink_and_set_permissions`]: https://rust-lang.github.io/rust-clippy/main/index.html#create_symlink_and_set_permissions
 [`crosspointer_transmute`]: https://rust-lang.github.io/rust-clippy/main/index.html#crosspointer_transmute
 [`cyclomatic_complexity`]: https://rust-lang.github.io/rust-clippy/main/index.html#cyclomatic_complexity
 [`dbg_macro`]: https://rust-lang.github.io/rust-clippy/main/index.html#dbg_macro
