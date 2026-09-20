@@ -117,25 +117,30 @@ impl LateLintPass<'_> for ReplaceBox {
                 );
             }
 
-            if inner_ty.is_sized(cx.tcx, cx.typing_env())
-                && let Some(rhs_inner) = get_box_new_payload(cx, rhs)
-            {
-                span_lint_and_then(cx, REPLACE_BOX, expr.span, "creating a new box", |diag| {
-                    let mut app = Applicability::MachineApplicable;
-                    let suggestion = format!(
-                        "{} = {}",
-                        Sugg::hir_with_applicability(cx, lhs, "_", &mut app).deref(),
-                        Sugg::hir_with_context(cx, rhs_inner, expr.span.ctxt(), "_", &mut app),
-                    );
+if inner_ty.is_sized(cx.tcx, cx.typing_env())
+    && let Some(rhs_inner) = get_box_new_payload(cx, rhs)
+{
+    span_lint_and_then(cx, REPLACE_BOX, expr.span, "creating a new box", |diag| {
+        let mut app = if matches!(inner_ty.kind(), ty::Ref(_, _, ty::Mutability::Mut)) {
+            Applicability::MaybeIncorrect
+        } else {
+            Applicability::MachineApplicable
+        };
 
-                    diag.note("this creates a needless allocation").span_suggestion(
-                        expr.span,
-                        "replace existing content with inner value instead",
-                        suggestion,
-                        app,
-                    );
-                });
-            }
+        let suggestion = format!(
+            "{} = {}",
+            Sugg::hir_with_applicability(cx, lhs, "_", &mut app).deref(),
+            Sugg::hir_with_context(cx, rhs_inner, expr.span.ctxt(), "_", &mut app),
+        );
+
+        diag.note("this creates a needless allocation").span_suggestion(
+            expr.span,
+            "replace existing content with inner value instead",
+            suggestion,
+            app,
+        );
+    });
+}
         }
     }
 }
