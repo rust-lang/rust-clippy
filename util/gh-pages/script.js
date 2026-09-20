@@ -351,27 +351,6 @@ function addListeners() {
     addEventListener("popstate", parseURL);
 }
 
-// Highlight code blocks only when they approach the viewport so that clicking the "Expand All"
-// button doesn't take a long time
-function highlightLazily() {
-    if (!'IntersectionObserver' in window) {
-        return;
-    }
-    const observer = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-            if (entry.isIntersecting) {
-                observer.unobserve(entry.target);
-                for (const code of entry.target.querySelectorAll("pre code")) {
-                    hljs.highlightElement(code);
-                }
-            }
-        }
-    });
-    for (const docs of document.querySelectorAll(".lint-docs")) {
-        observer.observe(docs);
-    }
-}
-
 function findCheckboxes(filter) {
     return [...document.querySelectorAll(`.dropdown[data-filter="${filter}"] input[type="checkbox"]`)];
 }
@@ -402,5 +381,4 @@ const elements = {
 elements.disableShortcuts.checked = disableShortcuts;
 
 addListeners();
-highlightLazily();
 parseURL();

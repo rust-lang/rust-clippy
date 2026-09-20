@@ -10,7 +10,7 @@ use clippy_config::ConfMetadata;
 use clippy_lints::declared_lints::LINTS;
 use clippy_lints::deprecated_lints::{DEPRECATED, DEPRECATED_VERSION, RENAMED};
 use declare_clippy_lint::LintInfo;
-use pulldown_cmark::{Options, Parser, html};
+use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd, html};
 use serde::Deserialize;
 use test_utils::IS_RUSTC_TEST_SUITE;
 use ui_test::custom_flags::Flag;
@@ -21,11 +21,13 @@ use ui_test::spanned::Spanned;
 use ui_test::status_emitter::StatusEmitter;
 use ui_test::{Args, CommandBuilder, Config, Match, error_on_output_conflict};
 
+use std::cell::RefCell;
 use std::collections::{BTreeMap, HashMap};
 use std::env::{self, set_var, var_os};
 use std::ffi::{OsStr, OsString};
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 use std::sync::mpsc::{Sender, channel};
 use std::{fs, iter, thread};
 
@@ -492,11 +494,48 @@ struct Renderer<'a> {
 }
 
 impl Renderer<'_> {
+    fn highlight(code: &str, lang: &str) -> String {
+        static RUNTIME: OnceLock<tokio::runtime::Runtime> = OnceLock::new();
+        let runtime = RUNTIME.get_or_init(|| tokio::runtime::Runtime::new().unwrap());
+        let _guard = runtime.enter();
+
+        thread_local! {
+            static CONTEXT: RefCell<hlrs::Context> = RefCell::new(hlrs::ContextBuilder::latest().build().unwrap());
+        }
+
+        let output = CONTEXT.with_borrow_mut(|context| context.highlight(lang, code).unwrap());
+
+        format!(r#"<pre><code class="language-{lang} hljs">{output}</code></pre>"#)
+    }
+
     fn markdown(input: &str) -> Safe<String> {
         let input = clippy_config::sanitize_explanation(input);
-        let parser = Parser::new_ext(&input, Options::all());
+
+        let mut events = Vec::new();
+        let mut code = String::new();
+        let mut lang = None;
+
+        for event in Parser::new_ext(&input, Options::all()) {
+            match event {
+                Event::Start(Tag::CodeBlock(kind)) => {
+                    code.clear();
+                    lang = Some(match kind {
+                        // `rust,ignore` / `rust,no_run` etc.
+                        CodeBlockKind::Fenced(info) => info.split(',').next().unwrap_or_default().to_owned(),
+                        CodeBlockKind::Indented => String::new(),
+                    });
+                },
+                Event::Text(text) if lang.is_some() => code.push_str(&text),
+                Event::End(TagEnd::CodeBlock) => {
+                    let lang = lang.take().unwrap_or_default();
+                    events.push(Event::Html(Renderer::highlight(&code, &lang).into()));
+                },
+                event => events.push(event),
+            }
+        }
+
         let mut html_output = String::new();
-        html::push_html(&mut html_output, parser);
+        html::push_html(&mut html_output, events.into_iter());
         // Oh deer, what a hack :O
         Safe(html_output.replace("<table", "<table class=\"table\""))
     }

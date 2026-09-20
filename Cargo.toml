@@ -40,6 +40,8 @@ itertools = "0.15"
 pulldown-cmark = { version = "0.11", default-features = false, features = ["html"] }
 askama = { version = "0.16.1", default-features = false, features = ["alloc", "config", "derive"] }
 tempfile = "3.20"
+hlrs = "0.1.0"
+tokio = { version = "1", features = ["rt-multi-thread"] }
 
 [dev-dependencies.toml]
 version = "1.1"
