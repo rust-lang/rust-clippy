@@ -1,35 +1,35 @@
 error: you are using an explicit closure for copying elements
-  --> tests/ui/map_clone.rs:12:22
+  --> tests/ui/map_clone.rs:12:43
    |
 LL |     let _: Vec<i8> = vec![5_i8; 6].iter().map(|x| *x).collect();
-   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `vec![5_i8; 6].iter().copied()`
+   |                                           ^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `copied()`
    |
    = note: `-D clippy::map-clone` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::map_clone)]`
 
 error: you are using an explicit closure for cloning elements
-  --> tests/ui/map_clone.rs:14:26
+  --> tests/ui/map_clone.rs:14:53
    |
 LL |     let _: Vec<String> = vec![String::new()].iter().map(|x| x.clone()).collect();
-   |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `cloned` method: `vec![String::new()].iter().cloned()`
+   |                                                     ^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `cloned` method: `cloned()`
 
 error: you are using an explicit closure for copying elements
-  --> tests/ui/map_clone.rs:16:23
+  --> tests/ui/map_clone.rs:16:43
    |
 LL |     let _: Vec<u32> = vec![42, 43].iter().map(|&x| x).collect();
-   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `vec![42, 43].iter().copied()`
+   |                                           ^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `copied()`
 
 error: you are using an explicit closure for copying elements
-  --> tests/ui/map_clone.rs:19:26
+  --> tests/ui/map_clone.rs:19:36
    |
 LL |     let _: Option<u64> = Some(&16).map(|b| *b);
-   |                          ^^^^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `Some(&16).copied()`
+   |                                    ^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `copied()`
 
 error: you are using an explicit closure for copying elements
-  --> tests/ui/map_clone.rs:21:25
+  --> tests/ui/map_clone.rs:21:34
    |
 LL |     let _: Option<u8> = Some(&1).map(|x| x.clone());
-   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `Some(&1).copied()`
+   |                                  ^^^^^^^^^^^^^^^^^^ help: consider calling the dedicated `copied` method: `copied()`
 
 error: you are needlessly cloning iterator elements
   --> tests/ui/map_clone.rs:33:29

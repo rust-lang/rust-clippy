@@ -2,7 +2,6 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::peel_blocks;
 use clippy_utils::res::MaybeDef as _;
-use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{is_copy, should_call_clone_as_function};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
@@ -20,31 +19,37 @@ use super::MAP_CLONE;
 // If this `map` is called on an `Option` or a `Result` and the previous call is `as_ref`, we don't
 // run this lint because it would overlap with `useless_asref` which provides a better suggestion
 // in this case.
-fn should_run_lint(cx: &LateContext<'_>, e: &hir::Expr<'_>, method_parent_id: DefId) -> bool {
-    if method_parent_id.is_diag_item(cx, sym::Iterator) {
-        return true;
+fn should_run_lint(cx: &LateContext<'_>, e: &hir::Expr<'_>, method_parent_id: DefId) -> Option<Span> {
+    if method_parent_id.is_diag_item(cx, sym::Iterator)
+        && let hir::ExprKind::MethodCall(_, _, _, span) = e.kind
+    {
+        return Some(span);
     }
     // We check if it's an `Option` or a `Result`.
-    if let Some(ty) = method_parent_id.opt_impl_ty(cx) {
-        if !matches!(ty.opt_diag_name(cx), Some(sym::Option | sym::Result)) {
-            return false;
-        }
-    } else {
-        return false;
+    let ty = method_parent_id.opt_impl_ty(cx)?;
+    if !matches!(ty.opt_diag_name(cx), Some(sym::Option | sym::Result)) {
+        return None;
     }
     // We check if the previous method call is `as_ref`.
-    if let hir::ExprKind::MethodCall(path1, receiver, _, _) = &e.kind
-        && let hir::ExprKind::MethodCall(path2, _, _, _) = &receiver.kind
+    if let hir::ExprKind::MethodCall(path1, receiver, _, span) = e.kind
+        && let hir::ExprKind::MethodCall(path2, _, _, _) = receiver.kind
     {
-        return path2.ident.name != sym::as_ref || path1.ident.name != sym::map;
+        if path2.ident.name != sym::as_ref || path1.ident.name != sym::map {
+            return Some(span);
+        }
+        return None;
     }
 
-    true
+    if let hir::ExprKind::MethodCall(_, _, _, span) = e.kind {
+        Some(span)
+    } else {
+        Some(e.span)
+    }
 }
 
 pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_>, arg: &hir::Expr<'_>, msrv: Msrv) {
     if let Some(parent_id) = cx.typeck_results().type_dependent_def_id(e.hir_id).opt_parent(cx)
-        && should_run_lint(cx, e, parent_id)
+        && let Some(expr_span) = should_run_lint(cx, e, parent_id)
     {
         match arg.kind {
             hir::ExprKind::Closure(&hir::Closure { body, .. }) => {
@@ -55,7 +60,7 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
                         if let hir::PatKind::Binding(hir::BindingMode::NONE, .., name, None) = inner.kind
                             && ident_eq(name, closure_expr)
                         {
-                            lint_explicit_closure(cx, e.span, recv.span, true, msrv);
+                            lint_explicit_closure(cx, expr_span, true, msrv);
                         }
                     },
                     hir::PatKind::Binding(hir::BindingMode::NONE, .., name, None) => {
@@ -64,7 +69,7 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
                                 if ident_eq(name, inner)
                                     && let ty::Ref(.., Mutability::Not) = cx.typeck_results().expr_ty(inner).kind()
                                 {
-                                    lint_explicit_closure(cx, e.span, recv.span, true, msrv);
+                                    lint_explicit_closure(cx, expr_span, true, msrv);
                                 }
                             },
                             hir::ExprKind::MethodCall(method, obj, [], _) => {
@@ -80,10 +85,10 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
                                     if let ty::Ref(_, ty, mutability) = obj_ty.kind() {
                                         if matches!(mutability, Mutability::Not) {
                                             let copy = is_copy(cx, *ty);
-                                            lint_explicit_closure(cx, e.span, recv.span, copy, msrv);
+                                            lint_explicit_closure(cx, expr_span, copy, msrv);
                                         }
                                     } else {
-                                        lint_needless_cloning(cx, e.span, recv.span);
+                                        lint_needless_cloning(cx, expr_span);
                                     }
                                 }
                             },
@@ -92,7 +97,7 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
                                     && ident_eq(name, arg)
                                     && cx.typeck_results().expr_ty(arg) == cx.typeck_results().expr_ty_adjusted(arg)
                                 {
-                                    handle_path(cx, call, &qpath, e, recv);
+                                    handle_path(cx, call, &qpath, expr_span, recv);
                                 }
                             },
                             _ => {},
@@ -101,19 +106,13 @@ pub(super) fn check(cx: &LateContext<'_>, e: &hir::Expr<'_>, recv: &hir::Expr<'_
                     _ => {},
                 }
             },
-            hir::ExprKind::Path(qpath) => handle_path(cx, arg, &qpath, e, recv),
+            hir::ExprKind::Path(qpath) => handle_path(cx, arg, &qpath, expr_span, recv),
             _ => {},
         }
     }
 }
 
-fn handle_path(
-    cx: &LateContext<'_>,
-    arg: &hir::Expr<'_>,
-    qpath: &hir::QPath<'_>,
-    e: &hir::Expr<'_>,
-    recv: &hir::Expr<'_>,
-) {
+fn handle_path(cx: &LateContext<'_>, arg: &hir::Expr<'_>, qpath: &hir::QPath<'_>, span: Span, recv: &hir::Expr<'_>) {
     if let Some(path_def_id) = cx.qpath_res(qpath, arg.hir_id).opt_def_id()
         && cx.tcx.lang_items().get(LangItem::CloneFn) == Some(path_def_id)
         // The `copied` and `cloned` methods are only available on `&T` and `&mut T` in `Option`
@@ -126,9 +125,6 @@ fn handle_path(
         && lst.iter().all(|l| l.no_bound_vars().unwrap().as_type() == Some(*ty))
         && !should_call_clone_as_function(cx, *ty)
     {
-        let rustc_hir::ExprKind::MethodCall(_path_segment, _expr, _exprs, span) = e.kind else {
-            unreachable!("This only gets ran when ExprKind is MethodCall");
-        };
         lint_path(cx, span, is_copy(cx, ty.peel_refs()));
     }
 }
@@ -141,11 +137,15 @@ fn ident_eq(name: Ident, path: &hir::Expr<'_>) -> bool {
     }
 }
 
-fn lint_needless_cloning(cx: &LateContext<'_>, root: Span, receiver: Span) {
+fn lint_needless_cloning(cx: &LateContext<'_>, root: Span) {
+    // The provided span only contains the actual call, not the preceding period
+    // So we go backwards in the span
+    let rustc_span::BytePos(lo_pos) = root.lo();
+    let span = root.with_lo(rustc_span::BytePos(lo_pos - 1));
     span_lint_and_sugg(
         cx,
         MAP_CLONE,
-        root.trim_start(receiver).unwrap(),
+        span,
         "you are needlessly cloning iterator elements",
         "remove the `map` call",
         String::new(),
@@ -167,9 +167,7 @@ fn lint_path(cx: &LateContext<'_>, replace: Span, is_copy: bool) {
     );
 }
 
-fn lint_explicit_closure(cx: &LateContext<'_>, replace: Span, root: Span, is_copy: bool, msrv: Msrv) {
-    let mut applicability = Applicability::MachineApplicable;
-
+fn lint_explicit_closure(cx: &LateContext<'_>, replace: Span, is_copy: bool, msrv: Msrv) {
     let (message, sugg_method) = if is_copy && msrv.meets(cx, msrvs::ITERATOR_COPIED) {
         ("you are using an explicit closure for copying elements", "copied")
     } else {
@@ -182,10 +180,7 @@ fn lint_explicit_closure(cx: &LateContext<'_>, replace: Span, root: Span, is_cop
         replace,
         message,
         format!("consider calling the dedicated `{sugg_method}` method"),
-        format!(
-            "{}.{sugg_method}()",
-            snippet_with_applicability(cx, root, "..", &mut applicability),
-        ),
-        applicability,
+        format!("{sugg_method}()"),
+        Applicability::MachineApplicable,
     );
 }
