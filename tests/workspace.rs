@@ -2,9 +2,21 @@ use std::fs::OpenOptions;
 use std::io::Write as _;
 use std::path::PathBuf;
 use std::process::Command;
+use std::thread::sleep;
+use std::time::Duration;
 use test_utils::{CARGO_CLIPPY_PATH, IS_RUSTC_TEST_SUITE};
 
 mod test_utils;
+
+// This is used to make sure that other tests don't pick up the clippy.toml
+// produced by `track_invalid_clippy_toml`. As that causes spurious tests when running
+// in parallel.
+fn dev_null() -> &'static str {
+    cfg_select! {
+        windows => "nul",
+        _ => "/dev/null", // This is true for Linux, MacOS and BSD
+    }
+}
 
 #[test]
 fn test_module_style_with_dep_in_subdir() {
@@ -19,6 +31,7 @@ fn test_module_style_with_dep_in_subdir() {
     Command::new("cargo")
         .current_dir(&cwd)
         .env("CARGO_TARGET_DIR", &target_dir)
+        .env("CLIPPY_CONF_DIR", dev_null())
         .arg("clean")
         .args(["-p", "pass-no-mod-with-dep-in-subdir"])
         .args(["-p", "pass-mod-with-dep-in-subdir"])
@@ -33,6 +46,7 @@ fn test_module_style_with_dep_in_subdir() {
         .env("CARGO_INCREMENTAL", "0")
         .env("CARGO_TERM_COLOR", "never")
         .env("CARGO_TARGET_DIR", &target_dir)
+        .env("CLIPPY_CONF_DIR", dev_null())
         .arg("clippy")
         .args(["-p", "pass-no-mod-with-dep-in-subdir"])
         .args(["-p", "pass-mod-with-dep-in-subdir"])
@@ -52,6 +66,7 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
     if IS_RUSTC_TEST_SUITE {
         return;
     }
+
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let target_dir = root.join("target").join("workspace_test");
     let cwd = root.join("tests/workspace_test");
@@ -60,15 +75,12 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
     Command::new("cargo")
         .current_dir(&cwd)
         .env("CARGO_TARGET_DIR", &target_dir)
+        .env("CLIPPY_CONF_DIR", dev_null())
         .arg("clean")
         .args(["-p", "subcrate"])
         .args(["-p", "path_dep"])
         .output()
         .unwrap();
-
-    // Cleanup the temporary clippy.toml, just in case.
-    let clippy_toml_path = cwd.join("subcrate").join("clippy.toml");
-    let _ = std::fs::remove_file(&clippy_toml_path);
 
     // `path_dep` is a path dependency of `subcrate` that would trigger a denied lint.
     // Make sure that with the `--no-deps` argument Clippy does not run on `path_dep`.
@@ -77,6 +89,7 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
         .env("CARGO_INCREMENTAL", "0")
         .env("CARGO_TERM_COLOR", "never")
         .env("CARGO_TARGET_DIR", &target_dir)
+        .env("CLIPPY_CONF_DIR", dev_null())
         .arg("clippy")
         .args(["-p", "subcrate"])
         .arg("--no-deps")
@@ -98,6 +111,7 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
             .env("CARGO_INCREMENTAL", "0")
             .env("CARGO_TERM_COLOR", "never")
             .env("CARGO_TARGET_DIR", &target_dir)
+            .env("CLIPPY_CONF_DIR", dev_null())
             .arg("clippy")
             .args(["-p", "subcrate"])
             .arg("--")
@@ -153,9 +167,46 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
 
     // Make sure Cargo is aware of the new `--cfg` flag.
     lint_path_dep();
+}
+
+#[test]
+fn track_invalid_clippy_toml() {
+    if IS_RUSTC_TEST_SUITE {
+        return;
+    }
+
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let target_dir = root.join("target").join("workspace_test");
+    let cwd = root.join("tests/workspace_test");
+
+    // Cleanup the temporary clippy.toml, just in case.
+    let clippy_toml_path = cwd.join("subcrate").join("clippy.toml");
+    let _ = std::fs::remove_file(&clippy_toml_path);
+
+    let successful_build = || {
+        let output = Command::new(&*CARGO_CLIPPY_PATH)
+            .current_dir(&cwd)
+            .env("CARGO_INCREMENTAL", "0")
+            .env("CARGO_TERM_COLOR", "never")
+            .env("CARGO_TARGET_DIR", &target_dir)
+            .arg("clippy")
+            .args(["-p", "subcrate"])
+            .arg("--")
+            .arg("-Cdebuginfo=0") // disable debuginfo to generate less data in the target dir
+            .output()
+            .unwrap();
+        println!("status: {}", output.status);
+        println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+
+        output
+    };
 
     // Create an invalid clippy.toml, and make sure that we track that a new file exists and parse
     // it. See #9928
+
+    let output = successful_build();
+    assert!(output.status.success());
 
     let mut file = OpenOptions::new()
         .create(true)
@@ -172,4 +223,7 @@ fn test_no_deps_ignores_path_deps_in_workspaces() {
 
     // Cleanup
     std::fs::remove_file(clippy_toml_path).unwrap();
+
+    let output = successful_build();
+    assert!(output.status.success());
 }
