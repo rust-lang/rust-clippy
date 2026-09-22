@@ -25,8 +25,8 @@ use rustc_middle::ty::layout::{LayoutError, LayoutOf as _, TyAndLayout};
 use rustc_middle::ty::{
     self, AdtDef, AliasTy, AssocItem, AssocTag, Binder, BoundRegion, BoundVarIndexKind, FnSig, GenericArg,
     GenericArgKind, GenericArgsRef, IntTy, ProjectionAliasTy, Region, RegionKind, TraitRef, Ty, TyCtxt,
-    TypeSuperVisitable as _, TypeVisitable, TypeVisitableExt as _, TypeVisitor, UintTy, Unnormalized, Upcast as _,
-    VariantDef, VariantDiscr,
+    TypeSuperVisitable as _, TypeVisitable, TypeVisitableExt as _, TypeVisitor, UintTy, Unnormalized, VariantDef,
+    VariantDiscr,
 };
 use rustc_span::symbol::Ident;
 use rustc_span::{DUMMY_SP, Span, Symbol};
@@ -291,8 +291,7 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
     let (infcx, param_env) = tcx.infer_ctxt().build_with_typing_env(typing_env);
     let args = args
         .into_iter()
-        .map(|arg| arg.into().unwrap_or_else(|| infcx.next_ty_var(DUMMY_SP).into()))
-        .collect::<Vec<_>>();
+        .map(|arg| arg.into().unwrap_or_else(|| infcx.next_ty_var(DUMMY_SP).into()));
 
     let trait_ref = TraitRef::new(tcx, trait_id, [GenericArg::from(ty)].into_iter().chain(args));
 
@@ -304,12 +303,7 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
     #[cfg(debug_assertions)]
     assert_generic_args_match(tcx, trait_id, trait_ref.args);
 
-    let obligation = Obligation {
-        cause: ObligationCause::dummy(),
-        param_env,
-        recursion_depth: 0,
-        predicate: trait_ref.upcast(tcx),
-    };
+    let obligation = Obligation::new(tcx, ObligationCause::dummy(), param_env, trait_ref);
     infcx
         .evaluate_obligation(&obligation)
         .is_ok_and(EvaluationResult::must_apply_modulo_regions)
@@ -317,10 +311,7 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
 
 /// Checks whether this type implements `Drop`.
 pub fn has_drop<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
-    match ty.ty_adt_def() {
-        Some(def) => def.has_dtor(cx.tcx),
-        None => false,
-    }
+    ty.ty_adt_def().is_some_and(|def| def.has_dtor(cx.tcx))
 }
 
 /// Returns whether the `ty` has `#[must_use]` attribute, or acts like it does according to the
@@ -1459,9 +1450,8 @@ pub fn get_adt_inherent_method<'a>(cx: &'a LateContext<'_>, ty: Ty<'_>, method_n
     cx.tcx.inherent_impls(ty_did).iter().find_map(|&did| {
         cx.tcx
             .associated_items(did)
-            .filter_by_name_unhygienic(method_name)
+            .filter_by_name_unhygienic_and_kind(method_name, AssocTag::Fn)
             .next()
-            .filter(|item| item.tag() == AssocTag::Fn)
     })
 }
 
@@ -1480,8 +1470,7 @@ pub fn get_field_by_name<'tcx>(tcx: TyCtxt<'tcx>, ty: Ty<'tcx>, name: Symbol) ->
 }
 
 pub fn get_field_def_id_by_name(ty: Ty<'_>, name: Symbol) -> Option<DefId> {
-    let ty::Adt(adt_def, ..) = ty.kind() else { return None };
-    adt_def
+    ty.ty_adt_def()?
         .all_fields()
         .find_map(|field| if field.name == name { Some(field.did) } else { None })
 }
