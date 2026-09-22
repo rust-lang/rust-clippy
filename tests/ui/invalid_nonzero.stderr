@@ -1,0 +1,35 @@
+error: a `NonZero` value crated from a `0` literal will always be `None`
+  --> tests/ui/invalid_nonzero.rs:11:13
+   |
+LL |     let _ = NonZeroU16::new(0);
+   |             ^^^^^^^^^^^^^^^^^^ help: use: `None::<std::num::NonZero<u16>>`
+   |
+   = note: `-D clippy::invalid-nonzero` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::invalid_nonzero)]`
+
+error: a `NonZero` value crated from a `0` literal will always be `None`
+  --> tests/ui/invalid_nonzero.rs:13:13
+   |
+LL |     let _ = NonZeroU8::new(ZERO);
+   |             ^^^^^^^^^^^^^^^^^^^^ help: use: `None::<std::num::NonZero<u8>>`
+
+error: a `NonZero` value crated from a `0` literal will always be `None`
+  --> tests/ui/invalid_nonzero.rs:15:13
+   |
+LL |     let _ = NonZeroI32::new(0);
+   |             ^^^^^^^^^^^^^^^^^^ help: use: `None::<std::num::NonZero<i32>>`
+
+error: a `NonZero` value crated from a `0` literal will always be `None`
+  --> tests/ui/invalid_nonzero.rs:17:13
+   |
+LL |     let _ = NonZero::<usize>::new(0);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `None::<std::num::NonZero<usize>>`
+
+error: a `NonZero` value crated from a `0` literal will always be `None`
+  --> tests/ui/invalid_nonzero.rs:19:35
+   |
+LL |     let _: Option<NonZeroUsize> = NonZero::new(0);
+   |                                   ^^^^^^^^^^^^^^^ help: use: `None::<std::num::NonZero<usize>>`
+
+error: aborting due to 5 previous errors
+

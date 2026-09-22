@@ -401,6 +401,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::INEFFICIENT_TO_STRING_INFO,
     crate::methods::INSPECT_FOR_EACH_INFO,
     crate::methods::INTO_ITER_ON_REF_INFO,
+    crate::methods::INVALID_NONZERO_INFO,
     crate::methods::IO_OTHER_ERROR_INFO,
     crate::methods::IP_CONSTANT_INFO,
     crate::methods::IS_DIGIT_ASCII_RADIX_INFO,

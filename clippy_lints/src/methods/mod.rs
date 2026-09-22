@@ -37,6 +37,7 @@ mod implicit_clone;
 mod inefficient_to_string;
 mod inspect_for_each;
 mod into_iter_on_ref;
+mod invalid_nonzero;
 mod io_other_error;
 mod ip_constant;
 mod is_digit_ascii_radix;
@@ -1163,6 +1164,31 @@ declare_clippy_lint! {
     pub INTO_ITER_ON_REF,
     style,
     "using `.into_iter()` on a reference"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for syntax like `NonZero::new` (including its aliases like `NonZeroU8`,
+    /// `NonZeroI32`, etc.) where the argument is a constant `0`.
+    ///
+    /// ### Why is this bad?
+    /// `NonZero::new(0)` always evaluates to `None`. If the result is later
+    /// `unwrap`ed, the code is guaranteed to panic at run time.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// use std::num::NonZeroU16;
+    ///
+    /// let x = NonZeroU16::new(0);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x = None::<std::num::NonZero<u16>>;
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub INVALID_NONZERO,
+    correctness,
+    "creating a `NonZero` value from a literal `0` will always return `None`"
 }
 
 declare_clippy_lint! {
@@ -5038,6 +5064,7 @@ impl_lint_pass!(Methods => [
     INEFFICIENT_TO_STRING,
     INSPECT_FOR_EACH,
     INTO_ITER_ON_REF,
+    INVALID_NONZERO,
     IO_OTHER_ERROR,
     IP_CONSTANT,
     IS_DIGIT_ASCII_RADIX,
@@ -5238,6 +5265,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
 
         match expr.kind {
             ExprKind::Call(func, args) => {
+                invalid_nonzero::check(cx, expr, func, args);
                 unnecessary_fallible_conversions::check_function(cx, expr, func);
                 manual_c_str_literals::check(cx, expr, func, args, self.msrv);
                 useless_nonzero_new_unchecked::check(cx, expr, func, args, self.msrv);
