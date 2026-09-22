@@ -19,12 +19,13 @@ use rustc_resolve::rustdoc::{
     DocFragment, add_doc_fragment, attrs_to_doc_fragments, main_body_opts, pulldown_cmark,
     source_span_for_markdown_range, span_of_fragments,
 };
-use rustc_span::Span;
+use rustc_span::{Ident, Span};
 use std::ops::Range;
 use url::Url;
 
 mod broken_link;
 mod doc_comment_double_space_linebreaks;
+mod doc_examples_missing_item;
 mod doc_paragraphs_missing_punctuation;
 mod doc_suspicious_footnotes;
 mod include_in_doc_without_cfg;
@@ -96,6 +97,39 @@ declare_clippy_lint! {
     pub DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS,
     pedantic,
     "double space used for doc comment hard line break instead of `\\`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for functions, constants and statics whose documentation examples never mention
+    /// the item. A block tagged `ignore` or `compile_fail` is not an example for this purpose.
+    ///
+    /// ### Why is this bad?
+    /// A copied example keeps passing as a doctest while demonstrating another item, leaving
+    /// the documented item with no example.
+    ///
+    /// ### Known problems
+    /// The check is lexical, so an unrelated identifier spelled like the item satisfies it.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// /// ```
+    /// /// assert_eq!(triple(2), 6);
+    /// /// ```
+    /// pub fn double(x: u32) -> u32 { x * 2 }
+    /// # pub fn triple(x: u32) -> u32 { x * 3 }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// /// ```
+    /// /// assert_eq!(double(2), 4);
+    /// /// ```
+    /// pub fn double(x: u32) -> u32 { x * 2 }
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub DOC_EXAMPLES_MISSING_ITEM,
+    pedantic,
+    "documentation examples never mention the documented item"
 }
 
 declare_clippy_lint! {
@@ -707,6 +741,7 @@ declare_clippy_lint! {
 impl_lint_pass!(Documentation => [
     DOC_BROKEN_LINK,
     DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS,
+    DOC_EXAMPLES_MISSING_ITEM,
     DOC_INCLUDE_WITHOUT_CFG,
     DOC_LAZY_CONTINUATION,
     DOC_LINK_CODE,
@@ -749,7 +784,7 @@ impl EarlyLintPass for Documentation {
 
 impl<'tcx> LateLintPass<'tcx> for Documentation {
     fn check_attributes(&mut self, cx: &LateContext<'tcx>, attrs: &'tcx [Attribute]) {
-        let Some(headers) = check_attrs(cx, self.valid_idents, attrs) else {
+        let Some(headers) = check_attrs(cx, self.valid_idents, self.check_private_items, attrs) else {
             return;
         };
 
@@ -863,7 +898,12 @@ struct DocHeaders {
 /// Others are checked elsewhere, e.g. in `check_doc` if they need access to markdown, or
 /// back in the various late lint pass methods if they need the final doc headers, like "Safety" or
 /// "Panics" sections.
-fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[Attribute]) -> Option<DocHeaders> {
+fn check_attrs(
+    cx: &LateContext<'_>,
+    valid_idents: &FxHashSet<String>,
+    check_private_items: bool,
+    attrs: &[Attribute],
+) -> Option<DocHeaders> {
     // We don't want the parser to choke on intra doc links. Since we don't
     // actually care about rendering them, just pretend that all broken links
     // point to a fake address.
@@ -876,6 +916,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
         return None;
     }
 
+    let item_ident = doc_examples_missing_item::item_ident(cx, check_private_items);
     let (fragments, _) = attrs_to_doc_fragments(
         attrs.iter().filter_map(|attr| {
             if attr.doc_str_and_fragment_kind().is_none() || attr.span().in_external_macro(cx.sess().source_map()) {
@@ -960,6 +1001,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
             fragments: &fragments,
         },
         attrs,
+        item_ident,
     ))
 }
 
@@ -1109,6 +1151,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     doc: &str,
     fragments: Fragments<'_>,
     attrs: &[Attribute],
+    item_ident: Option<Ident>,
 ) -> DocHeaders {
     // true if a safety header was found
     let mut headers = DocHeaders::default();
@@ -1123,6 +1166,8 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
     let mut blockquote_level = 0;
     let mut collected_breaks: Vec<Span> = Vec::new();
     let mut is_first_paragraph = true;
+    let mut has_example = false;
+    let mut example_mentions_item = false;
 
     let mut containers = Vec::new();
 
@@ -1342,6 +1387,11 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                         if !tags.no_run && !tags.test_harness {
                             test_attr_in_doctest::check(cx, &text, range.start, fragments);
                         }
+
+                        if let Some(ident) = item_ident {
+                            has_example = true;
+                            example_mentions_item |= doc_examples_missing_item::mentions(&text, ident);
+                        }
                     }
                 } else {
                     if in_link.is_some() {
@@ -1362,6 +1412,13 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
             }
             FootnoteReference(_) => {}
         }
+    }
+
+    if let Some(ident) = item_ident
+        && has_example
+        && !example_mentions_item
+    {
+        doc_examples_missing_item::report(cx, ident);
     }
 
     doc_comment_double_space_linebreaks::check(cx, &collected_breaks);
