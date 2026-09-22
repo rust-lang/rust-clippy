@@ -114,8 +114,8 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for `.to_string_lossy()` applied to an `OsStr` or `Path` in a macro that does
-    /// formatting.
+    /// Checks for `.to_string_lossy()` applied to an `OsStr` or `Path` in the arguments of
+    /// formatting macros such as `format!`, `print!`, and `println!`.
     ///
     /// ### Why is this bad?
     /// `OsStr` or `Path` each provide a `display` method. Using `.display()` instead of
@@ -775,7 +775,7 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
                         "display",
                         Applicability::MachineApplicable,
                     );
-                    diag.help("using `display` can avoid an allocation`");
+                    diag.help("using `display` can avoid an allocation");
                 },
             );
         }
