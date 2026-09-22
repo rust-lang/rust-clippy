@@ -15,6 +15,13 @@ function setTheme(theme, store) {
     let enableNight = false;
     let enableAyu = false;
 
+    // "auto" (and any unset value) follows the system preference. The
+    // requested value is what gets stored, so the choice survives reloads.
+    const requested = theme ?? "auto";
+    if (requested === "auto") {
+        theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "coal" : "light";
+    }
+
     switch(theme) {
         case "ayu":
             enableAyu = true;
@@ -42,7 +49,7 @@ function setTheme(theme, store) {
     document.getElementById("styleAyu").disabled = !enableAyu;
 
     if (store) {
-        storeValue("theme", theme);
+        storeValue("theme", requested);
     }
 }
 
@@ -53,16 +60,19 @@ function setTheme(theme, store) {
 
     // loading the theme after the initial load
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
-    const theme = loadValue("theme");
-    if (prefersDark.matches && !theme) {
-        setTheme("coal", false);
-    } else {
-        setTheme(theme, false);
-    }
+    const theme = loadValue("theme") ?? "auto";
+    setTheme(theme, false);
+
+    // While in "auto" mode, follow system theme switches live, like rustdoc.
+    prefersDark.addEventListener("change", () => {
+        if ((loadValue("theme") ?? "auto") === "auto") {
+            setTheme("auto", false);
+        }
+    });
 
     const themeChoice = document.getElementById("theme-choice");
 
-    themeChoice.value = loadValue("theme");
+    themeChoice.value = theme;
     document.getElementById("theme-choice").addEventListener("change", (e) => {
         setTheme(themeChoice.value, true);
     });
