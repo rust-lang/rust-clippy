@@ -2,8 +2,6 @@ use std::fs::OpenOptions;
 use std::io::Write as _;
 use std::path::PathBuf;
 use std::process::Command;
-use std::thread::sleep;
-use std::time::Duration;
 use test_utils::{CARGO_CLIPPY_PATH, IS_RUSTC_TEST_SUITE};
 
 mod test_utils;
