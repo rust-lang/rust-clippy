@@ -19,5 +19,11 @@ error: usage of wildcard import
 LL | use prelude::*;
    |     ^^^^^^^^^^ help: try: `prelude::FOO`
 
-error: aborting due to 3 previous errors
+error: usage of wildcard import
+  --> tests/ui-toml/wildcard_imports/wildcard_imports.rs:29:5
+   |
+LL | use std::io::prelude::*;
+   |     ^^^^^^^^^^^^^^^^^^^ help: try: `std::io::prelude::Read`
+
+error: aborting due to 4 previous errors
 
