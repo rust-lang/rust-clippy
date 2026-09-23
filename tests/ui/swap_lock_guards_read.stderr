@@ -1,0 +1,11 @@
+error: swapping the guards does not swap the protected values
+  --> tests/ui/swap_lock_guards_read.rs:11:5
+   |
+LL |     std::mem::swap(&mut left_guard, &mut right_guard);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::swap-lock-guards` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::swap_lock_guards)]`
+
+error: aborting due to 1 previous error
+

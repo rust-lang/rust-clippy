@@ -47,7 +47,7 @@ impl<'tcx> LateLintPass<'tcx> for SwapLockGuards {
             && function.basic_res().is_diag_item(cx, sym::mem_swap)
             && let Some(left_inner) = mutable_borrowed_expr(left)
             && let Some(right_inner) = mutable_borrowed_expr(right)
-            && is_mutable_guard(cx, cx.typeck_results().expr_ty(left_inner))
+            && let Some(can_swap_values) = guard_can_swap_values(cx, cx.typeck_results().expr_ty(left_inner))
         {
             span_lint_and_then(
                 cx,
@@ -55,14 +55,16 @@ impl<'tcx> LateLintPass<'tcx> for SwapLockGuards {
                 expr.span,
                 "swapping the guards does not swap the protected values",
                 |diag| {
-                    diag.multipart_suggestion(
-                        "dereference the guards to swap the protected values",
-                        vec![
-                            (left_inner.span.shrink_to_lo(), "*".to_owned()),
-                            (right_inner.span.shrink_to_lo(), "*".to_owned()),
-                        ],
-                        Applicability::MachineApplicable,
-                    );
+                    if can_swap_values {
+                        diag.multipart_suggestion(
+                            "dereference the guards to swap the protected values",
+                            vec![
+                                (left_inner.span.shrink_to_lo(), "*".to_owned()),
+                                (right_inner.span.shrink_to_lo(), "*".to_owned()),
+                            ],
+                            Applicability::MachineApplicable,
+                        );
+                    }
                 },
             );
         }
@@ -77,13 +79,14 @@ fn mutable_borrowed_expr<'a, 'tcx>(expr: &'a Expr<'tcx>) -> Option<&'a Expr<'tcx
     }
 }
 
-fn is_mutable_guard(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
+fn guard_can_swap_values(cx: &LateContext<'_>, ty: Ty<'_>) -> Option<bool> {
     let ty::Adt(adt, _) = ty.kind() else {
-        return false;
+        return None;
     };
 
-    matches!(
-        cx.tcx.get_diagnostic_name(adt.did()),
-        Some(sym::MutexGuard | sym::RwLockWriteGuard | sym::RefCellRefMut)
-    )
+    match cx.tcx.get_diagnostic_name(adt.did()) {
+        Some(sym::MutexGuard | sym::RwLockWriteGuard | sym::RefCellRefMut) => Some(true),
+        Some(sym::RwLockReadGuard) => Some(false),
+        _ => None,
+    }
 }
