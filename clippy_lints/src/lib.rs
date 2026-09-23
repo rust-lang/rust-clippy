@@ -357,6 +357,7 @@ mod suspicious_operation_groupings;
 mod suspicious_trait_impl;
 mod suspicious_xor_used_as_pow;
 mod swap;
+mod swap_lock_guards;
 mod swap_ptr_to_ref;
 mod tabs_in_doc_comments;
 mod temporary_assignment;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        SwapLockGuards: swap_lock_guards::SwapLockGuards = swap_lock_guards::SwapLockGuards,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

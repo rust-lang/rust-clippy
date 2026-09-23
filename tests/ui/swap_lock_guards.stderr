@@ -1,0 +1,37 @@
+error: swapping the guards does not swap the protected values
+  --> tests/ui/swap_lock_guards.rs:13:5
+   |
+LL |     std::mem::swap(&mut /* keep this comment */ left_guard, &mut right_guard);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::swap-lock-guards` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::swap_lock_guards)]`
+help: dereference the guards to swap the protected values
+   |
+LL |     std::mem::swap(&mut /* keep this comment */ *left_guard, &mut *right_guard);
+   |                                                 +                 +
+
+error: swapping the guards does not swap the protected values
+  --> tests/ui/swap_lock_guards.rs:24:5
+   |
+LL |     std::mem::swap(&mut left_guard, &mut right_guard);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: dereference the guards to swap the protected values
+   |
+LL |     std::mem::swap(&mut *left_guard, &mut *right_guard);
+   |                         +                 +
+
+error: swapping the guards does not swap the protected values
+  --> tests/ui/swap_lock_guards.rs:31:5
+   |
+LL |     std::mem::swap(&mut left_guard, &mut right_guard);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: dereference the guards to swap the protected values
+   |
+LL |     std::mem::swap(&mut *left_guard, &mut *right_guard);
+   |                         +                 +
+
+error: aborting due to 3 previous errors
+

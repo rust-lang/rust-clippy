@@ -1,0 +1,55 @@
+#![warn(clippy::swap_lock_guards)]
+#![allow(unused)]
+
+use std::cell::RefCell;
+use std::ops::{Deref, DerefMut};
+use std::sync::{Mutex, RwLock};
+
+fn main() {
+    let left = Mutex::new(1);
+    let right = Mutex::new(2);
+    let mut left_guard = left.lock().unwrap();
+    let mut right_guard = right.lock().unwrap();
+    std::mem::swap(&mut /* keep this comment */ left_guard, &mut right_guard);
+    //~^ swap_lock_guards
+
+    let mut left_guard_ref = &left_guard;
+    let mut right_guard_ref = &right_guard;
+    std::mem::swap(&mut left_guard_ref, &mut right_guard_ref);
+
+    let left = RwLock::new(1);
+    let right = RwLock::new(2);
+    let mut left_guard = left.write().unwrap();
+    let mut right_guard = right.write().unwrap();
+    std::mem::swap(&mut left_guard, &mut right_guard);
+    //~^ swap_lock_guards
+
+    let left = RefCell::new(1);
+    let right = RefCell::new(2);
+    let mut left_guard = left.borrow_mut();
+    let mut right_guard = right.borrow_mut();
+    std::mem::swap(&mut left_guard, &mut right_guard);
+    //~^ swap_lock_guards
+
+    std::mem::swap(&mut *left_guard, &mut *right_guard);
+
+    let mut left = CustomGuard(1);
+    let mut right = CustomGuard(2);
+    std::mem::swap(&mut left, &mut right);
+}
+
+struct CustomGuard(i32);
+
+impl Deref for CustomGuard {
+    type Target = i32;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for CustomGuard {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}

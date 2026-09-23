@@ -736,6 +736,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::suspicious_xor_used_as_pow::SUSPICIOUS_XOR_USED_AS_POW_INFO,
     crate::swap::ALMOST_SWAPPED_INFO,
     crate::swap::MANUAL_SWAP_INFO,
+    crate::swap_lock_guards::SWAP_LOCK_GUARDS_INFO,
     crate::swap_ptr_to_ref::SWAP_PTR_TO_REF_INFO,
     crate::tabs_in_doc_comments::TABS_IN_DOC_COMMENTS_INFO,
     crate::temporary_assignment::TEMPORARY_ASSIGNMENT_INFO,
