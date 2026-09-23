@@ -15,7 +15,7 @@ LL |     let x = Ipv4Addr::new(127, 0, 0, 1);
    |         ^
 
 error: holding a disallowed type across an await point `std::string::String`
-  --> tests/ui-toml/await_holding_invalid_type/await_holding_invalid_type.rs:36:13
+  --> tests/ui-toml/await_holding_invalid_type/await_holding_invalid_type.rs:71:13
    |
 LL |         let _x = String::from("hi!");
    |             ^^

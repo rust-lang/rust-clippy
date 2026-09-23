@@ -1,10 +1,12 @@
 use clippy_config::Conf;
 use clippy_config::types::{DisallowedPathWithoutReplacement, create_disallowed_map};
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::{span_lint_and_then, span_lint_hir_and_then};
 use clippy_utils::paths::{self, PathNS};
 use clippy_utils::sym;
 use rustc_hir as hir;
 use rustc_hir::def_id::{DefId, DefIdMap};
+use rustc_hir::intravisit::{Visitor, walk_expr, walk_stmt};
+use rustc_hir::{Body, Expr, HirId, Stmt};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::mir::CoroutineLayout;
 use rustc_middle::ty::TyCtxt;
@@ -196,21 +198,28 @@ impl AwaitHolding {
 }
 
 impl<'tcx> LateLintPass<'tcx> for AwaitHolding {
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx hir::Expr<'tcx>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if let hir::ExprKind::Closure(hir::Closure {
             kind: hir::ClosureKind::Coroutine(hir::CoroutineKind::Desugared(hir::CoroutineDesugaring::Async, _)),
             def_id,
+            body,
             ..
         }) = expr.kind
             && let Some(coroutine_layout) = cx.tcx.mir_coroutine_witnesses(*def_id)
         {
-            self.check_interior_types(cx, coroutine_layout);
+            self.check_interior_types(cx, coroutine_layout, cx.tcx.hir_body(*body), expr.hir_id);
         }
     }
 }
 
 impl AwaitHolding {
-    fn check_interior_types(&self, cx: &LateContext<'_>, coroutine: &CoroutineLayout<'_>) {
+    fn check_interior_types(
+        &self,
+        cx: &LateContext<'_>,
+        coroutine: &CoroutineLayout<'_>,
+        body: &Body<'_>,
+        fallback_hir_id: HirId,
+    ) {
         for (ty_index, ty_cause) in coroutine.field_tys.iter_enumerated() {
             if let rustc_middle::ty::Adt(adt, _) = ty_cause.ty.kind() {
                 let await_points = || {
@@ -257,22 +266,52 @@ impl AwaitHolding {
                         },
                     );
                 } else if let Some(&(path, disallowed_path)) = self.def_ids.get(&adt.did()) {
-                    emit_invalid_type(cx, ty_cause.source_info.span, path, disallowed_path);
+                    let hir_id = hir_id_for_span(body, ty_cause.source_info.span).unwrap_or(fallback_hir_id);
+                    emit_invalid_type(cx, hir_id, ty_cause.source_info.span, path, disallowed_path);
                 }
             }
         }
     }
 }
 
+fn hir_id_for_span(body: &Body<'_>, span: Span) -> Option<HirId> {
+    struct Finder {
+        span: Span,
+        hir_id: Option<HirId>,
+    }
+
+    impl<'tcx> Visitor<'tcx> for Finder {
+        fn visit_stmt(&mut self, stmt: &'tcx Stmt<'tcx>) {
+            if stmt.span.contains(self.span) {
+                self.hir_id = Some(stmt.hir_id);
+            }
+            walk_stmt(self, stmt);
+        }
+
+        fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
+            if expr.span.contains(self.span) {
+                self.hir_id = Some(expr.hir_id);
+            }
+            walk_expr(self, expr);
+        }
+    }
+
+    let mut finder = Finder { span, hir_id: None };
+    finder.visit_expr(body.value);
+    finder.hir_id
+}
+
 fn emit_invalid_type(
     cx: &LateContext<'_>,
+    hir_id: HirId,
     span: Span,
     path: &'static str,
     disallowed_path: &'static DisallowedPathWithoutReplacement,
 ) {
-    span_lint_and_then(
+    span_lint_hir_and_then(
         cx,
         AWAIT_HOLDING_INVALID_TYPE,
+        hir_id,
         span,
         format!("holding a disallowed type across an await point `{path}`"),
         disallowed_path.diag_amendment(span),

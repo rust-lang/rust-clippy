@@ -26,6 +26,41 @@ async fn good() -> u32 {
     47
 }
 
+async fn locally_allowed() {
+    #[allow(clippy::await_holding_invalid_type)]
+    let value = String::from("allowed here");
+    baz().await;
+    let _ = value;
+}
+
+async fn locally_expected() {
+    #[expect(clippy::await_holding_invalid_type)]
+    let value = String::from("expected here");
+    baz().await;
+    let _ = value;
+}
+
+async fn locally_allowed_in_nested_block() {
+    let _value = {
+        #[allow(clippy::await_holding_invalid_type)]
+        let value = String::from("allowed in a nested block");
+        baz().await;
+        value
+    };
+}
+
+async fn locally_allowed_temporary() {
+    #[allow(clippy::await_holding_invalid_type)]
+    consume(String::from("allowed temporary"), baz().await);
+}
+
+async fn locally_expected_temporary() {
+    #[expect(clippy::await_holding_invalid_type)]
+    consume(String::from("expected temporary"), baz().await);
+}
+
+fn consume<T, U>(_: T, _: U) {}
+
 async fn baz() -> u32 {
     42
 }
