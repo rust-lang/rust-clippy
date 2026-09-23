@@ -7210,6 +7210,7 @@ Released 2018-09-13
 [`macro_use_imports`]: https://rust-lang.github.io/rust-clippy/main/index.html#macro_use_imports
 [`main_recursion`]: https://rust-lang.github.io/rust-clippy/main/index.html#main_recursion
 [`manual_abs_diff`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_abs_diff
+[`manual_as_slice`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_as_slice
 [`manual_assert`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_assert
 [`manual_assert_eq`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_assert_eq
 [`manual_async_fn`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_async_fn
