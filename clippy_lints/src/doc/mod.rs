@@ -1286,7 +1286,7 @@ fn check_doc<'a, Events: Iterator<Item = (pulldown_cmark::Event<'a>, Range<usize
                         doc,
                         range.end..next_range.start,
                         &fragments,
-                        &containers[..],
+                        containers.as_slice()
                     );
                 }
 

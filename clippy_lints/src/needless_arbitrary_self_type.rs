@@ -84,7 +84,7 @@ impl EarlyLintPass for NeedlessArbitrarySelfType {
         };
 
         let span = p.span.to(p.ty.span);
-        if let [segment] = &path.segments[..]
+        if let [segment] = path.segments.as_slice()
             && segment.ident.name == kw::SelfUpper
         {
             span_lint_and_then(
