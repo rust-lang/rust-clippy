@@ -47,12 +47,12 @@ pub struct ManualSplitAt;
 
 impl<'tcx> LateLintPass<'tcx> for ManualSplitAt {
     fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'tcx>) {
-        self.check_manual_split_used(cx, stmt);
+        Self::check_manual_split_used(cx, stmt);
     }
 }
 
 impl<'tcx> ManualSplitAt {
-    pub(crate) fn check_manual_split_used(&self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'tcx>) {
+    pub(crate) fn check_manual_split_used(cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'tcx>) {
         if let StmtKind::Let(local) = stmt.kind
             // works only if init block is present
             && let Some(init) = local.init
@@ -98,6 +98,6 @@ impl<'tcx> ManualSplitAt {
     }
 }
 
-fn has_split_at_method(ty: Ty) -> bool {
-    matches!(ty.kind(), ty::Slice(_) | ty::Str | ty::Array(..));
+fn has_split_at_method(ty: Ty<'_>) -> bool {
+    matches!(ty.kind(), ty::Slice(_) | ty::Str | ty::Array(..))
 }

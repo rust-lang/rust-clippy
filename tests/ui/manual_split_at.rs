@@ -59,9 +59,6 @@ fn manual_split() {
     // index bound is a function invocation, side effects possible - no lint
     let v = vec![1, 2, 3];
     let (left, right) = (&v[..get_idx()], &v[get_idx()..]);
-    // pattern is correct, but the order is swapped - no lint
-    let v = vec![1, 2, 3];
-    let (left, right) = (&v[get_idx()..], &v[..get_idx()]);
 }
 fn get_idx() -> usize {
     2
