@@ -1,0 +1,50 @@
+error: this could be rewritten as `v.split_at(k)`
+  --> tests/ui/manual_split_at.rs:8:25
+   |
+LL |     let (left, right) = (&v[..k], &v[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(k)`
+   |
+note: the lint level is defined here
+  --> tests/ui/manual_split_at.rs:3:8
+   |
+LL | #[deny(clippy::manual_split_at)]
+   |        ^^^^^^^^^^^^^^^^^^^^^^^
+
+error: this could be rewritten as `v.split_at(k)`
+  --> tests/ui/manual_split_at.rs:13:25
+   |
+LL |     let (left, right) = (&v[..k], &v[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(k)`
+
+error: this could be rewritten as `a.split_at(k)`
+  --> tests/ui/manual_split_at.rs:18:25
+   |
+LL |     let (left, right) = (&a[..k], &a[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `a.split_at(k)`
+
+error: this could be rewritten as `s.split_at(k)`
+  --> tests/ui/manual_split_at.rs:24:25
+   |
+LL |     let (left, right) = (&s[..k], &s[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
+
+error: this could be rewritten as `s.split_at(k)`
+  --> tests/ui/manual_split_at.rs:29:25
+   |
+LL |     let (left, right) = (&s[..k], &s[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
+
+error: this could be rewritten as `v.split_at(point.bar)`
+  --> tests/ui/manual_split_at.rs:38:25
+   |
+LL |     let (left, right) = (&v[..point.bar], &v[point.bar..]);
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(point.bar)`
+
+error: this could be rewritten as `v.split_at(2)`
+  --> tests/ui/manual_split_at.rs:43:25
+   |
+LL |     let (left, right) = (&v[..2], &v[2..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(2)`
+
+error: aborting due to 7 previous errors
+

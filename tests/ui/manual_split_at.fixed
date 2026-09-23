@@ -1,0 +1,74 @@
+#![allow(clippy::useless_vec)]
+
+#[deny(clippy::manual_split_at)]
+fn manual_split() {
+    // vector works
+    let v = vec![1, 2, 3, 4, 5];
+    let k = 3;
+    let (left, right) = v.split_at(k);
+    //~^ manual_split_at
+
+    // slice works
+    let v: &[i32] = &[1, 2, 3, 4, 5];
+    let (left, right) = v.split_at(k);
+    //~^ manual_split_at
+
+    // array is coerced to a slice, so it works too
+    let a = [1, 2, 3, 4, 5];
+    let (left, right) = a.split_at(k);
+    //~^ manual_split_at
+
+    // &str works
+    let s = "hello";
+    let k = 2;
+    let (left, right) = s.split_at(k);
+    //~^ manual_split_at
+
+    // String coerces to str, so it works too
+    let s = String::from("hello");
+    let (left, right) = s.split_at(k);
+    //~^ manual_split_at
+
+    // struct fields can be used, since no side effects
+    struct Bar {
+        bar: usize,
+    }
+    let point = Bar { bar: 2 };
+    let v = vec![1, 2, 3];
+    let (left, right) = v.split_at(point.bar);
+    //~^ manual_split_at
+
+    // literal as index works too
+    let v = vec![1, 2, 3];
+    let (left, right) = v.split_at(2);
+    //~^ manual_split_at
+
+
+    // different receivers - not the same value, no lint
+    let v1 = vec![1, 2, 3];
+    let v2 = vec![1, 2, 3];
+    let (left, right) = (&v1[..k], &v2[k..]);
+
+    // different split points, no lint
+    let v = vec![1, 2, 3];
+    let (left, right) = (&v[..k], &v[k + 1..]);
+
+    // pattern is correct, but the order is swapped - no lint
+    let v = vec![1, 2, 3];
+    let (left, right) = (&v[k..], &v[..k]);
+
+    // index bound is a function invocation, side effects possible - no lint
+    let v = vec![1, 2, 3];
+    let (left, right) = (&v[..get_idx()], &v[get_idx()..]);
+    // pattern is correct, but the order is swapped - no lint
+    let v = vec![1, 2, 3];
+    let (left, right) = (&v[get_idx()..], &v[..get_idx()]);
+
+
+
+}
+fn get_idx() -> usize {
+    2
+}
+
+fn main() {}
