@@ -1,0 +1,231 @@
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:9:14
+   |
+LL |     let _x = std::collections::HashMap::<u32, u32>::new();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::absolute-paths` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::absolute_paths)]`
+help: bring these items into scope and shorten the path
+   |
+LL + use std::collections::BTreeMap;
+LL + use std::collections::HashMap;
+LL + use std::collections::HashSet;
+LL + use std::collections::VecDeque;
+LL | #[derive(Debug)]
+LL | struct First;
+LL |
+LL | fn normal() {
+LL ~     let _x = HashMap::<u32, u32>::new();
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:15:14
+   |
+LL |     let _x = std::collections::BTreeMap::<u32, u32>::new();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring these items into scope and shorten the path
+   |
+LL + use std::collections::BTreeMap;
+LL + use std::collections::HashMap;
+LL + use std::collections::HashSet;
+LL + use std::collections::VecDeque;
+LL | #[derive(Debug)]
+LL | struct First;
+...
+LL | fn repeated() {
+LL ~     let _x = BTreeMap::<u32, u32>::new();
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:17:14
+   |
+LL |     let _y = std::collections::BTreeMap::<u8, u8>::new();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring these items into scope and shorten the path
+   |
+LL + use std::collections::BTreeMap;
+LL + use std::collections::HashMap;
+LL + use std::collections::HashSet;
+LL + use std::collections::VecDeque;
+LL | #[derive(Debug)]
+LL | struct First;
+...
+LL |
+LL ~     let _y = BTreeMap::<u8, u8>::new();
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:30:14
+   |
+LL |     let _a = std::collections::HashSet::<u32>::new();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring these items into scope and shorten the path
+   |
+LL + use std::collections::BTreeMap;
+LL + use std::collections::HashMap;
+LL + use std::collections::HashSet;
+LL + use std::collections::VecDeque;
+LL | #[derive(Debug)]
+LL | struct First;
+...
+LL | fn inner_gated() {
+LL ~     let _a = HashSet::<u32>::new();
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:42:25
+   |
+LL | fn gated_signature() -> std::collections::BinaryHeap<u32> {
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring the item into scope and shorten the path
+   |
+LL ~ #[cfg(not(test))]
+LL + use std::collections::BinaryHeap;
+LL ~ #[cfg(not(test))]
+LL ~ fn gated_signature() -> BinaryHeap<u32> {
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:44:5
+   |
+LL |     std::collections::BinaryHeap::new()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring the item into scope and shorten the path
+   |
+LL ~ #[cfg(not(test))]
+LL + use std::collections::BinaryHeap;
+LL ~ #[cfg(not(test))]
+LL | fn gated_signature() -> std::collections::BinaryHeap<u32> {
+LL |
+LL ~     BinaryHeap::new()
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:52:18
+   |
+LL |         let _c = std::sync::atomic::AtomicUsize::new(0);
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring the item into scope and shorten the path
+   |
+LL ~         use std::sync::atomic::AtomicUsize;
+LL ~         let _c = AtomicUsize::new(0);
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:66:14
+   |
+LL |     let _c = std::collections::VecDeque::<u8>::new();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring these items into scope and shorten the path
+   |
+LL + use std::collections::BTreeMap;
+LL + use std::collections::HashMap;
+LL + use std::collections::HashSet;
+LL + use std::collections::VecDeque;
+LL | #[derive(Debug)]
+LL | struct First;
+...
+LL |     let _b = std::collections::VecDeque::<u32>::new();
+LL ~     let _c = VecDeque::<u8>::new();
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:73:18
+   |
+LL |         let _x = std::collections::LinkedList::<u32>::new();
+   |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring the item into scope and shorten the path
+   |
+LL ~     use std::collections::LinkedList;
+LL ~     pub fn f() {
+LL ~         let _x = LinkedList::<u32>::new();
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:84:17
+   |
+LL |         let _ = core::ptr::addr_of!(x);
+   |                 ^^^^^^^^^^^^^^^^^^
+   |
+help: bring these items into scope and shorten the path
+   |
+LL ~     use core::clone::Clone;
+LL +     use core::ptr::addr_of;
+LL +     use std::collections::BTreeSet;
+LL ~     fn call_path() {
+LL |         let x = 1;
+LL ~         let _ = addr_of!(x);
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:88:14
+   |
+LL |     #[derive(core::clone::Clone)]
+   |              ^^^^^^^^^^^^^^^^^^
+   |
+help: bring these items into scope and shorten the path
+   |
+LL ~     use core::clone::Clone;
+LL +     use core::ptr::addr_of;
+LL +     use std::collections::BTreeSet;
+LL ~     fn call_path() {
+LL |         let x = 1;
+...
+LL |
+LL ~     #[derive(Clone)]
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:97:22
+   |
+LL |         let _ = vec![std::collections::BTreeSet::<u8>::new()];
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring these items into scope and shorten the path
+   |
+LL ~     use core::clone::Clone;
+LL +     use core::ptr::addr_of;
+LL +     use std::collections::BTreeSet;
+LL ~     fn call_path() {
+LL |         let x = 1;
+...
+LL |     fn in_arguments() {
+LL ~         let _ = vec![BTreeSet::<u8>::new()];
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:107:34
+   |
+LL |         let _: HashMap<u8, u8> = std::collections::HashMap::new();
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: shorten the path
+   |
+LL -         let _: HashMap<u8, u8> = std::collections::HashMap::new();
+LL +         let _: HashMap<u8, u8> = HashMap::new();
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths.rs:115:17
+   |
+LL |         let _ = <i32 as core::clone::Clone>::clone(&0);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: bring the item into scope and shorten the path
+   |
+LL ~     use core::clone::Clone;
+LL ~     fn f() {
+LL ~         let _ = <i32 as Clone>::clone(&0);
+   |
+
+error: aborting due to 14 previous errors
+

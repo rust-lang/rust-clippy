@@ -1,0 +1,113 @@
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:7:14
+   |
+LL |     let _a = std::collections::hash_map::Entry::<u32, u32>::Occupied;
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::absolute-paths` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::absolute_paths)]`
+help: bring the item into scope and shorten the path
+   |
+LL + use std::collections::hash_map::Entry;
+LL | fn collide() {
+LL ~     let _a = Entry::<u32, u32>::Occupied;
+   |
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:9:14
+   |
+LL |     let _b = std::collections::btree_map::Entry::<u32, u32>::Occupied;
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use std::collections::btree_map::Entry;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:17:14
+   |
+LL |     let _x = std::collections::HashMap::<u32, u32>::new();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use std::collections::HashMap;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:24:14
+   |
+LL |     let _x = std::collections::BTreeMap::<u32, u32>::new();
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use std::collections::BTreeMap;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:32:13
+   |
+LL |     let _ = std::cmp::max(1, max);
+   |             ^^^^^^^^^^^^^
+   |
+   = help: add `use std::cmp::max;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:37:13
+   |
+LL |     let _ = std::cmp::min(1, min);
+   |             ^^^^^^^^^^^^^
+   |
+   = help: add `use std::cmp::min;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:42:24
+   |
+LL |     let _ = |swap: u8| std::mem::swap(&mut 1, &mut 2);
+   |                        ^^^^^^^^^^^^^^
+   |
+   = help: add `use std::mem::swap;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:47:13
+   |
+LL |     let _ = std::collections::LinkedList::<u8>::new();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use std::collections::LinkedList;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:54:37
+   |
+LL | mod one_line { pub fn f() { let _ = std::collections::HashSet::<u8>::new(); } }
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use std::collections::HashSet;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:62:17
+   |
+LL |         let _ = std::collections::HashMap::<u8, u8>::new();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use std::collections::HashMap;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:81:17
+   |
+LL |         let _ = crate::shadows_prelude::inner::Vec::new();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use crate::shadows_prelude::inner::Vec;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:88:9
+   |
+LL |         core::prelude::rust_2015::panic!("boom");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use core::prelude::rust_2015::panic;`
+
+error: consider bringing this path into scope with the `use` keyword
+  --> tests/ui/absolute_paths_unfixable.rs:104:9
+   |
+LL |         core::prelude::rust_2015::panic!("boom");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `use core::prelude::rust_2015::panic;`
+
+error: aborting due to 13 previous errors
+

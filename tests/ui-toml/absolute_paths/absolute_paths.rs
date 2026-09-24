@@ -1,3 +1,4 @@
+//@no-rustfix: the configuration is under test here, the suggestions in tests/ui/absolute_paths.rs
 //@aux-build:../../ui/auxiliary/proc_macros.rs
 //@revisions: default allow_crates allow_long no_short
 //@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/absolute_paths/default
@@ -47,14 +48,16 @@ fn main() {
     //~[no_short]| absolute_paths
 
     {
-        // FIXME: macro calls should be checked.
         let x = 1i32;
         let _ = core::ptr::addr_of!(x);
+        //~[default]^ absolute_paths
+        //~[no_short]| absolute_paths
     }
 
     {
-        // FIXME: derive macro paths should be checked.
         #[derive(core::clone::Clone)]
+        //~[default]^ absolute_paths
+        //~[no_short]| absolute_paths
         struct S;
     }
 

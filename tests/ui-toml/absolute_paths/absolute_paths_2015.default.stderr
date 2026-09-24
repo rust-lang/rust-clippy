@@ -4,6 +4,7 @@ error: consider bringing this path into scope with the `use` keyword
 LL |     let _ = ::m1::m2::X;
    |             ^^^^^^^^^^^
    |
+   = help: add `use m1::m2::X;`
 note: the lint level is defined here
   --> tests/ui-toml/absolute_paths/absolute_paths_2015.rs:7:9
    |
