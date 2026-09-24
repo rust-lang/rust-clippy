@@ -671,8 +671,9 @@ fn associativity(op: AssocOp) -> Associativity {
     match op {
         Assign | AssignOp(_) => Associativity::Right,
         Binary(Add | BitAnd | BitOr | BitXor | And | Or | Mul) | Cast => Associativity::Both,
-        Binary(Div | Eq | Gt | Ge | Lt | Le | Rem | Ne | Shl | Shr | Sub) => Associativity::Left,
-        Range(_) => Associativity::None,
+        Binary(Div | Rem | Shl | Shr | Sub) => Associativity::Left,
+        // Comparison operators cannot be chained, e.g. `a < b == c` does not parse.
+        Binary(Eq | Gt | Ge | Lt | Le | Ne) | Range(_) => Associativity::None,
     }
 }
 
