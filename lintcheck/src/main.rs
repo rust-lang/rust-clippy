@@ -340,15 +340,16 @@ fn lintcheck(config: LintcheckConfig) {
     let mut lint_level_args: Vec<String> = vec!["--cap-lints=allow".into()];
     if config.lint_filter.is_empty() {
         let groups = if config.all_lints {
-            &[
+            [
                 "clippy::all",
                 "clippy::cargo",
                 "clippy::nursery",
                 "clippy::pedantic",
                 "clippy::restriction",
-            ][..]
+            ]
+            .as_slice()
         } else {
-            &["clippy::all", "clippy::pedantic"]
+            ["clippy::all", "clippy::pedantic"].as_slice()
         };
         groups
             .iter()

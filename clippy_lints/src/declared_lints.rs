@@ -305,6 +305,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::macro_use::MACRO_USE_IMPORTS_INFO,
     crate::main_recursion::MAIN_RECURSION_INFO,
     crate::manual_abs_diff::MANUAL_ABS_DIFF_INFO,
+    crate::manual_as_slice::MANUAL_AS_SLICE_INFO,
     crate::manual_assert::MANUAL_ASSERT_INFO,
     crate::manual_assert_eq::MANUAL_ASSERT_EQ_INFO,
     crate::manual_async_fn::MANUAL_ASYNC_FN_INFO,
