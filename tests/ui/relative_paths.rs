@@ -1,0 +1,49 @@
+#![warn(clippy::relative_paths)]
+
+pub mod foo {
+    pub struct Foo;
+
+    pub mod bar {
+        pub struct Bar;
+
+        pub use super::baz::Baz;
+        //~^ relative_paths
+    }
+
+    pub use self::bar::Bar;
+    //~^ relative_paths
+
+    pub mod baz {
+        pub struct Baz;
+    }
+
+    mod inner {
+        pub mod child_a {
+            pub(super) struct Quux;
+        }
+
+        pub mod child_b {
+            use super::child_a::Quux; // OK, not accessible from the root
+        }
+    }
+}
+
+use crate::foo::bar::Baz;
+use foo::bar::Bar;
+//~^ relative_paths
+
+fn main() {
+    let _: crate::foo::Foo = foo::Foo;
+    let _: foo::Foo = crate::foo::Foo;
+    let _: Baz = Baz;
+}
+
+#[cfg(test)]
+mod test {
+    use super::*; // OK, common test idiom
+
+    #[test]
+    fn baz() {
+        let _ = Baz;
+    }
+}
