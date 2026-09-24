@@ -1,7 +1,8 @@
-#![allow(clippy::useless_vec)]
+#![warn(clippy::manual_split_at)]
+#![expect(clippy::useless_vec)]
 
-#[deny(clippy::manual_split_at)]
-fn manual_split() {
+
+fn main() {
     // vector works
     let v = vec![1, 2, 3, 4, 5];
     let k = 3;
@@ -60,8 +61,9 @@ fn manual_split() {
     let v = vec![1, 2, 3];
     let (left, right) = (&v[..get_idx()], &v[get_idx()..]);
 }
+
+
 fn get_idx() -> usize {
     2
 }
 
-fn main() {}
