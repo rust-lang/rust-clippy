@@ -1,101 +1,300 @@
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:14:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:14:19
    |
 LL |     let fail14 = 2_32;
-   |                  ^^^^ help: did you mean to write: `2_i32`
+   |                   ^^^
    |
    = note: `-D clippy::mistyped-literal-suffixes` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::mistyped_literal_suffixes)]`
+help: change the final digit group to a signed type
+   |
+LL |     let fail14 = 2_i32;
+   |                    +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail14 = 2_u32;
+   |                    +
+help: or adjust the digit groupings
+   |
+LL -     let fail14 = 2_32;
+LL +     let fail14 = 232;
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:16:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:16:19
    |
 LL |     let fail15 = 4_64;
-   |                  ^^^^ help: did you mean to write: `4_i64`
+   |                   ^^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail15 = 4_i64;
+   |                    +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail15 = 4_u64;
+   |                    +
+help: or adjust the digit groupings
+   |
+LL -     let fail15 = 4_64;
+LL +     let fail15 = 464;
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:18:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:18:19
    |
 LL |     let fail16 = 7_8; //
-   |                  ^^^ help: did you mean to write: `7_i8`
+   |                   ^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail16 = 7_i8; //
+   |                    +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail16 = 7_u8; //
+   |                    +
+help: or adjust the digit groupings
+   |
+LL -     let fail16 = 7_8; //
+LL +     let fail16 = 78; //
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:21:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:21:20
    |
 LL |     let fail17 = 23_16; //
-   |                  ^^^^^ help: did you mean to write: `23_i16`
+   |                    ^^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail17 = 23_i16; //
+   |                     +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail17 = 23_u16; //
+   |                     +
+help: or adjust the digit groupings
+   |
+LL -     let fail17 = 23_16; //
+LL +     let fail17 = 2_316; //
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:26:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:26:20
    |
 LL |     let fail20 = 2__8; //
-   |                  ^^^^ help: did you mean to write: `2_i8`
+   |                    ^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail20 = 2__i8; //
+   |                     +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail20 = 2__u8; //
+   |                     +
+help: or adjust the digit groupings
+   |
+LL -     let fail20 = 2__8; //
+LL +     let fail20 = 28; //
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:29:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:29:21
    |
 LL |     let fail21 = 4___16; //
-   |                  ^^^^^^ help: did you mean to write: `4_i16`
+   |                     ^^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail21 = 4___i16; //
+   |                      +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail21 = 4___u16; //
+   |                      +
+help: or adjust the digit groupings
+   |
+LL -     let fail21 = 4___16; //
+LL +     let fail21 = 416; //
+   |
 
-error: mistyped literal suffix
+error: the final digit group looks like a type suffix
   --> tests/ui/mistyped_literal_suffix.rs:34:18
    |
 LL |     let fail25 = 1E2_32;
-   |                  ^^^^^^ help: did you mean to write: `1E2_f32`
+   |                  ^^^^^^
+   |
+help: change the final digit group to a float type
+   |
+LL |     let fail25 = 1E2_f32;
+   |                      +
+help: or remove the digit groups from the exponent
+   |
+LL -     let fail25 = 1E2_32;
+LL +     let fail25 = 1E232;
+   |
 
-error: mistyped literal suffix
+error: the final digit group looks like a type suffix
   --> tests/ui/mistyped_literal_suffix.rs:36:18
    |
 LL |     let fail26 = 43E7_64;
-   |                  ^^^^^^^ help: did you mean to write: `43E7_f64`
+   |                  ^^^^^^^
+   |
+help: change the final digit group to a float type
+   |
+LL |     let fail26 = 43E7_f64;
+   |                       +
+help: or remove the digit groups from the exponent
+   |
+LL -     let fail26 = 43E7_64;
+LL +     let fail26 = 43E764;
+   |
 
-error: mistyped literal suffix
+error: the final digit group looks like a type suffix
   --> tests/ui/mistyped_literal_suffix.rs:38:18
    |
 LL |     let fail27 = 243E17_32;
-   |                  ^^^^^^^^^ help: did you mean to write: `243E17_f32`
+   |                  ^^^^^^^^^
+   |
+help: change the final digit group to a float type
+   |
+LL |     let fail27 = 243E17_f32;
+   |                         +
+help: or remove the digit groups from the exponent
+   |
+LL -     let fail27 = 243E17_32;
+LL +     let fail27 = 243E1732;
+   |
 
-error: mistyped literal suffix
+error: the final digit group looks like a type suffix
   --> tests/ui/mistyped_literal_suffix.rs:40:18
    |
 LL |     let fail28 = 241251235E723_64;
-   |                  ^^^^^^^^^^^^^^^^ help: did you mean to write: `241_251_235E723_f64`
+   |                  ^^^^^^^^^^^^^^^^
+   |
+help: change the final digit group to a float type
+   |
+LL |     let fail28 = 241251235E723_f64;
+   |                                +
+help: or remove the digit groups from the exponent
+   |
+LL -     let fail28 = 241251235E723_64;
+LL +     let fail28 = 241251235E72364;
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:45:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:45:21
    |
 LL |     let fail30 = 127_8; // should be i8
-   |                  ^^^^^ help: did you mean to write: `127_i8`
+   |                     ^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail30 = 127_i8; // should be i8
+   |                      +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail30 = 127_u8; // should be i8
+   |                      +
+help: or adjust the digit groupings
+   |
+LL -     let fail30 = 127_8; // should be i8
+LL +     let fail30 = 1_278; // should be i8
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:48:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:48:21
    |
 LL |     let fail31 = 240_8; // should be u8
-   |                  ^^^^^ help: did you mean to write: `240_u8`
+   |                     ^^
+   |
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail31 = 240_u8; // should be u8
+   |                      +
+help: or adjust the digit groupings
+   |
+LL -     let fail31 = 240_8; // should be u8
+LL +     let fail31 = 2_408; // should be u8
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:52:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:52:24
    |
 LL |     let fail33 = 0x1234_16;
-   |                  ^^^^^^^^^ help: did you mean to write: `0x1234_i16`
+   |                        ^^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail33 = 0x1234_i16;
+   |                         +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail33 = 0x1234_u16;
+   |                         +
+help: or adjust the digit groupings
+   |
+LL -     let fail33 = 0x1234_16;
+LL +     let fail33 = 0x12_3416;
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:54:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:54:24
    |
 LL |     let fail34 = 0xABCD_16;
-   |                  ^^^^^^^^^ help: did you mean to write: `0xABCD_u16`
+   |                        ^^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail34 = 0xABCD_i16;
+   |                         +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail34 = 0xABCD_u16;
+   |                         +
+help: or adjust the digit groupings
+   |
+LL -     let fail34 = 0xABCD_16;
+LL +     let fail34 = 0xAB_CD16;
+   |
 
-error: mistyped literal suffix
-  --> tests/ui/mistyped_literal_suffix.rs:57:18
+error: the final digit group looks like a type suffix
+  --> tests/ui/mistyped_literal_suffix.rs:57:39
    |
 LL |     let fail36 = 0xFFFF_FFFF_FFFF_FFFF_64; // u64
-   |                  ^^^^^^^^^^^^^^^^^^^^^^^^ help: did you mean to write: `0xFFFF_FFFF_FFFF_FFFF_u64`
+   |                                       ^^^
+   |
+help: change the final digit group to a signed type
+   |
+LL |     let fail36 = 0xFFFF_FFFF_FFFF_FFFF_i64; // u64
+   |                                        +
+help: change the final digit group to an unsigned type
+   |
+LL |     let fail36 = 0xFFFF_FFFF_FFFF_FFFF_u64; // u64
+   |                                        +
+help: or adjust the digit groupings
+   |
+LL -     let fail36 = 0xFFFF_FFFF_FFFF_FFFF_64; // u64
+LL +     let fail36 = 0xFF_FFFF_FFFF_FFFF_FF64; // u64
+   |
 
-error: mistyped literal suffix
+error: the final digit group looks like a type suffix
   --> tests/ui/mistyped_literal_suffix.rs:65:13
    |
 LL |     let _ = 1.12345E1_32;
-   |             ^^^^^^^^^^^^ help: did you mean to write: `1.123_45E1_f32`
+   |             ^^^^^^^^^^^^
+   |
+help: change the final digit group to a float type
+   |
+LL |     let _ = 1.12345E1_f32;
+   |                       +
+help: or remove the digit groups from the exponent
+   |
+LL -     let _ = 1.12345E1_32;
+LL +     let _ = 1.12345E132;
+   |
 
 error: aborting due to 16 previous errors
 
