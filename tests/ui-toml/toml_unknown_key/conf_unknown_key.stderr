@@ -74,6 +74,7 @@ LL | foobar = 42
            min-ident-chars-threshold
            missing-docs-allow-unused
            missing-docs-in-crate-items
+           missing-transmute-annotations-in-expansions
            module-item-order-groupings
            module-items-ordered-within-groupings
            msrv
