@@ -1,0 +1,14 @@
+disallowed-modules = [
+    "std::collections",
+    "std::sync",
+    "std::time",
+    "std::io",
+    "syn::token",
+    "std::ops",
+    "core::sync",
+    "core::sync::atomic",
+    # can give path and reason with an inline table
+    { path = "std::net", reason = "no net allowed" },
+    # can use an inline table but omit reason
+    { path = "std::alloc" },
+]
