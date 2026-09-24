@@ -60,12 +60,9 @@ fn main() {
     let (left, right) = (&v[..get_idx()], &v[get_idx()..]);
 }
 
-
 fn get_idx() -> usize {
     2
 }
-
-
 
 #[clippy::msrv = "1.39"]
 fn _msrv_1_39_str() {
@@ -74,7 +71,6 @@ fn _msrv_1_39_str() {
     let (left, right) = (&s[..k], &s[k..]);
 }
 
-
 #[clippy::msrv = "1.40"]
 fn _msrv_1_40_str() {
     let s = "hello";
@@ -82,4 +78,3 @@ fn _msrv_1_40_str() {
     let (left, right) = (&s[..k], &s[k..]);
     //~^ manual_split_at
 }
-

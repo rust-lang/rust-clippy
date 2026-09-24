@@ -8,7 +8,7 @@ use clippy_utils::{eq_expr_value, is_in_const_context, msrvs};
 use rustc_ast::{BorrowKind, Mutability};
 use rustc_errors::Applicability;
 use rustc_hir::{ExprKind, Stmt, StmtKind};
-use rustc_lint::{impl_lint_pass, LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty;
 use rustc_middle::ty::Ty;
 
