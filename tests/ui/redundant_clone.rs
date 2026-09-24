@@ -387,3 +387,165 @@ mod issue16096 {
         Some(t)
     }
 }
+
+mod issue17637 {
+    use std::hint::black_box;
+    use std::path::PathBuf;
+
+    fn local_alias() {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = x.clone();
+            //~^ redundant_clone
+            black_box(y);
+            x = black_box(String::new());
+        }
+    }
+
+    fn assigned_alias() {
+        let mut x = black_box(String::new());
+        let mut y = black_box(String::new());
+        for _ in 0..10 {
+            y = x.clone();
+            //~^ redundant_clone
+            x = black_box(String::new());
+        }
+        black_box(&x);
+    }
+
+    fn aliases_across_loop() {
+        let mut x = black_box(String::new());
+        let mut y = x.clone();
+        //~^ redundant_clone
+        for _ in 0..10 {
+            black_box(y);
+            x = black_box(String::new());
+            y = x.clone();
+            //~^ redundant_clone
+        }
+    }
+
+    fn source_survives_back_edge() {
+        let mut x = black_box(String::new());
+        let mut y = black_box(String::new());
+        for _ in 0..10 {
+            y = x.clone();
+            black_box(&y);
+        }
+    }
+
+    fn conditional_reassignment(c: bool) {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = x.clone();
+            if c {
+                x = black_box(String::new());
+            } else {
+                black_box(&x);
+            }
+            black_box(y);
+        }
+    }
+
+    fn source_used_before_reassignment() {
+        let mut x = black_box(String::new());
+        let y = x.clone();
+        black_box(&x);
+        x = black_box(String::new());
+        black_box(y);
+    }
+
+    fn source_moved_before_reassignment() {
+        let x = black_box(String::new());
+        let y = x.clone();
+        black_box(x);
+        black_box(y);
+    }
+
+    fn source_mutated_before_reassignment() {
+        let mut x = black_box(String::new());
+        let y = x.clone();
+        black_box(&mut x);
+        x = black_box(String::new());
+        black_box(y);
+    }
+
+    fn source_used_to_reassign() {
+        let mut x = black_box(String::new());
+        let y = x.clone();
+        x = black_box(x);
+        black_box(y);
+    }
+
+    fn used_after_merge(c: bool) {
+        let s = String::new();
+        let t = s.clone();
+        if c {
+            drop(t);
+        }
+        black_box(&s);
+    }
+
+    fn projected_source() {
+        let mut x = black_box((String::new(), String::new()));
+        for _ in 0..10 {
+            let y = x.0.clone();
+            black_box(y);
+            x.0 = black_box(String::new());
+            black_box(&x.1);
+        }
+    }
+
+    fn reassigned_then_used() {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = x.clone();
+            //~^ redundant_clone
+            black_box(y);
+            x = black_box(String::new());
+            // Reads the value stored by the line above, not the cloned one.
+            black_box(&x);
+        }
+    }
+
+    fn breaks_before_reassignment() {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = x.clone();
+            black_box(y);
+            if black_box(true) {
+                break;
+            }
+            x = black_box(String::new());
+        }
+        black_box(&x);
+    }
+
+    fn unwinds_before_reassignment() {
+        let mut x = black_box(String::new());
+        for _ in 0..10 {
+            let y = x.clone();
+            //~^ redundant_clone
+            may_panic();
+            x = black_box(String::new());
+            black_box(y);
+        }
+    }
+
+    fn may_panic() {
+        if black_box(false) {
+            panic!();
+        }
+    }
+
+    // Known false negative: `to_path_buf` is handled by the `from_deref` path, which the
+    // aliasing analysis does not cover.
+    fn deref_clone_in_loop() {
+        let mut p = black_box(PathBuf::new());
+        for _ in 0..10 {
+            let q = p.to_path_buf();
+            black_box(q);
+            p = black_box(PathBuf::new());
+        }
+    }
+}
