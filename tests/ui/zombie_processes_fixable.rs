@@ -28,3 +28,24 @@ fn spawn_proc() -> Child {
 fn spawn_proc_2() -> Child {
     return Command::new("").spawn().unwrap();
 }
+
+mod issue17692 {
+    #![allow(unused_must_use)]
+
+    use std::process::Command;
+
+    // Dropping the `Result` returned by `spawn()` also drops the `Child` it holds
+    fn discarded_result() {
+        let _ = Command::new("true").spawn();
+        //~^ zombie_processes
+
+        Command::new("true").spawn();
+        //~^ zombie_processes
+    }
+
+    fn bound_result() {
+        // Not linted, the child may still be waited on through the binding
+        let child = Command::new("true").spawn();
+        child.unwrap().wait().unwrap();
+    }
+}
