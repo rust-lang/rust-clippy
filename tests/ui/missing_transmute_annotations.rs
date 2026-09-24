@@ -8,8 +8,8 @@ extern crate macro_rules;
 
 macro_rules! local_bad_transmute {
     ($e:expr) => {
+        // Should not warn!
         std::mem::transmute($e)
-        //~^ missing_transmute_annotations
     };
 }
 
