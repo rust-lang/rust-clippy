@@ -485,6 +485,11 @@ if !self.msrv.meets(cx, msrvs::STR_STRIP_PREFIX) {
 }
 ```
 
+An important consideration is that `Msrv::meets` is relatively expensive to
+call if the crate has a `clippy::msrv` attribute, so you should typically
+match the MSRV at the end of an if let chain, after other short-circuiting
+checks.
+
 Early lint passes should instead use `MsrvStack` coupled with
 `extract_msrv_attr!()`
 
