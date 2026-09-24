@@ -23,7 +23,7 @@ pub(crate) fn check_match(cx: &LateContext<'_>, ex: &Expr<'_>, arms: &[Arm<'_>],
             expr.span,
             "this match expression is unnecessary",
             "replace it with",
-            snippet_with_applicability(cx, ex.span, "..", &mut applicability).to_string(),
+            snippet_with_applicability(cx, ex.span, "..", &mut applicability).into_owned(),
             applicability,
         );
     }
@@ -60,7 +60,7 @@ pub(crate) fn check_if_let<'tcx>(cx: &LateContext<'tcx>, ex: &Expr<'_>, if_let: 
             ex.span,
             "this if-let expression is unnecessary",
             "replace it with",
-            snippet_with_applicability(cx, if_let.let_expr.span, "..", &mut applicability).to_string(),
+            snippet_with_applicability(cx, if_let.let_expr.span, "..", &mut applicability).into_owned(),
             applicability,
         );
     }

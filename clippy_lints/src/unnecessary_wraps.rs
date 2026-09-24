@@ -131,7 +131,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
                     if inner_type.is_unit() {
                         String::new()
                     } else {
-                        snippet(cx, arg.span.source_callsite(), "..").to_string()
+                        snippet(cx, arg.span.source_callsite(), "..").into_owned()
                     },
                 ));
                 true
