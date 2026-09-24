@@ -8,13 +8,99 @@
 //! Thank you!
 //! ~The `INTERNAL_METADATA_COLLECTOR` lint
 
+use crate::{is_in_integration_test_file, is_in_test};
+use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::{Applicability, Diag, DiagCtxtHandle, DiagMessage, Diagnostic, Level, MultiSpan};
 #[cfg(debug_assertions)]
 use rustc_errors::{SubstitutionPart, Suggestions};
 use rustc_hir::HirId;
-use rustc_lint::{LateContext, Lint, LintContext};
-use rustc_span::Span;
+use rustc_lint::{EarlyContext, LateContext, Lint, LintContext};
+use rustc_span::{BytePos, Span};
 use std::env;
+use std::sync::OnceLock;
+
+/// The lints that `allow-in-tests` suppresses in test code, stored as [`Lint::name`]
+/// values (e.g. `"clippy::UNWRAP_USED"`).
+static ALLOWED_IN_TESTS: OnceLock<FxHashSet<&'static str>> = OnceLock::new();
+
+/// Sets the lints which the `allow-in-tests` configuration suppresses in test code.
+///
+/// This must be called before any lint pass runs; only the first call has an effect.
+pub fn set_lints_allowed_in_tests(lints: impl IntoIterator<Item = &'static str>) {
+    let _ = ALLOWED_IN_TESTS.set(lints.into_iter().collect());
+}
+
+fn is_allowed_in_tests(lint: &'static Lint) -> bool {
+    // This runs for every emitted lint, so check for the common case of an unset configuration
+    // before hashing the lint's name.
+    ALLOWED_IN_TESTS
+        .get()
+        .is_some_and(|lints| !lints.is_empty() && lints.contains(lint.name))
+}
+
+/// Whether `allow-in-tests` names any lint at all.
+pub fn is_a_lint_allowed_in_tests() -> bool {
+    ALLOWED_IN_TESTS.get().is_some_and(|lints| !lints.is_empty())
+}
+
+/// Cache of the spans of code that constitute test code. This supports
+/// early pass lint suppression via `allow-in-tests`.
+static TEST_CODE_SPANS: OnceLock<Vec<(BytePos, BytePos)>> = OnceLock::new();
+
+/// Records the spans of test code for the benefit of early lint passes.
+pub fn set_test_code_spans(spans: impl IntoIterator<Item = Span>) {
+    let mut ranges: Vec<_> = spans
+        .into_iter()
+        .filter(|sp| !sp.is_dummy())
+        .map(|sp| {
+            let sp = sp.source_callsite();
+            (sp.lo(), sp.hi())
+        })
+        .collect();
+    ranges.sort_unstable();
+    // Merge overlapping ranges so a plain binary search can answer containment.
+    ranges.dedup_by(|&mut (lo, hi), &mut (prev_lo, ref mut prev_hi)| {
+        debug_assert!(prev_lo <= lo);
+        if lo <= *prev_hi {
+            *prev_hi = (*prev_hi).max(hi);
+            true
+        } else {
+            false
+        }
+    });
+    let _ = TEST_CODE_SPANS.set(ranges);
+}
+
+/// Whether `span` falls inside code recorded by [`set_test_code_spans`].
+fn is_span_in_test_code(span: Span) -> bool {
+    let Some(ranges) = TEST_CODE_SPANS.get() else {
+        return false;
+    };
+    // Lints fired from a macro expansion belong to wherever the macro was written.
+    let pos = span.source_callsite().lo();
+    match ranges.binary_search_by_key(&pos, |&(lo, _)| lo) {
+        Ok(_) => true,
+        Err(0) => false,
+        Err(i) => pos < ranges[i - 1].1,
+    }
+}
+
+pub trait LintContextExt: LintContext {
+    fn is_in_test_code(&self, span: &MultiSpan) -> bool;
+}
+
+impl LintContextExt for LateContext<'_> {
+    fn is_in_test_code(&self, _: &MultiSpan) -> bool {
+        is_in_test(self.tcx, self.last_node_with_lint_attrs)
+    }
+}
+
+impl LintContextExt for EarlyContext<'_> {
+    fn is_in_test_code(&self, span: &MultiSpan) -> bool {
+        // Mirrors the three cases `is_in_test` covers for late passes.
+        is_in_integration_test_file(self.sess()) || span.primary_span().is_some_and(is_span_in_test_code)
+    }
+}
 
 fn docs_link(diag: &mut Diag<'_, ()>, lint: &'static Lint) {
     if env::var("CLIPPY_DISABLE_DOCS_LINKS").is_err()
@@ -103,7 +189,12 @@ fn validate_diag<G>(diag: &Diag<'_, G>) {
 ///    |     ^^^^^^^^^^^^^^^^^^^^^^^
 /// ```
 #[track_caller]
-pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<MultiSpan>, msg: impl Into<DiagMessage>) {
+pub fn span_lint<T: LintContextExt>(
+    cx: &T,
+    lint: &'static Lint,
+    sp: impl Into<MultiSpan>,
+    msg: impl Into<DiagMessage>,
+) {
     span_lint_and_then(cx, lint, sp, msg, |_| {});
 }
 
@@ -142,7 +233,7 @@ pub fn span_lint<T: LintContext>(cx: &T, lint: &'static Lint, sp: impl Into<Mult
 ///    = help: consider using `f64::NAN` if you would like a constant representing NaN
 /// ```
 #[track_caller]
-pub fn span_lint_and_help<T: LintContext>(
+pub fn span_lint_and_help<T: LintContextExt>(
     cx: &T,
     lint: &'static Lint,
     span: impl Into<MultiSpan>,
@@ -197,7 +288,7 @@ pub fn span_lint_and_help<T: LintContext>(
 ///    |            ^^^^^^^^^^^
 /// ```
 #[track_caller]
-pub fn span_lint_and_note<T: LintContext>(
+pub fn span_lint_and_note<T: LintContextExt>(
     cx: &T,
     lint: &'static Lint,
     span: impl Into<MultiSpan>,
@@ -235,7 +326,7 @@ pub fn span_lint_and_note<T: LintContext>(
 #[track_caller]
 pub fn span_lint_and_then<C, S, M, F>(cx: &C, lint: &'static Lint, sp: S, msg: M, f: F)
 where
-    C: LintContext,
+    C: LintContextExt,
     S: Into<MultiSpan>,
     M: Into<DiagMessage>,
     F: FnOnce(&mut Diag<'_, ()>),
@@ -251,6 +342,11 @@ where
     }
 
     let sp = sp.into();
+
+    if is_allowed_in_tests(lint) && cx.is_in_test_code(&sp) {
+        return;
+    }
+
     #[expect(clippy::disallowed_methods)]
     cx.emit_span_lint(
         lint,
@@ -329,6 +425,10 @@ pub fn span_lint_hir_and_then(
     msg: impl Into<DiagMessage>,
     f: impl FnOnce(&mut Diag<'_, ()>),
 ) {
+    if is_allowed_in_tests(lint) && is_in_test(cx.tcx, hir_id) {
+        return;
+    }
+
     #[expect(clippy::disallowed_methods)]
     cx.tcx.emit_node_span_lint(
         lint,
@@ -379,7 +479,7 @@ pub fn span_lint_hir_and_then(
 ///     = note: `-D fold-any` implied by `-D warnings`
 /// ```
 #[track_caller]
-pub fn span_lint_and_sugg<T: LintContext>(
+pub fn span_lint_and_sugg<T: LintContextExt>(
     cx: &T,
     lint: &'static Lint,
     sp: Span,
