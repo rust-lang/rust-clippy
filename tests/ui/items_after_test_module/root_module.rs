@@ -10,6 +10,7 @@ fn should_not_lint() {}
 #[cfg(test)]
 mod tests {
     //~^ items_after_test_module
+    #[expect(clippy::test_without_assertions)]
     #[test]
     fn hi() {}
 }

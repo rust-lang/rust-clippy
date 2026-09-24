@@ -1,4 +1,5 @@
 //@ check-pass
+#![expect(clippy::test_without_assertions)]
 
 #[cfg(test)]
 mod tests {

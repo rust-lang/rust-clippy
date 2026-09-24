@@ -1,5 +1,6 @@
 //@no-rustfix
 #![deny(clippy::should_panic_without_expect)]
+#![expect(clippy::test_without_assertions)]
 
 #[test]
 #[should_panic]

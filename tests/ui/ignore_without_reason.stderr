@@ -1,5 +1,5 @@
 error: `#[ignore]` without reason
-  --> tests/ui/ignore_without_reason.rs:13:1
+  --> tests/ui/ignore_without_reason.rs:14:1
    |
 LL | #[ignore]
    | ^^^^^^^^^

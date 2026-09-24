@@ -11,6 +11,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    #[expect(clippy::test_without_assertions)]
     #[test]
     fn test_fn() {
         let x = [1, 2, 3, 4];
