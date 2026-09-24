@@ -76,7 +76,7 @@ use core::mem;
 use core::ops::ControlFlow;
 use std::collections::hash_map::Entry;
 use std::iter::{once, repeat_n, zip};
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 
 use itertools::Itertools as _;
 use rustc_abi::Integer;
@@ -2351,15 +2351,15 @@ pub fn is_hir_ty_cfg_dependant(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
     false
 }
 
-static TEST_ITEM_NAMES_CACHE: OnceLock<Mutex<FxHashMap<LocalModId, Vec<Symbol>>>> = OnceLock::new();
+static TEST_ITEM_NAMES_CACHE: OnceLock<Mutex<FxHashMap<LocalModId, Arc<[Symbol]>>>> = OnceLock::new();
 
 /// Returns the names of the test items in the given module.
 /// The names are sorted using the default `Symbol` ordering.
-fn test_item_names(tcx: TyCtxt<'_>, module: LocalModId) -> Vec<Symbol> {
+fn test_item_names(tcx: TyCtxt<'_>, module: LocalModId) -> Arc<[Symbol]> {
     let cache = TEST_ITEM_NAMES_CACHE.get_or_init(|| Mutex::new(FxHashMap::default()));
     let mut map = cache.lock().unwrap();
     match map.entry(module) {
-        Entry::Occupied(entry) => entry.get().clone(),
+        Entry::Occupied(entry) => Arc::clone(entry.get()),
         Entry::Vacant(entry) => {
             let mut names = Vec::new();
             for id in tcx.hir_module_free_items(module) {
@@ -2375,7 +2375,7 @@ fn test_item_names(tcx: TyCtxt<'_>, module: LocalModId) -> Vec<Symbol> {
                 }
             }
             names.sort_unstable();
-            entry.insert(names).clone()
+            Arc::clone(entry.insert(names.into()))
         },
     }
 }
@@ -2447,7 +2447,7 @@ pub fn is_in_cfg_test(tcx: TyCtxt<'_>, id: HirId) -> bool {
 
 /// Checks if the node is in a `#[test]` function or has any parent node marked `#[cfg(test)]`
 pub fn is_in_test(tcx: TyCtxt<'_>, hir_id: HirId) -> bool {
-    is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id) || is_in_integration_test_file(tcx)
+    is_in_integration_test_file(tcx) || is_in_test_function(tcx, hir_id) || is_in_cfg_test(tcx, hir_id)
 }
 
 /// Check if the node is in an integration test file (i.e. under `tests/`).
