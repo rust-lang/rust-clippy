@@ -2,8 +2,13 @@ error: unneeded unit expression
   --> tests/ui/unused_unit.rs:36:9
    |
 LL |         ()
-   |         ^^ help: remove the final `()`
+   |         ^^
    |
+help: remove the final `()`
+  --> tests/ui/unused_unit.rs:36:9
+   |
+LL |         ()
+   |         ^^
    = note: `-D clippy::unused-unit` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unused_unit)]`
 
@@ -12,6 +17,18 @@ error: unneeded unit expression
    |
 LL | fn return_unit() -> () { () }
    |                          ^^ help: remove the final `()`
+
+error: unneeded unit expression
+  --> tests/ui/unused_unit.rs:173:9
+   |
+LL |         ()
+   |         ^^
+   |
+help: remove the final `()`
+  --> tests/ui/unused_unit.rs:173:9
+   |
+LL |         ()
+   |         ^^
 
 error: unneeded unit return type
   --> tests/ui/unused_unit.rs:21:28
@@ -115,5 +132,11 @@ error: unneeded unit return type
 LL | fn test3()-> (){}
    |           ^^^^^ help: remove the `-> ()`
 
-error: aborting due to 19 previous errors
+error: unneeded unit return type
+  --> tests/ui/unused_unit.rs:170:25
+   |
+LL |     pub fn foo(x: usize) -> () {
+   |                         ^^^^^^ help: remove the `-> ()`
+
+error: aborting due to 21 previous errors
 
