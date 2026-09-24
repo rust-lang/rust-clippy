@@ -108,11 +108,11 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                 && let rustc_hir::ExprKind::Path(qpath) = expr.kind
                 && let Some(hir_id) = qpath.res_local_id()
             {
-                candidates.iter_mut().for_each(|(cand, rebinds)| {
+                for (cand, rebinds) in &mut candidates {
                     if cand.0 == hir_id {
                         rebinds.push((let_stmt.pat.hir_id, let_stmt.span));
                     }
-                });
+                }
             }
         }
 
@@ -127,9 +127,9 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
                     && let rustc_hir::ExprKind::Path(qpath) = receiver.kind
                     && let Some(hir_id) = qpath.res_local_id() =>
             {
-                candidates.iter().for_each(|(original_candidate, rebinds)| {
+                for (original_candidate, rebinds) in &candidates {
                     emit_lint(cx, span, original_candidate, rebinds, hir_id);
-                });
+                }
                 ControlFlow::<(), Descend>::Continue(Descend::Yes)
             },
 
