@@ -44,7 +44,7 @@ LL |     let (left, right) = (&v[..2], &v[2..]);
    |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(2)`
 
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:74:18
+  --> tests/ui/manual_split_at.rs:72:18
    |
 LL |     let (_, _) = (&t[..k], &t[k..]);
    |                  ^^^^^^^^^^^^^^^^^^ help: use: `t.split_at(k)`
