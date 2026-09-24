@@ -2,6 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_ast::ast::{self, Inline, ItemKind, ModKind};
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
 use rustc_span::{FileName, SourceFile, sym};
+use std::path::Path;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -153,7 +154,7 @@ fn has_macro_export(item: &ast::Item) -> bool {
 fn is_mod_rs(file: &SourceFile) -> bool {
     if let FileName::Real(name) = &file.name {
         name.local_path()
-            .and_then(|p| p.file_name())
+            .and_then(Path::file_name)
             .is_some_and(|n| n == "mod.rs")
     } else {
         false
