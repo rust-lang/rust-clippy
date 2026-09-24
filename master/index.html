@@ -11467,9 +11467,10 @@ if a != b {}
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">pre 1.29.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+nonminimal_bool">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/booleans.rs#L20">View Source</a></div></div></article><article id="nonnull_unchecked_on_box_ptr"><input id="label-nonnull_unchecked_on_box_ptr" type="checkbox"><label for="label-nonnull_unchecked_on_box_ptr"><h2 class="lint-title"><div class="panel-title-name" id="lint-nonnull_unchecked_on_box_ptr">nonnull_unchecked_on_box_ptr
 <a href="#nonnull_unchecked_on_box_ptr" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Checks for unsafe usage of <code>NonNull::new_unchecked(Box::into_raw(x))</code>, and suggests calling <code>NonNull::from_mut(Box::leak(x))</code> instead.</p>
+<p>Checks for uses of <code>NonNull::new_unchecked(Box::into_raw(x))</code>.</p>
 <h3>Why is this bad?</h3>
-<p><code>NonNull::new_unchecked</code> is an unsafe function, which we don’t need to call at all if we can instead use a mutable reference.</p>
+<p><code>NonNull::new_unchecked</code> is an unsafe function with a safe alternative when coming
+from a <code>Box</code>.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">use std::ptr::NonNull;
 let one = Box::new(1);
@@ -11478,7 +11479,7 @@ let ptr = unsafe { NonNull::new_unchecked(Box::into_raw(one)) };
 <p>Use instead:</p>
 <pre><code class="language-rust">use std::ptr::NonNull;
 let one = Box::new(1);
-let ptr = NonNull::from_mut(Box::leak(one));
+let ptr = Box::into_non_null(one);
 </code></pre>
 <h3>Configuration</h3>
 <ul>
