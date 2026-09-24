@@ -1,5 +1,10 @@
+//@aux-build:proc_macros.rs
 #![expect(clippy::manual_async_fn)]
 #![warn(clippy::large_futures)]
+
+extern crate proc_macros;
+
+use proc_macros::{external, with_span};
 
 async fn big_fut(_arg: [u8; 1024 * 16]) {}
 
@@ -65,6 +70,55 @@ pub async fn macro_expn() {
         };
     }
     macro_!().await
+}
+
+pub async fn macro_await() {
+    async fn big() -> u8 {
+        let x = [0u8; 1024 * 16];
+        async {}.await;
+        x[0]
+    }
+    macro_rules! call_it {
+        ($f:expr) => {
+            $f.await
+        };
+    }
+    let _v = call_it!(big());
+    //~^ large_futures
+}
+
+pub async fn macro_external() {
+    async fn big() -> u8 {
+        let x = [0u8; 1024 * 16];
+        async {}.await;
+        x[0]
+    }
+    external!(big().await);
+}
+
+pub async fn macro_with_span() {
+    async fn big() -> u8 {
+        let x = [0u8; 1024 * 16];
+        async {}.await;
+        x[0]
+    }
+    with_span!(span $(big()).await);
+    //~^ large_futures
+}
+
+pub async fn macro_all_internal() {
+    macro_rules! run {
+        () => {{
+            async fn inner() -> u8 {
+                let x = [0u8; 1024 * 16];
+                async {}.await;
+                x[0]
+            }
+            inner().await
+            //~^ large_futures
+        }};
+    }
+    let _v = run!();
 }
 
 fn main() {}
