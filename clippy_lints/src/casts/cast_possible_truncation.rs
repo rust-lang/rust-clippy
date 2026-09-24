@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
 use clippy_utils::source::snippet;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{get_discriminant_value, is_isize_or_usize};
-use clippy_utils::{expr_or_init, is_in_const_context, sym};
+use clippy_utils::{clip, expr_or_init, fn_def_id, is_in_const_context, sext, sym, unsext};
 use rustc_abi::IntegerType;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{DefKind, Res};
@@ -16,9 +16,53 @@ use super::{CAST_ENUM_TRUNCATION, CAST_POSSIBLE_TRUNCATION, utils};
 
 fn constant_int(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<u128> {
     if let Some(Constant::Int(c)) = ConstEvalCtxt::new(cx).eval(expr) {
-        Some(c)
-    } else {
-        None
+        return Some(c);
+    }
+    // The constant evaluator does not handle casts or calls to `From::from`/`Into::into`,
+    // so evaluate the operand and apply the conversion manually.
+    let (operand, from_ty, to_ty) = match expr.kind {
+        ExprKind::Cast(operand, _) => (
+            operand,
+            cx.typeck_results().expr_ty(operand),
+            cx.typeck_results().expr_ty(expr),
+        ),
+        ExprKind::Call(_, [operand])
+            if fn_def_id(cx, expr).is_some_and(|did| cx.tcx.get_diagnostic_name(did) == Some(sym::from_fn)) =>
+        {
+            (
+                operand,
+                cx.typeck_results().expr_ty(operand),
+                cx.typeck_results().expr_ty(expr),
+            )
+        },
+        ExprKind::MethodCall(_, operand, [], _)
+            if fn_def_id(cx, expr)
+                .and_then(|did| cx.tcx.trait_of_assoc(did))
+                .is_some_and(|trait_did| cx.tcx.is_diagnostic_item(sym::Into, trait_did)) =>
+        {
+            (
+                operand,
+                cx.typeck_results().expr_ty(operand),
+                cx.typeck_results().expr_ty(expr),
+            )
+        },
+        _ => return None,
+    };
+    // `constant_int` stores signed values width-masked to their own type (e.g. `-1i8` as
+    // `0xff`), not sign-extended. To reproduce `as`-cast semantics we first sign-extend a
+    // signed operand to its true mathematical value, then re-encode that value at the
+    // target width. Sign-extending with the *target* type's width (as opposed to the
+    // *source* type's) here would silently drop the sign for a widening cast.
+    let value = constant_int(cx, operand)?;
+    let value: i128 = match *from_ty.kind() {
+        ty::Int(ity) => sext(cx.tcx, value, ity),
+        ty::Uint(_) => value.cast_signed(),
+        _ => return None,
+    };
+    match *to_ty.kind() {
+        ty::Int(ity) => Some(unsext(cx.tcx, value, ity)),
+        ty::Uint(uty) => Some(clip(cx.tcx, value.cast_unsigned(), uty)),
+        _ => None,
     }
 }
 
