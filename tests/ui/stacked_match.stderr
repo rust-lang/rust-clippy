@@ -1,0 +1,74 @@
+error: this `match` expression is stacked inside the scrutinee of another `match`
+  --> tests/ui/stacked_match.rs:28:15
+   |
+LL |           match match value {
+   |  _______________^
+LL | |
+LL | |             0 => 1,
+LL | |             _ => 2,
+LL | |         } {
+   | |_________^
+   |
+   = help: consider binding the inner `match` expression to a local before the outer `match`
+   = help: if the inner `match` borrows from its scrutinee, bind the scrutinee to a local first
+   = note: `-D clippy::stacked-match` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::stacked_match)]`
+
+error: this `match` expression is stacked inside the scrutinee of another `match`
+  --> tests/ui/stacked_match.rs:42:15
+   |
+LL |           match match Some(String::from("hello")) {
+   |  _______________^
+LL | |
+LL | |             Some(ref text) => text,
+LL | |             None => return,
+LL | |         } {
+   | |_________^
+   |
+   = help: consider binding the inner `match` expression to a local before the outer `match`
+   = help: if the inner `match` borrows from its scrutinee, bind the scrutinee to a local first
+
+error: this `match` expression is stacked inside the scrutinee of another `match`
+  --> tests/ui/stacked_match.rs:51:15
+   |
+LL |           match match option {
+   |  _______________^
+LL | |
+LL | |             Some(ref text) => text,
+LL | |             None => return,
+LL | |         } {
+   | |_________^
+   |
+   = help: consider binding the inner `match` expression to a local before the outer `match`
+   = help: if the inner `match` borrows from its scrutinee, bind the scrutinee to a local first
+
+error: this `match` expression is stacked inside the scrutinee of another `match`
+  --> tests/ui/stacked_match.rs:61:15
+   |
+LL |           match match value {
+   |  _______________^
+LL | |
+LL | |             0 => 1,
+LL | |             _ => 2,
+LL | |         } + 1
+   | |_________^
+   |
+   = help: consider binding the inner `match` expression to a local before the outer `match`
+   = help: if the inner `match` borrows from its scrutinee, bind the scrutinee to a local first
+
+error: this `match` expression is stacked inside the scrutinee of another `match`
+  --> tests/ui/stacked_match.rs:71:15
+   |
+LL |           match match value {
+   |  _______________^
+LL | |
+LL | |             0 => 1u32,
+LL | |             _ => 2,
+LL | |         }
+   | |_________^
+   |
+   = help: consider binding the inner `match` expression to a local before the outer `match`
+   = help: if the inner `match` borrows from its scrutinee, bind the scrutinee to a local first
+
+error: aborting due to 5 previous errors
+
