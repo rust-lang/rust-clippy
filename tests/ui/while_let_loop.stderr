@@ -19,7 +19,34 @@ LL | /     loop {
 LL | |
 LL | |         let Some(_x) = y else { break };
 LL | |     }
-   | |_____^ help: try: `while let Some(_x) = y { .. }`
+   | |_____^
+   |
+help: try
+   |
+LL -     loop {
+LL -
+LL -         let Some(_x) = y else { break };
+LL -     }
+LL +     while let Some(_x) = y { .. }
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:30:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(_x) = y else {
+LL | |             let _z = 1;
+LL | |             break;
+LL | |         };
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(_x) = y { .. }
+LL +     let _z = 1;
+   |
 
 error: this loop could be written as a `while let` loop
   --> tests/ui/while_let_loop.rs:38:5
@@ -186,5 +213,170 @@ LL +         ..
 LL +     }
    |
 
-error: aborting due to 12 previous errors
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:258:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = std::hint::black_box(None::<i32>) else {
+LL | |             println!("fail");
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = std::hint::black_box(None::<i32>) { .. }
+LL +     println!("fail");
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:270:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = y else {
+LL | |             let a = 1;
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = y { .. }
+LL +     let a = 1;
+LL +     let b = 2;
+LL +     let _c = a + b;
+LL +     println!("sum: {}", a + b);
+LL +     eprintln!("failed");
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:286:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = y else {
+LL | |             if std::hint::black_box(true) {
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = y { .. }
+LL +     if std::hint::black_box(true) {
+LL +         println!("pass");
+LL +     }
+LL +     match 42 {
+LL +         0 => println!("zero"),
+LL +         _ => println!("non-zero"),
+LL +     }
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:303:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = std::hint::black_box(None::<i32>) else {
+LL | |             if true {
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = std::hint::black_box(None::<i32>) { .. }
+LL +     if true {
+LL +         return None;
+LL +     }
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:318:9
+   |
+LL | /         loop {
+LL | |
+LL | |             let Some(x) = std::hint::black_box(None::<i32>) else {
+LL | |                 if true {
+...  |
+LL | |             println!("x = {x}");
+LL | |         }
+   | |_________^
+   |
+help: try
+   |
+LL ~         while let Some(x) = std::hint::black_box(None::<i32>) { .. }
+LL +         if true {
+LL +             break 'outer;
+LL +         }
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:333:9
+   |
+LL | /         loop {
+LL | |
+LL | |             let Some(x) = std::hint::black_box(None::<i32>) else {
+LL | |                 if true {
+...  |
+LL | |             println!("x = {x}");
+LL | |         }
+   | |_________^
+   |
+help: try
+   |
+LL ~         while let Some(x) = std::hint::black_box(None::<i32>) { .. }
+LL +         if true {
+LL +             continue 'outer;
+LL +         }
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:349:5
+   |
+LL | /     'my_loop: loop {
+LL | |
+LL | |         let Some(x) = y else {
+LL | |             println!("done");
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     'my_loop: while let Some(x) = y { .. }
+LL +     println!("done");
+   |
+
+error: this loop could be written as a `while let` loop
+  --> tests/ui/while_let_loop.rs:410:5
+   |
+LL | /     loop {
+LL | |
+LL | |         let Some(x) = std::hint::black_box(None::<i32>) else {
+LL | |             for i in 0..3 {
+...  |
+LL | |         println!("x = {x}");
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     while let Some(x) = std::hint::black_box(None::<i32>) { .. }
+LL +     for i in 0..3 {
+LL +         if i == 1 {
+LL +             break;
+LL +         }
+LL +         println!("{i}");
+LL +     }
+   |
+
+error: aborting due to 21 previous errors
 
