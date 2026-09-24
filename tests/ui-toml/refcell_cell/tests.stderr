@@ -1,0 +1,11 @@
+error: using a `RefCell` for a `Copy` type
+  --> tests/ui-toml/refcell_cell/tests.rs:7:13
+   |
+LL |     let _ = RefCell::new([0_u32; 16]);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `Cell::new([0_u32; 16])`
+   |
+   = note: `-D clippy::refcell-cell` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::refcell_cell)]`
+
+error: aborting due to 1 previous error
+
