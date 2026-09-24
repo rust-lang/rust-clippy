@@ -168,6 +168,7 @@ macro_rules! extract_msrv_attr {
 /// dbg!(def);
 /// //   ^^^ input
 /// ```
+#[expect(clippy::doc_examples_missing_item, reason = "the example is the analyzed code")]
 pub fn expr_or_init<'a, 'b, 'tcx: 'b>(cx: &LateContext<'tcx>, mut expr: &'a Expr<'b>) -> &'a Expr<'b> {
     while let Some(init) = expr
         .res_local_id()
@@ -456,6 +457,7 @@ pub fn path_to_local_with_projections(expr: &Expr<'_>) -> Option<HirId> {
 ///     }
 /// }
 /// ```
+#[expect(clippy::doc_examples_missing_item, reason = "the example is the analyzed code")]
 pub fn trait_ref_of_method<'tcx>(cx: &LateContext<'tcx>, owner: OwnerId) -> Option<&'tcx TraitRef<'tcx>> {
     if let Node::Item(item) = cx.tcx.hir_node(cx.tcx.hir_owner_parent(owner))
         && let ItemKind::Impl(impl_) = &item.kind
@@ -751,6 +753,7 @@ fn is_default_equivalent_from(cx: &LateContext<'_>, from_func: &Expr<'_>, arg: &
 ///
 /// Note that this check is not recursive, so passing the `if` expression will always return true
 /// even though sub-expressions might return false.
+#[expect(clippy::doc_examples_missing_item, reason = "the example is the analyzed code")]
 pub fn can_move_expr_to_closure_no_visit<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'_>,
@@ -1425,6 +1428,7 @@ pub fn is_expn_of(mut span: Span, name: Symbol) -> Option<Span> {
 /// ```
 /// `42` is considered expanded from `foo!` and `bar!` by `is_expn_of` but only
 /// from `bar!` by `is_direct_expn_of`.
+#[expect(clippy::doc_examples_missing_item, reason = "the example is the analyzed code")]
 #[must_use]
 pub fn is_direct_expn_of(span: Span, name: Symbol) -> Option<Span> {
     if span.from_expansion() {
@@ -2078,6 +2082,7 @@ pub fn is_no_core_crate(cx: &LateContext<'_>) -> bool {
 ///     fn f() {}
 /// }
 /// ```
+#[expect(clippy::doc_examples_missing_item, reason = "the example is the analyzed code")]
 pub fn is_trait_impl_item(cx: &LateContext<'_>, hir_id: HirId) -> bool {
     if let Node::Item(item) = cx.tcx.parent_hir_node(hir_id) {
         matches!(item.kind, ItemKind::Impl(Impl { of_trait: Some(_), .. }))

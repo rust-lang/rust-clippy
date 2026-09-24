@@ -1,0 +1,20 @@
+error: none of the documentation examples mention `private_copied`
+  --> tests/ui-toml/doc_examples_missing_item_private/doc_examples_missing_item_private.rs:7:5
+   |
+LL |     fn private_copied() {}
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+   = note: `-D clippy::doc-examples-missing-item` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_examples_missing_item)]`
+
+error: none of the documentation examples mention `under_hidden`
+  --> tests/ui-toml/doc_examples_missing_item_private/doc_examples_missing_item_private.rs:21:5
+   |
+LL |     pub fn under_hidden() {}
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: aborting due to 2 previous errors
+

@@ -1,0 +1,100 @@
+error: none of the documentation examples mention `double`
+  --> tests/ui/doc/doc_examples_missing_item.rs:11:1
+   |
+LL | pub fn double(x: u32) -> u32 {
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+   = note: `-D clippy::doc-examples-missing-item` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_examples_missing_item)]`
+
+error: none of the documentation examples mention `readv`
+  --> tests/ui/doc/doc_examples_missing_item.rs:31:5
+   |
+LL |     pub fn readv(fd: i32) -> isize;
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `text_block`
+  --> tests/ui/doc/doc_examples_missing_item.rs:48:1
+   |
+LL | pub fn text_block() {}
+   | ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `no_run_block`
+  --> tests/ui/doc/doc_examples_missing_item.rs:54:1
+   |
+LL | pub fn no_run_block() {}
+   | ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `conditional_ignore`
+  --> tests/ui/doc/doc_examples_missing_item.rs:61:1
+   |
+LL | pub fn conditional_ignore() {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `every_block_misses`
+  --> tests/ui/doc/doc_examples_missing_item.rs:86:1
+   |
+LL | pub fn every_block_misses() {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `VERSION`
+  --> tests/ui/doc/doc_examples_missing_item.rs:114:1
+   |
+LL | pub static VERSION: &str = "1";
+   | ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `MAX`
+  --> tests/ui/doc/doc_examples_missing_item.rs:120:1
+   |
+LL | pub const MAX: u32 = 8;
+   | ^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `reset`
+  --> tests/ui/doc/doc_examples_missing_item.rs:134:5
+   |
+LL |     pub fn reset(&mut self) {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `LIMIT`
+  --> tests/ui/doc/doc_examples_missing_item.rs:142:5
+   |
+LL |     pub const LIMIT: u32 = 8;
+   |     ^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `area`
+  --> tests/ui/doc/doc_examples_missing_item.rs:159:5
+   |
+LL |     fn area(&self) -> u32;
+   |     ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: none of the documentation examples mention `reexported`
+  --> tests/ui/doc/doc_examples_missing_item.rs:182:5
+   |
+LL |     pub fn reexported() {}
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider adding an example that uses this item
+
+error: aborting due to 12 previous errors
+
