@@ -91,12 +91,6 @@ impl<'tcx> ManualSplitAt {
                 (true, false) => msrv.meets(cx, msrvs::SPLIT_AT),
                 (false, false) => true,
             };
-            eprintln!(
-                "[dbg] current={:?} str={} const={} required_msrv and good={good}",
-                msrv.current(cx),
-                is_str(&receiver_chain),
-                is_in_const_context(cx),
-            );
             if !good {
                 return;
             }

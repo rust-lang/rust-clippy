@@ -1,6 +1,5 @@
-[dbg] current=None str=false const=false required_msrv and good=true
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:7:25
+  --> tests/ui/manual_split_at.rs:8:25
    |
 LL |     let (left, right) = (&v[..k], &v[k..]);
    |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(k)`
@@ -8,61 +7,47 @@ LL |     let (left, right) = (&v[..k], &v[k..]);
    = note: `-D clippy::manual-split-at` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::manual_split_at)]`
 
-[dbg] current=None str=false const=false required_msrv and good=true
 error: manual implementation of `split_at`
   --> tests/ui/manual_split_at.rs:12:25
    |
 LL |     let (left, right) = (&v[..k], &v[k..]);
    |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(k)`
 
-[dbg] current=None str=false const=false required_msrv and good=true
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:17:25
+  --> tests/ui/manual_split_at.rs:16:25
    |
 LL |     let (left, right) = (&a[..k], &a[k..]);
    |                         ^^^^^^^^^^^^^^^^^^ help: use: `a.split_at(k)`
 
-[dbg] current=None str=true const=false required_msrv and good=true
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:23:25
+  --> tests/ui/manual_split_at.rs:20:25
    |
 LL |     let (left, right) = (&s[..k], &s[k..]);
    |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
 
-[dbg] current=None str=true const=false required_msrv and good=true
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:28:25
+  --> tests/ui/manual_split_at.rs:24:25
    |
 LL |     let (left, right) = (&s[..k], &s[k..]);
    |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
 
-[dbg] current=None str=false const=false required_msrv and good=true
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:37:25
+  --> tests/ui/manual_split_at.rs:32:25
    |
 LL |     let (left, right) = (&v[..point.bar], &v[point.bar..]);
    |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(point.bar)`
 
-[dbg] current=None str=false const=false required_msrv and good=true
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:42:25
+  --> tests/ui/manual_split_at.rs:36:25
    |
 LL |     let (left, right) = (&v[..2], &v[2..]);
    |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(2)`
 
-[dbg] current=Some(RustcVersion { major: 1, minor: 39, patch: 0 }) str=true const=false required_msrv and good=true
 error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:71:25
+  --> tests/ui/manual_split_at.rs:74:18
    |
-LL |     let (left, right) = (&s[..k], &s[k..]);
-   |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
+LL |     let (_, _) = (&t[..k], &t[k..]);
+   |                  ^^^^^^^^^^^^^^^^^^ help: use: `t.split_at(k)`
 
-[dbg] current=Some(RustcVersion { major: 1, minor: 40, patch: 0 }) str=true const=false required_msrv and good=true
-error: manual implementation of `split_at`
-  --> tests/ui/manual_split_at.rs:78:25
-   |
-LL |     let (left, right) = (&s[..k], &s[k..]);
-   |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
-
-error: aborting due to 9 previous errors
+error: aborting due to 8 previous errors
 

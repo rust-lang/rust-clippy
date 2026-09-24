@@ -1,36 +1,29 @@
 #![warn(clippy::manual_split_at)]
 #![expect(clippy::useless_vec)]
 
-
 fn main() {
-    // vector works
-    let v = vec![1, 2, 3, 4, 5];
     let k = 3;
+
+    let v = vec![1, 2, 3, 4, 5];
     let (left, right) = v.split_at(k);
     //~^ manual_split_at
 
-    // slice works
     let v: &[i32] = &[1, 2, 3, 4, 5];
     let (left, right) = v.split_at(k);
     //~^ manual_split_at
 
-    // array is coerced to a slice, so it works too
     let a = [1, 2, 3, 4, 5];
     let (left, right) = a.split_at(k);
     //~^ manual_split_at
 
-    // &str works
     let s = "hello";
-    let k = 2;
     let (left, right) = s.split_at(k);
     //~^ manual_split_at
 
-    // String coerces to str, so it works too
     let s = String::from("hello");
     let (left, right) = s.split_at(k);
     //~^ manual_split_at
 
-    // struct fields can be used, since no side effects
     struct Bar {
         bar: usize,
     }
@@ -39,31 +32,45 @@ fn main() {
     let (left, right) = v.split_at(point.bar);
     //~^ manual_split_at
 
-    // literal as index works too
     let v = vec![1, 2, 3];
     let (left, right) = v.split_at(2);
     //~^ manual_split_at
 
-    // different receivers - not the same value, no lint
+
+    // different recievers - no lint
     let v1 = vec![1, 2, 3];
     let v2 = vec![1, 2, 3];
-    let (left, right) = (&v1[..k], &v2[k..]);
+    let (_, _) = (&v1[..k], &v2[k..]);
 
-    // different split points, no lint
+    // index is not the same - no lint
     let v = vec![1, 2, 3];
-    let (left, right) = (&v[..k], &v[k + 1..]);
+    let (_, _) = (&v[..k], &v[k + 1..]);
 
-    // pattern is correct, but the order is swapped - no lint
+    // swapped order, no lint
     let v = vec![1, 2, 3];
-    let (left, right) = (&v[k..], &v[..k]);
+    let (_, _) = (&v[k..], &v[..k]);
 
-    // index bound is a function invocation, side effects possible - no lint
+    // possible side effects - no lint
     let v = vec![1, 2, 3];
-    let (left, right) = (&v[..get_idx()], &v[get_idx()..]);
+    let (_, _) = (&v[..get_idx()], &v[get_idx()..]);
 }
-
 
 fn get_idx() -> usize {
     2
 }
 
+
+#[clippy::msrv = "1.3"]
+fn _msrv_1_3() {
+    let t = "hello";
+    let k = 3;
+    let (_, _) = (&t[..k], &t[k..]);
+}
+
+#[clippy::msrv = "1.4"]
+fn msrv_1_4_str_split_at_stable() {
+    let t = "hello";
+    let k = 3;
+    let (_, _) = t.split_at(k);
+    //~^ manual_split_at
+}
