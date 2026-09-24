@@ -5,9 +5,9 @@
 #![expect(
     clippy::format_in_format_args,
     clippy::print_literal,
-    clippy::unnecessary_literal_unwrap
+    clippy::unnecessary_literal_unwrap,
+    clippy::unused_format_precision
 )]
-
 extern crate proc_macros;
 use proc_macros::with_span;
 
