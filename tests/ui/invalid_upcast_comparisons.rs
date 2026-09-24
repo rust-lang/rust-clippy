@@ -139,3 +139,13 @@ fn issue15662() {
     (add_one!(x) as u32) > 300;
     //~^ invalid_upcast_comparisons
 }
+
+fn issue7648() {
+    let u64: u64 = mk_value();
+    let u16: u16 = mk_value();
+    let i8: i8 = mk_value();
+
+    (u64 as i32) < 0;
+    (u16 as i8) < 0;
+    (i8 as u64) > 200;
+}
