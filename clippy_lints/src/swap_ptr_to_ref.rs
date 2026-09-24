@@ -74,6 +74,7 @@ impl LateLintPass<'_> for SwapPtrToRef {
                         let snip2 = snippet_with_context(cx, arg2_span.unwrap_or(arg2.span), ctxt, "..", &mut app).0;
                         diag.span_suggestion(e.span, "use ptr::swap", format!("{sugg_method}({snip1}, {snip2})"), app);
                     }
+                    diag.note("at least one parameter is derived from a pointer and may overlap with the other, causing undefined behavior");
                 },
             );
         }
