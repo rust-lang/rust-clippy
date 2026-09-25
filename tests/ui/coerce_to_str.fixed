@@ -1,0 +1,193 @@
+#![warn(clippy::coerce_to_str)]
+#![allow(clippy::needless_borrows_for_generic_args, clippy::ptr_arg)]
+
+use std::borrow::Cow;
+use std::rc::Rc;
+use std::sync::Arc;
+
+trait TestTrait {
+    fn test_fn(&self, _other_arg: i32, _str_ptr: *const str) {}
+}
+
+struct TestStruct;
+
+impl TestTrait for TestStruct {}
+
+fn test_fn(_str: &str) {}
+
+fn test_fn_2(s: *const str) {}
+
+fn test_fn_3(s: &String) {}
+
+fn main() {
+    // Methods
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let mut s = String::from("hello");
+    s.push_str(" world");
+    //~^ coerce_to_str
+
+    let test_struct = TestStruct;
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    test_struct.test_fn(42, "hello");
+    //~^ coerce_to_str
+
+    // Functions
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    test_fn_2("hello");
+    //~^ coerce_to_str
+
+    // Should NOT lint
+    test_fn_3(&String::from("hello"));
+}

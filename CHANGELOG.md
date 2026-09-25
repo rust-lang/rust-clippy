@@ -7028,6 +7028,7 @@ Released 2018-09-13
 [`cmp_null`]: https://clippy.rust-lang.org/main/index.html#cmp_null
 [`cmp_owned`]: https://clippy.rust-lang.org/main/index.html#cmp_owned
 [`coerce_container_to_any`]: https://clippy.rust-lang.org/main/index.html#coerce_container_to_any
+[`coerce_to_str`]: https://clippy.rust-lang.org/main/index.html#coerce_to_str
 [`cognitive_complexity`]: https://clippy.rust-lang.org/main/index.html#cognitive_complexity
 [`collapsible_else_if`]: https://clippy.rust-lang.org/main/index.html#collapsible_else_if
 [`collapsible_if`]: https://clippy.rust-lang.org/main/index.html#collapsible_if
