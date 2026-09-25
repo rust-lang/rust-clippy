@@ -1,4 +1,5 @@
 #![warn(clippy::unnecessary_owned_empty_strings)]
+#![allow(clippy::ref_string_from_instead_of_str)]
 
 fn ref_str_argument(_value: &str) {}
 
