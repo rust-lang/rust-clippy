@@ -90,6 +90,7 @@ mod cfg_not_test;
 mod checked_conversions;
 mod cloned_ref_to_slice_refs;
 mod coerce_container_to_any;
+mod coerce_to_str;
 mod cognitive_complexity;
 mod collapsible_if;
 mod collection_is_never_read;
@@ -873,6 +874,7 @@ rustc_lint::late_lint_methods!(
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
+        CoerceToStr: coerce_to_str::CoerceToStr = coerce_to_str::CoerceToStr,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
