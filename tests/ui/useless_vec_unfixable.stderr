@@ -1,4 +1,4 @@
-error: useless use of `vec!`
+error: use of `vec!` when an allocation is not necessary
   --> tests/ui/useless_vec_unfixable.rs:7:26
    |
 LL |       let _some_variable = vec![
