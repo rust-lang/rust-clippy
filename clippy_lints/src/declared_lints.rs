@@ -492,6 +492,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::STRING_EXTEND_CHARS_INFO,
     crate::methods::STRING_FROM_UTF8_AS_BYTES_INFO,
     crate::methods::STRING_LIT_CHARS_ANY_INFO,
+    crate::methods::STRIP_UNWRAP_OR_INFO,
     crate::methods::SUSPICIOUS_COMMAND_ARG_SPACE_INFO,
     crate::methods::SUSPICIOUS_MAP_INFO,
     crate::methods::SUSPICIOUS_OPEN_OPTIONS_INFO,
