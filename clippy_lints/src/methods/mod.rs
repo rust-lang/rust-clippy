@@ -123,6 +123,7 @@ mod str_splitn;
 mod string_extend_chars;
 mod string_from_utf8_as_bytes;
 mod string_lit_chars_any;
+mod strip_unwrap_or;
 mod suspicious_command_arg_space;
 mod suspicious_map;
 mod suspicious_splitn;
@@ -3865,6 +3866,32 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `s.strip_prefix(p).unwrap_or(s)` and `s.strip_suffix(p).unwrap_or(s)`.
+    ///
+    /// ### Why is this bad?
+    /// `str::trim_prefix` and `str::trim_suffix` express this directly,
+    /// without the intermediate `Option`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let s = "foobar";
+    /// let _ = s.strip_prefix("foo").unwrap_or(s);
+    /// let _ = s.strip_suffix("bar").unwrap_or(s);
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let s = "foobar";
+    /// let _ = s.trim_prefix("foo");
+    /// let _ = s.trim_suffix("bar");
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub STRIP_UNWRAP_OR,
+    complexity,
+    "using `strip_prefix/suffix().unwrap_or()` instead of `trim_prefix/suffix()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     ///
     /// Checks for `Command::arg()` invocations that look like they
     /// should be multiple arguments instead, such as `arg("-t ext2")`.
@@ -5127,6 +5154,7 @@ impl_lint_pass!(Methods => [
     STRING_EXTEND_CHARS,
     STRING_FROM_UTF8_AS_BYTES,
     STRING_LIT_CHARS_ANY,
+    STRIP_UNWRAP_OR,
     STR_SPLIT_AT_NEWLINE,
     SUSPICIOUS_COMMAND_ARG_SPACE,
     SUSPICIOUS_MAP,
@@ -5922,6 +5950,9 @@ impl Methods {
                 },
                 (sym::unwrap_or, [u_arg]) => {
                     match method_call(recv) {
+                        Some((strip @ (sym::strip_prefix | sym::strip_suffix), s_recv, [s_arg], _, _)) => {
+                            strip_unwrap_or::check(cx, expr, s_recv, s_arg, strip, u_arg, self.msrv);
+                        },
                         Some((arith @ (sym::checked_add | sym::checked_sub | sym::checked_mul), lhs, [rhs], _, _)) => {
                             manual_saturating_arithmetic::check_unwrap_or(cx, expr, lhs, rhs, u_arg, arith);
                         },
