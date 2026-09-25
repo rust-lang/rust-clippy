@@ -10,7 +10,10 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::SpanExt as _;
 use clippy_utils::ty::is_copy;
 use clippy_utils::visitors::for_each_local_use_after_expr;
-use clippy_utils::{VEC_METHODS_SHADOWING_SLICE_METHODS, get_parent_expr, higher, is_in_test, span_contains_comment};
+use clippy_utils::{
+    VEC_METHODS_SHADOWING_SLICE_METHODS, fn_def_id, get_parent_expr, higher, is_in_test, span_contains_comment, sym,
+};
+use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, HirId, LetStmt, Mutability, Node, Pat, PatKind};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
@@ -62,7 +65,8 @@ declare_clippy_lint! {
     /// be possible.
     ///
     /// ### Why is this bad?
-    /// This is less efficient.
+    /// `vec![..]` allocates a vector on the heap, which is an unnecessary cost when the data is
+    /// small enough to be kept in an array instead.
     ///
     /// ### Example
     /// ```no_run
@@ -157,6 +161,29 @@ impl UselessVec {
             {
                 VecToArray::Possible
             },
+            // search for
+            // * `vec![].into_iter()` (e.g. in an iterator method chain)
+            // * `T::from_iter(vec![])`
+            Node::Expr(
+                call_expr @ &Expr {
+                    kind: ExprKind::MethodCall(_, &ref call_arg, [], _) | ExprKind::Call(_, &[ref call_arg]),
+                    ..
+                },
+            ) if call_arg.hir_id == expr.hir_id // make sure the parent relates to expr as we want
+                && self.msrv.meets(cx, msrvs::ARRAY_INTO_ITERATOR)
+                && fn_def_id(cx, call_expr).is_some_and(|def_id| {
+                    // Check whether the called function is one of the functions for which taking an array
+                    // is just as good as taking a `Vec`.
+                    //
+                    // FIXME: Add `Extend::extend()` and `Iterator::flat_map()` to this list.
+                    // (They need to be made diagnostic items, first.)
+                    cx.tcx.is_lang_item(def_id, LangItem::IntoIterIntoIter)
+                        || cx.tcx.is_diagnostic_item(sym::from_iter_fn, def_id)
+                }) =>
+            {
+                VecToArray::Possible
+            },
+
             // search for `&vec![_]` or `vec![_]` expressions where the adjusted type is `&[_]`
             _ => {
                 if adjusts_to_slice(cx, expr) {
@@ -246,17 +273,24 @@ impl<'tcx> LateLintPass<'tcx> for UselessVec {
                 expr_hir_id,
             } = state
             {
-                span_lint_hir_and_then(cx, USELESS_VEC, expr_hir_id, span, "useless use of `vec!`", |diag| {
-                    let help_msg = format!("you can use {} directly", suggest_ty.desc());
-                    // If the `vec!` macro contains comment, better not make the suggestion machine applicable as it
-                    // would remove them.
-                    let applicability = if span_contains_comment(cx, span) {
-                        Applicability::Unspecified
-                    } else {
-                        Applicability::MachineApplicable
-                    };
-                    diag.span_suggestion(span, help_msg, vec_snippet, applicability);
-                });
+                span_lint_hir_and_then(
+                    cx,
+                    USELESS_VEC,
+                    expr_hir_id,
+                    span,
+                    "use of `vec!` when an allocation is not necessary",
+                    |diag| {
+                        let help_msg = format!("you can use {} directly", suggest_ty.desc());
+                        // If the `vec!` macro contains comment, better not make the suggestion machine applicable as it
+                        // would remove them.
+                        let applicability = if span_contains_comment(cx, span) {
+                            Applicability::Unspecified
+                        } else {
+                            Applicability::MachineApplicable
+                        };
+                        diag.span_suggestion(span, help_msg, vec_snippet, applicability);
+                    },
+                );
             }
         }
     }
