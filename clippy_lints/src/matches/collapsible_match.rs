@@ -1,3 +1,5 @@
+use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
+use crate::collapsible_if::{parens_around, peel_parens};
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::higher::{If, IfLetOrMatch};
 use clippy_utils::msrvs::Msrv;
@@ -7,7 +9,7 @@ use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::is_local_used;
 use clippy_utils::{
     SpanlessEq, get_ref_operators, is_none_pattern, is_unit_expr, peel_blocks_with_stmt, peel_ref_operators,
-    span_contains_non_whitespace,
+    span_contains_non_whitespace, tokenize_with_text,
 };
 use rustc_ast::BorrowKind;
 use rustc_errors::{Applicability, MultiSpan};
@@ -17,9 +19,6 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;
 use rustc_span::{BytePos, Ident, Span, SyntaxContext};
-
-use super::{COLLAPSIBLE_MATCH, pat_contains_disallowed_or};
-use crate::collapsible_if::{parens_around, peel_parens};
 
 pub(super) fn check_match<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, arms: &'tcx [Arm<'_>], msrv: Msrv) {
     if let Some(els_arm) = arms.iter().rfind(|arm| arm_is_wild_like(cx, arm)) {
@@ -174,8 +173,22 @@ fn check_arm<'tcx>(
             .0
             .with_leading_whitespace(cx)
             .into_span();
-        let contains_block = matches!(outer_then_body.kind, ExprKind::Block(..));
-        if contains_block && span_contains_non_whitespace(cx, outer_then_open_bracket.between(inner_expr.span), false) {
+
+        let (peeled_kind, _peeled_expr) = if let ExprKind::Block(block, None) = outer_then_body.kind
+            && let Some(tail) = block.expr
+            && let ExprKind::Block(_, Some(_)) = tail.kind
+        {
+            (tail.kind, Some(tail))
+        } else {
+            (outer_then_body.kind, None)
+        };
+
+        let contains_block = matches!(peeled_kind, ExprKind::Block(..));
+        let has_label = matches!(peeled_kind, ExprKind::Block(_, Some(_)));
+        if contains_block
+            && !has_label
+            && span_contains_non_whitespace(cx, outer_then_open_bracket.between(inner_expr.span), false)
+        {
             return;
         }
 
@@ -194,7 +207,44 @@ fn check_arm<'tcx>(
                 let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner_expr.span);
                 let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
-                if contains_block {
+
+                if let ExprKind::Block(block, label) = outer_then_body.kind {
+                    let (block, label, peeled) = if label.is_none()
+                        && let Some(tail) = block.expr
+                        && let ExprKind::Block(inner_block, inner_label) = tail.kind
+                    {
+                        (inner_block, inner_label, Some(tail))
+                    } else {
+                        (block, label, None)
+                    };
+
+                    let label_bearing_span = peeled.map_or(outer_then_body.span, |tail| tail.span);
+
+                    if label.is_some() && label_bearing_span.from_expansion() {
+                        return;
+                    }
+
+                    let block_span = outer_then_body.span;
+                    let search_start = if let Some(label) = label {
+                        label.ident.span.hi()
+                    } else {
+                        block_span.lo()
+                    };
+                    let gap_span = block_span.with_lo(search_start).with_hi(block.span.hi());
+                    let gap_snippet = snippet(cx, gap_span, "");
+                    let Some((_, _, brace_range)) = tokenize_with_text(&gap_snippet)
+                        .find(|(token, _, _)| *token == rustc_lexer::TokenKind::OpenBrace)
+                    else {
+                        return;
+                    };
+                    let brace_offset = u32::try_from(brace_range.start).unwrap();
+                    let brace_pos = search_start + BytePos(brace_offset);
+
+                    let outer_then_open_bracket = block_span
+                        .with_lo(brace_pos)
+                        .with_hi(brace_pos + BytePos(1))
+                        .with_leading_whitespace(cx)
+                        .into_span();
                     let outer_then_closing_bracket = {
                         let end = outer_then_body.span.shrink_to_hi();
                         end.with_lo(end.lo() - BytePos(1))
@@ -203,6 +253,18 @@ fn check_arm<'tcx>(
                     };
                     sugg.push((outer_arrow_end.to(outer_then_open_bracket), String::new()));
                     sugg.push((outer_then_closing_bracket, String::new()));
+
+                    let prefix_start = if let Some(label) = label {
+                        label.ident.span.lo()
+                    } else {
+                        block_span.lo()
+                    };
+                    let label_prefix = snippet(cx, block_span.with_lo(prefix_start).with_hi(brace_pos), "")
+                        .trim()
+                        .to_string();
+                    if !label_prefix.is_empty() {
+                        sugg[0].1 = format!("=> {label_prefix} ");
+                    }
                 } else {
                     sugg.push((outer_arrow_end.until(inner_if), " ".to_string()));
                 }
