@@ -122,6 +122,20 @@ fn dont_check_if_stmts(clone_ref: &IsClone, if_arg: usize) {
     //~^ fn_param_ref_cloned
 }
 
+#[derive(Clone)]
+pub struct IsClone2<'a>(&'a IsClone);
+
+impl<'a> From<&'a IsClone> for IsClone2<'a> {
+    fn from(value: &'a IsClone) -> Self {
+        IsClone2(value)
+    }
+}
+
+fn rebind(y: &IsClone) {
+    let x: IsClone2 = y.into();
+    let z = x.clone();
+}
+
 fn main() {
     let a = IsClone;
     let b = IsClone;
@@ -138,4 +152,5 @@ fn main() {
     set_cell(&h);
     create_cell();
     dont_check_if_stmts(&a, 0usize);
+    rebind(&a);
 }
