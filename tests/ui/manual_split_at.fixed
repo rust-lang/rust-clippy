@@ -68,7 +68,7 @@ fn main() {
     let (_d1, _d2) = (&a[k..], &a[k..]);
 
     // both ranges are OpTo - no lint
-    let (_d1, _d2) = (&a[k..], &a[k..]);
+    let (_d1, _d2) = (&a[..k], &a[..k]);
 
     // swapped order but pattern is not a tuple - no lint
     let _y = (&a[k..], &a[..k]);
