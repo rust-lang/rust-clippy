@@ -146,3 +146,27 @@ pub struct CoreLink;
 /// Link to [book](https://doc.rust-lang.org/nightly/book/index.html)
 /// not a real intra-doc link.
 pub struct BookLink;
+
+// Only `latest` links work, because Clippy doesn't actually know what version your dependency is.
+/// Link to [external const](https://docs.rs/external_consts/1.0/external_consts/index.html)
+pub struct DocsrsLinkWithExplicitVersionNumber;
+
+/// Similar story with the standard library, because we don't know if the author is
+/// trying to link a specific version of the standard library on purpose.
+///
+/// We sort of have to assume that channel links, like nightly, beta, or stable,
+/// are incidental, because intra-doc links on docs.rs that point at the standard library
+/// will point to nightly, but the docs.rs/std alias points at stable, and the web team
+/// deliberately gives [SEO][] to channel-less std docs. If someone doesn't know what
+/// they're doing, the channel they link to will have as much to do with their desired version
+/// as the [area code][] in their phone number has to do with where they actually are.
+///
+/// [SEO]: https://github.com/rust-lang/rust/issues/9461
+/// [area code]: https://xkcd.com/1129/
+///
+/// But, because the web team's SEO makes it hard to find Rust standard library docs
+/// with explicit version numbers, we can safely assume that anyone who writes links
+/// with an explicit version number knows what they're doing.
+///
+/// Link to [the original standard library](https://doc.rust-lang.org/1.0.0/std/index.html)
+pub struct StdLinkWithExplicitVersionNumber;
