@@ -200,12 +200,7 @@ fn check_relative(mut current_item: LocalDefId, mut dest_url: &str, cx: &LateCon
 /// Parse docs.rs links,
 /// if the link points at a crate that is also a dependency.
 fn check_docsrs(mut dest_url: &str, cx: &LateContext<'_>) -> Option<String> {
-    if dest_url.starts_with("https://docs.rs/") {
-        dest_url = &dest_url[16..];
-    } else {
-        // not a docs.rs link
-        return None;
-    }
+    dest_url = dest_url.strip_prefix("https://docs.rs/")?;
     let (_package_name, version_and_path) = dest_url.split_once('/')?;
     let Some(("latest", path)) = version_and_path.split_once('/') else {
         // if a version is specified, it might be different from the
@@ -342,14 +337,15 @@ fn check_url_inner(mut path: &str) -> Option<(Vec<&str>, &str, &str)> {
 
     let filename_parts = path.split('.').collect::<Vec<_>>();
     let &[disambiguator, item_name, html] = &filename_parts[..] else {
-        // filename doesn't file pattern `DISAMBIGUATOR.MyName.html`
+        // filename doesn't match file pattern `DISAMBIGUATOR.MyName.html`
         return None;
     };
     if html != "html"
         || !matches!(
             disambiguator,
             // copied from librustdoc/formats/item_type.rs
-            |"mod"| "externcrate"
+            "mod"
+                | "externcrate"
                 | "import"
                 | "struct"
                 | "union"
@@ -376,7 +372,7 @@ fn check_url_inner(mut path: &str) -> Option<(Vec<&str>, &str, &str)> {
                 | "attribute"
         )
     {
-        // filename doesn't file pattern `DISAMBIGUATOR.MyName.html`
+        // filename doesn't match file pattern `DISAMBIGUATOR.MyName.html`
         return None;
     }
 
