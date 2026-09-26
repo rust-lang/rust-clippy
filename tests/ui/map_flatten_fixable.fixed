@@ -8,17 +8,17 @@ fn main() {
     }
     let option_id_ref: fn(i8) -> Option<i8> = option_id;
     let option_id_closure = |x| Some(x);
-    let _: Vec<_> = vec![5_i8; 6].into_iter().filter_map(option_id).collect();
+    let _: Vec<_> = [5_i8; 6].into_iter().filter_map(option_id).collect();
     //~^ map_flatten
-    let _: Vec<_> = vec![5_i8; 6].into_iter().filter_map(option_id_ref).collect();
+    let _: Vec<_> = [5_i8; 6].into_iter().filter_map(option_id_ref).collect();
     //~^ map_flatten
-    let _: Vec<_> = vec![5_i8; 6].into_iter().filter_map(option_id_closure).collect();
+    let _: Vec<_> = [5_i8; 6].into_iter().filter_map(option_id_closure).collect();
     //~^ map_flatten
-    let _: Vec<_> = vec![5_i8; 6].into_iter().filter_map(|x| x.checked_add(1)).collect();
+    let _: Vec<_> = [5_i8; 6].into_iter().filter_map(|x| x.checked_add(1)).collect();
     //~^ map_flatten
 
     // mapping to Iterator on Iterator
-    let _: Vec<_> = vec![5_i8; 6].into_iter().flat_map(|x| 0..x).collect();
+    let _: Vec<_> = [5_i8; 6].into_iter().flat_map(|x| 0..x).collect();
     //~^ map_flatten
 
     // mapping to Option on Option
