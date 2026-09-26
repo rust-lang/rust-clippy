@@ -37,7 +37,7 @@ fn main() {
             category,
             r#type,
             msrv,
-        } => match new_lint::create(clippy.version, pass, &name, &category, r#type.as_deref(), msrv) {
+        } => match new_lint::create(pass, &name, &category, r#type.as_deref(), msrv) {
             Ok(()) => new_parse_cx(|cx| {
                 let data = cx.parse_lint_decls();
                 cx.dcx.exit_on_err();
