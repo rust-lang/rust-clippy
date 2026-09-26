@@ -954,6 +954,8 @@ Current stable, released 2025-08-07
   [#14824](https://github.com/rust-lang/rust-clippy/pull/14824)
 * [`to_digit_is_some`] no longer lints in const contexts when MSRV is below 1.87
   [#14771](https://github.com/rust-lang/rust-clippy/pull/14771)
+* [`borrowed_box`]: Suggest calling `.as_ref()` at the call site when the boxed type is a trait object
+  [#17794](https://github.com/rust-lang/rust-clippy/pull/17794)
 
 ### False Positive Fixes
 
