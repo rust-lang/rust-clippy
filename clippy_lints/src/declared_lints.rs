@@ -556,6 +556,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::mixed_read_write_in_expression::MIXED_READ_WRITE_IN_EXPRESSION_INFO,
     crate::module_style::INLINE_MODULES_INFO,
     crate::module_style::MOD_MODULE_FILES_INFO,
+    crate::module_style::PATH_ATTRIBUTE_INFO,
     crate::module_style::SELF_NAMED_MODULE_FILES_INFO,
     crate::multi_assignments::MULTI_ASSIGNMENTS_INFO,
     crate::multiple_bound_locations::MULTIPLE_BOUND_LOCATIONS_INFO,
