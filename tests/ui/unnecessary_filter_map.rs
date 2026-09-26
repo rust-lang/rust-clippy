@@ -26,7 +26,7 @@ fn main() {
 
     let _ = (0..4).filter_map(Some);
 
-    let _ = vec![Some(10), None].into_iter().filter_map(|x| Some(x));
+    let _ = [Some(10), None].into_iter().filter_map(|x| Some(x));
     //~^ unnecessary_filter_map
 }
 

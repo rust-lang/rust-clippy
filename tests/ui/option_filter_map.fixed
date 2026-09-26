@@ -15,17 +15,17 @@ fn main() {
     let _ = Some(1).map(odds_out).flatten();
     //~^ option_filter_map
 
-    let _ = vec![Some(1)].into_iter().flatten();
+    let _ = [Some(1)].into_iter().flatten();
     //~^ option_filter_map
 
-    let _ = vec![Some(1)].into_iter().flatten();
+    let _ = [Some(1)].into_iter().flatten();
     //~^ option_filter_map
 
-    let _ = vec![1]
+    let _ = [1]
         .into_iter()
         .map(odds_out)
         .flatten();
-    let _ = vec![1]
+    let _ = [1]
         .into_iter()
         .map(odds_out)
         .flatten();
