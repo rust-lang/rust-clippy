@@ -177,7 +177,7 @@ fn main() {
     let supported: &[u8] = &[1, 2, 3];
 
     match supported.len() {
-        0 => {}
+        0 => {},
         1 => println!("{}", supported[0]),
         _ => println!("{} or {}", supported[0], supported[1]),
     }
@@ -186,5 +186,12 @@ fn main() {
         0 => 0,
         1 => supported[0],
         _ => supported[1],
+    };
+
+    match (supported.len(), supported.contains(&0)) {
+        (0, false) => 0,
+        (1, true) => supported[0],
+        (_, false) => supported[1],
+        (_, true) => supported[2],
     };
 }
