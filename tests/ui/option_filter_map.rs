@@ -15,19 +15,19 @@ fn main() {
     let _ = Some(1).map(odds_out).filter(|o| o.is_some()).map(|o| o.unwrap());
     //~^ option_filter_map
 
-    let _ = vec![Some(1)].into_iter().filter(Option::is_some).map(Option::unwrap);
+    let _ = [Some(1)].into_iter().filter(Option::is_some).map(Option::unwrap);
     //~^ option_filter_map
 
-    let _ = vec![Some(1)].into_iter().filter(|o| o.is_some()).map(|o| o.unwrap());
+    let _ = [Some(1)].into_iter().filter(|o| o.is_some()).map(|o| o.unwrap());
     //~^ option_filter_map
 
-    let _ = vec![1]
+    let _ = [1]
         .into_iter()
         .map(odds_out)
         .filter(Option::is_some)
         //~^ option_filter_map
         .map(Option::unwrap);
-    let _ = vec![1]
+    let _ = [1]
         .into_iter()
         .map(odds_out)
         .filter(|o| o.is_some())
