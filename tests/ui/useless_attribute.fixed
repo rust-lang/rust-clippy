@@ -169,3 +169,14 @@ pub mod issue15636 {
     #[allow(deprecated_in_future)]
     pub use f::deprec;
 }
+
+// don't lint on clippy::allow_attributes for `use` items, the documented workaround for
+// https://github.com/rust-lang/rust-clippy/issues/17562
+#[allow(clippy::allow_attributes, reason = "lint depends on macro application")]
+#[allow(unused_imports)]
+use std::collections::HashMap;
+
+// don't lint on clippy::useless_attribute for `use` items
+#[allow(clippy::useless_attribute)]
+#[allow(unused_imports)]
+use std::collections::HashSet;
