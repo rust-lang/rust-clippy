@@ -1,0 +1,44 @@
+#![warn(clippy::strip_unwrap_or)]
+#![feature(trim_prefix_suffix)]
+
+struct Custom;
+impl Custom {
+    fn strip_prefix(&self, _p: &str) -> Option<&str> {
+        Some("x")
+    }
+}
+
+fn main() {
+    let s = "foobar";
+    let _ = s.strip_prefix("foo").unwrap_or(s);
+    //~^ strip_unwrap_or
+    let _ = s.strip_suffix("bar").unwrap_or(s);
+    //~^ strip_unwrap_or
+
+    // Variable pattern argument.
+    let pat = "foo";
+    let _ = s.strip_prefix(pat).unwrap_or(s);
+    //~^ strip_unwrap_or
+
+    // Do not lint: fallback differs from the receiver.
+    let t = "baz";
+    let _ = s.strip_prefix("foo").unwrap_or(t);
+    let _ = s.strip_suffix("bar").unwrap_or(t);
+
+    // Do not lint: non-str receiver with same method name.
+    let c = Custom;
+    let _ = c.strip_prefix("foo").unwrap_or("fallback");
+}
+
+#[clippy::msrv = "1.99"]
+fn msrv_1_99() {
+    let s = "foobar";
+    let _ = s.strip_prefix("foo").unwrap_or(s);
+}
+
+#[clippy::msrv = "1.100"]
+fn msrv_1_100() {
+    let s = "foobar";
+    let _ = s.strip_prefix("foo").unwrap_or(s);
+    //~^ strip_unwrap_or
+}

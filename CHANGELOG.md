@@ -7594,6 +7594,7 @@ Released 2018-09-13
 [`string_lit_chars_any`]: https://rust-lang.github.io/rust-clippy/main/index.html#string_lit_chars_any
 [`string_slice`]: https://rust-lang.github.io/rust-clippy/main/index.html#string_slice
 [`string_to_string`]: https://rust-lang.github.io/rust-clippy/main/index.html#string_to_string
+[`strip_unwrap_or`]: https://rust-lang.github.io/rust-clippy/main/index.html#strip_unwrap_or
 [`strlen_on_c_strings`]: https://rust-lang.github.io/rust-clippy/main/index.html#strlen_on_c_strings
 [`struct_excessive_bools`]: https://rust-lang.github.io/rust-clippy/main/index.html#struct_excessive_bools
 [`struct_field_names`]: https://rust-lang.github.io/rust-clippy/main/index.html#struct_field_names
