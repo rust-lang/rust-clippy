@@ -1,0 +1,19 @@
+error: the `#[path]` attribute overrides the source file of a module
+ --> src/lib.rs:3:1
+  |
+3 | #[path = "parser/impl.rs"]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: move `parser/impl.rs` to `src/parser.rs` or `src/parser/mod.rs`, and remove the `#[path]` attribute
+  = note: `-D clippy::path-attribute` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::path_attribute)]`
+
+error: the `#[path]` attribute overrides the source file of a module
+ --> src/lib.rs:9:5
+  |
+9 |     #[path = "outer_impl.rs"]
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: move `outer_impl.rs` to `src/outer/inner.rs` or `src/outer/inner/mod.rs`, and remove the `#[path]` attribute
+
+error: could not compile `path-attribute` (lib) due to 2 previous errors

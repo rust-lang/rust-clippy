@@ -2,7 +2,7 @@ use clippy_utils::ast_utils::is_cfg_test;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use rustc_ast::ast::{self, Inline, ItemKind, ModKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, Lint, LintContext as _, impl_lint_pass};
 use rustc_span::def_id::LOCAL_CRATE;
 use rustc_span::{FileName, Ident, SourceFile, Span, SyntaxContext, sym};
 use std::path::{Component, Path, PathBuf};
@@ -71,6 +71,41 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks that the source file of an out-of-line module is not overridden with the
+    /// built-in `#[path = "..."]` attribute.
+    ///
+    /// ### Why restrict this?
+    /// With the conventional module layout, the source file of a module is predictable from
+    /// its name, which keeps the module tree navigable for readers and for tooling.
+    ///
+    /// ### Known problems
+    /// `#[path]` is the only way to express a non-standard module layout, and it is
+    /// legitimately needed for generated code, platform-specific implementations, and tests.
+    /// Those uses have to be annotated with `#[allow(clippy::path_attribute)]`.
+    ///
+    /// This lint does not fire for the `#[path]` attribute on an inline module, which only
+    /// changes the directory that nested `mod` declarations are resolved against.
+    ///
+    /// ### Example
+    /// ```ignore
+    /// // in `src/lib.rs`
+    /// #[path = "implementation.rs"]
+    /// mod parser;
+    /// ```
+    /// Use instead:
+    /// ```ignore
+    /// // in `src/lib.rs`
+    /// mod parser;
+    /// // in `src/parser.rs` (or `src/parser/mod.rs`)
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub PATH_ATTRIBUTE,
+    restriction,
+    "checks that the `#[path]` attribute is not used to override the source file of a module"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks that module layout uses only `mod.rs` files.
     ///
     /// ### Why restrict this?
@@ -101,6 +136,7 @@ declare_clippy_lint! {
 impl_lint_pass!(ModStyle => [
     INLINE_MODULES,
     MOD_MODULE_FILES,
+    PATH_ATTRIBUTE,
     SELF_NAMED_MODULE_FILES,
 ]);
 
@@ -128,6 +164,14 @@ impl ModStyle {
     fn get_relative_path_from_working_dir(&self, file: &SourceFile) -> Option<PathBuf> {
         try_trim_file_path_prefix(file, self.working_dir.as_ref()?).map(Path::to_path_buf)
     }
+
+    /// All of the lints in this pass are `restriction` lints, so the module bookkeeping below is
+    /// pure overhead when none of them can fire. `lints` must be kept in sync between
+    /// [`EarlyLintPass::check_item`] and [`EarlyLintPass::check_item_post`] so that the
+    /// `ModState` stacks stay balanced.
+    fn all_allowed(cx: &EarlyContext<'_>, lints: &[&'static Lint]) -> bool {
+        lints.iter().all(|lint| cx.builder.lint_level_spec(lint).is_allow())
+    }
 }
 
 impl EarlyLintPass for ModStyle {
@@ -136,14 +180,20 @@ impl EarlyLintPass for ModStyle {
     }
 
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &ast::Item) {
-        if cx.builder.lint_level_spec(MOD_MODULE_FILES).is_allow()
-            && cx.builder.lint_level_spec(SELF_NAMED_MODULE_FILES).is_allow()
-            && cx.builder.lint_level_spec(INLINE_MODULES).is_allow()
-        {
+        if Self::all_allowed(
+            cx,
+            &[
+                INLINE_MODULES,
+                MOD_MODULE_FILES,
+                PATH_ATTRIBUTE,
+                SELF_NAMED_MODULE_FILES,
+            ],
+        ) {
             return;
         }
         if let ItemKind::Mod(_, mod_ident, ModKind::Loaded(_, inline_or_not, mod_spans, ..)) = &item.kind {
-            let has_path_attr = item.attrs.iter().any(|attr| attr.has_name(sym::path));
+            let path_attr = item.attrs.iter().find(|attr| attr.has_name(sym::path));
+            let has_path_attr = path_attr.is_some();
             let mod_file = cx.sess().source_map().lookup_source_file(mod_spans.inner_span.lo());
             let path_from_working_dir = self.get_relative_path_from_working_dir(&mod_file);
             let current = ModState {
@@ -181,6 +231,33 @@ impl EarlyLintPass for ModStyle {
                     self.inline_mod_stack.push(current);
                 },
                 Inline::No { .. } => {
+                    if let Some(path_attr) = path_attr
+                        && !path_attr.span.from_expansion()
+                        // `mod_spans` points at the *overridden* file, so the declaration site is
+                        // the file the attribute itself is written in.
+                        && let Some(decl_file) = self.get_relative_path_from_working_dir(
+                            &cx.sess().source_map().lookup_source_file(path_attr.span.lo()),
+                        )
+                    {
+                        // The suggested paths are anchored at the directory that the enclosing
+                        // modules resolve against, not at the directory of the declaration.
+                        let opt_extra_mod_dir = self.regular_mod_stack.last().and_then(|last| {
+                            if last.path_from_working_dir.as_ref()?.ends_with("mod.rs") {
+                                None
+                            } else {
+                                Some(&last.mod_ident)
+                            }
+                        });
+                        check_path_attribute(
+                            cx,
+                            path_attr,
+                            current.mod_ident,
+                            &decl_file,
+                            opt_extra_mod_dir
+                                .into_iter()
+                                .chain(self.inline_mod_stack.iter().map(|state| &state.mod_ident)),
+                        );
+                    }
                     if !has_path_attr && let Some(last) = self.regular_mod_stack.last_mut() {
                         last.contains_external = true;
                     }
@@ -191,10 +268,15 @@ impl EarlyLintPass for ModStyle {
     }
 
     fn check_item_post(&mut self, cx: &EarlyContext<'_>, item: &ast::Item) {
-        if cx.builder.lint_level_spec(MOD_MODULE_FILES).is_allow()
-            && cx.builder.lint_level_spec(SELF_NAMED_MODULE_FILES).is_allow()
-            && cx.builder.lint_level_spec(INLINE_MODULES).is_allow()
-        {
+        if Self::all_allowed(
+            cx,
+            &[
+                INLINE_MODULES,
+                MOD_MODULE_FILES,
+                PATH_ATTRIBUTE,
+                SELF_NAMED_MODULE_FILES,
+            ],
+        ) {
             return;
         }
 
@@ -285,6 +367,50 @@ fn check_inline_module<'a>(
             mod_file.display(),
         ));
     });
+}
+
+/// `decl_file` is the file the `mod` declaration is written in, i.e. the file *containing* the
+/// `#[path]` attribute, not the file it points at. `ancestor_mods` are the modules the
+/// declaration is nested in, innermost last.
+fn check_path_attribute<'a>(
+    cx: &EarlyContext<'_>,
+    path_attr: &ast::Attribute,
+    mod_ident: Ident,
+    decl_file: &Path,
+    ancestor_mods: impl Iterator<Item = &'a Ident>,
+) {
+    let Some(parent) = decl_file.parent() else { return };
+    let mod_name = mod_ident.as_str();
+    // `#[path]` is resolved relative to the directory the enclosing modules resolve against, so
+    // this is the string the user wrote. A `None` here (a macro-generated value) only costs us
+    // the more precise help.
+    let declared_file = path_attr.value_str();
+
+    let mut mod_folder = parent.to_path_buf();
+    mod_folder.extend(ancestor_mods.map(Ident::as_str));
+
+    span_lint_and_then(
+        cx,
+        PATH_ATTRIBUTE,
+        path_attr.span,
+        "the `#[path]` attribute overrides the source file of a module",
+        |diag| {
+            let self_named_mod_file = mod_folder.join(format!("{mod_name}.rs"));
+            let mod_file_folder = mod_folder.join(mod_name).join("mod.rs");
+            match declared_file {
+                Some(declared_file) => diag.help(format!(
+                    "move `{declared_file}` to `{}` or `{}`, and remove the `#[path]` attribute",
+                    self_named_mod_file.display(),
+                    mod_file_folder.display(),
+                )),
+                None => diag.help(format!(
+                    "remove the `#[path]` attribute and declare the module in `{}` or `{}`",
+                    self_named_mod_file.display(),
+                    mod_file_folder.display(),
+                )),
+            };
+        },
+    );
 }
 
 fn try_trim_file_path_prefix<'a>(file: &'a SourceFile, prefix: &'a Path) -> Option<&'a Path> {
