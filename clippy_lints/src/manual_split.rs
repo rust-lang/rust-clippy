@@ -68,7 +68,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualSplitAt {
             && eq_expr_value(cx, init.span.ctxt(), target1, target2)
             && let receiver_ty = cx.typeck_results().expr_ty_adjusted(target1).peel_refs()
             && let receiver_chain = deref_chain(cx, receiver_ty).collect::<Vec<_>>()
-            && receiver_chain.iter().any(has_split_at_method)
+            && receiver_chain.iter().any(|ty| has_split_at_method(ty))
             && let Some(bind_holder) = IndexingExprHolder::try_bind(index1, index2, cx)
             && eq_expr_value(
                 cx,
