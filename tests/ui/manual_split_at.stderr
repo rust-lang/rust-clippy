@@ -1,0 +1,71 @@
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:8:25
+   |
+LL |     let (left, right) = (&v[..k], &v[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(k)`
+   |
+   = note: `-D clippy::manual-split-at` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_split_at)]`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:12:25
+   |
+LL |     let (left, right) = (&v[..k], &v[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:16:25
+   |
+LL |     let (left, right) = (&a[..k], &a[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `a.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:20:25
+   |
+LL |     let (left, right) = (&s[..k], &s[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:24:25
+   |
+LL |     let (left, right) = (&s[..k], &s[k..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `s.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:33:25
+   |
+LL |     let (left, right) = (&v[..point.bar], &v[point.bar..]);
+   |                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(point.bar)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:38:25
+   |
+LL |     let (left, right) = (&v[..2], &v[2..]);
+   |                         ^^^^^^^^^^^^^^^^^^ help: use: `v.split_at(2)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:43:9
+   |
+LL |     let (right, left) = (&v[k..], &v[..k]);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(left, right) = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:47:9
+   |
+LL |     let (_, _) = (&a[k..], &a[..k]);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `(_, _) = a.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:51:13
+   |
+LL |     let x = (&a[..k], &a[k..]);
+   |             ^^^^^^^^^^^^^^^^^^ help: use: `a.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:102:18
+   |
+LL |     let (_, _) = (&t[..k], &t[k..]);
+   |                  ^^^^^^^^^^^^^^^^^^ help: use: `t.split_at(k)`
+
+error: aborting due to 11 previous errors
+

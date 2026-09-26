@@ -690,6 +690,7 @@ define_Conf! {
         manual_retain,
         manual_slice_fill,
         manual_slice_size_calculation,
+        manual_split_at,
         manual_split_once,
         manual_str_repeat,
         manual_strip,
