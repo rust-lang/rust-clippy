@@ -7444,6 +7444,7 @@ Released 2018-09-13
 [`partial_pub_fields`]: https://rust-lang.github.io/rust-clippy/main/index.html#partial_pub_fields
 [`partialeq_ne_impl`]: https://rust-lang.github.io/rust-clippy/main/index.html#partialeq_ne_impl
 [`partialeq_to_none`]: https://rust-lang.github.io/rust-clippy/main/index.html#partialeq_to_none
+[`path_attribute`]: https://rust-lang.github.io/rust-clippy/main/index.html#path_attribute
 [`path_buf_push_overwrite`]: https://rust-lang.github.io/rust-clippy/main/index.html#path_buf_push_overwrite
 [`path_ends_with_ext`]: https://rust-lang.github.io/rust-clippy/main/index.html#path_ends_with_ext
 [`pathbuf_init_then_push`]: https://rust-lang.github.io/rust-clippy/main/index.html#pathbuf_init_then_push

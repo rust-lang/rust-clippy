@@ -435,11 +435,16 @@ declare_clippy_lint! {
     /// * `ambiguous_glob_reexports`
     /// * `dead_code`
     /// * `deprecated`
+    /// * `deprecated_in_future`
+    /// * `exported_private_dependencies`
     /// * `hidden_glob_reexports`
+    /// * `redundant_imports`
     /// * `unreachable_pub`
     /// * `unused`
     /// * `unused_braces`
     /// * `unused_import_braces`
+    /// * `unused_imports`
+    /// * `clippy::allow_attributes`
     /// * `clippy::disallowed_types`
     /// * `clippy::enum_glob_use`
     /// * `clippy::macro_use_imports`
@@ -447,6 +452,8 @@ declare_clippy_lint! {
     /// * `clippy::redundant_pub_crate`
     /// * `clippy::single_component_path_imports`
     /// * `clippy::unsafe_removed_from_name`
+    /// * `clippy::useless_attribute`
+    /// * `clippy::unused_trait_names`
     /// * `clippy::wildcard_imports`
     ///
     /// For `extern crate` items these lints are:
