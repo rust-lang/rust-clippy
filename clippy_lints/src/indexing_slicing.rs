@@ -106,155 +106,170 @@ impl IndexingSlicing {
             suppress_restriction_lint_in_const: conf.suppress_restriction_lint_in_const,
         }
     }
+
+    fn check_if_in_match_with_len(supposed_match: &Expr<'_>) -> bool {
+        match supposed_match.kind {
+            ExprKind::Tup(tuple_members) => {
+                if tuple_members.iter().map(|x| x.kind).any(|x| {
+                    if let ExprKind::MethodCall(method_name, _, args, _) = x {
+                        method_name.ident.name == sym::len && args.is_empty()
+                    } else {
+                        false
+                    }
+                }) {
+                    return true;
+                }
+            }
+
+            ExprKind::MethodCall(method_name, _, args, _) if method_name.ident.name == sym::len && args.is_empty() => {
+                return true;
+            },
+            _ => {},
+        }
+        false
+    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for IndexingSlicing {
+    #[allow(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        match &expr.kind {
-            ExprKind::Index(array, index, _) => {
-                let current_hir_id = expr.hir_id;
-                for (_, parent_node) in cx.tcx.hir_parent_iter(current_hir_id) {
-                    if let Node::Expr(Expr {
-                        kind: ExprKind::Match(a, _, _),
-                        ..
-                    }) = parent_node
-                    {
-                        if let ExprKind::MethodCall(method_name, receiver, args, span) = a.kind {
-                            if method_name.ident.name == sym::len && args.is_empty() {
-                                if !a.span.from_expansion() {
-                                    // println!("SUCCESS");
-                                    // dbg!(a);
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!self.suppress_restriction_lint_in_const || !cx.tcx.hir_is_inside_const_context(expr.hir_id))
-                    && let expr_ty = cx.typeck_results().expr_ty(array)
-                    && let mut deref = deref_chain(cx, expr_ty)
-                    && deref.any(|l| {
-                        l.peel_refs().is_slice()
-                            || l.peel_refs().is_array()
-                            || ty_has_applicable_get_function(cx, l.peel_refs(), expr_ty, expr)
-                    })
-                    && !is_from_proc_macro(cx, expr)
+        if let ExprKind::Index(array, index, _) = expr.kind {
+            // we check whether the lint should be ignored for within match that checks for len of
+            // said array
+            let current_hir_id = expr.hir_id;
+            for (_, parent_node) in cx.tcx.hir_parent_iter(current_hir_id) {
+                if let Node::Expr(Expr {
+                    kind: ExprKind::Match(match_expr, _, _),
+                    ..
+                }) = parent_node
+                    && Self::check_if_in_match_with_len(match_expr)
                 {
-                    let note = "the suggestion might not be applicable in constant blocks";
-                    let ty = cx.typeck_results().expr_ty(array).peel_refs();
-                    let allowed_in_tests = self.allow_indexing_slicing_in_tests && is_in_test(cx.tcx, expr.hir_id);
-                    if let Some(range) = higher::Range::hir(cx, index) {
-                        // Ranged indexes, i.e., &x[n..m], &x[n..], &x[..n] and &x[..]
-                        if let ty::Array(_, s) = ty.kind() {
-                            let size: u128 = if let Some(size) = s.try_to_target_usize(cx.tcx) {
-                                size.into()
-                            } else {
-                                return;
-                            };
+                    return;
+                }
+            }
 
-                            let const_range = to_const_range(cx, range, size);
-
-                            if let (Some(start), _) = const_range
-                                && start > size
-                            {
-                                span_lint(
-                                    cx,
-                                    OUT_OF_BOUNDS_INDEXING,
-                                    range.start.map_or(expr.span, |start| start.span),
-                                    "range is out of bounds",
-                                );
-                                return;
-                            }
-
-                            if let (_, Some(end)) = const_range
-                                && end > size
-                            {
-                                span_lint(
-                                    cx,
-                                    OUT_OF_BOUNDS_INDEXING,
-                                    range.end.map_or(expr.span, |end| end.span),
-                                    "range is out of bounds",
-                                );
-                                return;
-                            }
-
-                            if let (Some(_), Some(_)) = const_range {
-                                // early return because both start and end are constants
-                                // and we have proven above that they are in bounds
-                                return;
-                            }
-                        }
-
-                        let help_msg = match (range.start, range.end) {
-                            (None, Some(_)) => "consider using `.get(..n)`or `.get_mut(..n)` instead",
-                            (Some(_), None) => "consider using `.get(n..)` or .get_mut(n..)` instead",
-                            (Some(_), Some(_)) => "consider using `.get(n..m)` or `.get_mut(n..m)` instead",
-                            (None, None) => return, // [..] is ok.
+            if (!self.suppress_restriction_lint_in_const || !cx.tcx.hir_is_inside_const_context(expr.hir_id))
+                && let expr_ty = cx.typeck_results().expr_ty(array)
+                && let mut deref = deref_chain(cx, expr_ty)
+                && deref.any(|l| {
+                    l.peel_refs().is_slice()
+                        || l.peel_refs().is_array()
+                        || ty_has_applicable_get_function(cx, l.peel_refs(), expr_ty, expr)
+                })
+                && !is_from_proc_macro(cx, expr)
+            {
+                let note = "the suggestion might not be applicable in constant blocks";
+                let ty = cx.typeck_results().expr_ty(array).peel_refs();
+                let allowed_in_tests = self.allow_indexing_slicing_in_tests && is_in_test(cx.tcx, expr.hir_id);
+                if let Some(range) = higher::Range::hir(cx, index) {
+                    // Ranged indexes, i.e., &x[n..m], &x[n..], &x[..n] and &x[..]
+                    if let ty::Array(_, s) = ty.kind() {
+                        let size: u128 = if let Some(size) = s.try_to_target_usize(cx.tcx) {
+                            size.into()
+                        } else {
+                            return;
                         };
 
-                        if allowed_in_tests {
+                        let const_range = to_const_range(cx, range, size);
+
+                        if let (Some(start), _) = const_range
+                            && start > size
+                        {
+                            span_lint(
+                                cx,
+                                OUT_OF_BOUNDS_INDEXING,
+                                range.start.map_or(expr.span, |start| start.span),
+                                "range is out of bounds",
+                            );
                             return;
                         }
 
-                        span_lint_and_then(cx, INDEXING_SLICING, expr.span, "slicing may panic", |diag| {
-                            diag.help(help_msg);
-
-                            if cx.tcx.hir_is_inside_const_context(expr.hir_id) {
-                                diag.note(note);
-                            }
-                        });
-                    } else {
-                        // Catchall non-range index, i.e., [n] or [n << m]
-                        if let ty::Array(..) = ty.kind() {
-                            // Index is a const block.
-                            if let ExprKind::ConstBlock(..) = index.kind {
-                                return;
-                            }
-                            if let Some(expr_parent) = clippy_utils::get_parent_expr_for_hir(cx, expr.hir_id)
-                                && let ExprKind::Match { .. } = expr_parent.kind
-                            {
-                                return;
-                            }
-                            // Index is a constant uint.
-                            if let Some(constant) = ConstEvalCtxt::new(cx).eval(index) {
-                                // only `usize` index is legal in rust array index
-                                // leave other type to rustc
-                                if let Constant::Int(off) = constant
-                                    && off <= usize::MAX as u128
-                                    && let ty::Uint(utype) = cx.typeck_results().expr_ty(index).kind()
-                                    && *utype == ty::UintTy::Usize
-                                    && let ty::Array(_, s) = ty.kind()
-                                    && let Some(size) = s.try_to_target_usize(cx.tcx)
-                                {
-                                    // get constant offset and check whether it is in bounds
-                                    let off = usize::try_from(off).unwrap();
-                                    let size = usize::try_from(size).unwrap();
-
-                                    if off >= size {
-                                        span_lint(cx, OUT_OF_BOUNDS_INDEXING, expr.span, "index is out of bounds");
-                                    }
-                                }
-                                // Let rustc's `const_err` lint handle constant `usize` indexing on arrays.
-                                return;
-                            }
-                        }
-
-                        if allowed_in_tests {
+                        if let (_, Some(end)) = const_range
+                            && end > size
+                        {
+                            span_lint(
+                                cx,
+                                OUT_OF_BOUNDS_INDEXING,
+                                range.end.map_or(expr.span, |end| end.span),
+                                "range is out of bounds",
+                            );
                             return;
                         }
 
-                        span_lint_and_then(cx, INDEXING_SLICING, expr.span, "indexing may panic", |diag| {
-                            diag.help("consider using `.get(n)` or `.get_mut(n)` instead");
-
-                            if cx.tcx.hir_is_inside_const_context(expr.hir_id) {
-                                diag.note(note);
-                            }
-                        });
+                        if let (Some(_), Some(_)) = const_range {
+                            // early return because both start and end are constants
+                            // and we have proven above that they are in bounds
+                            return;
+                        }
                     }
+
+                    let help_msg = match (range.start, range.end) {
+                        (None, Some(_)) => "consider using `.get(..n)`or `.get_mut(..n)` instead",
+                        (Some(_), None) => "consider using `.get(n..)` or .get_mut(n..)` instead",
+                        (Some(_), Some(_)) => "consider using `.get(n..m)` or `.get_mut(n..m)` instead",
+                        (None, None) => return, // [..] is ok.
+                    };
+
+                    if allowed_in_tests {
+                        return;
+                    }
+
+                    span_lint_and_then(cx, INDEXING_SLICING, expr.span, "slicing may panic", |diag| {
+                        diag.help(help_msg);
+
+                        if cx.tcx.hir_is_inside_const_context(expr.hir_id) {
+                            diag.note(note);
+                        }
+                    });
+                } else {
+                    // Catchall non-range index, i.e., [n] or [n << m]
+                    if let ty::Array(..) = ty.kind() {
+                        // Index is a const block.
+                        if let ExprKind::ConstBlock(..) = index.kind {
+                            return;
+                        }
+                        if let Some(expr_parent) = clippy_utils::get_parent_expr_for_hir(cx, expr.hir_id)
+                            && let ExprKind::Match { .. } = expr_parent.kind
+                        {
+                            return;
+                        }
+                        // Index is a constant uint.
+                        if let Some(constant) = ConstEvalCtxt::new(cx).eval(index) {
+                            // only `usize` index is legal in rust array index
+                            // leave other type to rustc
+                            if let Constant::Int(off) = constant
+                                && off <= usize::MAX as u128
+                                && let ty::Uint(utype) = cx.typeck_results().expr_ty(index).kind()
+                                && *utype == ty::UintTy::Usize
+                                && let ty::Array(_, s) = ty.kind()
+                                && let Some(size) = s.try_to_target_usize(cx.tcx)
+                            {
+                                // get constant offset and check whether it is in bounds
+                                let off = usize::try_from(off).unwrap();
+                                let size = usize::try_from(size).unwrap();
+
+                                if off >= size {
+                                    span_lint(cx, OUT_OF_BOUNDS_INDEXING, expr.span, "index is out of bounds");
+                                }
+                            }
+                            // Let rustc's `const_err` lint handle constant `usize` indexing on arrays.
+                            return;
+                        }
+                    }
+
+                    if allowed_in_tests {
+                        return;
+                    }
+
+                    span_lint_and_then(cx, INDEXING_SLICING, expr.span, "indexing may panic", |diag| {
+                        diag.help("consider using `.get(n)` or `.get_mut(n)` instead");
+
+                        if cx.tcx.hir_is_inside_const_context(expr.hir_id) {
+                            diag.note(note);
+                        }
+                    });
                 }
-            },
-            _ => {},
+            }
         }
     }
 }
