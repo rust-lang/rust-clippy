@@ -7373,6 +7373,7 @@ Released 2018-09-13
 [`needless_nonzero_get`]: https://rust-lang.github.io/rust-clippy/main/index.html#needless_nonzero_get
 [`needless_option_as_deref`]: https://rust-lang.github.io/rust-clippy/main/index.html#needless_option_as_deref
 [`needless_option_take`]: https://rust-lang.github.io/rust-clippy/main/index.html#needless_option_take
+[`needless_owned_generic_args`]: https://rust-lang.github.io/rust-clippy/main/index.html#needless_owned_generic_args
 [`needless_parens_on_range_literals`]: https://rust-lang.github.io/rust-clippy/main/index.html#needless_parens_on_range_literals
 [`needless_pass_by_ref_mut`]: https://rust-lang.github.io/rust-clippy/main/index.html#needless_pass_by_ref_mut
 [`needless_pass_by_value`]: https://rust-lang.github.io/rust-clippy/main/index.html#needless_pass_by_value

@@ -4,11 +4,11 @@ use clippy_utils::mir::{PossibleBorrowerMap, enclosing_mir, expr_local, local_as
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::{implements_trait, is_copy};
-use clippy_utils::{DefinedTy, ExprUseNode, get_expr_use_site, peel_n_hir_expr_refs, sym};
+use clippy_utils::{DefinedTy, ExprUseNode, get_expr_use_site, last_path_segment, peel_n_hir_expr_refs, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{DefId, LocalDefId};
-use rustc_hir::{Body, Expr, ExprKind, Mutability, Path, QPath};
+use rustc_hir::{Body, Expr, ExprKind, Mutability};
 use rustc_index::bit_set::DenseBitSet;
 use rustc_infer::infer::TyCtxtInferExt as _;
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
@@ -101,7 +101,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
                         ..
                     },
                     i,
-                ) if !path_has_args(p) => match cx.typeck_results().qpath_res(p, hir_id) {
+                ) if last_path_segment(p).args.is_none() => match cx.typeck_results().qpath_res(p, hir_id) {
                     Res::Def(DefKind::Fn | DefKind::Ctor(..) | DefKind::AssocFn, id) => Some((hir_id, id, i)),
                     _ => None,
                 },
@@ -142,13 +142,6 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowsForGenericArgs<'tcx> {
         {
             self.possible_borrowers.pop();
         }
-    }
-}
-
-fn path_has_args(p: &QPath<'_>) -> bool {
-    match *p {
-        QPath::Resolved(_, Path { segments: [.., s], .. }) | QPath::TypeRelative(_, s) => s.args.is_some(),
-        QPath::Resolved(..) => false,
     }
 }
 

@@ -1,0 +1,65 @@
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:56:13
+   |
+LL |     as_path(path);
+   |             ^^^^ help: consider borrowing the value instead: `&path`
+   |
+   = note: `-D clippy::needless-owned-generic-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::needless_owned_generic_args)]`
+
+error: cloning this value is unnecessary because the generic argument can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:61:13
+   |
+LL |     as_path(path.clone());
+   |             ^^^^^^^^^^^^ help: consider borrowing the original value instead: `&path`
+
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:66:15
+   |
+LL |     takes_foo(s);
+   |               ^ help: consider borrowing the value instead: `&s`
+
+error: cloning this value is unnecessary because the generic argument can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:71:19
+   |
+LL |     takes_foo_bar(s.clone());
+   |                   ^^^^^^^^^ help: consider borrowing the original value instead: `&s`
+
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:76:11
+   |
+LL |     multi(s, n);
+   |           ^ help: consider borrowing the value instead: `&s`
+
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:81:11
+   |
+LL |     cross(s, 0u32);
+   |           ^ help: consider borrowing the value instead: `&s`
+
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:90:15
+   |
+LL |     takes_foo(h.s);
+   |               ^^^ help: consider borrowing the value instead: `&h.s`
+
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:101:14
+   |
+LL |     w.method(s);
+   |              ^ help: consider borrowing the value instead: `&s`
+
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:103:14
+   |
+LL |     W::assoc(s2);
+   |              ^^ help: consider borrowing the value instead: `&s2`
+
+error: owned value is moved into a generic argument that can borrow it
+  --> tests/ui/needless_owned_generic_args.rs:114:14
+   |
+LL |     g.method(s);
+   |              ^ help: consider borrowing the value instead: `&s`
+
+error: aborting due to 10 previous errors
+

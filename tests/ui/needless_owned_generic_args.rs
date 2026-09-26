@@ -1,0 +1,206 @@
+#![warn(clippy::needless_owned_generic_args)]
+#![allow(dead_code, clippy::box_collection, clippy::boxed_local)]
+
+use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard};
+
+fn as_path(_: impl AsRef<Path>) {}
+fn takes_any<T>(_: T) {}
+
+trait Foo {}
+impl Foo for String {}
+impl Foo for &String {}
+
+trait Bar {}
+impl Bar for String {}
+impl Bar for &String {}
+
+trait Baz {}
+impl Baz for String {}
+// Note: `&String` does not implement `Baz`.
+
+trait Rel<U> {}
+impl Rel<u32> for String {}
+impl Rel<u32> for &String {}
+
+trait Uses<T> {}
+impl Uses<String> for u32 {}
+impl Uses<&String> for u32 {}
+
+trait UsesOwned<T> {}
+impl UsesOwned<String> for u32 {}
+// Note: `u32` does not implement `UsesOwned<&String>`.
+
+fn takes_foo<T: Foo>(_: T) {}
+fn takes_foo_bar<T: Foo + Bar>(_: T) {}
+fn takes_foo_baz<T: Foo + Baz>(_: T) {}
+fn multi<T: Foo, U>(_: T, _: U) {}
+fn cross<T, U>(_: T, _: U)
+where
+    T: Rel<U>,
+    U: Uses<T>,
+{
+}
+fn cross_negative<T, U>(_: T, _: U)
+where
+    T: Rel<U>,
+    U: UsesOwned<T>,
+{
+}
+
+fn make_path() -> PathBuf {
+    PathBuf::from("foo")
+}
+
+fn path_move(path: PathBuf) {
+    as_path(path);
+    //~^ needless_owned_generic_args
+}
+
+fn path_clone(path: PathBuf) {
+    as_path(path.clone());
+    //~^ needless_owned_generic_args
+}
+
+fn custom_trait(s: String) {
+    takes_foo(s);
+    //~^ needless_owned_generic_args
+}
+
+fn custom_trait_clone(s: String) {
+    takes_foo_bar(s.clone());
+    //~^ needless_owned_generic_args
+}
+
+fn multiple_params(s: String, n: u32) {
+    multi(s, n);
+    //~^ needless_owned_generic_args
+}
+
+fn cross_param_predicates(s: String) {
+    cross(s, 0u32);
+    //~^ needless_owned_generic_args
+}
+
+struct Holder {
+    s: String,
+}
+
+fn field_move(h: Holder) {
+    takes_foo(h.s);
+    //~^ needless_owned_generic_args
+}
+
+struct W;
+impl W {
+    fn method<T: Foo>(&self, _: T) {}
+    fn assoc<T: Foo>(_: T) {}
+}
+
+fn method_and_assoc(w: W, s: String, s2: String) {
+    w.method(s);
+    //~^ needless_owned_generic_args
+    W::assoc(s2);
+    //~^ needless_owned_generic_args
+}
+
+struct G<A>(A);
+impl<A> G<A> {
+    fn method<B: Foo>(&self, _: B) {}
+}
+
+fn impl_generic_method(g: G<u8>, s: String) {
+    // Only the function-level parameter `B` may be substituted, not the impl-level `A`.
+    g.method(s);
+    //~^ needless_owned_generic_args
+}
+
+fn inherent_clone_not_linted(x: X) {
+    takes_any(x.clone()); // inherent method named `clone`, not `Clone::clone`
+}
+
+struct X;
+impl X {
+    fn clone(&self) -> Self {
+        X
+    }
+}
+
+fn identity<T: Foo>(x: T) -> T {
+    x
+}
+
+fn pair<T: Foo>(_: T, _: T) {}
+
+fn nested<T: Foo>(_: Option<T>) {}
+
+macro_rules! through_macro {
+    ($e:expr) => {
+        takes_foo($e)
+    };
+}
+
+fn generic_caller<T: Foo>(x: T) {
+    // `&T: Foo` does not follow from `T: Foo` without a blanket impl.
+    takes_foo(x);
+}
+
+fn deref_of_box(b: Box<String>) {
+    takes_foo(*b);
+}
+
+#[clippy::has_significant_drop]
+struct Guard(String);
+impl Foo for Guard {}
+
+fn main() {
+    let path = PathBuf::from("foo");
+
+    // Already borrowed: no lint from either `needless_owned_generic_args` or
+    // `needless_borrows_for_generic_args` (the borrow intentionally preserves ownership).
+    as_path(&path);
+    takes_any(&path);
+
+    // Temporaries: borrowing would preserve nothing.
+    as_path(PathBuf::from("foo"));
+    as_path(make_path());
+    takes_any(String::new());
+    takes_any(String::from("a").clone());
+
+    // `Copy` values: no ownership to preserve.
+    takes_any(1u32);
+
+    // `&String` does not implement `Baz`, so `takes_foo_baz(&s)` would not compile.
+    let s = String::new();
+    takes_foo_baz(s);
+
+    // One of the cross-parameter predicates fails after `T` -> `&T`:
+    // `u32: UsesOwned<&String>` does not hold.
+    let s2 = String::new();
+    cross_negative(s2, 0u32);
+
+    // The generic parameter appears in the return type.
+    let s3 = String::new();
+    let _: String = identity(s3);
+
+    // The generic parameter is shared by two arguments.
+    let a = String::new();
+    let b = String::new();
+    pair(a, b);
+
+    // The generic parameter only occurs nested in the formal parameter type.
+    let s4 = String::new();
+    nested(Some(s4));
+
+    // Explicit generic arguments would also have to be rewritten.
+    let s5 = String::new();
+    takes_foo::<String>(s5);
+
+    // Significant drop types: moving them changes where they are dropped.
+    let g = Guard(String::new());
+    takes_foo(g);
+
+    let m = Mutex::new(String::new());
+    let guard: MutexGuard<'_, String> = m.lock().unwrap();
+    takes_any(guard);
+}

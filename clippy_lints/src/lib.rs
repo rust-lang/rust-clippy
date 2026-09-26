@@ -266,6 +266,7 @@ mod needless_ifs;
 mod needless_late_init;
 mod needless_maybe_sized;
 mod needless_nonzero_get;
+mod needless_owned_generic_args;
 mod needless_parens_on_range_literals;
 mod needless_pass_by_ref_mut;
 mod needless_pass_by_value;
@@ -813,6 +814,7 @@ rustc_lint::late_lint_methods!(
         MissingAssertsForIndexing: missing_asserts_for_indexing::MissingAssertsForIndexing = missing_asserts_for_indexing::MissingAssertsForIndexing,
         UnnecessaryMapOnConstructor: unnecessary_map_on_constructor::UnnecessaryMapOnConstructor = unnecessary_map_on_constructor::UnnecessaryMapOnConstructor,
         NeedlessBorrowsForGenericArgs: needless_borrows_for_generic_args::NeedlessBorrowsForGenericArgs<'tcx> = needless_borrows_for_generic_args::NeedlessBorrowsForGenericArgs::new( conf, ),
+        NeedlessOwnedGenericArgs: needless_owned_generic_args::NeedlessOwnedGenericArgs = needless_owned_generic_args::NeedlessOwnedGenericArgs,
         ManualHashOne: manual_hash_one::ManualHashOne = manual_hash_one::ManualHashOne::new(conf),
         IterWithoutIntoIter: iter_without_into_iter::IterWithoutIntoIter = iter_without_into_iter::IterWithoutIntoIter,
         PathbufThenPush: pathbuf_init_then_push::PathbufThenPush<'tcx> = <pathbuf_init_then_push::PathbufThenPush<'_>>::default(),
