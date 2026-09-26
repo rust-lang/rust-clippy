@@ -95,6 +95,8 @@ Current stable, released 2026-08-20
   [#17131](https://github.com/rust-lang/rust-clippy/pull/17131)
 * Fix duplicate diagnostics in `unknown_attribute` and `renamed_builtin_attr`
   [#17164](https://github.com/rust-lang/rust-clippy/pull/17164)
+* [`borrowed_box`]: suggest calling `.as_ref()` at the call site when the boxed type is a trait object
+  [#17794](https://github.com/rust-lang/rust-clippy/pull/17794)
 
 ### False Positive Fixes
 

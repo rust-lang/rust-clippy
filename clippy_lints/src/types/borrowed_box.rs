@@ -55,14 +55,13 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, m
                 };
                 diag.span_suggestion(
                     hir_ty.span,
-                    if matches!(inner.kind, TyKind::TraitObject(..)) {
-                        "consider using just `&T` and calling `.as_ref()` at the call site"
-                    } else {
-                        "consider using just `&T`"
-                    },
+                    "consider using just `&T`",
                     suggestion,
                     Applicability::Unspecified,
                 );
+                if matches!(inner.kind, TyKind::TraitObject(..)) {
+                    diag.help("call `.as_ref()` at the call site if it's a `&Box<dyn Trait>`");
+                }
             },
         );
         true
