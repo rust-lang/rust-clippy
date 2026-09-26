@@ -67,9 +67,10 @@ fn check<'tcx>(cx: &LateContext<'tcx>, ctxt: SyntaxContext, needs_semi: bool, e:
     let (then, else_) = loop {
         match next.kind {
             ExprKind::If(_, then, Some(else_))
-                if is_never(cx.typeck_results(), ctxt, then)
-                    && then.span.ctxt() == ctxt
-                    && else_.span.ctxt() == ctxt =>
+                if then.span.ctxt() == ctxt
+                    && else_.span.ctxt() == ctxt
+                    && is_never(cx.typeck_results(), ctxt, then)
+                    && !is_never(cx.typeck_results(), ctxt, else_) =>
             {
                 prev_then = Some(then);
                 next = else_;
