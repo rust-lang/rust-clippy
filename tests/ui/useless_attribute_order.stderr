@@ -1,0 +1,29 @@
+error: useless lint attribute
+  --> tests/ui/useless_attribute_order.rs:10:1
+   |
+LL | #[allow(clippy::almost_swapped)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if you just forgot a `!`, use: `#![allow(clippy::almost_swapped)]`
+   |
+   = note: `-D clippy::useless-attribute` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::useless_attribute)]`
+
+error: useless lint attribute
+  --> tests/ui/useless_attribute_order.rs:14:1
+   |
+LL | #[allow(clippy::almost_swapped)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if you just forgot a `!`, use: `#![allow(clippy::almost_swapped)]`
+
+error: useless lint attribute
+  --> tests/ui/useless_attribute_order.rs:20:1
+   |
+LL | #[allow(clippy::almost_swapped)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if you just forgot a `!`, use: `#![allow(clippy::almost_swapped)]`
+
+error: useless lint attribute
+  --> tests/ui/useless_attribute_order.rs:24:1
+   |
+LL | #[allow(clippy::almost_swapped)]
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if you just forgot a `!`, use: `#![allow(clippy::almost_swapped)]`
+
+error: aborting due to 4 previous errors
+
