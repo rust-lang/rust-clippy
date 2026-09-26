@@ -122,3 +122,13 @@ impl Trait for () {
 }
 
 fn main() {}
+
+// Test for issue #11940: borrowed_box on boxed trait object should suggest .as_ref()
+pub trait DayTrait {
+    fn get_display(&self) -> String;
+}
+
+pub fn test_borrowed_box_trait_object(day: &Box<dyn DayTrait>) {
+    //~^ borrowed_box
+    let _ = day.get_display();
+}
