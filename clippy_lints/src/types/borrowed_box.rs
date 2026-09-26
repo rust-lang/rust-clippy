@@ -57,12 +57,11 @@ pub(super) fn check(cx: &LateContext<'_>, hir_ty: &hir::Ty<'_>, lt: &Lifetime, m
                     hir_ty.span,
                     "consider using just `&T`",
                     suggestion,
-                    // To make this `MachineApplicable`, at least one needs to check if it isn't a trait item
-                    // because the trait impls of it will break otherwise;
-                    // and there may be other cases that result in invalid code.
-                    // For example, type coercion doesn't work nicely.
                     Applicability::Unspecified,
                 );
+                if matches!(inner.kind, TyKind::TraitObject(..)) {
+                    diag.help("call `.as_ref()` at the call site if it's a `&Box<dyn Trait>`");
+                }
             },
         );
         true
