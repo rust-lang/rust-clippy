@@ -7232,6 +7232,7 @@ Released 2018-09-13
 [`manual_ilog2`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_ilog2
 [`manual_inspect`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_inspect
 [`manual_instant_elapsed`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_instant_elapsed
+[`manual_intra_doc_links`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_intra_doc_links
 [`manual_is_ascii_check`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_is_ascii_check
 [`manual_is_finite`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_is_finite
 [`manual_is_infinite`]: https://rust-lang.github.io/rust-clippy/main/index.html#manual_is_infinite
