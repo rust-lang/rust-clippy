@@ -9,13 +9,6 @@ use rustc_span::def_id::DefId;
 use std::ops::ControlFlow;
 
 declare_clippy_lint! {
-    /// ### What it does
-    /// Checks if a function clones a parameter passed by reference.
-    ///
-    /// ### Why is this bad?
-    /// Caller should decide where to copy and place data.
-    /// The function should not hide the need of ownership of data.
-    ///
     /// ### Example
     /// ```norun
     /// #[derive(Clone)]
@@ -23,6 +16,20 @@ declare_clippy_lint! {
     ///
     /// pub fn foo(item: &A) {
     ///     let cloned_ref = item.clone();
+    /// }
+    /// ```
+    /// Instead, take it by value, to demand the ownership of the data right away.
+    /// Or try reworking the function to use another type.
+    /// ```norun
+    /// #[derive(Clone)]
+    /// struct A;
+    ///
+    /// pub fn foo_by_value(item: A) {
+    ///     let cloned_ref = item.clone();
+    /// }
+    ///
+    /// pub fn foo_with_arc(item: &A) {
+    ///     // Turns out we don't actually need ownership!
     /// }
     /// ```
     #[clippy::version = "1.98.0"]
