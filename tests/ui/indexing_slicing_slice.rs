@@ -174,24 +174,33 @@ fn main() {
     let z = Z::<i32>(1);
     z[0];
 
-    let supported: &[u8] = &[1, 2, 3];
+    let should_not_lint: &[u8] = &[1, 2, 3];
+    let should_lint: &[u8] = &[1, 2, 3];
 
-    match supported.len() {
+    match should_not_lint.len() {
         0 => {},
-        1 => println!("{}", supported[0]),
-        _ => println!("{} or {}", supported[0], supported[1]),
+        1 => println!("{}", should_not_lint[0]),
+        _ => println!("{} or {}", should_not_lint[0], should_not_lint[1]),
     }
 
-    let x = match supported.len() {
+    let x = match should_not_lint.len() {
         0 => 0,
-        1 => supported[0],
-        _ => supported[1],
+        1 => should_not_lint[0],
+        _ => should_not_lint[1],
     };
 
-    match (supported.len(), supported.contains(&0)) {
+    match (should_not_lint.len(), should_not_lint.contains(&0)) {
         (0, false) => 0,
-        (1, true) => supported[0],
-        (_, false) => supported[1],
-        (_, true) => supported[2],
+        (1, true) => should_not_lint[0],
+        (_, false) => should_lint[1],
+        //~^ indexing_slicing
+        (_, true) => should_not_lint[2],
     };
+
+    match should_not_lint.len() {
+        0 => {},
+        1 => println!("{}", should_lint[0]),
+        //~^ indexing_slicing
+        _ => println!("{} or {}", should_not_lint[0], should_not_lint[1]),
+    }
 }
