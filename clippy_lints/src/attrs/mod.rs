@@ -452,6 +452,9 @@ declare_clippy_lint! {
     /// For `extern crate` items these lints are:
     /// * `unused_imports` on items with `#[macro_use]`
     ///
+    /// On either item kind `clippy::allow_attributes` is permitted as well, as long as the item has
+    /// an outer `allow` attribute for it to be emitted on, since that is where it fires.
+    ///
     /// ### Why is this bad?
     /// Lint attributes have no effect on crate imports. Most
     /// likely a `!` was forgotten.

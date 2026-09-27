@@ -3,18 +3,34 @@ use super::utils::{is_lint_level, is_word, namespace_and_lint};
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{SpanExt as _, first_line_of_span};
 use clippy_utils::sym;
-use rustc_ast::{Attribute, Item, ItemKind};
+use rustc_ast::{AttrStyle, Attribute, Item, ItemKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, LintContext as _};
 
 pub(super) fn check(cx: &EarlyContext<'_>, item: &Item, attrs: &[Attribute]) {
     let skip_unused_imports = attrs.iter().any(|attr| attr.has_name(sym::macro_use));
+    // `clippy::allow_attributes` is emitted on the item's own `allow` attributes rather than on the
+    // item itself, so it needs one to be emitted on whatever the item kind is. Suppressing it is the
+    // documented workaround for an `allow` that is only useless for some expansions of a macro, see
+    // <https://github.com/rust-lang/rust-clippy/issues/17562>.
+    let has_allow_attr = attrs
+        .iter()
+        .any(|attr| matches!(attr.style, AttrStyle::Outer) && attr.has_name(sym::allow));
 
     for attr in attrs {
         if let Some(lint_list) = &attr.meta_item_list()
             && attr.name().is_some_and(is_lint_level)
         {
             for lint in lint_list {
+                if has_allow_attr
+                    && matches!(
+                        namespace_and_lint(lint),
+                        (Some(sym::clippy), Some(sym::allow_attributes))
+                    )
+                {
+                    return;
+                }
+
                 match item.kind {
                     ItemKind::Use(..) => {
                         let (namespace @ (Some(sym::clippy) | None), Some(name)) = namespace_and_lint(lint) else {

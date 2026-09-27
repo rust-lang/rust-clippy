@@ -1,0 +1,17 @@
+error: useless lint attribute
+  --> tests/ui/useless_attribute_allow_attributes.rs:24:5
+   |
+LL |     #[warn(clippy::allow_attributes)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if you just forgot a `!`, use: `#![warn(clippy::allow_attributes)]`
+   |
+   = note: `-D clippy::useless-attribute` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::useless_attribute)]`
+
+error: useless lint attribute
+  --> tests/ui/useless_attribute_allow_attributes.rs:30:5
+   |
+LL |     #[warn(clippy::useless_attribute)]
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: if you just forgot a `!`, use: `#![warn(clippy::useless_attribute)]`
+
+error: aborting due to 2 previous errors
+
