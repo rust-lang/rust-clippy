@@ -1,10 +1,11 @@
 use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
+use clippy_utils::res::{HasHirId as _, MaybeResPath as _};
 use clippy_utils::ty::{deref_chain, get_adt_inherent_method};
 use clippy_utils::{higher, is_from_proc_macro, is_in_test, sym};
 use rustc_ast::ast::RangeLimits;
-use rustc_hir::{Expr, ExprKind, Node};
+use rustc_hir::{Expr, ExprKind, Node, PathSegment};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::consts::ConstExt as _;
 use rustc_middle::ty::{self, Ty};
@@ -99,34 +100,49 @@ pub struct IndexingSlicing {
     suppress_restriction_lint_in_const: bool,
 }
 
+fn check_if_match_arm_eq(
+    method_name: &PathSegment<'_>,
+    match_expr: &Expr<'_>,
+    args: &[Expr<'_>],
+    arm_array: &Expr<'_>,
+) -> bool {
+    if method_name.ident.name == sym::len
+        && args.is_empty()
+        && match_expr.hir_id().owner.to_def_id() == method_name.hir_id.owner.to_def_id()
+        && let ExprKind::Path(qpath) = match_expr.kind
+        && let Some(match_expr_hir_id) = qpath.res_local_id()
+        && let Some(arm_array_hir_id) = arm_array.res_local_id()
+        && match_expr_hir_id == arm_array_hir_id
+    {
+        true
+    } else {
+        false
+    }
+}
+
+fn check_if_in_match_with_len(supposed_match: &Expr<'_>, arm_array: &Expr<'_>) -> bool {
+    match supposed_match.kind {
+        ExprKind::Tup(tuple_members) => tuple_members.iter().map(|x| x.kind).any(|x| {
+            if let ExprKind::MethodCall(method_name, b, args, _) = x {
+                check_if_match_arm_eq(method_name, b, args, arm_array)
+            } else {
+                false
+            }
+        }),
+
+        ExprKind::MethodCall(method_name, match_expr, args, _) => {
+            check_if_match_arm_eq(method_name, match_expr, args, arm_array)
+        },
+        _ => false,
+    }
+}
+
 impl IndexingSlicing {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
             allow_indexing_slicing_in_tests: conf.allow_indexing_slicing_in_tests,
             suppress_restriction_lint_in_const: conf.suppress_restriction_lint_in_const,
         }
-    }
-
-    fn check_if_in_match_with_len(supposed_match: &Expr<'_>) -> bool {
-        match supposed_match.kind {
-            ExprKind::Tup(tuple_members) => {
-                if tuple_members.iter().map(|x| x.kind).any(|x| {
-                    if let ExprKind::MethodCall(method_name, _, args, _) = x {
-                        method_name.ident.name == sym::len && args.is_empty()
-                    } else {
-                        false
-                    }
-                }) {
-                    return true;
-                }
-            }
-
-            ExprKind::MethodCall(method_name, _, args, _) if method_name.ident.name == sym::len && args.is_empty() => {
-                return true;
-            },
-            _ => {},
-        }
-        false
     }
 }
 
@@ -142,7 +158,7 @@ impl<'tcx> LateLintPass<'tcx> for IndexingSlicing {
                     kind: ExprKind::Match(match_expr, _, _),
                     ..
                 }) = parent_node
-                    && Self::check_if_in_match_with_len(match_expr)
+                    && check_if_in_match_with_len(match_expr, array)
                 {
                     return;
                 }
