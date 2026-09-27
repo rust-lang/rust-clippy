@@ -150,5 +150,21 @@ LL |     y[0];
    |
    = help: consider using `.get(n)` or `.get_mut(n)` instead
 
-error: aborting due to 19 previous errors
+error: indexing may panic
+  --> tests/ui/indexing_slicing_slice.rs:195:23
+   |
+LL |         (_, false) => should_lint[1],
+   |                       ^^^^^^^^^^^^^^
+   |
+   = help: consider using `.get(n)` or `.get_mut(n)` instead
+
+error: indexing may panic
+  --> tests/ui/indexing_slicing_slice.rs:202:29
+   |
+LL |         1 => println!("{}", should_lint[0]),
+   |                             ^^^^^^^^^^^^^^
+   |
+   = help: consider using `.get(n)` or `.get_mut(n)` instead
+
+error: aborting due to 21 previous errors
 
