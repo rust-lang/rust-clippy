@@ -4351,9 +4351,10 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `fold` when a more succinct alternative exists.
-    /// Specifically, this checks for `fold`s which could be replaced by `any`, `all`,
-    /// `sum` or `product`, and for folds over an `Option`'s iterator which could be
+    /// Checks for usage of `fold` when a clearer or more succinct alternative exists.
+    /// Specifically, this checks for boolean `fold`s which should make their
+    /// short-circuiting behavior explicit, `fold`s which could be replaced by
+    /// `sum` or `product`, and folds over an `Option`'s iterator which could be
     /// replaced by `map_or`.
     ///
     /// ### Why is this bad?
@@ -4368,14 +4369,14 @@ declare_clippy_lint! {
     ///
     /// Use instead:
     /// ```no_run
-    /// (0..3).any(|x| x > 2);
+    /// (0..3).fold(false, |acc, x| acc | (x > 2));
     /// # let opt = Some(1);
     /// opt.as_ref().map_or(0, |x| 0 | x);
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub UNNECESSARY_FOLD,
     style,
-    "using `fold` when a more succinct alternative exists"
+    "using `fold` when a clearer or more succinct alternative exists"
 }
 
 declare_clippy_lint! {
