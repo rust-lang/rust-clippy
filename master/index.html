@@ -17178,7 +17178,7 @@ pub fn start_apocalypse(u: &amp;mut Universe) {
 <p>In most cases, this can be written much more cleanly by omitting <code>::{self}</code>.</p>
 <h3>Known problems</h3>
 <p>Removing <code>::{self}</code> will cause any non-module items at the same path to also be imported.
-This might cause a <a href="https://github.com/rust-lang/rustfmt/issues/3568">naming conflict</a>. This lint makes no attempt
+This might cause a naming conflict (<a href="https://github.com/rust-lang/rustfmt/issues/3568">rust-lang/rustfmt#3568</a>). This lint makes no attempt
 to detect this scenario and that is why it is a restriction lint.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">use std::io::{self};
