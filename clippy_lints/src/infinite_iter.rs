@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::res::MaybeDef as _;
+use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{higher, sym};
 use rustc_hir::{BorrowKind, Closure, Expr, ExprKind};
@@ -84,12 +84,20 @@ impl<'tcx> LateLintPass<'tcx> for InfiniteIter {
         if let Some((lint, msg)) = lint_msg {
             span_lint(cx, lint, expr.span, msg);
         }
-        let lint_msg = match is_unbounded(cx, expr) {
-            Unbounded => Some((UNBOUNDED_ITER, "unbounded iteration detected")),
-            Bounded => None,
+        let iter = if let Some(for_loop) = higher::ForLoop::hir(expr) {
+            Some(for_loop.arg)
+        } else if let ExprKind::MethodCall(method, receiver, args, _) = expr.kind
+            && cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::Iterator)
+            && is_completing_method(method.ident.name, args.len())
+        {
+            Some(receiver)
+        } else {
+            None
         };
-        if let Some((lint, msg)) = lint_msg {
-            span_lint(cx, lint, expr.span, msg);
+        if let Some(iter) = iter
+            && is_unbounded(cx, iter) == Unbounded
+        {
+            span_lint(cx, UNBOUNDED_ITER, expr.span, "unbounded iteration detected");
         }
     }
 }
@@ -321,24 +329,37 @@ impl Boundedness {
     }
 }
 
+/// Whether a method may exhaust its iterator, including short-circuiting consumers
+fn is_completing_method(name: Symbol, args_len: usize) -> bool {
+    COMPLETING_METHODS.contains(&(name, args_len))
+        || POSSIBLY_COMPLETING_METHODS.contains(&(name, args_len))
+        || (args_len == 0 && matches!(name, sym::collect | sym::last | sym::unzip))
+}
+
 fn is_unbounded(cx: &LateContext<'_>, expr: &Expr<'_>) -> Boundedness {
     match expr.kind {
         ExprKind::MethodCall(method, receiver, args, _) => {
-            if method.ident.name == sym::zip {
-                is_unbounded(cx, receiver).and(is_unbounded(cx, &args[0]))
-            } else if method.ident.name == sym::chain {
-                is_unbounded(cx, receiver).or(is_unbounded(cx, &args[0]))
-            } else if method.ident.name == sym::flat_map || method.ident.name.as_str() == "flatten" {
-                Unbounded
-            } else if method.ident.name.as_str() == "take" {
-                Bounded
-            } else {
-                is_unbounded(cx, receiver)
+            // Do not carry a source's unboundedness through a consumed result, or through
+            // a non-iterator result such as the Option returned by next()
+            if is_completing_method(method.ident.name, args.len())
+                || !cx
+                    .tcx
+                    .get_diagnostic_item(sym::Iterator)
+                    .is_some_and(|id| implements_trait(cx, cx.typeck_results().expr_ty(expr), id, &[]))
+            {
+                return Bounded;
+            }
+            match (method.ident.name, args) {
+                (sym::zip, [other]) => is_unbounded(cx, receiver).and(is_unbounded(cx, other)),
+                (sym::chain, [other]) => is_unbounded(cx, receiver).or(is_unbounded(cx, other)),
+                (sym::flat_map, [_]) | (sym::flatten, []) => Unbounded,
+                (sym::take, [_]) => Bounded,
+                _ => is_unbounded(cx, receiver),
             }
         },
         ExprKind::Block(block, _) => block.expr.as_ref().map_or(Bounded, |e| is_unbounded(cx, e)),
         ExprKind::AddrOf(BorrowKind::Ref, _, e) => is_unbounded(cx, e),
-        ExprKind::Struct(..) => higher::Range::hir(cx, expr).is_some_and(|r| r.end.is_some()).into(),
+        ExprKind::Struct(..) => higher::Range::hir(cx, expr).map_or(Bounded, |r| r.end.is_some().into()),
         // Other expression kinds don't fit the lint and thus are marked as bounded
         // to avoid further calculations
         _ => Bounded,

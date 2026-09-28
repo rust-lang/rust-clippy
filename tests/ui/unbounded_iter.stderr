@@ -1,17 +1,219 @@
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:4:5
+  --> tests/ui/unbounded_iter.rs:5:13
    |
-LL |     (0..).all(|x| x > 0);
-   |     ^^^^^^^^^^^^^^^^^^^^
+LL |     let _ = (0usize..).all(|x| x < 42);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
    = note: `-D clippy::unbounded-iter` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unbounded_iter)]`
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:4:5
+  --> tests/ui/unbounded_iter.rs:7:13
    |
-LL |     (0..).all(|x| x > 0);
-   |     ^^^^^
+LL |     let _ = (0usize..).count();
+   |             ^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 2 previous errors
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:23:13
+   |
+LL |     let _ = (0usize..).zip(0usize..).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:34:13
+   |
+LL |     let _ = (0usize..).chain(0usize..).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:36:13
+   |
+LL |     let _ = (0usize..).chain(0usize..42).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:38:13
+   |
+LL |     let _ = (0usize..42).chain(0usize..).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:45:13
+   |
+LL |     let _ = (0usize..3).flat_map(|_| 0usize..).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:47:13
+   |
+LL |     let _ = [0usize..].into_iter().flatten().count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:51:13
+   |
+LL |     let _ = (0usize..).take(3).flat_map(|_| 0usize..).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:53:13
+   |
+LL |     let _ = (0usize..).map(|_| 0usize..).take(3).flatten().count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:62:13
+   |
+LL |     let _ = (0usize..3).flat_map(|_| 0usize..2).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:64:13
+   |
+LL |     let _ = [0usize..2].into_iter().flatten().count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:76:13
+   |
+LL |     let _ = (0usize..).take(42).chain(0usize..).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:81:13
+   |
+LL |     let _ = (0usize..).map(|x| x + 1).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:83:13
+   |
+LL |     let _ = (0usize..).skip(10).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:85:13
+   |
+LL |     let _ = (0usize..).into_iter().count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:94:13
+   |
+LL |       let _ = ({
+   |  _____________^
+LL | |
+LL | |         std::hint::black_box(());
+LL | |         0usize..
+LL | |     })
+LL | |     .count();
+   | |____________^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:115:13
+   |
+LL |     let _ = (&mut (0usize..)).count();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:132:5
+   |
+LL | /     for x in 0usize.. {
+LL | |
+LL | |         std::hint::black_box(x);
+LL | |     }
+   | |_____^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:137:5
+   |
+LL | /     for x in (0usize..).map(|x| x + 1) {
+LL | |
+LL | |         std::hint::black_box(x);
+LL | |     }
+   | |_____^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:161:13
+   |
+LL |     let _ = (0usize..).max();
+   |             ^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:163:13
+   |
+LL |     let _ = (0usize..).sum::<usize>();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:165:13
+   |
+LL |     let _ = (0usize..).collect::<Vec<_>>();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:167:13
+   |
+LL |     let _ = (0usize..).fold(0usize, |acc, x| acc ^ x);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:169:13
+   |
+LL |     let _ = (0usize..).last();
+   |             ^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:171:31
+   |
+LL |     let _: (Vec<_>, Vec<_>) = (0usize..).map(|x| (x, x)).unzip();
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:188:13
+   |
+LL |       let _ = (0usize..)
+   |  _____________^
+LL | |
+LL | |         .map(|x| x + 1)
+LL | |         .max()
+   | |______________^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:194:13
+   |
+LL |       let _ = (0usize..)
+   |  _____________^
+LL | |
+LL | |         .sum::<usize>()
+   | |_______________________^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:199:13
+   |
+LL |       let _ = (0usize..)
+   |  _____________^
+LL | |
+LL | |         .collect::<Vec<_>>()
+   | |____________________________^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:207:13
+   |
+LL |       let _ = (0usize..)
+   |  _____________^
+LL | |
+LL | |         .max()
+   | |______________^
+
+error: unbounded iteration detected
+  --> tests/ui/unbounded_iter.rs:213:13
+   |
+LL |       let _ = (0usize..)
+   |  _____________^
+LL | |
+LL | |         .collect::<Vec<_>>()
+   | |____________________________^
+
+error: aborting due to 31 previous errors
 
