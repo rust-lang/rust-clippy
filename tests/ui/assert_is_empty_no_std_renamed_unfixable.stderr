@@ -1,0 +1,16 @@
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_no_std_renamed_unfixable.rs:20:9
+   |
+LL |         assert!(array.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(array.is_empty());
+LL +         assert_eq!(array.as_slice(), [] as [memory::string::String; 0]);
+   |
+
+error: aborting due to 1 previous error
+

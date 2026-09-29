@@ -1,0 +1,124 @@
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:26:5
+   |
+LL |     assert!(array.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(array.is_empty());
+LL +     assert_eq!(array.as_slice(), []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:30:5
+   |
+LL |     assert!(vec.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(vec.is_empty());
+LL +     assert_eq!(vec, []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:33:5
+   |
+LL |     assert!(vec_ref.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(vec_ref.is_empty());
+LL +     assert_eq!(vec_ref.as_slice(), []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:37:5
+   |
+LL |     assert!(heap.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(heap.is_empty());
+LL +     assert_eq!(heap.as_slice(), []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:42:5
+   |
+LL |     assert!(array.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(array.is_empty());
+LL +     assert_eq!(array.as_slice(), []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:48:5
+   |
+LL |     assert!(array.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(array.is_empty());
+LL +     assert_eq!(array.as_slice(), [] as [T; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:57:5
+   |
+LL |     assert!(vec.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(vec.is_empty());
+LL +     assert_eq!(vec, []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:60:5
+   |
+LL |     assert!(array.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(array.is_empty());
+LL +     assert_eq!(array.as_slice(), []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:75:5
+   |
+LL |     assert!(vec.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(vec.is_empty());
+LL +     assert_eq!(vec, []);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_unnameable.rs:86:9
+   |
+LL |         assert!(vec.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(vec.is_empty());
+LL +         assert_eq!(vec, []);
+   |
+
+error: aborting due to 10 previous errors
+

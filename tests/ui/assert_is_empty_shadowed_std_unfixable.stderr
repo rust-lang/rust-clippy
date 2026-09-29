@@ -1,0 +1,52 @@
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_shadowed_std_unfixable.rs:14:9
+   |
+LL |         assert!(heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::assert-is-empty` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assert_is_empty)]`
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(heap.is_empty());
+LL +         assert_eq!(heap.as_slice(), [] as [std::string::String; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_shadowed_std_unfixable.rs:18:9
+   |
+LL |         assert!(array.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(array.is_empty());
+LL +         assert_eq!(array.as_slice(), [] as [std::string::String; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_shadowed_std_unfixable.rs:22:9
+   |
+LL |         assert!(nested.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(nested.is_empty());
+LL +         assert_eq!(nested, [] as [std::collections::HashMap<std::string::String, i32>; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty_shadowed_std_unfixable.rs:32:5
+   |
+LL |     assert!(array.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(array.is_empty());
+LL +     assert_eq!(array.as_slice(), [] as [i32; 0]);
+   |
+
+error: aborting due to 4 previous errors
+
