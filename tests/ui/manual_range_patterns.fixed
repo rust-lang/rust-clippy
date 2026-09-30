@@ -2,8 +2,6 @@
 
 fn main() {
     let f = 6;
-    let ch = '0';
-    let byte = b'0';
 
     let _ = matches!(f, 1..=10);
     //~^ manual_range_patterns
@@ -44,16 +42,6 @@ fn main() {
     //~^ manual_range_patterns
     matches!(f, -0x09..=0x00);
     //~^ manual_range_patterns
-    matches!(ch, 'a'..='e');
-    //~^ manual_range_patterns
-    matches!(ch, '0'..='4');
-    //~^ manual_range_patterns
-    matches!(ch, '0' | '1' | '2' | '4'); // '3' is missing
-    matches!(ch, '<' | '=' | '>'); // range is not intuitive
-    matches!(ch, '/' | '0'..='9'); // range is not intuitive
-    matches!(byte, b'0'..=b'3');
-    //~^ manual_range_patterns
-    matches!(byte, b'<' | b'=' | b'>'); // range is not intuitive
 
     matches!(f, 0..=5);
     //~^ manual_range_patterns
@@ -82,4 +70,36 @@ fn main() {
         | 255 => 6,
         | _ => 7,
     };
+
+    char_literal();
+    byte_literal();
+}
+
+fn char_literal() {
+    let ch = '0';
+
+    matches!(ch, 'a'..='e');
+    //~^ manual_range_patterns
+    matches!(ch, '0'..='4');
+    //~^ manual_range_patterns
+
+    // FIXME: Reduce to 'A'..='Z' | '[' | '\\' | ']' | '^' | '_' | '`' | 'a'..='z'
+    #[rustfmt::skip]
+    matches!(ch, 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M' | 'N' |
+        'O' | 'P' | 'Q' | 'R' | 'S' | 'T' | 'U' | 'V' | 'W' | 'X' | 'Y' | 'Z' | '[' | '\\' | ']' |
+        '^' | '_' | '`' | 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h' | 'i' | 'j' | 'k' | 'l' |
+        'm' | 'n' | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' | 'v' | 'w' | 'x' | 'y' | 'z');
+
+    matches!(ch, '0' | '1' | '2' | '4'); // '3' is missing
+    matches!(ch, 'A' | 'B' | 'c' | 'd' | 'e'); // 'C'..'c' is missing
+    matches!(ch, '<' | '=' | '>'); // range is not intuitive
+    matches!(ch, '/' | '0'..='9'); // range is not intuitive
+}
+fn byte_literal() {
+    let byte = b'0';
+
+    matches!(byte, b'0'..=b'3');
+    //~^ manual_range_patterns
+
+    matches!(byte, b'<' | b'=' | b'>'); // range is not intuitive
 }
