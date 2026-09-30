@@ -1,7 +1,11 @@
+//@aux-build:../../ui/auxiliary/proc_macros.rs
+
 #![warn(clippy::disallowed_types)]
 
+extern crate proc_macros;
 extern crate quote;
 extern crate syn;
+use proc_macros::external;
 
 use std::sync as foo;
 use std::sync::atomic::AtomicU32;
@@ -66,4 +70,12 @@ mod useless_attribute {
     // Regression test for https://github.com/rust-lang/rust-clippy/issues/12753
     #[allow(clippy::disallowed_types)]
     use std::collections::HashMap;
+}
+
+fn issue17718() {
+    external! {
+        fn in_external_macro() -> std::collections::HashMap<(), ()> {
+            std::collections::HashMap::new()
+        }
+    }
 }
