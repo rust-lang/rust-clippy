@@ -4998,14 +4998,10 @@ declare_clippy_lint! {
     ///
     /// Clippy allows `Pin<&Self>` and `Pin<&mut Self>` if `&self` and `&mut self` is required.
     ///
-    /// Return types are checked only when the receiver already follows the convention:
-    ///
-    /// - `as_` should return a borrowed type: a reference, a raw pointer, or an
-    ///   `Option`/`Result`/`Pin` wrapper around those. `()` and owned values such as
-    ///   `String` do not qualify. `Cow`, generic and opaque returns are not checked.
-    /// - `into_` should return an owned type or a raw pointer (`into_raw`), not `()`
-    ///   and not a reference.
-    /// - `is_` should return `bool`.
+    /// When the receiver already follows the convention, `as_`, `into_` and `is_`
+    /// methods that return `()` are also linted. Other return types are not checked:
+    /// `as_u32() -> u32`, `into_mut(self) -> &mut T` and `is_* -> Result<bool, _>` are
+    /// established APIs.
     ///
     /// `to_` may return either a borrowed or an owned type, so only its receiver is checked.
     /// Return types are not checked on trait implementations, same as the receiver check for

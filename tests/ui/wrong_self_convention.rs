@@ -286,7 +286,8 @@ pub mod issue8142 {
     }
 }
 
-// Return types of `as_` / `into_` / `is_` follow the naming convention (see #7676).
+// `as_` / `into_` / `is_` that return `()` are linted (see #7676).
+// Copy conversions, `into_mut`-style references and non-bool `is_` returns are not.
 mod issue7676 {
     use std::pin::Pin;
 
@@ -298,17 +299,14 @@ mod issue7676 {
         //~^ wrong_self_convention
 
         fn as_vec(&self) -> Vec<u8> {
-            //~^ wrong_self_convention
             Vec::new()
         }
 
         fn as_u32(&self) -> u32 {
-            //~^ wrong_self_convention
             0
         }
 
         fn as_ascii(&self) -> Option<u8> {
-            //~^ wrong_self_convention
             None
         }
 
@@ -316,12 +314,10 @@ mod issue7676 {
         //~^ wrong_self_convention
 
         fn into_ref(self) -> &'static str {
-            //~^ wrong_self_convention
             ""
         }
 
         fn into_borrowed(self) -> Result<&'static str, Error> {
-            //~^ wrong_self_convention
             Ok("")
         }
 
@@ -329,7 +325,6 @@ mod issue7676 {
         //~^ wrong_self_convention
 
         fn is_status(&self) -> u8 {
-            //~^ wrong_self_convention
             0
         }
 
@@ -361,7 +356,6 @@ mod issue7676 {
             &[]
         }
         async fn as_owned(&self) -> Vec<u8> {
-            //~^ wrong_self_convention
             Vec::new()
         }
         async fn as_nothing(&self) {}

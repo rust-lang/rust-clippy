@@ -393,92 +393,36 @@ LL |         fn to_u64(self) -> u64 {
    = help: consider choosing a less ambiguous name
 
 error: methods called `as_*` usually return a borrowed type
-  --> tests/ui/wrong_self_convention.rs:297:27
+  --> tests/ui/wrong_self_convention.rs:298:27
    |
 LL |         fn as_bytes(&self) {}
    |                           ^
    |
    = help: consider choosing a less ambiguous name
 
-error: methods called `as_*` usually return a borrowed type
-  --> tests/ui/wrong_self_convention.rs:300:29
-   |
-LL |         fn as_vec(&self) -> Vec<u8> {
-   |                             ^^^^^^^
-   |
-   = help: consider choosing a less ambiguous name
-
-error: methods called `as_*` usually return a borrowed type
-  --> tests/ui/wrong_self_convention.rs:305:29
-   |
-LL |         fn as_u32(&self) -> u32 {
-   |                             ^^^
-   |
-   = help: consider choosing a less ambiguous name
-
-error: methods called `as_*` usually return a borrowed type
-  --> tests/ui/wrong_self_convention.rs:310:31
-   |
-LL |         fn as_ascii(&self) -> Option<u8> {
-   |                               ^^^^^^^^^^
-   |
-   = help: consider choosing a less ambiguous name
-
 error: methods called `into_*` usually return an owned type
-  --> tests/ui/wrong_self_convention.rs:315:26
+  --> tests/ui/wrong_self_convention.rs:313:26
    |
 LL |         fn into_vec(self) {}
    |                          ^
    |
    = help: consider choosing a less ambiguous name
 
-error: methods called `into_*` usually return an owned type
-  --> tests/ui/wrong_self_convention.rs:318:30
-   |
-LL |         fn into_ref(self) -> &'static str {
-   |                              ^^^^^^^^^^^^
-   |
-   = help: consider choosing a less ambiguous name
-
-error: methods called `into_*` usually return an owned type
-  --> tests/ui/wrong_self_convention.rs:323:35
-   |
-LL |         fn into_borrowed(self) -> Result<&'static str, Error> {
-   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-   = help: consider choosing a less ambiguous name
-
 error: methods called `is_*` usually return `bool`
-  --> tests/ui/wrong_self_convention.rs:328:27
+  --> tests/ui/wrong_self_convention.rs:324:27
    |
 LL |         fn is_empty(&self) {}
    |                           ^
    |
    = help: consider choosing a less ambiguous name
 
-error: methods called `is_*` usually return `bool`
-  --> tests/ui/wrong_self_convention.rs:331:32
-   |
-LL |         fn is_status(&self) -> u8 {
-   |                                ^^
-   |
-   = help: consider choosing a less ambiguous name
-
 error: methods called `as_*` usually return a borrowed type
-  --> tests/ui/wrong_self_convention.rs:363:37
-   |
-LL |         async fn as_owned(&self) -> Vec<u8> {
-   |                                     ^^^^^^^
-   |
-   = help: consider choosing a less ambiguous name
-
-error: methods called `as_*` usually return a borrowed type
-  --> tests/ui/wrong_self_convention.rs:367:35
+  --> tests/ui/wrong_self_convention.rs:361:35
    |
 LL |         async fn as_nothing(&self) {}
    |                                   ^
    |
    = help: consider choosing a less ambiguous name
 
-error: aborting due to 60 previous errors
+error: aborting due to 53 previous errors
 
