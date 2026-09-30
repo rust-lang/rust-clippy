@@ -938,6 +938,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`allow_attributes_without_reason`](https://rust-lang.github.io/rust-clippy/main/index.html#allow_attributes_without_reason)
 * [`almost_complete_range`](https://rust-lang.github.io/rust-clippy/main/index.html#almost_complete_range)
 * [`approx_constant`](https://rust-lang.github.io/rust-clippy/main/index.html#approx_constant)
+* [`assert_is_empty`](https://rust-lang.github.io/rust-clippy/main/index.html#assert_is_empty)
 * [`assigning_clones`](https://rust-lang.github.io/rust-clippy/main/index.html#assigning_clones)
 * [`borrow_as_ptr`](https://rust-lang.github.io/rust-clippy/main/index.html#borrow_as_ptr)
 * [`cast_abs_to_unsigned`](https://rust-lang.github.io/rust-clippy/main/index.html#cast_abs_to_unsigned)

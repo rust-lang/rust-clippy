@@ -646,6 +646,7 @@ define_Conf! {
         allow_attributes_without_reason,
         almost_complete_range,
         approx_constant,
+        assert_is_empty,
         assigning_clones,
         borrow_as_ptr,
         cast_abs_to_unsigned,
