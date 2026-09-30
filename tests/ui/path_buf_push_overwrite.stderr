@@ -1,11 +1,174 @@
-error: calling `push` with '/' or '\' (file system root) will overwrite the previous path definition
-  --> tests/ui/path_buf_push_overwrite.rs:7:12
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:8:15
    |
-LL |     x.push("/bar");
-   |            ^^^^^^ help: try: `"bar"`
+LL |     path.push("/sh");
+   |               ^^^^^
    |
+   = note: pushing a path starting with separator will replace the path instead
    = note: `-D clippy::path-buf-push-overwrite` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::path_buf_push_overwrite)]`
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.push("/sh");
+LL +     path.push("sh");
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.push("/sh");
+LL +     path = PathBuf::from("/sh");
+   |
 
-error: aborting due to 1 previous error
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:11:15
+   |
+LL |     path.push(r#"/sh"#);
+   |               ^^^^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.push(r#"/sh"#);
+LL +     path.push(r#"sh"#);
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.push(r#"/sh"#);
+LL +     path = PathBuf::from(r#"/sh"#);
+   |
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:14:15
+   |
+LL |     path.push("\\user");
+   |               ^^^^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.push("\\user");
+LL +     path.push("user");
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.push("\\user");
+LL +     path = PathBuf::from("\\user");
+   |
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:17:15
+   |
+LL |     path.push(r#"\user"#);
+   |               ^^^^^^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.push(r#"\user"#);
+LL +     path.push(r#"user"#);
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.push(r#"\user"#);
+LL +     path = PathBuf::from(r#"\user"#);
+   |
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:24:15
+   |
+LL |     path.push("/sh");
+   |               ^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.push("/sh");
+LL +     path.push("sh");
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.push("/sh");
+LL +     *path = PathBuf::from("/sh");
+   |
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:30:15
+   |
+LL |     path.push("/sh");
+   |               ^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.push("/sh");
+LL +     path.push("sh");
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.push("/sh");
+LL +     *path = PathBuf::from("/sh");
+   |
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:35:28
+   |
+LL |     cell.borrow_mut().push("/sh");
+   |                            ^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     cell.borrow_mut().push("/sh");
+LL +     cell.borrow_mut().push("sh");
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     cell.borrow_mut().push("/sh");
+LL +     *cell.borrow_mut() = PathBuf::from("/sh");
+   |
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:40:25
+   |
+LL |     PathBuf::new().push("/sh");
+   |                         ^^^^^ help: if this is unintentional, try removing the starting separator: `"sh"`
+   |
+   = note: pushing a path starting with separator will replace the path instead
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:46:15
+   |
+LL |     path.push("/sh");
+   |               ^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.push("/sh");
+LL +     path.push("sh");
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.push("/sh");
+LL +     ***path = PathBuf::from("/sh");
+   |
+
+error: argument to `PathBuf::push` starts with a path separator
+  --> tests/ui/path_buf_push_overwrite.rs:64:31
+   |
+LL |     path.lock().unwrap().push("/sh");
+   |                               ^^^^^
+   |
+   = note: pushing a path starting with separator will replace the path instead
+help: if this is unintentional, try removing the starting separator
+   |
+LL -     path.lock().unwrap().push("/sh");
+LL +     path.lock().unwrap().push("sh");
+   |
+help: if this is intentional, consider using `PathBuf::from`
+   |
+LL -     path.lock().unwrap().push("/sh");
+LL +     ***path.lock().unwrap() = PathBuf::from("/sh");
+   |
+
+error: aborting due to 10 previous errors
 

@@ -11,6 +11,7 @@ use rustc_span::Span;
 use super::JOIN_ABSOLUTE_PATHS;
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, join_arg: &'tcx Expr<'tcx>, expr_span: Span) {
+    // Shares logic with `path_buf_push_overwrite`
     let ty = cx.typeck_results().expr_ty(recv).peel_refs();
     if matches!(ty.opt_diag_name(cx), Some(sym::Path | sym::PathBuf))
         && let ExprKind::Lit(spanned) = expr_or_init(cx, join_arg).kind

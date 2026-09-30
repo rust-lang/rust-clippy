@@ -1749,7 +1749,8 @@ declare_clippy_lint! {
     /// assert_eq!(joined_path, PathBuf::from("/sh"));
     /// ```
     ///
-    /// Use instead;
+    /// Use instead:
+    ///
     /// ```rust
     /// # use std::path::{Path, PathBuf};
     /// let path = Path::new("/bin");
@@ -3131,34 +3132,46 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    ///* Checks for [push](https://doc.rust-lang.org/std/path/struct.PathBuf.html#method.push)
-    /// calls on `PathBuf` that can cause overwrites.
+    ///
+    /// Checks for calls to `PathBuf::push` that start with a path separator (`\\` or `/`).
     ///
     /// ### Why is this bad?
-    /// Calling `push` with a root path at the start can overwrite the
-    /// previous defined path.
+    ///
+    /// If the argument to `PathBuf::push` starts with a separator, it will overwrite
+    /// the original path. If this is intentional, prefer using `PathBuf::from` instead.
+    ///
+    /// Note the behavior is platform dependent. A leading `\\` will be accepted
+    /// on unix systems as part of the file name
+    ///
+    /// See [`PathBuf::push`](https://doc.rust-lang.org/std/path/struct.PathBuf.html#method.push)
     ///
     /// ### Example
-    /// ```no_run
-    /// use std::path::PathBuf;
     ///
-    /// let mut x = PathBuf::from("/foo");
-    /// x.push("/bar");
-    /// assert_eq!(x, PathBuf::from("/bar"));
+    /// ```rust
+    /// # use std::path::PathBuf;
+    /// let mut path = PathBuf::from("/bin");
+    /// path.push("/sh");
+    /// assert_eq!(path, PathBuf::from("/sh"));
     /// ```
-    /// Could be written:
     ///
-    /// ```no_run
-    /// use std::path::PathBuf;
+    /// Use instead:
     ///
-    /// let mut x = PathBuf::from("/foo");
-    /// x.push("bar");
-    /// assert_eq!(x, PathBuf::from("/foo/bar"));
+    /// ```rust
+    /// # use std::path::PathBuf;
+    /// let mut path = PathBuf::from("/bin");
+    ///
+    /// // If this was unintentional, remove the leading separator
+    /// path.push("sh");
+    /// assert_eq!(path, PathBuf::from("/bin/sh"));
+    ///
+    /// // If this was intentional, create a new path instead
+    /// let new = PathBuf::from("/sh");
+    /// assert_eq!(new, PathBuf::from("/sh"));
     /// ```
     #[clippy::version = "1.36.0"]
     pub PATH_BUF_PUSH_OVERWRITE,
-    nursery,
-    "calling `push` with file system root on `PathBuf` can overwrite it"
+    suspicious,
+    "calls to `PathBuf::push` which will overwrite the original path"
 }
 
 declare_clippy_lint! {
@@ -5876,7 +5889,7 @@ impl Methods {
                     by_ref_peekable_peek::check(cx, expr, recv);
                 },
                 (sym::push, [arg]) => {
-                    path_buf_push_overwrite::check(cx, expr, arg);
+                    path_buf_push_overwrite::check(cx, recv, arg, expr.span);
                 },
                 (sym::read_to_end, [_]) => {
                     verbose_file_reads::check(cx, expr, recv, verbose_file_reads::READ_TO_END_MSG);

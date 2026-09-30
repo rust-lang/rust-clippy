@@ -5,45 +5,45 @@ use std::path::PathBuf;
 
 fn main() {
     let mut path = PathBuf::from("/foo");
-    path.push("/sh");
+    path.push("sh");
     //~^ path_buf_push_overwrite
 
-    path.push(r#"/sh"#);
+    path.push(r#"sh"#);
     //~^ path_buf_push_overwrite
 
-    path.push("\\user");
+    path.push("user");
     //~^ path_buf_push_overwrite
 
-    path.push(r#"\user"#);
+    path.push(r#"user"#);
     //~^ path_buf_push_overwrite
 
     path.push("sh")
 }
 
 fn mut_ref(path: &mut PathBuf) {
-    path.push("/sh");
+    path.push("sh");
     //~^ path_buf_push_overwrite
 }
 
 fn boxed() {
     let mut path = Box::new(PathBuf::from("/foo"));
-    path.push("/sh");
+    path.push("sh");
     //~^ path_buf_push_overwrite
 }
 
 fn guard(cell: &std::cell::RefCell<PathBuf>) {
-    cell.borrow_mut().push("/sh");
+    cell.borrow_mut().push("sh");
     //~^ path_buf_push_overwrite
 }
 
 fn temporary() {
-    PathBuf::new().push("/sh");
+    PathBuf::new().push("sh");
     //~^ path_buf_push_overwrite
 }
 
 fn multiple_deref() {
     let path = &mut &mut &mut PathBuf::from("/foo");
-    path.push("/sh");
+    path.push("sh");
     //~^ path_buf_push_overwrite
 
     struct DerefWrapper<T: ?Sized>(T);
@@ -61,6 +61,6 @@ fn multiple_deref() {
 
     use std::sync::Mutex;
     let path = Mutex::new(DerefWrapper(DerefWrapper(PathBuf::from("/foo"))));
-    path.lock().unwrap().push("/sh");
+    path.lock().unwrap().push("sh");
     //~^ path_buf_push_overwrite
 }
