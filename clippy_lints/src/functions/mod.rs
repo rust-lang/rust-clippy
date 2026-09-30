@@ -491,9 +491,9 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// fn im_too_long() {
-    ///     println!("");
+    ///     println!();
     ///     // ... 100 more LoC
-    ///     println!("");
+    ///     println!();
     /// }
     /// ```
     #[clippy::version = "1.34.0"]
