@@ -11,9 +11,12 @@ use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_session::Session;
 use rustc_span::{Pos as _, SourceFile, Symbol};
+use std::any::Any;
+use std::borrow::Cow;
 use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 use std::{env, fs, io};
+use toml::Spanned;
 use toml::de::DeTable;
 
 #[rustfmt::skip]
@@ -73,12 +76,14 @@ macro_rules! filtered_names {
     };
 }
 
+type ConvFn = fn(&dyn Any) -> Box<dyn Any>;
+
 macro_rules! define_Conf {
     (
         $(
             $(#[doc = $doc:literal])*
             $(#[default_text = $default_text:literal])?
-            $(#[rename = $new_name:ident])?
+            $(#[rename = $new_name:ident $(, conversion = $conv_fn:ident)?])?
             $(#[lints($($for_lints:ident),* $(,)?)])?
             // The type must exist for regular fields and shouldn't exist for deprecated ones.
             $name:ident($name_str:literal) $(: $ty:ty $(= $default:expr)?)?,
@@ -93,6 +98,7 @@ macro_rules! define_Conf {
         impl ConfField {
             const NAMES: &'static [&'static str] = &[$($name_str,)* "third-party"];
             const FIELDS: &'static [Self] = &[$(first_expr!($(Self::$new_name,)? Self::$name),)* Self::ThirdParty];
+            const CONV_FN: &'static [Option<ConvFn>] = &[$(first_expr!($($(Some($conv_fn),)?)? None),)* None];
             const SUGG_NAMES: &'static [&'static str] = filtered_names!(() $($($new_name)? $name_str)* "third-party");
 
             fn name(self) -> &'static str {
@@ -101,6 +107,10 @@ macro_rules! define_Conf {
 
             fn new_field(self) -> Self {
                 Self::FIELDS[self as usize]
+            }
+
+            fn conv_fn(self) -> Option<ConvFn> {
+                Self::CONV_FN[self as usize]
             }
 
             fn parse(s: &str) -> Option<Self> {
@@ -157,39 +167,35 @@ macro_rules! define_Conf {
                         diag.emit();
                         continue;
                     };
+                    let mut conv_fn: Option<(ConvFn, ConfField)> = None;
+                    // This loop iterates at most twice. `conf_key` changes across iterations, but
+                    // `value` does not. In the second iteration of the loop:
+                    // - `conf_key` corresponds to `key`'s new name
+                    // - `value` (possibly modified by `conv_fn`) is assigned to the field with that
+                    //   new name
                     loop {
                         match conf_key {
                             $($(ConfField::$name => {
                                 // Duplicate keys are handled by the toml parser.
-                                $name = Some(
-                                    <$ty as DeserializeOrDefault<_>>::deserialize_or_default(
-                                        dcx,
-                                        value.into(),
-                                        first_expr!($($default,)? ()),
-                                    ),
+                                let mut value = <$ty as DeserializeOrDefault<_>>::deserialize_or_default(
+                                    dcx,
+                                    value.into(),
+                                    first_expr!($($default,)? ()),
                                 );
+                                if let Some((conv_fn, _)) = conv_fn {
+                                    value = *conv_fn(&value).downcast().unwrap();
+                                };
+                                $name = Some(value);
                             },)?)*
                             ConfField::ThirdParty => {},
                             // All deprecated fields.
                             _ => {
-                                let sp = dcx.make_sp(table.get_key_value(key).unwrap().0.span());
-                                conf_key = conf_key.new_field();
-                                let other_value = table.get_key_value(conf_key.name());
-                                dcx.inner.struct_span_warn(sp, format!("use of a deprecated field"))
-                                    .with_span_suggestion(
-                                    sp, "use new name", conf_key.name(),
-                                    if other_value.is_some() {
-                                        Applicability::MaybeIncorrect
-                                    } else {
-                                        Applicability::MachineApplicable
+                                if let Some(new_conf_key) = warn_deprecated(dcx, table, key, conf_key) {
+                                    if let Some((_, old_conf_key)) = conv_fn {
+                                        panic!("trying to set `conv_fn` for {} when it was already set for {}", conf_key.name(), old_conf_key.name());
                                     }
-                                ).emit();
-
-                                if let Some((other_key, _)) = other_value {
-                                    dcx.inner.struct_span_err(sp, format!("duplicate key in document root"))
-                                        .with_span_note(dcx.make_sp(other_key.span()), "previous definition here")
-                                        .emit();
-                                } else {
+                                    conv_fn = conf_key.conv_fn().map(|f| (f, conf_key));
+                                    conf_key = new_conf_key;
                                     continue;
                                 }
                             },
@@ -218,6 +224,45 @@ macro_rules! define_Conf {
             assert_eq!(stringify!($name).replace('_', "-"), $name_str);
         )*}
     };
+}
+
+/// Emits a "deprecated field" warning and possibly a "duplicate key" warning. Returns `Some(..)` with the new
+/// `ConfField` if the caller should continue examining fields. Returns `None` otherwise.
+fn warn_deprecated(
+    dcx: &DiagCtxt<'_>,
+    table: &DeTable<'_>,
+    key: &Spanned<Cow<'_, str>>,
+    conf_key: ConfField,
+) -> Option<ConfField> {
+    let sp = dcx.make_sp(table.get_key_value(key).unwrap().0.span());
+    let has_conv_fn = conf_key.conv_fn().is_some();
+    let conf_key = conf_key.new_field();
+    let other_value = table.get_key_value(conf_key.name());
+    dcx.inner
+        .struct_span_warn(sp, "use of a deprecated field")
+        .with_span_suggestion(
+            sp,
+            "use new name",
+            conf_key.name(),
+            if has_conv_fn || other_value.is_some() {
+                Applicability::MaybeIncorrect
+            } else {
+                Applicability::MachineApplicable
+            },
+        )
+        .emit();
+
+    if let Some((other_key, _)) = other_value {
+        dcx.inner
+            .struct_span_err(sp, "duplicate key in document root")
+            .with_span_note(dcx.make_sp(other_key.span()), "previous definition here")
+            .emit();
+        // If the field was renamed and the new name appears in the config, the caller should not
+        // continue to examine fields.
+        return None;
+    }
+
+    Some(conf_key)
 }
 
 define_Conf! {
