@@ -48,6 +48,7 @@ LL | foobar = 42
            disallowed-fields
            disallowed-macros
            disallowed-methods
+           disallowed-modules
            disallowed-names
            disallowed-types
            doc-valid-idents
