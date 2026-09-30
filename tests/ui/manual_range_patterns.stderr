@@ -92,43 +92,43 @@ LL |     matches!(ch, '0' | '1' | '2' | '3' | '4');
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `'0'..='4'`
 
 error: this OR pattern can be rewritten using a range
-  --> tests/ui/manual_range_patterns.rs:52:20
+  --> tests/ui/manual_range_patterns.rs:54:20
    |
 LL |     matches!(byte, b'0' | b'1' | b'2' | b'3');
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `b'0'..=b'3'`
 
 error: this OR pattern can be rewritten using a range
-  --> tests/ui/manual_range_patterns.rs:55:17
+  --> tests/ui/manual_range_patterns.rs:58:17
    |
 LL |     matches!(f, 0..5 | 5);
    |                 ^^^^^^^^ help: try: `0..=5`
 
 error: this OR pattern can be rewritten using a range
-  --> tests/ui/manual_range_patterns.rs:57:17
+  --> tests/ui/manual_range_patterns.rs:60:17
    |
 LL |     matches!(f, 0 | 1..5);
    |                 ^^^^^^^^ help: try: `0..5`
 
 error: this OR pattern can be rewritten using a range
-  --> tests/ui/manual_range_patterns.rs:60:17
+  --> tests/ui/manual_range_patterns.rs:63:17
    |
 LL |     matches!(f, 0..=5 | 6..10);
    |                 ^^^^^^^^^^^^^ help: try: `0..10`
 
 error: this OR pattern can be rewritten using a range
-  --> tests/ui/manual_range_patterns.rs:62:17
+  --> tests/ui/manual_range_patterns.rs:65:17
    |
 LL |     matches!(f, 0..5 | 5..=10);
    |                 ^^^^^^^^^^^^^ help: try: `0..=10`
 
 error: this OR pattern can be rewritten using a range
-  --> tests/ui/manual_range_patterns.rs:64:17
+  --> tests/ui/manual_range_patterns.rs:67:17
    |
 LL |     matches!(f, 5..=10 | 0..5);
    |                 ^^^^^^^^^^^^^ help: try: `0..=10`
 
 error: this OR pattern can be rewritten using a range
-  --> tests/ui/manual_range_patterns.rs:69:26
+  --> tests/ui/manual_range_patterns.rs:72:26
    |
 LL |             matches!($e, 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10)
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `1..=10`

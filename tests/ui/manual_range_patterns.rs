@@ -49,8 +49,11 @@ fn main() {
     matches!(ch, '0' | '1' | '2' | '3' | '4');
     //~^ manual_range_patterns
     matches!(ch, '0' | '1' | '2' | '4'); // '3' is missing
+    matches!(ch, '<' | '=' | '>'); // range is not intuitive
+    matches!(ch, '/' | '0'..='9'); // range is not intuitive
     matches!(byte, b'0' | b'1' | b'2' | b'3');
     //~^ manual_range_patterns
+    matches!(byte, b'<' | b'=' | b'>'); // range is not intuitive
 
     matches!(f, 0..5 | 5);
     //~^ manual_range_patterns
