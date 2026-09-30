@@ -2,6 +2,8 @@
 
 fn main() {
     let f = 6;
+    let ch = '0';
+    let byte = b'0';
 
     let _ = matches!(f, 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10);
     //~^ manual_range_patterns
@@ -41,6 +43,13 @@ fn main() {
     matches!(f, 0x00..=0x05 | 0x06 | 0x07);
     //~^ manual_range_patterns
     matches!(f, -0x09 | -0x08 | -0x07..=0x00);
+    //~^ manual_range_patterns
+    matches!(ch, 'a' | 'b' | 'c' | 'd' | 'e');
+    //~^ manual_range_patterns
+    matches!(ch, '0' | '1' | '2' | '3' | '4');
+    //~^ manual_range_patterns
+    matches!(ch, '0' | '1' | '2' | '4'); // '3' is missing
+    matches!(byte, b'0' | b'1' | b'2' | b'3');
     //~^ manual_range_patterns
 
     matches!(f, 0..5 | 5);
