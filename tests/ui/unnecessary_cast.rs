@@ -8,7 +8,8 @@
     clippy::multiple_bound_locations,
     clippy::no_effect,
     clippy::nonstandard_macro_braces,
-    clippy::unnecessary_operation
+    clippy::unnecessary_operation,
+    clippy::float_without_fraction
 )]
 
 extern crate extern_fake_libc;
