@@ -300,9 +300,8 @@ define_Conf! {
     /// Whether functions inside `#[cfg(test)]` modules or test functions should be checked.
     #[lints(large_stack_frames)]
     allow_large_stack_frames_in_tests("allow-large-stack-frames-in-tests"): bool = true,
-    /// Whether to allow mixed uninlined format args, e.g. `format!("{} {}", a, foo.bar)`
-    #[lints(uninlined_format_args)]
-    allow_mixed_uninlined_format_args("allow-mixed-uninlined-format-args"): bool = true,
+    #[rename = check_partially_inlinable_format_args, conversion = negate_bool]
+    allow_mixed_uninlined_format_args("allow-mixed-uninlined-format-args"),
     /// Whether to allow `r#""#` when `r""` can be used
     #[lints(needless_raw_string_hashes)]
     allow_one_hash_in_raw_strings("allow-one-hash-in-raw-strings"): bool = false,
@@ -518,6 +517,9 @@ define_Conf! {
     /// [from rust-clippy#11846]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924
     #[lints(inconsistent_struct_constructor)]
     check_inconsistent_struct_field_initializers("check-inconsistent-struct-field-initializers"): bool = false,
+    /// Whether to check partially inlinable format args, e.g. `format!("{} {}", a, foo.bar)`
+    #[lints(uninlined_format_args)]
+    check_partially_inlinable_format_args("check-partially-inlinable-format-args"): bool = false,
     /// Whether to also run the listed lints on private items.
     #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
     check_private_items("check-private-items"): bool = false,
@@ -875,6 +877,11 @@ define_Conf! {
     /// Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.
     #[lints(macro_metavars_in_unsafe)]
     warn_unsafe_macro_metavars_in_private_macros("warn-unsafe-macro-metavars-in-private-macros"): bool = false,
+}
+
+fn negate_bool(value: &dyn Any) -> Box<dyn Any> {
+    let value = *value.downcast_ref::<bool>().unwrap();
+    Box::new(!value)
 }
 
 // Remove code tags and code behind '# 's, as they are not needed for the lint docs and --explain

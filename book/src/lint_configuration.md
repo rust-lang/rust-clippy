@@ -121,16 +121,6 @@ Whether functions inside `#[cfg(test)]` modules or test functions should be chec
 * [`large_stack_frames`](https://rust-lang.github.io/rust-clippy/main/index.html#large_stack_frames)
 
 
-## `allow-mixed-uninlined-format-args`
-Whether to allow mixed uninlined format args, e.g. `format!("{} {}", a, foo.bar)`
-
-**Default Value:** `true`
-
----
-**Affected lints:**
-* [`uninlined_format_args`](https://rust-lang.github.io/rust-clippy/main/index.html#uninlined_format_args)
-
-
 ## `allow-one-hash-in-raw-strings`
 Whether to allow `r#""#` when `r""` can be used
 
@@ -518,6 +508,16 @@ fn main() {
 ---
 **Affected lints:**
 * [`inconsistent_struct_constructor`](https://rust-lang.github.io/rust-clippy/main/index.html#inconsistent_struct_constructor)
+
+
+## `check-partially-inlinable-format-args`
+Whether to check partially inlinable format args, e.g. `format!("{} {}", a, foo.bar)`
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`uninlined_format_args`](https://rust-lang.github.io/rust-clippy/main/index.html#uninlined_format_args)
 
 
 ## `check-private-items`
