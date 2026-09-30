@@ -1,15 +1,79 @@
-error: methods called `from_*` usually take no `self`
-  --> tests/ui/wrong_self_convention.rs:15:17
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:9:20
    |
-LL |     fn from_i32(self) {}
-   |                 ^^^^
+LL |     fn as_i32(self) {}
+   |                    ^
    |
    = help: consider choosing a less ambiguous name
    = note: `-D clippy::wrong-self-convention` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::wrong_self_convention)]`
 
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:11:21
+   |
+LL |     fn as_u32(&self) {}
+   |                     ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:13:22
+   |
+LL |     fn into_i32(self) {}
+   |                      ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:15:20
+   |
+LL |     fn is_i32(self) {}
+   |                    ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:17:21
+   |
+LL |     fn is_u32(&self) {}
+   |                     ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `from_*` usually take no `self`
-  --> tests/ui/wrong_self_convention.rs:22:21
+  --> tests/ui/wrong_self_convention.rs:20:17
+   |
+LL |     fn from_i32(self) {}
+   |                 ^^^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:23:24
+   |
+LL |     pub fn as_i64(self) {}
+   |                        ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:25:26
+   |
+LL |     pub fn into_i64(self) {}
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:27:24
+   |
+LL |     pub fn is_i64(self) {}
+   |                        ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `from_*` usually take no `self`
+  --> tests/ui/wrong_self_convention.rs:30:21
    |
 LL |     pub fn from_i64(self) {}
    |                     ^^^^
@@ -17,31 +81,55 @@ LL |     pub fn from_i64(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `as_*` usually take `self` by reference or `self` by mutable reference
-  --> tests/ui/wrong_self_convention.rs:36:15
+  --> tests/ui/wrong_self_convention.rs:44:15
    |
 LL |     fn as_i32(self) {}
    |               ^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:47:21
+   |
+LL |     fn as_u32(&self) {}
+   |                     ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `into_*` usually take `self` by value
-  --> tests/ui/wrong_self_convention.rs:40:17
+  --> tests/ui/wrong_self_convention.rs:49:17
    |
 LL |     fn into_i32(&self) {}
    |                 ^^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:52:22
+   |
+LL |     fn into_u32(self) {}
+   |                      ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `is_*` usually take `self` by mutable reference or `self` by reference or no `self`
-  --> tests/ui/wrong_self_convention.rs:44:15
+  --> tests/ui/wrong_self_convention.rs:54:15
    |
 LL |     fn is_i32(self) {}
    |               ^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:57:21
+   |
+LL |     fn is_u32(&self) {}
+   |                     ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods with the following characteristics: (`to_*` and `self` type is not `Copy`) usually take `self` by reference
-  --> tests/ui/wrong_self_convention.rs:48:15
+  --> tests/ui/wrong_self_convention.rs:59:15
    |
 LL |     fn to_i32(self) {}
    |               ^^^^
@@ -49,7 +137,7 @@ LL |     fn to_i32(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `from_*` usually take no `self`
-  --> tests/ui/wrong_self_convention.rs:52:17
+  --> tests/ui/wrong_self_convention.rs:63:17
    |
 LL |     fn from_i32(self) {}
    |                 ^^^^
@@ -57,7 +145,7 @@ LL |     fn from_i32(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `as_*` usually take `self` by reference or `self` by mutable reference
-  --> tests/ui/wrong_self_convention.rs:55:19
+  --> tests/ui/wrong_self_convention.rs:66:19
    |
 LL |     pub fn as_i64(self) {}
    |                   ^^^^
@@ -65,7 +153,7 @@ LL |     pub fn as_i64(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `into_*` usually take `self` by value
-  --> tests/ui/wrong_self_convention.rs:58:21
+  --> tests/ui/wrong_self_convention.rs:69:21
    |
 LL |     pub fn into_i64(&self) {}
    |                     ^^^^^
@@ -73,7 +161,7 @@ LL |     pub fn into_i64(&self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `is_*` usually take `self` by mutable reference or `self` by reference or no `self`
-  --> tests/ui/wrong_self_convention.rs:61:19
+  --> tests/ui/wrong_self_convention.rs:72:19
    |
 LL |     pub fn is_i64(self) {}
    |                   ^^^^
@@ -81,7 +169,7 @@ LL |     pub fn is_i64(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods with the following characteristics: (`to_*` and `self` type is not `Copy`) usually take `self` by reference
-  --> tests/ui/wrong_self_convention.rs:64:19
+  --> tests/ui/wrong_self_convention.rs:75:19
    |
 LL |     pub fn to_i64(self) {}
    |                   ^^^^
@@ -89,7 +177,7 @@ LL |     pub fn to_i64(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `from_*` usually take no `self`
-  --> tests/ui/wrong_self_convention.rs:67:21
+  --> tests/ui/wrong_self_convention.rs:78:21
    |
 LL |     pub fn from_i64(self) {}
    |                     ^^^^
@@ -97,31 +185,63 @@ LL |     pub fn from_i64(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `as_*` usually take `self` by reference or `self` by mutable reference
-  --> tests/ui/wrong_self_convention.rs:113:19
+  --> tests/ui/wrong_self_convention.rs:136:19
    |
 LL |         fn as_i32(self) {}
    |                   ^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:139:25
+   |
+LL |         fn as_u32(&self) {}
+   |                         ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:141:26
+   |
+LL |         fn into_i32(self) {}
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `into_*` usually take `self` by value
-  --> tests/ui/wrong_self_convention.rs:118:25
+  --> tests/ui/wrong_self_convention.rs:143:25
    |
 LL |         fn into_i32_ref(&self) {}
    |                         ^^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:146:26
+   |
+LL |         fn into_u32(self) {}
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `is_*` usually take `self` by mutable reference or `self` by reference or no `self`
-  --> tests/ui/wrong_self_convention.rs:122:19
+  --> tests/ui/wrong_self_convention.rs:148:19
    |
 LL |         fn is_i32(self) {}
    |                   ^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:151:25
+   |
+LL |         fn is_u32(&self) {}
+   |                         ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `from_*` usually take no `self`
-  --> tests/ui/wrong_self_convention.rs:128:21
+  --> tests/ui/wrong_self_convention.rs:155:21
    |
 LL |         fn from_i32(self) {}
    |                     ^^^^
@@ -129,47 +249,127 @@ LL |         fn from_i32(self) {}
    = help: consider choosing a less ambiguous name
 
 error: methods called `as_*` usually take `self` by reference or `self` by mutable reference
-  --> tests/ui/wrong_self_convention.rs:145:19
+  --> tests/ui/wrong_self_convention.rs:172:19
    |
 LL |         fn as_i32(self);
    |                   ^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:175:25
+   |
+LL |         fn as_u32(&self);
+   |                         ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:177:26
+   |
+LL |         fn into_i32(self);
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `into_*` usually take `self` by value
-  --> tests/ui/wrong_self_convention.rs:150:25
+  --> tests/ui/wrong_self_convention.rs:179:25
    |
 LL |         fn into_i32_ref(&self);
    |                         ^^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:182:26
+   |
+LL |         fn into_u32(self);
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `is_*` usually take `self` by mutable reference or `self` by reference or no `self`
-  --> tests/ui/wrong_self_convention.rs:154:19
+  --> tests/ui/wrong_self_convention.rs:184:19
    |
 LL |         fn is_i32(self);
    |                   ^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:187:25
+   |
+LL |         fn is_u32(&self);
+   |                         ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `from_*` usually take no `self`
-  --> tests/ui/wrong_self_convention.rs:160:21
+  --> tests/ui/wrong_self_convention.rs:191:21
    |
 LL |         fn from_i32(self);
    |                     ^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:208:24
+   |
+LL |         fn as_i32(self);
+   |                        ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:210:25
+   |
+LL |         fn as_u32(&self);
+   |                         ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:212:26
+   |
+LL |         fn into_i32(self);
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `into_*` usually take `self` by value
-  --> tests/ui/wrong_self_convention.rs:180:25
+  --> tests/ui/wrong_self_convention.rs:214:25
    |
 LL |         fn into_i32_ref(&self);
    |                         ^^^^^
    |
    = help: consider choosing a less ambiguous name
 
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:217:26
+   |
+LL |         fn into_u32(self);
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:219:24
+   |
+LL |         fn is_i32(self);
+   |                        ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:221:25
+   |
+LL |         fn is_u32(&self);
+   |                         ^
+   |
+   = help: consider choosing a less ambiguous name
+
 error: methods called `from_*` usually take no `self`
-  --> tests/ui/wrong_self_convention.rs:188:21
+  --> tests/ui/wrong_self_convention.rs:225:21
    |
 LL |         fn from_i32(self);
    |                     ^^^^
@@ -177,7 +377,7 @@ LL |         fn from_i32(self);
    = help: consider choosing a less ambiguous name
 
 error: methods with the following characteristics: (`to_*` and `self` type is `Copy`) usually take `self` by value
-  --> tests/ui/wrong_self_convention.rs:214:22
+  --> tests/ui/wrong_self_convention.rs:251:22
    |
 LL |         fn to_u64_v2(&self) -> u64 {
    |                      ^^^^^
@@ -185,12 +385,100 @@ LL |         fn to_u64_v2(&self) -> u64 {
    = help: consider choosing a less ambiguous name
 
 error: methods with the following characteristics: (`to_*` and `self` type is not `Copy`) usually take `self` by reference
-  --> tests/ui/wrong_self_convention.rs:225:19
+  --> tests/ui/wrong_self_convention.rs:262:19
    |
 LL |         fn to_u64(self) -> u64 {
    |                   ^^^^
    |
    = help: consider choosing a less ambiguous name
 
-error: aborting due to 24 previous errors
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:297:27
+   |
+LL |         fn as_bytes(&self) {}
+   |                           ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:300:29
+   |
+LL |         fn as_vec(&self) -> Vec<u8> {
+   |                             ^^^^^^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:305:29
+   |
+LL |         fn as_u32(&self) -> u32 {
+   |                             ^^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:310:31
+   |
+LL |         fn as_ascii(&self) -> Option<u8> {
+   |                               ^^^^^^^^^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:315:26
+   |
+LL |         fn into_vec(self) {}
+   |                          ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:318:30
+   |
+LL |         fn into_ref(self) -> &'static str {
+   |                              ^^^^^^^^^^^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `into_*` usually return an owned type
+  --> tests/ui/wrong_self_convention.rs:323:35
+   |
+LL |         fn into_borrowed(self) -> Result<&'static str, Error> {
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:328:27
+   |
+LL |         fn is_empty(&self) {}
+   |                           ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `is_*` usually return `bool`
+  --> tests/ui/wrong_self_convention.rs:331:32
+   |
+LL |         fn is_status(&self) -> u8 {
+   |                                ^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:363:37
+   |
+LL |         async fn as_owned(&self) -> Vec<u8> {
+   |                                     ^^^^^^^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: methods called `as_*` usually return a borrowed type
+  --> tests/ui/wrong_self_convention.rs:367:35
+   |
+LL |         async fn as_nothing(&self) {}
+   |                                   ^
+   |
+   = help: consider choosing a less ambiguous name
+
+error: aborting due to 60 previous errors
 

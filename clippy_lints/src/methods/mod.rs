@@ -4975,7 +4975,8 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for methods with certain name prefixes or suffixes, and which
-    /// do not adhere to standard conventions regarding how `self` is taken.
+    /// do not adhere to standard conventions regarding how `self` is taken
+    /// or, for `as_`, `into_` and `is_`, what they return.
     /// The actual rules are:
     ///
     /// |Prefix |Postfix     |`self` taken                   | `self` type  |
@@ -4996,6 +4997,19 @@ declare_clippy_lint! {
     /// (see e.g. the `std::string::ToString` trait).
     ///
     /// Clippy allows `Pin<&Self>` and `Pin<&mut Self>` if `&self` and `&mut self` is required.
+    ///
+    /// Return types are checked only when the receiver already follows the convention:
+    ///
+    /// - `as_` should return a borrowed type: a reference, a raw pointer, or an
+    ///   `Option`/`Result`/`Pin` wrapper around those. `()` and owned values such as
+    ///   `String` do not qualify. `Cow`, generic and opaque returns are not checked.
+    /// - `into_` should return an owned type or a raw pointer (`into_raw`), not `()`
+    ///   and not a reference.
+    /// - `is_` should return `bool`.
+    ///
+    /// `to_` may return either a borrowed or an owned type, so only its receiver is checked.
+    /// Return types are not checked on trait implementations, same as the receiver check for
+    /// these prefixes.
     ///
     /// Please find more info here:
     /// <https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv>
@@ -5029,7 +5043,7 @@ declare_clippy_lint! {
     #[clippy::version = "pre 1.29.0"]
     pub WRONG_SELF_CONVENTION,
     style,
-    "defining a method named with an established prefix (like \"into_\") that takes `self` with the wrong convention"
+    "defining a method named with an established prefix (like \"into_\") that takes `self` or returns a type with the wrong convention"
 }
 
 declare_clippy_lint! {
@@ -5361,6 +5375,8 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     self_ty,
                     first_arg_ty,
                     first_arg.pat.span,
+                    impl_item.owner_id,
+                    sig.decl,
                     implements_trait,
                     false,
                 );
@@ -5392,6 +5408,8 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     self_ty,
                     first_arg_ty,
                     first_arg_hir_ty.span,
+                    item.owner_id,
+                    sig.decl,
                     false,
                     true,
                 );

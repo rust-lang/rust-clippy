@@ -95,11 +95,17 @@ mod issue4546 {
 
     struct S;
     impl S {
-        pub fn as_mut(self: Pin<&mut Self>) {}
+        pub fn as_mut(self: Pin<&mut Self>) -> Pin<&mut Self> {
+            self
+        }
 
-        pub fn as_other_thingy(self: Pin<&Self>) {}
+        pub fn as_other_thingy(self: Pin<&Self>) -> Pin<&Self> {
+            self
+        }
 
-        pub fn is_other_thingy(self: Pin<&Self>) {}
+        pub fn is_other_thingy(self: Pin<&Self>) -> bool {
+            false
+        }
 
         pub fn to_mut(self: Pin<&mut Self>) {}
 
