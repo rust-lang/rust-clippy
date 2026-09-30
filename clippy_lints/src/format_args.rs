@@ -147,7 +147,7 @@ declare_clippy_lint! {
     /// format!("{var:.prec$}");
     /// ```
     ///
-    /// If `allow-mixed-uninlined-format-args` is set to `false` in clippy.toml,
+    /// If `check-partially-inlinable-format-args` is set to `true` in clippy.toml,
     /// the following code will also trigger the lint:
     /// ```no_run
     /// # let var = 42;
@@ -317,7 +317,7 @@ impl_lint_pass!(FormatArgs<'_> => [
 pub struct FormatArgs<'tcx> {
     format_args: FormatArgsStorage,
     msrv: Msrv,
-    ignore_mixed: bool,
+    check_partially_inlinable: bool,
     ty_msrv_map: FxHashMap<Ty<'tcx>, Option<RustcVersion>>,
     has_derived_debug: FxHashMap<Ty<'tcx>, bool>,
     has_pointer_format: FxHashMap<Ty<'tcx>, bool>,
@@ -329,7 +329,7 @@ impl<'tcx> FormatArgs<'tcx> {
         Self {
             format_args,
             msrv: conf.msrv.into(),
-            ignore_mixed: conf.allow_mixed_uninlined_format_args,
+            check_partially_inlinable: conf.check_partially_inlinable_format_args,
             ty_msrv_map,
             has_derived_debug: FxHashMap::default(),
             has_pointer_format: FxHashMap::default(),
@@ -348,7 +348,7 @@ impl<'tcx> LateLintPass<'tcx> for FormatArgs<'tcx> {
                 expr,
                 macro_call: &macro_call,
                 format_args,
-                ignore_mixed: self.ignore_mixed,
+                check_partially_inlinable: self.check_partially_inlinable,
                 msrv: &self.msrv,
                 ty_msrv_map: &self.ty_msrv_map,
                 has_derived_debug: &mut self.has_derived_debug,
@@ -377,7 +377,7 @@ impl<'tcx> LateLintPass<'tcx> for FormatArgs<'tcx> {
                         expr,
                         macro_call: &macro_call,
                         format_args,
-                        ignore_mixed: self.ignore_mixed,
+                        check_partially_inlinable: self.check_partially_inlinable,
                         msrv: &self.msrv,
                         ty_msrv_map: &self.ty_msrv_map,
                         has_derived_debug: &mut self.has_derived_debug,
@@ -396,7 +396,7 @@ struct FormatArgsExpr<'a, 'tcx> {
     expr: &'tcx Expr<'tcx>,
     macro_call: &'a MacroCall,
     format_args: &'a rustc_ast::FormatArgs,
-    ignore_mixed: bool,
+    check_partially_inlinable: bool,
     msrv: &'a Msrv,
     ty_msrv_map: &'a FxHashMap<Ty<'tcx>, Option<RustcVersion>>,
     has_derived_debug: &'a mut FxHashMap<Ty<'tcx>, bool>,
@@ -679,9 +679,9 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
         } else {
             // Do not continue inlining (return false) in case
             // * if we can't inline a numbered argument, e.g. `print!("{0} ...", foo.bar, ...)`
-            // * if allow_mixed_uninlined_format_args is false and this arg hasn't been inlined already
+            // * if check_partially_inlinable_format_args is false and this arg hasn't been inlined already
             pos.kind != FormatArgPositionKind::Number
-                && (!self.ignore_mixed || matches!(arg.kind, FormatArgumentKind::Captured(_)))
+                && (self.check_partially_inlinable || matches!(arg.kind, FormatArgumentKind::Captured(_)))
         }
     }
 

@@ -4,7 +4,7 @@ foobar = 42
 barfoo = 53
 
 # when using underscores instead of dashes, suggest the correct one
-allow_mixed_uninlined_format_args = true
+check_partially_inlinable_format_args = true
 
 # that one is ignored
 [third-party]

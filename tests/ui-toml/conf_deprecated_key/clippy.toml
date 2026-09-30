@@ -2,6 +2,7 @@
 cyclomatic-complexity-threshold = 2
 blacklisted-names = [ "..", "wibble" ]
 lint-inconsistent-struct-field-initializers = true
+allow-mixed-uninlined-format-args = false
 
 # that one is white-listed
 [third-party]
