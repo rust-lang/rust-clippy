@@ -49,8 +49,7 @@ pub(super) fn check<'tcx>(
     expr_hir_id: HirId,
 ) -> bool {
     let last = path.segments.last().unwrap();
-    if last.ident.span.in_external_macro(cx.tcx.sess.source_map()) {
-        // If it comes from a non-local macro, we ignore it.
+    if last.ident.span.from_expansion() {
         return false;
     }
     let args = last.args;
