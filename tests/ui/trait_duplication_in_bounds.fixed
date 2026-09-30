@@ -140,11 +140,11 @@ impl Proj for i32 {
 }
 
 trait Base<T> {
-    fn is_base(&self);
+    fn is_base(&self) -> bool;
 }
 
 trait Derived<B: Proj>: Base<B::S> + Base<()> {
-    fn is_derived(&self);
+    fn is_derived(&self) -> bool;
 }
 
 fn f<P: Proj>(obj: &dyn Derived<P>) {

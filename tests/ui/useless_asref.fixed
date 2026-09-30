@@ -244,7 +244,9 @@ impl Issue12357 {
 
 fn issue_14828() {
     pub trait T {
-        fn as_ref(&self) {}
+        fn as_ref(&self) -> &Self {
+            self
+        }
     }
 
     impl T for () {}

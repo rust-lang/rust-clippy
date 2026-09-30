@@ -49,7 +49,9 @@ mod custom_option {
     impl CustomOption {
         fn iter(&self) {}
         fn iter_mut(&mut self) {}
-        fn into_iter(self) {}
+        fn into_iter(self) -> Self {
+            self
+        }
     }
     use CustomOption::*;
 
