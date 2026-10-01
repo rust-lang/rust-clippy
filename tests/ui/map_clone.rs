@@ -117,6 +117,12 @@ fn main() {
     let y = x.map(|x| Clone::clone(x));
     //~^ map_clone
 
+    // Make sure that only span under the .map call for longer expressions
+    let x: Option<Option<&String>> = Some(Some(&String::new()));
+    #[expect(clippy::unnecessary_literal_unwrap)]
+    x.unwrap_or_default().map(|x| String::clone(x));
+    //~^ map_clone
+
     // Should not suggest `copied` or `cloned` here since `T` is not a reference.
     let x: Result<u32, ()> = Ok(0);
     let y = x.map(|x| u32::clone(&x));
