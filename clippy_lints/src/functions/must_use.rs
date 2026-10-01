@@ -11,7 +11,7 @@ use rustc_span::{Span, Symbol, sym};
 
 use clippy_utils::attrs::is_proc_macro;
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
-use clippy_utils::source::snippet_indent;
+use clippy_utils::source::{snippet_indent, snippet_opt};
 use clippy_utils::ty::{describe_must_use_type, opt_must_use_path};
 use clippy_utils::visitors::for_each_expr_without_closures;
 use clippy_utils::{is_entrypoint_fn, is_lint_allowed, return_ty, trait_ref_of_method};
@@ -150,6 +150,18 @@ fn check_needless_must_use(
     sig: &FnSig<'_>,
 ) -> bool {
     if attr_span.from_expansion() {
+        return false;
+    }
+    // Attribute macros such as `#[async_recursion]` inject `#[must_use]` while reusing an input
+    // span, so `from_expansion` alone does not detect them (see #17831). Only lint when the
+    // attribute at the span is actually one the user wrote; otherwise a machine-applicable
+    // suggestion could remove unrelated code (e.g. the macro attribute) and break it.
+    if !snippet_opt(cx, attr_span).is_some_and(|snippet| {
+        let snippet = snippet.trim_start();
+        let rest = snippet.strip_prefix("#[").map_or(snippet, str::trim_start);
+        rest.strip_prefix("must_use")
+            .is_some_and(|after| after.chars().next().is_none_or(|c| !c.is_alphanumeric() && c != '_'))
+    }) {
         return false;
     }
     if returns_unit(decl) {
