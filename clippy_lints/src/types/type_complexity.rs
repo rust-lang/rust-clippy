@@ -8,13 +8,19 @@ use rustc_span::Span;
 use super::TYPE_COMPLEXITY;
 
 pub(super) fn check(cx: &LateContext<'_>, ty: &hir::Ty<'_>, type_complexity_threshold: u64) -> bool {
-    let score = {
-        let mut visitor = TypeComplexityVisitor { score: 0, nest: 1 };
+    let (score, has_opaque) = {
+        let mut visitor = TypeComplexityVisitor {
+            score: 0,
+            nest: 1,
+            has_opaque: false,
+        };
         visitor.visit_ty_unambig(ty);
-        visitor.score
+        (visitor.score, visitor.has_opaque)
     };
 
-    if score > type_complexity_threshold {
+    // A type containing `impl Trait` cannot be factored into a type alias on
+    // stable Rust, so suggesting that is useless.
+    if score > type_complexity_threshold && !has_opaque {
         span_lint(
             cx,
             TYPE_COMPLEXITY,
@@ -33,6 +39,8 @@ struct TypeComplexityVisitor {
     score: u64,
     /// current nesting level
     nest: u64,
+    /// whether the type contains an `impl Trait` (`TyKind::OpaqueDef`)
+    has_opaque: bool,
 }
 
 impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
@@ -66,6 +74,11 @@ impl<'tcx> Visitor<'tcx> for TypeComplexityVisitor {
                     // simple trait bounds like A + B
                     (20 * self.nest, 0)
                 }
+            },
+
+            TyKind::OpaqueDef(..) => {
+                self.has_opaque = true;
+                (0, 0)
             },
 
             _ => (0, 0),
