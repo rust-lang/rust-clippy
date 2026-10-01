@@ -20,8 +20,10 @@ declare_clippy_lint! {
     ///
     /// It adds a little overhead on bound checks,
     /// and there is a more readable/idiomatic way to do it.
+    ///
     /// ### Limitations
-    /// IN PROGRESS
+    /// This lint is false negative towards const function/method invocations,
+    /// and considers them unsafe to lint, because of possible side-effects
     ///
     /// ### Example
     ///
@@ -69,7 +71,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualSplitAt {
     fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'tcx>) {
         if let StmtKind::Let(local) = stmt.kind
             && let Some(init) = local.init
-            // && local.ty.is_none()
             && let ExprKind::Tup([expr1, expr2]) = init.kind
             && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, inner1) = expr1.kind
             && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, inner2) = expr2.kind
@@ -95,7 +96,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualSplitAt {
             let (span, sugg) = match bind_holder {
                 IndexingExprHolder::Plain { .. } => (init.span, format!("{sgn_target}.split_at({sgn_index})")),
                 IndexingExprHolder::Reversed { .. } => {
-                    // swap the two binders so the suggestion keeps the original binding order
                     let PatKind::Tuple([first, second], _) = local.pat.kind else {
                         return;
                     };
