@@ -1,0 +1,28 @@
+error: creating a new box
+  --> tests/ui/replace_box_unfixable.rs:12:5
+   |
+LL |     b = Box::new(&mut c);
+   |     ^^^^^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*b = &mut c`
+   |
+   = note: this creates a needless allocation
+   = note: `-D clippy::replace-box` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::replace_box)]`
+
+error: creating a new box
+  --> tests/ui/replace_box_unfixable.rs:21:5
+   |
+LL |     b = Box::new(&y);
+   |     ^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*b = &y`
+   |
+   = note: this creates a needless allocation
+
+error: creating a new box
+  --> tests/ui/replace_box_unfixable.rs:32:5
+   |
+LL |     b = Box::new(Wrapper(&y));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace existing content with inner value instead: `*b = Wrapper(&y)`
+   |
+   = note: this creates a needless allocation
+
+error: aborting due to 3 previous errors
+
