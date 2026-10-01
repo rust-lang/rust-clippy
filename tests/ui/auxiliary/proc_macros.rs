@@ -487,3 +487,32 @@ impl Expander {
         self.write_tt(input.tt, mac)
     }
 }
+
+/// Generates an impl containing a struct literal whose field name spans point back at the
+/// user's struct definition.
+#[proc_macro_derive(StructLitWithUserFieldSpans)]
+pub fn struct_lit_with_user_field_spans(input: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(input as syn::DeriveInput);
+    let name = &input.ident;
+    let fields = match input.data {
+        syn::Data::Struct(syn::DataStruct {
+            fields: syn::Fields::Named(fields),
+            ..
+        }) => fields.named,
+        _ => {
+            return make_error("expected a struct with named fields", Span::call_site());
+        },
+    };
+    let idents: Vec<_> = fields.iter().map(|field| field.ident.as_ref().unwrap()).collect();
+    let types: Vec<_> = fields.iter().map(|field| &field.ty).collect();
+    quote::quote! {
+        impl #name {
+            #[allow(dead_code)]
+            fn redundant_field_names_test() -> #name {
+                #(let #idents: #types = Default::default();)*
+                #name { #(#idents: #idents),* }
+            }
+        }
+    }
+    .into()
+}
