@@ -1,5 +1,4 @@
 #![warn(clippy::strip_unwrap_or)]
-#![feature(trim_prefix_suffix)]
 
 struct Custom;
 impl Custom {
@@ -30,14 +29,14 @@ fn main() {
     let _ = c.strip_prefix("foo").unwrap_or("fallback");
 }
 
-#[clippy::msrv = "1.99"]
-fn msrv_1_99() {
+#[clippy::msrv = "1.100"]
+fn msrv_1_100() {
     let s = "foobar";
     let _ = s.strip_prefix("foo").unwrap_or(s);
 }
 
-#[clippy::msrv = "1.100"]
-fn msrv_1_100() {
+#[clippy::msrv = "1.101"]
+fn msrv_1_101() {
     let s = "foobar";
     let _ = s.strip_prefix("foo").unwrap_or(s);
     //~^ strip_unwrap_or

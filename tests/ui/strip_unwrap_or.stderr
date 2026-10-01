@@ -1,5 +1,5 @@
 error: `strip_prefix().unwrap_or()` can be written with `trim_prefix()`
-  --> tests/ui/strip_unwrap_or.rs:13:13
+  --> tests/ui/strip_unwrap_or.rs:12:13
    |
 LL |     let _ = s.strip_prefix("foo").unwrap_or(s);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.trim_prefix("foo")`
@@ -8,19 +8,19 @@ LL |     let _ = s.strip_prefix("foo").unwrap_or(s);
    = help: to override `-D warnings` add `#[allow(clippy::strip_unwrap_or)]`
 
 error: `strip_suffix().unwrap_or()` can be written with `trim_suffix()`
-  --> tests/ui/strip_unwrap_or.rs:15:13
+  --> tests/ui/strip_unwrap_or.rs:14:13
    |
 LL |     let _ = s.strip_suffix("bar").unwrap_or(s);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.trim_suffix("bar")`
 
 error: `strip_prefix().unwrap_or()` can be written with `trim_prefix()`
-  --> tests/ui/strip_unwrap_or.rs:20:13
+  --> tests/ui/strip_unwrap_or.rs:19:13
    |
 LL |     let _ = s.strip_prefix(pat).unwrap_or(s);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.trim_prefix(pat)`
 
 error: `strip_prefix().unwrap_or()` can be written with `trim_prefix()`
-  --> tests/ui/strip_unwrap_or.rs:42:13
+  --> tests/ui/strip_unwrap_or.rs:41:13
    |
 LL |     let _ = s.strip_prefix("foo").unwrap_or(s);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.trim_prefix("foo")`

@@ -3934,7 +3934,7 @@ declare_clippy_lint! {
     /// let _ = s.trim_prefix("foo");
     /// let _ = s.trim_suffix("bar");
     /// ```
-    #[clippy::version = "1.100.0"]
+    #[clippy::version = "1.101.0"]
     pub STRIP_UNWRAP_OR,
     complexity,
     "using `strip_prefix/suffix().unwrap_or()` instead of `trim_prefix/suffix()`"
