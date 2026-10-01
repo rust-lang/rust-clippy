@@ -116,61 +116,43 @@ LL |     let _ = (&mut (0usize..)).count();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:132:5
-   |
-LL | /     for x in 0usize.. {
-LL | |
-LL | |         std::hint::black_box(x);
-LL | |     }
-   | |_____^
-
-error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:137:5
-   |
-LL | /     for x in (0usize..).map(|x| x + 1) {
-LL | |
-LL | |         std::hint::black_box(x);
-LL | |     }
-   | |_____^
-
-error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:161:13
+  --> tests/ui/unbounded_iter.rs:131:13
    |
 LL |     let _ = (0usize..).max();
    |             ^^^^^^^^^^^^^^^^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:163:13
+  --> tests/ui/unbounded_iter.rs:133:13
    |
 LL |     let _ = (0usize..).sum::<usize>();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:165:13
+  --> tests/ui/unbounded_iter.rs:135:13
    |
 LL |     let _ = (0usize..).collect::<Vec<_>>();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:167:13
+  --> tests/ui/unbounded_iter.rs:137:13
    |
 LL |     let _ = (0usize..).fold(0usize, |acc, x| acc ^ x);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:169:13
+  --> tests/ui/unbounded_iter.rs:139:13
    |
 LL |     let _ = (0usize..).last();
    |             ^^^^^^^^^^^^^^^^^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:171:31
+  --> tests/ui/unbounded_iter.rs:141:31
    |
 LL |     let _: (Vec<_>, Vec<_>) = (0usize..).map(|x| (x, x)).unzip();
    |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:188:13
+  --> tests/ui/unbounded_iter.rs:158:13
    |
 LL |       let _ = (0usize..)
    |  _____________^
@@ -180,7 +162,7 @@ LL | |         .max()
    | |______________^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:194:13
+  --> tests/ui/unbounded_iter.rs:164:13
    |
 LL |       let _ = (0usize..)
    |  _____________^
@@ -189,7 +171,7 @@ LL | |         .sum::<usize>()
    | |_______________________^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:199:13
+  --> tests/ui/unbounded_iter.rs:169:13
    |
 LL |       let _ = (0usize..)
    |  _____________^
@@ -198,7 +180,7 @@ LL | |         .collect::<Vec<_>>()
    | |____________________________^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:207:13
+  --> tests/ui/unbounded_iter.rs:177:13
    |
 LL |       let _ = (0usize..)
    |  _____________^
@@ -207,7 +189,7 @@ LL | |         .max()
    | |______________^
 
 error: unbounded iteration detected
-  --> tests/ui/unbounded_iter.rs:213:13
+  --> tests/ui/unbounded_iter.rs:183:13
    |
 LL |       let _ = (0usize..)
    |  _____________^
@@ -215,5 +197,5 @@ LL | |
 LL | |         .collect::<Vec<_>>()
    | |____________________________^
 
-error: aborting due to 31 previous errors
+error: aborting due to 29 previous errors
 

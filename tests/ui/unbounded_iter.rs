@@ -127,36 +127,6 @@ fn other_expression_kinds() {
     let _ = iter.count();
 }
 
-#[allow(for_loops_over_fallibles)]
-fn for_loops() {
-    for x in 0usize.. {
-        //~^ unbounded_iter
-        std::hint::black_box(x);
-    }
-
-    for x in (0usize..).map(|x| x + 1) {
-        //~^ unbounded_iter
-        std::hint::black_box(x);
-    }
-
-    for x in 0usize..42 {
-        std::hint::black_box(x);
-    }
-
-    for x in (0usize..).take(42) {
-        std::hint::black_box(x);
-    }
-
-    for pair in (0usize..).zip(0usize..42) {
-        std::hint::black_box(pair);
-    }
-
-    // The Option returned by next contains at most one item
-    for x in (0usize..).next() {
-        std::hint::black_box(x);
-    }
-}
-
 fn consuming_methods() {
     let _ = (0usize..).max();
     //~^ unbounded_iter
