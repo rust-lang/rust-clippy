@@ -20,6 +20,56 @@ impl std::ops::Rem for CustomOps {
     }
 }
 
+fn issue17603() {
+    let x: u16 = 7;
+
+    let _ = x.checked_div(3);
+    //~^ integer_division_remainder_used
+    let _ = x.checked_div_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.checked_rem(3);
+    //~^ integer_division_remainder_used
+    let _ = x.checked_rem_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.div_ceil(3);
+    //~^ integer_division_remainder_used
+    let _ = x.div_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.overflowing_div(3);
+    //~^ integer_division_remainder_used
+    let _ = x.overflowing_div_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.overflowing_rem(3);
+    //~^ integer_division_remainder_used
+    let _ = x.overflowing_rem_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.rem_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.strict_div(3);
+    //~^ integer_division_remainder_used
+    let _ = x.strict_div_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.saturating_div(3);
+    //~^ integer_division_remainder_used
+    let _ = x.strict_rem(3);
+    //~^ integer_division_remainder_used
+    let _ = x.strict_rem_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.wrapping_div(3);
+    //~^ integer_division_remainder_used
+    let _ = x.wrapping_div_euclid(3);
+    //~^ integer_division_remainder_used
+    let _ = x.wrapping_rem(3);
+    //~^ integer_division_remainder_used
+    let _ = x.wrapping_rem_euclid(3);
+    //~^ integer_division_remainder_used
+
+    // methods that also exist on floats should not trigger there
+    let f: f64 = 7.0;
+    let _ = f.div_euclid(3.0);
+    let _ = f.rem_euclid(3.0);
+}
+
 fn main() {
     // should trigger
     let a = 10;
