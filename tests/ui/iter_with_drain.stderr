@@ -37,5 +37,17 @@ error: `drain(..)` used on a `Vec`
 LL |     let mut a: HashMap<_, _> = a.drain(0..a.len()).map(|x| (x.clone(), x)).collect();
    |                                  ^^^^^^^^^^^^^^^^^ help: try: `into_iter()`
 
-error: aborting due to 6 previous errors
+error: `drain(..)` used on a `Vec`
+  --> tests/ui/iter_with_drain.rs:111:27
+   |
+LL |         let _: Vec<_> = a.drain(..).collect();
+   |                           ^^^^^^^^^ help: try: `into_iter()`
+
+error: `drain(..)` used on a `Vec`
+  --> tests/ui/iter_with_drain.rs:119:23
+   |
+LL |     let _: Vec<_> = a.drain(..).collect();
+   |                       ^^^^^^^^^ help: try: `into_iter()`
+
+error: aborting due to 8 previous errors
 
