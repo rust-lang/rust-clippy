@@ -29,6 +29,7 @@ mod collapsible_span_lint_calls;
 mod internal_paths;
 mod lint_without_lint_pass;
 mod msrv_attr_impl;
+mod needless_impl_lint_pass;
 mod outer_expn_data_pass;
 mod repeated_is_diagnostic_item;
 mod symbols;
@@ -53,6 +54,7 @@ static LINTS: &[&Lint] = &[
     unsorted_clippy_utils_paths::UNSORTED_CLIPPY_UTILS_PATHS,
     unusual_names::UNUSUAL_NAMES,
     repeated_is_diagnostic_item::REPEATED_IS_DIAGNOSTIC_ITEM,
+    needless_impl_lint_pass::NEEDLESS_IMPL_LINT_PASS,
 ];
 
 pub fn register_lints(store: &mut LintStore) {
@@ -76,4 +78,5 @@ pub fn register_lints(store: &mut LintStore) {
     store.register_late_lint_pass(Box::new(|_| {
         Box::new(repeated_is_diagnostic_item::RepeatedIsDiagnosticItem)
     }));
+    store.register_late_lint_pass(Box::new(|_| Box::new(needless_impl_lint_pass::NeedlessImplLintPass)));
 }
