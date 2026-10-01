@@ -6,8 +6,8 @@ use rustc_errors::Applicability;
 use rustc_hir::{Expr, Node};
 use rustc_hir_typeck::cast::check_cast;
 use rustc_lint::LateContext;
-use rustc_middle::ty::Ty;
 use rustc_middle::ty::cast::CastKind;
+use rustc_middle::ty::{self, Ty};
 
 /// Checks for `transmutes_expressible_as_ptr_casts` lint.
 /// Returns `true` if it's triggered, otherwise returns `false`.
@@ -21,6 +21,12 @@ pub(super) fn check<'tcx>(
     const_context: bool,
 ) -> bool {
     use CastKind::{AddrPtrCast, ArrayPtrCast, FnPtrAddrCast, FnPtrPtrCast, PtrAddrCast, PtrPtrCast};
+    // `check_cast` would try to coerce the fn item to a fn pointer, recording the adjustment in a
+    // fresh typeck context that has no type for `e`, which ICEs. A fn item is zero-sized, so it can
+    // never be transmuted to a pointer or an address anyway.
+    if matches!(from_ty.kind(), ty::FnDef(..)) {
+        return false;
+    }
     let mut app = Applicability::MachineApplicable;
     let mut sugg = match check_cast(cx.tcx, cx.param_env, e, from_ty, to_ty) {
         Some(FnPtrAddrCast | PtrAddrCast) if const_context => return false,
