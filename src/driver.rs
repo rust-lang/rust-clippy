@@ -15,6 +15,7 @@ extern crate rustc_span;
 // Override the C allocator in the same way that the `rustc` binary would do.
 rustc_driver::override_c_allocator_in_binary!();
 
+use clippy_config::load_conf_file;
 use clippy_utils::sym;
 use declare_clippy_lint::LintListBuilder;
 use rustc_interface::interface;
@@ -100,7 +101,12 @@ fn track_files(sess: &Session) {
         file_depinfo.insert(sym::Cargo_toml);
     }
 
-    // `clippy.toml` will be automatically tracked as it's loaded with `sess.source_map().load_file()`
+    // Try loading clippy.toml, if it does not exist, track it's non-existence
+    if load_conf_file(sess).is_none() {
+        file_depinfo.insert(sym::clippy_toml_does_not_exist);
+    } else {
+        file_depinfo.swap_remove(&sym::clippy_toml_does_not_exist);
+    }
 
     // During development track the `clippy-driver` executable so that cargo will re-run clippy whenever
     // it is rebuilt
