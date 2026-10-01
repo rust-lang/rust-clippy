@@ -6,6 +6,7 @@ use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 mod derive_ord_xor_partial_ord;
 mod derive_partial_eq_without_eq;
 mod derived_hash_with_manual_eq;
+mod derived_partial_eq_with_manual_eq;
 mod expl_impl_clone_on_copy;
 mod unsafe_derive_deserialize;
 
@@ -124,6 +125,38 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for types that derive [`PartialEq`] but manually implement `Eq`.
+    ///
+    /// ### Why is this bad?
+    /// A manually implemented `Eq` may accidentally claim that a type satisfies the
+    /// properties required by `Eq` even when the derived [`PartialEq`] implementation
+    /// does not establish them.
+    ///
+    /// `Eq`, which builds on top of [`PartialEq`] also implies:
+    ///
+    /// - reflexive: `a == a`
+    ///
+    /// Floating point types such as [`f32`] and [`f64`] implement only
+    /// [`PartialEq`] but *not* `Eq` because `NaN` != `NaN`.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// #[derive(PartialEq)]
+    /// struct Number(f32);
+    /// // Incorrect because `PartialEq` derives `==` equality.
+    /// // Because of `f32::NaN != f32::NaN`, so `a != a` reflexivity of `Number` is not possible.
+    /// // Therefore, it should not implement `Eq`.
+    /// // Since `derive(PartialEq, Eq)` would require `impl Eq for f32`, this would not compile.
+    /// impl Eq for Number {}
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub DERIVED_PARTIAL_EQ_WITH_MANUAL_EQ,
+    suspicious,
+    "deriving `PartialEq` but implementing `Eq` manually"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for explicit `Clone` implementations for `Copy`
     /// types.
     ///
@@ -185,6 +218,7 @@ declare_clippy_lint! {
 
 declare_lint_pass!(Derive => [
     DERIVED_HASH_WITH_MANUAL_EQ,
+    DERIVED_PARTIAL_EQ_WITH_MANUAL_EQ,
     DERIVE_ORD_XOR_PARTIAL_ORD,
     DERIVE_PARTIAL_EQ_WITHOUT_EQ,
     EXPL_IMPL_CLONE_ON_COPY,
@@ -207,6 +241,7 @@ impl<'tcx> LateLintPass<'tcx> for Derive {
             let is_automatically_derived = cx.tcx.is_automatically_derived(item.owner_id.to_def_id());
 
             derived_hash_with_manual_eq::check(cx, item.span, trait_ref, ty, adt_hir_id, is_automatically_derived);
+            derived_partial_eq_with_manual_eq::check(cx, item.span, trait_ref, ty, adt_hir_id);
             derive_ord_xor_partial_ord::check(cx, item, trait_ref, ty, adt_hir_id, is_automatically_derived);
 
             if is_automatically_derived {

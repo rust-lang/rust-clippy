@@ -108,6 +108,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::derive::DERIVE_ORD_XOR_PARTIAL_ORD_INFO,
     crate::derive::DERIVE_PARTIAL_EQ_WITHOUT_EQ_INFO,
     crate::derive::DERIVED_HASH_WITH_MANUAL_EQ_INFO,
+    crate::derive::DERIVED_PARTIAL_EQ_WITH_MANUAL_EQ_INFO,
     crate::derive::EXPL_IMPL_CLONE_ON_COPY_INFO,
     crate::derive::UNSAFE_DERIVE_DESERIALIZE_INFO,
     crate::disallowed_fields::DISALLOWED_FIELDS_INFO,
