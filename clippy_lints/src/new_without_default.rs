@@ -144,7 +144,7 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
                 let generics_sugg = snippet_with_applicability(cx, generics.span, "", &mut app);
                 let where_clause_sugg = if generics.has_where_clause_predicates {
                     let where_clause_sugg =
-                        snippet_with_applicability(cx, generics.where_clause_span, "", &mut app).to_string();
+                        snippet_with_applicability(cx, generics.where_clause_span, "", &mut app).into_owned();
                     let mut where_clause_sugg = reindent_multiline(&where_clause_sugg, true, Some(4));
                     if impl_item.generics.has_where_clause_predicates {
                         if !where_clause_sugg.ends_with(',') {
