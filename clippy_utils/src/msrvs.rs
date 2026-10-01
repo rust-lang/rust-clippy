@@ -95,6 +95,7 @@ msrv_aliases! {
     1,15,0 { MAYBE_BOUND_IN_WHERE }
     1,13,0 { QUESTION_MARK_OPERATOR }
     1,6,0 { CORE_PTR_SWAP }
+    1,4,0 { STR_SPLIT_AT }
     1,3,0 { DURATION_FROM_MILLIS_SECS }
 }
 
