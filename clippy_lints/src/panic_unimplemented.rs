@@ -1,22 +1,14 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
-use clippy_utils::macros::{is_panic, root_macro_call_first_node};
+use clippy_utils::macros::{MacroCall, is_panic, root_macro_call};
 use clippy_utils::{is_in_test, is_inside_always_const_context, sym};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, QPath};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_span::Span;
+use rustc_span::hygiene::ExpnId;
 
-pub struct PanicUnimplemented {
-    allow_panic_in_tests: bool,
-}
-
-impl PanicUnimplemented {
-    pub fn new(conf: &'static Conf) -> Self {
-        Self {
-            allow_panic_in_tests: conf.allow_panic_in_tests,
-        }
-    }
-}
+use rustc_data_structures::fx::FxHashSet;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -93,9 +85,25 @@ declare_clippy_lint! {
 
 impl_lint_pass!(PanicUnimplemented => [PANIC, TODO, UNIMPLEMENTED, UNREACHABLE]);
 
+pub struct PanicUnimplemented {
+    allow_panic_in_tests: bool,
+    cache: Cache,
+}
+
+impl PanicUnimplemented {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            allow_panic_in_tests: conf.allow_panic_in_tests,
+            cache: Cache::default(),
+        }
+    }
+}
+
 impl<'tcx> LateLintPass<'tcx> for PanicUnimplemented {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        if let Some(macro_call) = root_macro_call_first_node(cx, expr) {
+        if let Some(macro_call) = root_macro_call(expr.span)
+            && self.cache.insert(&macro_call)
+        {
             if is_panic(cx, macro_call.def_id) {
                 if is_inside_always_const_context(cx.tcx, expr.hir_id)
                     || self.allow_panic_in_tests && is_in_test(cx.tcx, expr.hir_id)
@@ -151,5 +159,36 @@ impl<'tcx> LateLintPass<'tcx> for PanicUnimplemented {
                 "`panic_any` should not be present in production code",
             );
         }
+    }
+}
+
+#[derive(Debug, Default)]
+struct Cache {
+    /// Span of outermost macro call
+    outermost: Option<Span>,
+    /// Cache of linted macro calls for avoiding duplication.
+    linted: FxHashSet<ExpnId>,
+}
+
+impl Cache {
+    /// Checks if the given macro `call` is linted or not.
+    fn insert(&mut self, call: &MacroCall) -> bool {
+        // Consider this example:
+        //
+        // ```ignore
+        // println!("{}", todo!());
+        // panic!();
+        // ```
+        //
+        // Outermost `println!` macro will be expanded at first, then `todo!`.
+        // These calls must be cached for ensuring they are linted only once.
+        // Once we reach `panic!`, which is outside of `println!`, we know the expansion
+        // of `println!` is finished and the whole cache can be cleared.
+        if self.outermost.is_none_or(|span| !span.contains(call.span)) {
+            self.outermost = Some(call.span);
+            self.linted.clear();
+        }
+
+        self.linted.insert(call.expn)
     }
 }

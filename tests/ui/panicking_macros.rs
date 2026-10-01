@@ -127,3 +127,14 @@ fn debug_assert_msg() {
 }
 
 fn main() {}
+
+fn issue17699() {
+    macro_rules! outer {
+        ($e:expr) => {{ $e }};
+    };
+
+    outer!(panic!("macro passed to macro")); //~ panic
+    outer!(todo!("macro passed to macro")); //~ todo
+    outer!(unimplemented!("macro passed to macro")); //~ unimplemented
+    outer!(unreachable!("macro passed to macro")); //~ unreachable
+}
