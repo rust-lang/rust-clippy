@@ -98,8 +98,13 @@ fn char_literal() {
 fn byte_literal() {
     let byte = b'0';
 
-    matches!(byte, b'0' | b'1' | b'2' | b'3');
+    matches!(byte, b'a' | b'b' | b'c' | b'd' | b'e');
+    //~^ manual_range_patterns
+    matches!(byte, b'0' | b'1' | b'2' | b'3' | b'4');
     //~^ manual_range_patterns
 
+    matches!(byte, b'0' | b'1' | b'2' | b'4'); // b'3' is missing
+    matches!(byte, b'A' | b'B' | b'c' | b'd' | b'e'); // b'C'..b'c' is missing
     matches!(byte, b'<' | b'=' | b'>'); // range is not intuitive
+    matches!(byte, b'/' | b'0'..=b'9'); // range is not intuitive
 }
