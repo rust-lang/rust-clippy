@@ -372,6 +372,7 @@ generate! {
     io_errorkind,
     io_stderr,
     io_stdout,
+    is_aligned,
     is_ascii,
     is_char_boundary,
     is_diag_item,
