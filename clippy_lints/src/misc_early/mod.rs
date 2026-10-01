@@ -40,22 +40,22 @@ declare_clippy_lint! {
     /// ### What it does
     /// Warns if a float literal has no fraction after the dot.
     ///
-    /// ### Why restrict this?
+    /// ### Why is this bad?
     /// The fraction makes it immediately clear
     /// that the literal is a floating point value.
     ///
     /// ### Example
     /// ```no_run
-    /// # let _ = 3.;
+    /// let _ = 3.;
     /// ```
     ///
     /// Use instead:
     /// ```no_run
-    /// # let _ = 3.0;
+    /// let _ = 3.0;
     /// ```
     #[clippy::version = "1.100.0"]
     pub FLOAT_WITHOUT_FRACTION,
-    style,
+    nursery,
     "float literal without a fraction after the dot"
 }
 

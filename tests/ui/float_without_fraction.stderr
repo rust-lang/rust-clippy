@@ -19,14 +19,11 @@ error: float literal should have a fraction after the dot
 LL |     let _ = 0_.;
    |             ^^^ help: add a zero: `0_.0`
 
-error: digits grouped inconsistently by underscores
-  --> tests/ui/float_without_fraction.rs:9:13
+error: float literal should have a fraction after the dot
+  --> tests/ui/float_without_fraction.rs:11:14
    |
-LL |     let _ = 0_.;
-   |             ^^^ help: consider: `0.`
-   |
-   = note: `-D clippy::inconsistent-digit-grouping` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::inconsistent_digit_grouping)]`
+LL |     let _ = -0.;
+   |              ^^ help: add a zero: `0.0`
 
 error: aborting due to 4 previous errors
 

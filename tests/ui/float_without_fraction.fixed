@@ -2,13 +2,13 @@
 #![expect(clippy::inconsistent_digit_grouping)]
 
 fn main() {
-    let _ = 0.;
+    let _ = 0.0;
     //~^ float_without_fraction
-    let _ = 1234.;
+    let _ = 1234.0;
     //~^ float_without_fraction
-    let _ = 0_.;
+    let _ = 0_.0;
     //~^ float_without_fraction
-    let _ = -0.;
+    let _ = -0.0;
     //~^ float_without_fraction
 
     let _ = 0.0;

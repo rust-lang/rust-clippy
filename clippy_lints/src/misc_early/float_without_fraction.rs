@@ -11,6 +11,7 @@ pub(super) fn check(cx: &EarlyContext<'_>, lit_span: Span, lit_snip: &str, suffi
     };
 
     if lit_snip.as_bytes()[before_suffix_index] == b'.' {
+        #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
         span_lint_and_then(
             cx,
             FLOAT_WITHOUT_FRACTION,
