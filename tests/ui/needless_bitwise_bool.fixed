@@ -25,6 +25,16 @@ fn main() {
         println!("true")
     }
 
+    // don't suggest inside a macro, since some callers may have rhs with side effects
+    macro_rules! and {
+        ($x:expr, $y:expr) => {
+            $x & $y
+        };
+    }
+
+    let _ = and!(x, returns_bool());
+    let _ = and!(x, y);
+
     // BELOW: lints we hope to catch as `Expr::can_have_side_effects` improves.
     if y & !const_returns_bool() {
         println!("true") // This is a const function, in an UnOp
