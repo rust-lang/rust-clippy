@@ -310,5 +310,47 @@ note: same as this
 LL |     _ = if x { a >= b } else { b <= a };
    |                              ^^^^^^^^^^
 
-error: aborting due to 23 previous errors
+error: this `if` has identical blocks
+  --> tests/ui/if_same_then_else.rs:341:30
+   |
+LL |           let _ = if condition {
+   |  ______________________________^
+LL | |             static S: u8 = 0;
+LL | |             &S
+LL | |         } else {
+   | |_________^
+   |
+note: same as this
+  --> tests/ui/if_same_then_else.rs:344:16
+   |
+LL |           } else {
+   |  ________________^
+LL | |             static S: u8 = 0;
+LL | |             &S
+LL | |         };
+   | |_________^
+
+error: this `if` has identical blocks
+  --> tests/ui/if_same_then_else.rs:352:30
+   |
+LL |           let _ = if condition {
+   |  ______________________________^
+LL | |             /// A documented static.
+LL | |             static S: u8 = 0;
+LL | |             &S
+LL | |         } else {
+   | |_________^
+   |
+note: same as this
+  --> tests/ui/if_same_then_else.rs:356:16
+   |
+LL |           } else {
+   |  ________________^
+LL | |             /// A documented static.
+LL | |             static S: u8 = 0;
+LL | |             &S
+LL | |         };
+   | |_________^
+
+error: aborting due to 25 previous errors
 
