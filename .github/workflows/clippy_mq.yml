@@ -63,6 +63,10 @@ jobs:
       if: matrix.host != 'x86_64-unknown-linux-gnu'
       run: cargo test --features internal -- --skip dogfood
 
+    - name: Test clippy_data_structures
+      run: cargo test
+      working-directory: clippy_data_structures
+
     - name: Test clippy_lints
       run: cargo test
       working-directory: clippy_lints
