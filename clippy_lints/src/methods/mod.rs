@@ -548,7 +548,7 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     ///
-    /// Checks for `Iterator::last` being called on a  `DoubleEndedIterator`, which can be replaced
+    /// Checks for `Iterator::last` being called on a `DoubleEndedIterator`, which can be replaced
     /// with `DoubleEndedIterator::next_back`.
     ///
     /// ### Why is this bad?
@@ -556,6 +556,12 @@ declare_clippy_lint! {
     /// `Iterator::last` is implemented by consuming the iterator, which is unnecessary if
     /// the iterator is a `DoubleEndedIterator`. Since Rust traits do not allow specialization,
     /// `Iterator::last` cannot be optimized for `DoubleEndedIterator`.
+    ///
+    /// ### Known issues
+    ///
+    /// The suggestion may change code behavior when an iterator adapter has side effects. For example,
+    /// a `move` closure passed to `filter` may mutate captured state. Replacing `last()` with `next_back()`
+    /// changes the order in which the closure is evaluated, which could change the final result.
     ///
     /// ### Example
     /// ```no_run
