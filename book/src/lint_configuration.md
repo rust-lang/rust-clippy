@@ -904,6 +904,16 @@ crate. For example, `pub(crate)` items.
 * [`missing_docs_in_private_items`](https://rust-lang.github.io/rust-clippy/main/index.html#missing_docs_in_private_items)
 
 
+## `missing-transmute-annotations-in-expansions`
+Whether to check for missing transmute annotations inside expansions. For example, macros.
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`missing_transmute_annotations`](https://rust-lang.github.io/rust-clippy/main/index.html#missing_transmute_annotations)
+
+
 ## `module-item-order-groupings`
 The named groupings of different source item kinds within modules.
 
