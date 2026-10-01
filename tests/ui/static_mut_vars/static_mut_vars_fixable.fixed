@@ -1,0 +1,37 @@
+#![warn(clippy::static_mut_vars)]
+
+unsafe extern "C" {
+    pub safe static mut EXTERN_VAR: [u8; 5];
+}
+
+static BOOL_VAR: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+//~^ static_mut_vars
+
+static ISIZE_VAR: std::sync::atomic::AtomicIsize = std::sync::atomic::AtomicIsize::new(0isize);
+//~^ static_mut_vars
+static I8_VAR: std::sync::atomic::AtomicI8 = std::sync::atomic::AtomicI8::new(0i8);
+//~^ static_mut_vars
+static I16_VAR: std::sync::atomic::AtomicI16 = std::sync::atomic::AtomicI16::new(0i16);
+//~^ static_mut_vars
+static I32_VAR: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32::new(1i32);
+//~^ static_mut_vars
+static I64_VAR: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64::new(1i64);
+//~^ static_mut_vars
+
+static USIZE_VAR: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0usize);
+//~^ static_mut_vars
+static U8_VAR: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0u8);
+//~^ static_mut_vars
+static U16_VAR: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16::new(0u16);
+//~^ static_mut_vars
+static U32_VAR: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0u32);
+//~^ static_mut_vars
+static U64_VAR: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0u64);
+//~^ static_mut_vars
+
+static MUT_PTR_VAR: std::sync::atomic::AtomicPtr<i32> = std::sync::atomic::AtomicPtr::<i32>::new(std::ptr::null_mut());
+//~^ static_mut_vars
+
+static VAL: u8 = 0u8;
+
+fn main() {}

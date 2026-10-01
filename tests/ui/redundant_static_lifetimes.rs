@@ -1,6 +1,6 @@
 #![warn(clippy::redundant_static_lifetimes)]
 // FIXME(static_mut_refs): use raw pointers instead of references
-#![allow(static_mut_refs)]
+#![allow(static_mut_refs, clippy::static_mut_vars)]
 
 #[derive(Debug)]
 struct Foo;
