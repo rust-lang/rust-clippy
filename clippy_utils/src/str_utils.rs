@@ -162,7 +162,7 @@ pub fn camel_case_split(s: &str) -> Vec<&str> {
         offsets.insert(0, 0);
     }
 
-    offsets.windows(2).map(|w| &s[w[0]..w[1]]).collect()
+    offsets.array_windows().map(|[left, right]| &s[*left..*right]).collect()
 }
 
 /// Dealing with string comparison can be complicated, this struct ensures that both the
