@@ -203,4 +203,19 @@ fn main() {
         //~^ indexing_slicing
         _ => println!("{} or {}", should_not_lint[0], should_not_lint[1]),
     }
+
+    // I think we want to lint on this so we don't make assumptions about cloned or reffed values.
+    let helper_string = "helper";
+
+    let _ = match should_not_lint.len() {
+        0 => match helper_string == "helper" {
+            true => {
+                let should_lint = should_not_lint;
+                should_lint[0]
+                //~^ indexing_slicing
+            },
+            false => should_not_lint[0],
+        },
+        _ => should_not_lint[0],
+    };
 }
