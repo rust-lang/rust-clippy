@@ -172,7 +172,7 @@ LL +         2;
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:94:5
+  --> tests/ui/dbg_macro/dbg_macro.rs:95:5
    |
 LL |     dbg!(1);
    |     ^^^^^^^
@@ -184,7 +184,7 @@ LL +     1;
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:100:5
+  --> tests/ui/dbg_macro/dbg_macro.rs:101:5
    |
 LL |     dbg!(1);
    |     ^^^^^^^
@@ -196,7 +196,7 @@ LL +     1;
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:107:9
+  --> tests/ui/dbg_macro/dbg_macro.rs:108:9
    |
 LL |         dbg!(1);
    |         ^^^^^^^
@@ -208,7 +208,7 @@ LL +         1;
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:114:31
+  --> tests/ui/dbg_macro/dbg_macro.rs:115:31
    |
 LL |         println!("dbg: {:?}", dbg!(s));
    |                               ^^^^^^^
@@ -220,7 +220,7 @@ LL +         println!("dbg: {:?}", s);
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:117:22
+  --> tests/ui/dbg_macro/dbg_macro.rs:118:22
    |
 LL |         print!("{}", dbg!(s));
    |                      ^^^^^^^
@@ -232,7 +232,7 @@ LL +         print!("{}", s);
    |
 
 error: the `dbg!` macro is intended as a debugging tool
-  --> tests/ui/dbg_macro/dbg_macro.rs:133:36
+  --> tests/ui/dbg_macro/dbg_macro.rs:134:36
    |
 LL |         takes_async_fn(async |val| dbg!(val));
    |                                    ^^^^^^^^^
