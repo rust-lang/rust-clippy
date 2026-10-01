@@ -110,7 +110,14 @@ pub(super) fn check(
                         ""
                     },
                 ),
-                (false, true) => (from_nbits == 64, " on targets with 32-bit wide pointers"),
+                (false, true) => (
+                    from_nbits > 32,
+                    if from_nbits > 64 {
+                        ""
+                    } else {
+                        " on targets with 32-bit wide pointers"
+                    },
+                ),
             };
 
             if !should_lint {

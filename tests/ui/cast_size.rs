@@ -50,6 +50,10 @@ fn main() {
     //~| cast_possible_wrap
     1u64 as usize;
     //~^ cast_possible_truncation
+    1u128 as usize;
+    //~^ cast_possible_truncation
+    1i128 as isize;
+    //~^ cast_possible_truncation
     1u32 as isize;
     //~^ cast_possible_wrap
     1u32 as usize; // Should not trigger any lint
@@ -70,4 +74,18 @@ fn issue15163() {
     const M: usize = 100;
     const N: u16 = M as u16;
     //~^ cast_possible_truncation
+}
+
+fn reduced_widths(x: u64, y: u128) {
+    // 33..=63 bits: fits a 64-bit `usize`, truncates on a 32-bit one
+    (x >> 31) as usize;
+    //~^ cast_possible_truncation
+    (x >> 20) as usize;
+    //~^ cast_possible_truncation
+    (y >> 70) as usize;
+    //~^ cast_possible_truncation
+
+    // 32 bits or fewer: fits `usize` everywhere, so no lint
+    (x >> 32) as usize;
+    (y >> 96) as usize;
 }
