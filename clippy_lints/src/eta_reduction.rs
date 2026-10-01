@@ -334,7 +334,7 @@ fn has_late_bound_to_non_late_bound_regions(from_sig: FnSig<'_>, to_sig: FnSig<'
         if from_subs.len() != to_subs.len() {
             return true;
         }
-        for (from_arg, to_arg) in to_subs.iter().zip(from_subs) {
+        for (from_arg, to_arg) in from_subs.iter().zip(to_subs) {
             match (from_arg.kind(), to_arg.kind()) {
                 (GenericArgKind::Lifetime(from_region), GenericArgKind::Lifetime(to_region)) => {
                     if check_region(from_region, to_region) {
