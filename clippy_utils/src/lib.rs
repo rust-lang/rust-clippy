@@ -1,4 +1,6 @@
 #![feature(deref_patterns)]
+#![feature(f128)]
+#![feature(f16)]
 #![feature(macro_metavar_expr)]
 #![feature(rustc_private)]
 #![recursion_limit = "512"]
