@@ -288,5 +288,77 @@ note: this value is dropped without further use
 LL |         let t = s.clone();
    |                 ^
 
-error: aborting due to 24 previous errors
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:398:22
+   |
+LL |             let y = x.clone();
+   |                      ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:398:21
+   |
+LL |             let y = x.clone();
+   |                     ^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:409:18
+   |
+LL |             y = x.clone();
+   |                  ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:409:17
+   |
+LL |             y = x.clone();
+   |                 ^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:418:22
+   |
+LL |         let mut y = x.clone();
+   |                      ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:418:21
+   |
+LL |         let mut y = x.clone();
+   |                     ^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:423:18
+   |
+LL |             y = x.clone();
+   |                  ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:423:17
+   |
+LL |             y = x.clone();
+   |                 ^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:502:22
+   |
+LL |             let y = x.clone();
+   |                      ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:502:21
+   |
+LL |             let y = x.clone();
+   |                     ^
+
+error: redundant clone
+  --> tests/ui/redundant_clone.rs:527:22
+   |
+LL |             let y = x.clone();
+   |                      ^^^^^^^^ help: remove this
+   |
+note: this value is dropped without further use
+  --> tests/ui/redundant_clone.rs:527:21
+   |
+LL |             let y = x.clone();
+   |                     ^
+
+error: aborting due to 30 previous errors
 
