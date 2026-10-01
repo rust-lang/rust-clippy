@@ -19,6 +19,9 @@ declare_clippy_lint! {
     /// This lint intentionally does not handle numbers greater than `i128::MAX` for `u128` literals
     /// in order to support negative numbers.
     ///
+    /// For char and byte literal, only `a-zA-Z0-9` is supported, and the range of other characters
+    /// is usually not intuitive.
+    ///
     /// ### Example
     /// ```no_run
     /// let x = 6;
