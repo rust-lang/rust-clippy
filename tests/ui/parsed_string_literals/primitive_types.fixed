@@ -1,0 +1,88 @@
+#![feature(f16, f128)]
+#![warn(clippy::parsed_string_literals)]
+
+use std::ffi::c_int;
+
+fn main() {
+    _ = 10_usize;
+    //~^ parsed_string_literals
+    _ = 1.23_f16;
+    //~^ parsed_string_literals
+    _ = 1.23_f32;
+    //~^ parsed_string_literals
+    _ = 1.2300_f32;
+    //~^ parsed_string_literals
+    _ = 'c';
+    //~^ parsed_string_literals
+    _ = '"';
+    //~^ parsed_string_literals
+    _ = '\'';
+    //~^ parsed_string_literals
+
+    // Since the context provides the type to use for the result of `parse()`,
+    // do not include a suffix when issuing the constant.
+    let _: i64 = -17;
+    //~^ parsed_string_literals
+
+    // Check that the original form is preserved ('🦀' == '\u{1f980}')
+    _ = '\u{1f980}';
+    //~^ parsed_string_literals
+    _ = '🦀';
+    //~^ parsed_string_literals
+
+    // Do not lint invalid values
+    _ = "-10".parse::<usize>().unwrap();
+
+    // Ensure that leading `+` is removed
+    _ = 10_usize;
+    //~^ parsed_string_literals
+
+    // Negative literals must be parenthesized when receivers of a method call
+    let _: usize = (-10_isize).unsigned_abs();
+    //~^ parsed_string_literals
+
+    let _: c_int = 10;
+    //~^ parsed_string_literals
+    _ = 10 as c_int;
+    //~^ parsed_string_literals
+
+    // Special values are handled too when an explicit type is given to `parse()`
+    _ = f16::INFINITY; /* f16::INFINITY */
+    //~^ parsed_string_literals
+    _ = f32::INFINITY; /* f32::INFINITY */
+    //~^ parsed_string_literals
+    _ = f64::NEG_INFINITY; /* f64::NEG_INFINITY */
+    //~^ parsed_string_literals
+    _ = f16::NAN; /* f16::NAN */
+    //~^ parsed_string_literals
+    _ = f32::NAN; /* f32::NAN */
+    //~^ parsed_string_literals
+    _ = -f64::NAN; /* -f64::NAN */
+    //~^ parsed_string_literals
+
+    // Casts must be parenthesized when receivers of a method call
+    type MySizedType = isize;
+    let _: usize = (-10 as MySizedType).unsigned_abs();
+    //~^ parsed_string_literals
+
+    // Casts must be parenthesized when arguments of a unary operator
+    _ = -(-10 as MySizedType);
+    //~^ parsed_string_literals
+
+    // Including for `-NAN`
+    type MyFloat = f16;
+    _ = (-MyFloat::NAN).abs();
+    //~^ parsed_string_literals
+
+    // Do not lint content or code coming from macros
+    macro_rules! mac {
+        (str) => {
+            "10"
+        };
+        (parse $l:literal) => {
+            $l.parse::<u32>().unwrap()
+        };
+    }
+    _ = mac!(str).parse::<u32>().unwrap();
+    _ = mac!(parse "10");
+}
