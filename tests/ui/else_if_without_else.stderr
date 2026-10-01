@@ -1,5 +1,5 @@
 error: `if` expression with an `else if`, but without a final `else`
-  --> tests/ui/else_if_without_else.rs:51:12
+  --> tests/ui/else_if_without_else.rs:55:12
    |
 LL |       } else if bla2() {
    |  ____________^
@@ -14,7 +14,7 @@ LL | |     }
    = help: to override `-D warnings` add `#[allow(clippy::else_if_without_else)]`
 
 error: `if` expression with an `else if`, but without a final `else`
-  --> tests/ui/else_if_without_else.rs:61:12
+  --> tests/ui/else_if_without_else.rs:65:12
    |
 LL |       } else if bla3() {
    |  ____________^
@@ -27,7 +27,7 @@ LL | |     }
    = help: add an `else` block here
 
 error: `if` expression with an `else if`, but without a final `else`
-  --> tests/ui/else_if_without_else.rs:89:12
+  --> tests/ui/else_if_without_else.rs:93:12
    |
 LL |       } else if bla5() {
    |  ____________^
@@ -40,7 +40,7 @@ LL | |     }
    = help: add an `else` block here
 
 error: `if` expression with an `else if`, but without a final `else`
-  --> tests/ui/else_if_without_else.rs:120:16
+  --> tests/ui/else_if_without_else.rs:124:16
    |
 LL |           } else if bla5() {
    |  ________________^
@@ -52,5 +52,17 @@ LL | |         }
    |
    = help: add an `else` block here
 
-error: aborting due to 4 previous errors
+error: `if` expression with an `else if`, but without a final `else`
+  --> tests/ui/else_if_without_else.rs:133:12
+   |
+LL |       } else if bla2() {
+   |  ____________^
+LL | |
+LL | |     });
+   | |_____^
+   |
+   = help: add an `else` block here
+   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: aborting due to 5 previous errors
 
