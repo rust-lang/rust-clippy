@@ -273,7 +273,7 @@ impl EarlyLintPass for FooFunctions {}
 ```
 
 [declare_clippy_lint]: https://github.com/rust-lang/rust-clippy/blob/557f6848bd5b7183f55c1e1522a326e9e1df6030/clippy_lints/src/lib.rs#L60
-[example_lint_page]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_closure
+[example_lint_page]: https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
 [lint_naming]: https://rust-lang.github.io/rfcs/0344-conventions-galore.html#lints
 [category_level_mapping]: ../index.html
 
@@ -619,7 +619,7 @@ necessarily “bad” but are more of a style choice, then replace the
 Once your lint is merged, this documentation will show up in the [lint
 list][lint_list].
 
-[lint_list]: https://rust-lang.github.io/rust-clippy/master/index.html
+[lint_list]: https://rust-lang.github.io/rust-clippy/main/index.html
 
 ## Running rustfmt
 
