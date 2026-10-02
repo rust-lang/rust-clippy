@@ -121,7 +121,7 @@ fn matches_array_in_arm_and_scrutinee(
 }
 
 /// Returns true if `supposed_match` looks like:
-///```
+///```no_run
 /// match (.., array.len(), ..) {
 ///     _ => array[i]
 /// }
