@@ -5,7 +5,7 @@
 
 extern crate proc_macro_attr;
 
-use proc_macro_attr::{add_must_use, add_must_use_to_async, dummy};
+use proc_macro_attr::{add_must_use, add_must_use_to_async, add_must_use_with_input_span, dummy};
 
 #[add_must_use_to_async]
 async fn function() -> Result<(), ()> {
@@ -74,6 +74,14 @@ fn returns_must_use_enum() -> MustUseEnum {
 fn returns_must_use_trait() -> impl MustUseTrait {
     //~^ double_must_use
     0u32
+}
+
+// Mimics `#[async_recursion]` (#17831): the `#[must_use]` attribute is
+// injected by the macro reusing an input span, so it must not be linted even though span
+// checks alone cannot tell it is macro-generated.
+#[add_must_use_with_input_span]
+fn injected_must_use_result() -> Result<(), ()> {
+    Ok(())
 }
 
 #[dummy]
