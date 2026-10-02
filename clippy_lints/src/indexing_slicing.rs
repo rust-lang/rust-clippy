@@ -100,19 +100,19 @@ pub struct IndexingSlicing {
     suppress_restriction_lint_in_const: bool,
 }
 
-fn check_if_match_arm_eq(
+fn matches_array_in_arm_and_scrutinee(
     method_name: &PathSegment<'_>,
-    match_expr: &Expr<'_>,
-    args: &[Expr<'_>],
-    arm_array: &Expr<'_>,
+    scrutinee: &Expr<'_>,
+    method_args: &[Expr<'_>],
+    mentioned_in_arm: &Expr<'_>,
 ) -> bool {
     if method_name.ident.name == sym::len
-        && args.is_empty()
-        && match_expr.hir_id().owner.to_def_id() == method_name.hir_id.owner.to_def_id()
-        && let ExprKind::Path(qpath) = match_expr.kind
-        && let Some(match_expr_hir_id) = qpath.res_local_id()
-        && let Some(arm_array_hir_id) = arm_array.res_local_id()
-        && match_expr_hir_id == arm_array_hir_id
+        && method_args.is_empty()
+        && scrutinee.hir_id().owner.to_def_id() == method_name.hir_id.owner.to_def_id()
+        && let ExprKind::Path(qpath) = scrutinee.kind
+        && let Some(scrutinee_hir_id) = qpath.res_local_id()
+        && let Some(mentioned_in_arm_hir_id) = mentioned_in_arm.res_local_id()
+        && scrutinee_hir_id == mentioned_in_arm_hir_id
     {
         true
     } else {
@@ -120,18 +120,24 @@ fn check_if_match_arm_eq(
     }
 }
 
+/// Returns true if `supposed_match` looks like:
+///```
+/// match (.., array.len(), ..) {
+///     _ => array[i]
+/// }
+/// ```
 fn check_if_in_match_with_len(supposed_match: &Expr<'_>, arm_array: &Expr<'_>) -> bool {
     match supposed_match.kind {
         ExprKind::Tup(tuple_members) => tuple_members.iter().map(|x| x.kind).any(|x| {
             if let ExprKind::MethodCall(method_name, b, args, _) = x {
-                check_if_match_arm_eq(method_name, b, args, arm_array)
+                matches_array_in_arm_and_scrutinee(method_name, b, args, arm_array)
             } else {
                 false
             }
         }),
 
         ExprKind::MethodCall(method_name, match_expr, args, _) => {
-            check_if_match_arm_eq(method_name, match_expr, args, arm_array)
+            matches_array_in_arm_and_scrutinee(method_name, match_expr, args, arm_array)
         },
         _ => false,
     }
@@ -150,8 +156,8 @@ impl<'tcx> LateLintPass<'tcx> for IndexingSlicing {
     #[allow(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if let ExprKind::Index(array, index, _) = expr.kind {
-            // we check whether the lint should be ignored for within match that checks for len of
-            // said array
+            // We don't worry if we're on a match with the scrutinee checking an index's length,
+            // as that's an explicit check.
             let current_hir_id = expr.hir_id;
             for (_, parent_node) in cx.tcx.hir_parent_iter(current_hir_id) {
                 if let Node::Expr(Expr {
