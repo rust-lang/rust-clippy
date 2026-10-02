@@ -341,15 +341,16 @@ impl UnconditionalRecursion {
             for (ty, impl_def_ids) in impls.non_blanket_impls() {
                 let Some(self_def_id) = ty.def() else { continue };
                 for &impl_def_id in impl_def_ids {
+                    // Only local impls have a `default()` body we can inspect.
+                    if !impl_def_id.is_local() {
+                        continue;
+                    }
                     if !cx.tcx.is_automatically_derived(impl_def_id) &&
                         let Some(assoc_item) = cx
                             .tcx
                             .associated_items(impl_def_id)
                             .in_definition_order()
-                            // We're not interested in foreign implementations of the `Default` trait.
-                            .find(|item| {
-                                item.is_fn() && item.def_id.is_local() && item.name() == kw::Default
-                            })
+                            .find(|item| item.is_fn() && item.name() == kw::Default)
                         && let Some(body_node) = cx.tcx.hir_get_if_local(assoc_item.def_id)
                         && let Some(body_id) = body_node.body_id()
                         && let body = cx.tcx.hir_body(body_id)
