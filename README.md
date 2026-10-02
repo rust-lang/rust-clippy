@@ -280,7 +280,7 @@ Lints that recognize this configuration option can be found [here](https://rust-
 
 ## Contributing
 
-If you want to contribute to Clippy, you can find more information in [CONTRIBUTING.md](https://github.com/rust-lang/rust-clippy/blob/master/CONTRIBUTING.md).
+If you want to contribute to Clippy, you can find more information in [CONTRIBUTING.md](https://github.com/rust-lang/rust-clippy/blob/HEAD/CONTRIBUTING.md).
 
 ## License
 
