@@ -206,6 +206,16 @@ macro_rules! define_Conf {
             }
         }
 
+        // The next function intentionally produces a "<$name> is defined multiple times" error if
+        // `$name` is renamed and has a type in the `define_Conf!` invocation.
+        #[allow(unused)]
+        fn fail_to_compile_if_a_renamed_field_has_a_type() {
+            // Expands if `$new_name` is set.
+            $($(fn $name() { let $new_name: (); } )?)*
+            // Expands if `$ty` is set.
+            $($(fn $name() { let _: $ty; } )?)*
+        }
+
         #[test]
         fn check_conf_order() {
             for [x, y] in ConfField::NAMES[..ConfField::NAMES.len() - 1].array_windows::<2>() {
@@ -591,7 +601,7 @@ define_Conf! {
     #[lints(collapsible_else_if, collapsible_if)]
     lint_commented_code("lint-commented-code"): bool = false,
     #[rename = check_inconsistent_struct_field_initializers]
-    lint_inconsistent_struct_field_initializers("lint-inconsistent-struct-field-initializers"): bool = false,
+    lint_inconsistent_struct_field_initializers("lint-inconsistent-struct-field-initializers"),
     /// The lower bound for linting decimal literals
     #[lints(decimal_literal_representation)]
     literal_representation_threshold("literal-representation-threshold"): u64 = 16384,
