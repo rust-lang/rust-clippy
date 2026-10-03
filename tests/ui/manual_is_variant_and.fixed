@@ -1,6 +1,7 @@
 //@aux-build:option_helpers.rs
 #![warn(clippy::manual_is_variant_and)]
 #![allow(clippy::redundant_closure)]
+#![expect(clippy::unnecessary_literal_option)]
 
 #[macro_use]
 extern crate option_helpers;
