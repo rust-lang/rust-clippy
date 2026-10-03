@@ -527,6 +527,7 @@ Whether to also run the listed lints on private items.
 
 ---
 **Affected lints:**
+* [`doc_examples_missing_item`](https://rust-lang.github.io/rust-clippy/main/index.html#doc_examples_missing_item)
 * [`missing_errors_doc`](https://rust-lang.github.io/rust-clippy/main/index.html#missing_errors_doc)
 * [`missing_panics_doc`](https://rust-lang.github.io/rust-clippy/main/index.html#missing_panics_doc)
 * [`missing_safety_doc`](https://rust-lang.github.io/rust-clippy/main/index.html#missing_safety_doc)

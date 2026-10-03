@@ -1,4 +1,5 @@
 #![deny(
+    clippy::doc_examples_missing_item,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
     clippy::unnecessary_safety_doc
@@ -49,6 +50,28 @@ pub mod __macro {
         pub unsafe fn f() {}
         //~^ ERROR: unsafe function's docs are missing a `# Safety` section
     }
+}
+
+mod examples {
+    /// ```
+    /// let _ = 1;
+    /// ```
+    fn private_copied() {}
+    //~^ doc_examples_missing_item
+
+    /// ```
+    /// private_own();
+    /// ```
+    fn private_own() {}
+}
+
+#[doc(hidden)]
+pub mod hidden_examples {
+    /// ```
+    /// let _ = 1;
+    /// ```
+    pub fn under_hidden() {}
+    //~^ doc_examples_missing_item
 }
 
 #[warn(clippy::missing_errors_doc)]
