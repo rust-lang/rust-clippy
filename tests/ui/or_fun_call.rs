@@ -4,7 +4,11 @@
     clippy::unnecessary_option_map_or_else,
     clippy::unnecessary_result_map_or_else
 )]
-#![expect(clippy::unnecessary_literal_unwrap, clippy::useless_vec)]
+#![expect(
+    clippy::unnecessary_literal_option,
+    clippy::unnecessary_literal_unwrap,
+    clippy::useless_vec
+)]
 
 use std::collections::{BTreeMap, HashMap};
 use std::time::Duration;

@@ -1,6 +1,10 @@
 //@no-rustfix: has placeholders
 #![warn(clippy::panicking_unwrap, clippy::unnecessary_unwrap)]
-#![expect(clippy::branches_sharing_code, clippy::unnecessary_literal_unwrap)]
+#![expect(
+    clippy::branches_sharing_code,
+    clippy::unnecessary_literal_option,
+    clippy::unnecessary_literal_unwrap
+)]
 
 fn test_nested() {
     fn nested() {

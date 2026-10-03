@@ -1,7 +1,7 @@
 #![warn(clippy::manual_let_else)]
 // Ensure that we don't conflict with match -> if let lints
 #![deny(clippy::single_match, clippy::single_match_else)]
-#![allow(irrefutable_let_patterns)]
+#![allow(irrefutable_let_patterns, clippy::unnecessary_literal_option)]
 #![expect(clippy::let_unit_value, clippy::redundant_at_rest_pattern)]
 
 fn f() -> Result<u32, u32> {

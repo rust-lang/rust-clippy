@@ -7775,6 +7775,7 @@ Released 2018-09-13
 [`unnecessary_join`]: https://clippy.rust-lang.org/main/index.html#unnecessary_join
 [`unnecessary_lazy_evaluations`]: https://clippy.rust-lang.org/main/index.html#unnecessary_lazy_evaluations
 [`unnecessary_literal_bound`]: https://clippy.rust-lang.org/main/index.html#unnecessary_literal_bound
+[`unnecessary_literal_option`]: https://clippy.rust-lang.org/main/index.html#unnecessary_literal_option
 [`unnecessary_literal_unwrap`]: https://clippy.rust-lang.org/main/index.html#unnecessary_literal_unwrap
 [`unnecessary_map_on_constructor`]: https://clippy.rust-lang.org/main/index.html#unnecessary_map_on_constructor
 [`unnecessary_map_or`]: https://clippy.rust-lang.org/main/index.html#unnecessary_map_or

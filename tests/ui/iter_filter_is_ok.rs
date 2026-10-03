@@ -1,6 +1,6 @@
 #![warn(clippy::iter_filter_is_ok)]
 #![allow(clippy::needless_borrow, clippy::redundant_closure)]
-#![expect(clippy::map_identity, clippy::result_filter_map)]
+#![expect(clippy::map_identity, clippy::result_filter_map, clippy::unnecessary_literal_option)]
 
 fn main() {
     {

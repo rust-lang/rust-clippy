@@ -1,6 +1,10 @@
 //@require-annotations-for-level: ERROR
 #![warn(clippy::map_identity)]
-#![expect(clippy::disallowed_names, clippy::needless_return)]
+#![expect(
+    clippy::disallowed_names,
+    clippy::needless_return,
+    clippy::unnecessary_literal_option
+)]
 
 fn main() {
     let x: [u16; 3] = [1, 2, 3];
