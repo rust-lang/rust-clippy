@@ -1,0 +1,84 @@
+error: used `is_some()` on `Some` value
+  --> tests/ui/unnecessary_literal_option.rs:4:13
+   |
+LL |     let _ = Some(1).is_some();
+   |             ^^^^^^^^^^^^^^^^^ this always evaluates to `true`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+   = note: `-D clippy::unnecessary-literal-option` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unnecessary_literal_option)]`
+
+error: used `is_none()` on `Some` value
+  --> tests/ui/unnecessary_literal_option.rs:7:13
+   |
+LL |     let _ = Some(1).is_none();
+   |             ^^^^^^^^^^^^^^^^^ this always evaluates to `false`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `is_some()` on `None` value
+  --> tests/ui/unnecessary_literal_option.rs:10:13
+   |
+LL |     let _ = None::<i32>.is_some();
+   |             ^^^^^^^^^^^^^^^^^^^^^ this always evaluates to `false`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `is_none()` on `None` value
+  --> tests/ui/unnecessary_literal_option.rs:13:13
+   |
+LL |     let _ = None::<i32>.is_none();
+   |             ^^^^^^^^^^^^^^^^^^^^^ this always evaluates to `true`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `or()` on `Some` value
+  --> tests/ui/unnecessary_literal_option.rs:16:13
+   |
+LL |     let _ = Some(1).or(None);
+   |             ^^^^^^^^^^^^^^^^ this always evaluates to the original `Some` value
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `or_else()` on `Some` value
+  --> tests/ui/unnecessary_literal_option.rs:19:13
+   |
+LL |     let _ = Some(1).or_else(|| None);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ this always evaluates to the original `Some` value
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `is_some()` on `Some` value
+  --> tests/ui/unnecessary_literal_option.rs:25:13
+   |
+LL |     let _ = x.is_some();
+   |             ^^^^^^^^^^^ this always evaluates to `true`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `and()` on `None` value
+  --> tests/ui/unnecessary_literal_option.rs:44:13
+   |
+LL |     let _ = None::<i32>.and(Some(1));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ this always evaluates to `None`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `and_then()` on `None` value
+  --> tests/ui/unnecessary_literal_option.rs:47:13
+   |
+LL |     let _ = None::<i32>.and_then(|_| None::<i32>);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this always evaluates to `None`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: used `map()` on `None` value
+  --> tests/ui/unnecessary_literal_option.rs:50:13
+   |
+LL |     let _ = None::<i32>.map(|_| 1);
+   |             ^^^^^^^^^^^^^^^^^^^^^^ this always evaluates to `None`
+   |
+   = help: this is likely a logic error or leftover code, so double check the logic
+
+error: aborting due to 10 previous errors
+

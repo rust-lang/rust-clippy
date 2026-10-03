@@ -1,6 +1,11 @@
 #![warn(clippy::iter_filter_is_some)]
 #![allow(clippy::needless_borrow, clippy::redundant_closure)]
-#![expect(clippy::map_identity, clippy::option_filter_map, clippy::unnecessary_get_then_check)]
+#![expect(
+    clippy::map_identity,
+    clippy::option_filter_map,
+    clippy::unnecessary_get_then_check,
+    clippy::unnecessary_literal_option
+)]
 
 use std::collections::HashMap;
 

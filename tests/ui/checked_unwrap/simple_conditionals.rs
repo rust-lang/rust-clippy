@@ -4,6 +4,7 @@
     clippy::branches_sharing_code,
     clippy::if_same_then_else,
     clippy::self_assignment,
+    clippy::unnecessary_literal_option,
     clippy::unnecessary_literal_unwrap
 )]
 

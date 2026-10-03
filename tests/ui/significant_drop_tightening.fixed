@@ -1,5 +1,5 @@
 #![warn(clippy::significant_drop_tightening)]
-
+#![expect(clippy::unnecessary_literal_option)]
 use std::sync::Mutex;
 
 pub fn complex_return_triggers_the_lint() -> i32 {

@@ -512,6 +512,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::UNNECESSARY_GET_THEN_CHECK_INFO,
     crate::methods::UNNECESSARY_JOIN_INFO,
     crate::methods::UNNECESSARY_LAZY_EVALUATIONS_INFO,
+    crate::methods::UNNECESSARY_LITERAL_OPTION_INFO,
     crate::methods::UNNECESSARY_LITERAL_UNWRAP_INFO,
     crate::methods::UNNECESSARY_MAP_OR_INFO,
     crate::methods::UNNECESSARY_MIN_OR_MAX_INFO,
