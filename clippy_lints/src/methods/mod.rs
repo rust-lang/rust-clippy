@@ -3916,10 +3916,11 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for `s.strip_prefix(p).unwrap_or(s)` and `s.strip_suffix(p).unwrap_or(s)`.
+    /// Checks for `s.strip_prefix(p).unwrap_or(s)` and `s.strip_suffix(p).unwrap_or(s)`
+    /// on strings and slices.
     ///
     /// ### Why is this bad?
-    /// `str::trim_prefix` and `str::trim_suffix` express this directly,
+    /// `trim_prefix` and `trim_suffix` express this directly,
     /// without the intermediate `Option`.
     ///
     /// ### Example

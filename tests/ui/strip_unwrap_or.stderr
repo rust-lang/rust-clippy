@@ -20,10 +20,22 @@ LL |     let _ = s.strip_prefix(pat).unwrap_or(s);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.trim_prefix(pat)`
 
 error: `strip_prefix().unwrap_or()` can be written with `trim_prefix()`
-  --> tests/ui/strip_unwrap_or.rs:41:13
+  --> tests/ui/strip_unwrap_or.rs:33:13
+   |
+LL |     let _ = v.strip_prefix(&[10]).unwrap_or(v);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `v.trim_prefix(&[10])`
+
+error: `strip_suffix().unwrap_or()` can be written with `trim_suffix()`
+  --> tests/ui/strip_unwrap_or.rs:35:13
+   |
+LL |     let _ = v.strip_suffix(&[30]).unwrap_or(v);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `v.trim_suffix(&[30])`
+
+error: `strip_prefix().unwrap_or()` can be written with `trim_prefix()`
+  --> tests/ui/strip_unwrap_or.rs:52:13
    |
 LL |     let _ = s.strip_prefix("foo").unwrap_or(s);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `s.trim_prefix("foo")`
 
-error: aborting due to 4 previous errors
+error: aborting due to 6 previous errors
 

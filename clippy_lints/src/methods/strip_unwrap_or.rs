@@ -18,9 +18,11 @@ pub(super) fn check(
     unwrap_arg: &Expr<'_>,
     msrv: Msrv,
 ) {
+    let recv_ty = cx.typeck_results().expr_ty_adjusted(strip_recv).peel_refs();
     if !msrv.meets(cx, msrvs::STR_TRIM_PREFIX)
-        || !cx.typeck_results().expr_ty_adjusted(strip_recv).peel_refs().is_str()
+        || !(recv_ty.is_str() || recv_ty.is_slice())
         || !eq_expr_value(cx, SyntaxContext::root(), strip_recv, unwrap_arg)
+        || cx.tcx.hir_is_inside_const_context(expr.hir_id)
     {
         return;
     }
