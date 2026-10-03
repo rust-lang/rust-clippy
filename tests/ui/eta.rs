@@ -8,6 +8,7 @@
     clippy::needless_option_as_deref,
     clippy::no_effect,
     clippy::option_map_unit_fn,
+    clippy::unnecessary_literal_option,
     clippy::unnecessary_map_on_constructor,
     clippy::unnecessary_option_map_or_else,
     clippy::useless_vec

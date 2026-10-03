@@ -1,5 +1,9 @@
 #![warn(clippy::nonminimal_bool)]
-#![expect(clippy::diverging_sub_expression, clippy::needless_ifs)]
+#![expect(
+    clippy::diverging_sub_expression,
+    clippy::needless_ifs,
+    clippy::unnecessary_literal_option
+)]
 
 fn methods_with_negation() {
     let a: Option<i32> = unimplemented!();
