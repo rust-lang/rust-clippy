@@ -838,7 +838,7 @@ pub fn sanitize_explanation(raw_docs: &str) -> String {
     let mut explanation = String::with_capacity(128);
     let mut in_code = false;
     for line in raw_docs.lines() {
-        let line = line.strip_prefix(' ').unwrap_or(line);
+        let line = line.trim_prefix(' ');
 
         if let Some(lang) = line.strip_prefix("```") {
             let tag = lang.split_once(',').map_or(lang, |(left, _)| left);

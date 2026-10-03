@@ -28,10 +28,7 @@ impl ConfMetadata {
                     f,
                     "## `{}`\n{}\n\n**Default Value:** `{}`\n\n---\n**Affected lints:**\n{}\n\n",
                     self.0.name,
-                    self.0
-                        .doc
-                        .lines()
-                        .format_with("\n", |doc, f| f(&doc.strip_prefix(" ").unwrap_or(doc))),
+                    self.0.doc.lines().format_with("\n", |doc, f| f(&doc.trim_prefix(" "))),
                     self.0.default,
                     self.0.lints.iter().format_with("\n", |name, f| f(&format_args!(
                         "* [`{name}`](https://rust-lang.github.io/rust-clippy/main/index.html#{name})"

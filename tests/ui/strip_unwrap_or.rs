@@ -1,0 +1,54 @@
+#![warn(clippy::strip_unwrap_or)]
+
+struct Custom;
+impl Custom {
+    fn strip_prefix(&self, _p: &str) -> Option<&str> {
+        Some("x")
+    }
+}
+
+fn main() {
+    let s = "foobar";
+    let _ = s.strip_prefix("foo").unwrap_or(s);
+    //~^ strip_unwrap_or
+    let _ = s.strip_suffix("bar").unwrap_or(s);
+    //~^ strip_unwrap_or
+
+    // Variable pattern argument.
+    let pat = "foo";
+    let _ = s.strip_prefix(pat).unwrap_or(s);
+    //~^ strip_unwrap_or
+
+    // Do not lint: fallback differs from the receiver.
+    let t = "baz";
+    let _ = s.strip_prefix("foo").unwrap_or(t);
+    let _ = s.strip_suffix("bar").unwrap_or(t);
+
+    // Do not lint: non-str receiver with same method name.
+    let c = Custom;
+    let _ = c.strip_prefix("foo").unwrap_or("fallback");
+
+    // Slices lint too: `trim_prefix`/`trim_suffix` exist on slices as well.
+    let v: &[i32] = &[10, 40, 30];
+    let _ = v.strip_prefix(&[10]).unwrap_or(v);
+    //~^ strip_unwrap_or
+    let _ = v.strip_suffix(&[30]).unwrap_or(v);
+    //~^ strip_unwrap_or
+
+    // Do not lint: slice fallback differs from the receiver.
+    let w: &[i32] = &[1, 2];
+    let _ = v.strip_prefix(&[10]).unwrap_or(w);
+}
+
+#[clippy::msrv = "1.100"]
+fn msrv_1_100() {
+    let s = "foobar";
+    let _ = s.strip_prefix("foo").unwrap_or(s);
+}
+
+#[clippy::msrv = "1.101"]
+fn msrv_1_101() {
+    let s = "foobar";
+    let _ = s.strip_prefix("foo").unwrap_or(s);
+    //~^ strip_unwrap_or
+}
