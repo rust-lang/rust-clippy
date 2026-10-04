@@ -122,13 +122,7 @@ impl LintcheckConfig {
         }
 
         for lint_name in &mut config.lint_filter {
-            *lint_name = format!(
-                "clippy::{}",
-                lint_name
-                    .strip_prefix("clippy::")
-                    .unwrap_or(lint_name)
-                    .replace('_', "-")
-            );
+            *lint_name = format!("clippy::{}", lint_name.trim_prefix("clippy::").replace('_', "-"));
         }
 
         config
