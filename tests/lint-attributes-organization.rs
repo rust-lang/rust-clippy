@@ -76,7 +76,7 @@ fn error_for_content(content: &str, attribute_regex: &Regex) -> Vec<String> {
             .lines()
             // Split off any trailing comments
             .map(|l| l.split_once("//").map_or(l, |(b, _)| b).trim())
-            .flat_map(|l| l.split_whitespace().map(|s| s.strip_suffix(',').unwrap_or(s)))
+            .flat_map(|l| l.split_whitespace().map(|s| s.trim_suffix(',')))
             .collect::<Vec<_>>();
         for [a, b] in lint_names.array_windows() {
             if a.contains("::") && !b.contains("::") {

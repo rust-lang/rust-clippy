@@ -243,7 +243,7 @@ fn fmt_syms(update_mode: UpdateMode) {
                 .lines()
                 .map(|line| {
                     let line = line.trim();
-                    line.strip_suffix(',').unwrap_or(line).trim_end()
+                    line.trim_suffix(',').trim_end()
                 })
                 .collect::<Vec<_>>();
             lines.sort_unstable();
