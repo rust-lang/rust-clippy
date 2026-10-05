@@ -134,6 +134,11 @@ fn check_addr_of_expr(
             || is_cow_into_owned(cx, method_name, method_parent_id))
     {
         let mut applicability = Applicability::MachineApplicable;
+
+        if is_cow_into_owned(cx, method_name, method_parent_id) {
+            applicability = Applicability::MaybeIncorrect;
+        }
+
         let (receiver_snippet, _) = snippet_with_context(cx, receiver.span, expr.span.ctxt(), "..", &mut applicability);
 
         if receiver_ty == target_ty && n_target_refs >= n_receiver_refs {
