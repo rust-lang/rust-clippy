@@ -24,4 +24,13 @@ fn issue_17842() {
     //~^ unnecessary_to_owned
 }
 
+fn issue_17842_str() {
+    fn receiver(_a: &str, _b: &mut String) {}
+
+    let mut s = String::from("str");
+    let a: &str = s.as_str();
+    receiver(&a.to_owned(), &mut s);
+    //~^ unnecessary_to_owned
+}
+
 fn main() {}

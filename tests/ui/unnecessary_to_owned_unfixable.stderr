@@ -7,5 +7,11 @@ LL |     receiver(&cow.into_owned(), &mut s);
    = note: `-D clippy::unnecessary-to-owned` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unnecessary_to_owned)]`
 
-error: aborting due to 1 previous error
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned_unfixable.rs:32:14
+   |
+LL |     receiver(&a.to_owned(), &mut s);
+   |              ^^^^^^^^^^^^^ help: use: `a`
+
+error: aborting due to 2 previous errors
 

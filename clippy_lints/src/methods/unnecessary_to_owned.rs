@@ -135,7 +135,7 @@ fn check_addr_of_expr(
     {
         let mut applicability = Applicability::MachineApplicable;
 
-        if is_cow_into_owned(cx, method_name, method_parent_id) {
+        if get_parent_expr(cx, parent).is_some_and(|call| has_mut_ref_arg(cx, call)) {
             applicability = Applicability::MaybeIncorrect;
         }
 
@@ -449,6 +449,20 @@ fn skip_addr_of_ancestors<'tcx>(
         }
     }
     None
+}
+
+/// Checks if the call has any `&mut` argument. Removing `to_owned` there can cause borrow error.
+fn has_mut_ref_arg<'tcx>(cx: &LateContext<'tcx>, call: &'tcx Expr<'tcx>) -> bool {
+    let Some((_, _, recv, args)) = get_callee_generic_args_and_args(cx, call) else {
+        return false;
+    };
+
+    recv.into_iter().chain(args).any(|arg| {
+        matches!(
+            cx.typeck_results().expr_ty_adjusted(arg).kind(),
+            ty::Ref(_, _, Mutability::Mut)
+        )
+    })
 }
 
 /// Checks whether an expression is a function or method call and, if so, returns its `DefId`,
