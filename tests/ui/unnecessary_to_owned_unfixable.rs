@@ -33,4 +33,26 @@ fn issue_17842_str() {
     //~^ unnecessary_to_owned
 }
 
+fn issue_17842_chain() {
+    fn receiver(_a: &str, _b: &mut String) {}
+
+    let mut s = String::from("str");
+    let a: &str = s.as_str();
+    let b: &str = a;
+    receiver(&b.to_owned(), &mut s);
+    //~^ unnecessary_to_owned
+}
+
+fn issue_17842_through_fn() {
+    fn receiver(_a: &str, _b: &mut String) {}
+    fn id(s: &String) -> &str {
+        s
+    }
+
+    let mut s = String::from("str");
+    let a: &str = id(&s);
+    receiver(&a.to_owned(), &mut s);
+    //~^ unnecessary_to_owned
+}
+
 fn main() {}

@@ -13,5 +13,17 @@ error: unnecessary use of `to_owned`
 LL |     receiver(&a.to_owned(), &mut s);
    |              ^^^^^^^^^^^^^ help: use: `a`
 
-error: aborting due to 2 previous errors
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned_unfixable.rs:42:14
+   |
+LL |     receiver(&b.to_owned(), &mut s);
+   |              ^^^^^^^^^^^^^ help: use: `b`
+
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned_unfixable.rs:54:14
+   |
+LL |     receiver(&a.to_owned(), &mut s);
+   |              ^^^^^^^^^^^^^ help: use: `a`
+
+error: aborting due to 4 previous errors
 

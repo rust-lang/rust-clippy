@@ -556,5 +556,17 @@ error: unnecessary use of `to_string`
 LL |     take(format!("ouch{dot}").to_string());
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&format!("ouch{dot}")`
 
-error: aborting due to 83 previous errors
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned.rs:687:14
+   |
+LL |     receiver(&a.to_owned(), &mut s);
+   |              ^^^^^^^^^^^^^ help: use: `a`
+
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned.rs:695:14
+   |
+LL |     receiver(&a.to_owned(), &mut s);
+   |              ^^^^^^^^^^^^^ help: use: `a`
+
+error: aborting due to 85 previous errors
 
