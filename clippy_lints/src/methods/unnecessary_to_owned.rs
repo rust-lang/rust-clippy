@@ -492,8 +492,7 @@ fn derives_from_local<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, loca
             Some(init) if derives_from_local(cx, init, local) => ControlFlow::Break(()),
             Some(_) => ControlFlow::Continue(()),
 
-            // Parameters can not borrow from body locals and
-            // unknown binding count as a conflict
+            // Parameters cannot borrow from body locals and unknown binding count as a conflict
             None if matches!(cx.tcx.parent_hir_node(id), Node::Param(_)) => ControlFlow::Continue(()),
             None => ControlFlow::Break(()),
         },
