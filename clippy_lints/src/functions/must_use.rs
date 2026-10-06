@@ -173,11 +173,12 @@ fn check_needless_must_use(
         );
         return true;
     } else if reason.is_none()
-        && let Some(return_must_use_path) = opt_must_use_path(cx, return_ty(cx, item_id))
+        && let Some(ret_ty) = return_ty(cx, item_id)
+        && let Some(return_must_use_path) = opt_must_use_path(cx, ret_ty)
     {
         // Ignore async functions unless Future::Output type is a must_use type
         if sig.header.is_async()
-            && let Some(future_ty) = cx.tcx.get_impl_future_output_ty(return_ty(cx, item_id))
+            && let Some(future_ty) = cx.tcx.get_impl_future_output_ty(ret_ty)
             && opt_must_use_path(cx, future_ty).is_none()
         {
             return false;
@@ -248,7 +249,9 @@ fn check_must_use_candidate<'tcx>(
         || mutates_static(cx, body)
         || returns_unit(decl)
         || !cx.effective_visibilities.is_exported(item_id.def_id)
-        || opt_must_use_path(cx, return_ty(cx, item_id)).is_some()
+        || return_ty(cx, item_id)
+            .and_then(|ret_ty| opt_must_use_path(cx, ret_ty))
+            .is_some()
         || item_span.from_expansion()
         || is_entrypoint_fn(cx, item_id.def_id.to_def_id())
     {

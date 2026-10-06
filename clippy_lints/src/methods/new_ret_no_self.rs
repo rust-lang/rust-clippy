@@ -17,7 +17,7 @@ pub(super) fn check_impl_item<'tcx>(
     // if this impl block implements a trait, lint in trait definition instead
     if !implements_trait
         && impl_item.ident.name == sym::new
-        && let ret_ty = return_ty(cx, impl_item.owner_id)
+        && let Some(ret_ty) = return_ty(cx, impl_item.owner_id)
         && ret_ty != self_ty
         && !contains_ty_adt_constructor_opaque(cx, ret_ty, self_ty)
     {
@@ -32,7 +32,7 @@ pub(super) fn check_impl_item<'tcx>(
 
 pub(super) fn check_trait_item<'tcx>(cx: &LateContext<'tcx>, trait_item: &'tcx TraitItem<'tcx>) {
     if trait_item.ident.name == sym::new
-        && let ret_ty = return_ty(cx, trait_item.owner_id)
+        && let Some(ret_ty) = return_ty(cx, trait_item.owner_id)
         && let self_ty = ty::TraitRef::identity(cx.tcx, trait_item.owner_id.to_def_id()).self_ty()
         && !ret_ty.contains(self_ty)
     {
