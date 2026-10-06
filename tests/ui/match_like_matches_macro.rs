@@ -4,7 +4,7 @@
     clippy::redundant_guards,
     clippy::unneeded_wildcard_pattern
 )]
-#![expect(clippy::needless_borrowed_reference)]
+#![expect(clippy::manual_range_patterns, clippy::needless_borrowed_reference)]
 
 fn main() {
     let x = Some(5);
