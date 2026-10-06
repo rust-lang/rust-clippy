@@ -7,13 +7,7 @@ use rustc_middle::ty;
 
 use super::REDUNDANT_MODULO_DIVISOR;
 
-pub(super) fn check(
-    cx: &LateContext<'_>,
-    expr: &Expr<'_>,
-    op: BinOpKind,
-    lhs: &Expr<'_>,
-    rhs: &Expr<'_>,
-) {
+pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &Expr<'_>, rhs: &Expr<'_>) {
     if op != BinOpKind::Rem
         || !matches!(cx.typeck_results().expr_ty(lhs).peel_refs().kind(), ty::Uint(_))
         // The identity is only safe when evaluating the additions cannot
