@@ -7989,6 +7989,7 @@ e.g. <code>6 | 4 | 5 | 9 | 7 | 8</code> can be rewritten as <code>4..=9</code>.<
 <h3>Known issues</h3>
 <p>This lint intentionally does not handle numbers greater than <code>i128::MAX</code> for <code>u128</code> literals
 in order to support negative numbers.</p>
+<p>For char and byte literal, only <code>a-zA-Z0-9</code> is linted, as ranges like <code>'&lt;'..='&gt;'</code> is not intuitive.</p>
 <h3>Example</h3>
 <pre><code class="language-rust">let x = 6;
 let foo = matches!(x, 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10);
