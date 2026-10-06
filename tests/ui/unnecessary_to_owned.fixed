@@ -678,20 +678,20 @@ fn issue16351() {
     //~^ unnecessary_to_owned
 }
 
-fn issue_17842_no_overlap() {
+mod issue17842 {
     fn receiver(_a: &str, _b: &mut String) {}
 
-    // `a` does not borrow from `s`, so removing `to_owned` is fine.
-    let mut s = String::from("str");
-    let a: &str = "lit";
-    receiver(a, &mut s);
-    //~^ unnecessary_to_owned
-}
+    fn no_overlap() {
+        // `a` does not borrow from `s`, so removing `to_owned` is fine.
+        let mut s = String::from("str");
+        let a: &str = "lit";
+        receiver(a, &mut s);
+        //~^ unnecessary_to_owned
+    }
 
-fn issue_17842_param_receiver(a: &str) {
-    fn receiver(_a: &str, _b: &mut String) {}
-
-    let mut s = String::from("str");
-    receiver(a, &mut s);
-    //~^ unnecessary_to_owned
+    fn param_receiver(a: &str) {
+        let mut s = String::from("str");
+        receiver(a, &mut s);
+        //~^ unnecessary_to_owned
+    }
 }

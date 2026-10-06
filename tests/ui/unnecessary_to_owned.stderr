@@ -557,16 +557,16 @@ LL |     take(format!("ouch{dot}").to_string());
    |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `&format!("ouch{dot}")`
 
 error: unnecessary use of `to_owned`
-  --> tests/ui/unnecessary_to_owned.rs:687:14
+  --> tests/ui/unnecessary_to_owned.rs:688:18
    |
-LL |     receiver(&a.to_owned(), &mut s);
-   |              ^^^^^^^^^^^^^ help: use: `a`
+LL |         receiver(&a.to_owned(), &mut s);
+   |                  ^^^^^^^^^^^^^ help: use: `a`
 
 error: unnecessary use of `to_owned`
-  --> tests/ui/unnecessary_to_owned.rs:695:14
+  --> tests/ui/unnecessary_to_owned.rs:694:18
    |
-LL |     receiver(&a.to_owned(), &mut s);
-   |              ^^^^^^^^^^^^^ help: use: `a`
+LL |         receiver(&a.to_owned(), &mut s);
+   |                  ^^^^^^^^^^^^^ help: use: `a`
 
 error: aborting due to 85 previous errors
 
