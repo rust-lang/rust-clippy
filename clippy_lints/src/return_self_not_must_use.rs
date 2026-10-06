@@ -77,7 +77,7 @@ fn check_method(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_def: LocalDefId, spa
             MustUse { .. }
         )
         && cx.tcx.visibility(fn_def.to_def_id()).is_public()
-        && let ret_ty = return_ty(cx, owner_id)
+        && let Some(ret_ty) = return_ty(cx, owner_id)
         && let self_arg = nth_arg(cx, owner_id, 0)
         // If `Self` has the same type as the returned type, then we want to warn.
         //
