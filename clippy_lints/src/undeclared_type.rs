@@ -23,7 +23,7 @@ declare_clippy_lint! {
     /// // Same as above, but now the return type doesn't have to be inferred from context
     /// fn ambiguous_function() -> Vec<i32> {vec![]}
     ///
-    /// let variable : Vec<i32> = ambiguous_function;
+    /// let variable : Vec<i32> = ambiguous_function();
     /// ```
     #[clippy::version = "1.101.0"]
     pub UNDECLARED_TYPE,
