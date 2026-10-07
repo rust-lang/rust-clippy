@@ -371,6 +371,7 @@ mod try_from_instead_of_from_str;
 mod tuple_array_conversions;
 mod types;
 mod unconditional_recursion;
+mod undeclared_type;
 mod undocumented_unsafe_blocks;
 mod unicode;
 mod uninhabited_references;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        UndeclaredType: undeclared_type::UndeclaredType = undeclared_type::UndeclaredType,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
