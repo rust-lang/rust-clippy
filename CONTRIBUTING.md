@@ -126,7 +126,8 @@ If `rust-analyzer` still fails to resolve `rustc_*` crates and reports errors li
 
 > `error: cannot create the lock file ... because --locked was passed to prevent this`
 
-This occurs because `rustup` installs `rustc-src` without a `Cargo.lock`, while `rust-analyzer` runs `cargo metadata` with the `--locked` flag enabled.
+This occurs because `rustup` installs `rustc-src` without a `Cargo.lock`, while
+`rust-analyzer` runs `cargo metadata` with the `--locked` flag enabled.
 
 To generate the missing lockfile, run the following command in your terminal:
 
