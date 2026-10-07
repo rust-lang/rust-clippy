@@ -225,15 +225,6 @@ impl SimilarNamesNameVisitor<'_, '_, '_> {
         if interned_name.chars().any(char::is_uppercase) || interned_name.is_empty() {
             return;
         }
-        if interned_name.chars().all(|c| c.is_ascii_digit() || c == '_') {
-            span_lint(
-                self.0.cx,
-                JUST_UNDERSCORES_AND_DIGITS,
-                ident.span,
-                "consider choosing a more descriptive name",
-            );
-            return;
-        }
         if interned_name.starts_with('_') {
             // these bindings are typically unused or represent an ignored portion of a destructuring pattern
             return;
@@ -398,6 +389,20 @@ impl<'tcx> Visitor<'tcx> for SimilarNamesLocalVisitor<'_, 'tcx> {
 }
 
 impl EarlyLintPass for NonExpressiveNames {
+    fn check_pat(&mut self, cx: &EarlyContext<'_>, pat: &Pat) {
+        if let PatKind::Ident(_, ident, _) = pat.kind
+            && !pat.span.from_expansion()
+            && is_just_underscores_and_digits(ident.name.as_str())
+        {
+            span_lint(
+                cx,
+                JUST_UNDERSCORES_AND_DIGITS,
+                ident.span,
+                "consider choosing a more descriptive name",
+            );
+        }
+    }
+
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
         if item.span.in_external_macro(cx.sess().source_map()) {
             return;
@@ -427,6 +432,10 @@ impl EarlyLintPass for NonExpressiveNames {
             do_check(self, cx, &item.attrs, &sig.decl, blk);
         }
     }
+}
+
+fn is_just_underscores_and_digits(name: &str) -> bool {
+    !name.is_empty() && name.chars().all(|c| c.is_ascii_digit() || c == '_')
 }
 
 fn do_check(lint: &NonExpressiveNames, cx: &EarlyContext<'_>, attrs: &[Attribute], decl: &FnDecl, blk: &Block) {
