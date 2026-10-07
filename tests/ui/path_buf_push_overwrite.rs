@@ -6,4 +6,15 @@ fn main() {
     let mut path = PathBuf::from("/bin");
     path.push("/sh");
     //~^ path_buf_push_overwrite
+
+    let mut path = PathBuf::from("C:\\Users");
+    path.push("\\user");
+    //~^ path_buf_push_overwrite
+
+    let mut path = PathBuf::from("C:\\Users");
+    path.push(r#"\user"#);
+    //~^ path_buf_push_overwrite
+
+    let mut path = PathBuf::from("/bin");
+    path.push("sh");
 }
