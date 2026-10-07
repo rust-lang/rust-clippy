@@ -22,6 +22,11 @@ pub(super) fn check<'tcx>(
     if let Some(operand) = uint_compare_to_zero(cx, expr, op, lhs, rhs)
         && let ExprKind::Binary(operand_op, operand_left, operand_right) = operand.kind
         && operand_op.node == BinOpKind::Rem
+        // https://github.com/rust-lang/rust-clippy/issues/16537
+        && !matches!(
+            operand_right.kind,
+            ExprKind::Lit(_)
+        )
         && matches!(
             cx.typeck_results().expr_ty_adjusted(operand_left).peel_refs().kind(),
             ty::Uint(_)
