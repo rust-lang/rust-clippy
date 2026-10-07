@@ -12,7 +12,7 @@ fn main() {
     //~^ path_buf_push_overwrite
 
     let mut path = PathBuf::from("C:\\Users");
-    path.push("user");
+    path.push(r#"user"#);
     //~^ path_buf_push_overwrite
 
     let mut path = PathBuf::from("/bin");
