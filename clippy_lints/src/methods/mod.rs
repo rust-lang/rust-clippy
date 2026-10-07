@@ -1737,9 +1737,9 @@ declare_clippy_lint! {
     /// the original path. If this is intentional, prefer using `Path::new` instead.
     ///
     /// Note the behavior is platform dependent. A leading `\\` will be accepted
-    /// on unix systems as part of the file name
+    /// on unix systems as part of the file name.
     ///
-    /// See [`Path::join`](https://doc.rust-lang.org/std/path/struct.Path.html#method.join)
+    /// See [`Path::join`](https://doc.rust-lang.org/std/path/struct.Path.html#method.join).
     ///
     /// ### Example
     /// ```rust
@@ -1749,7 +1749,8 @@ declare_clippy_lint! {
     /// assert_eq!(joined_path, PathBuf::from("/sh"));
     /// ```
     ///
-    /// Use instead;
+    /// Use instead:
+    ///
     /// ```rust
     /// # use std::path::{Path, PathBuf};
     /// let path = Path::new("/bin");
