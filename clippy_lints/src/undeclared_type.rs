@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::LetStmt;
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use std::ops::Deref as _;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -35,10 +36,16 @@ declare_lint_pass!(UndeclaredType => [UNDECLARED_TYPE]);
 
 impl LateLintPass<'_> for UndeclaredType {
     fn check_local(&mut self, cx: &LateContext<'_>, local: &LetStmt<'_>) {
+        if local.ty.is_some() {
+            return;
+        }
         if local.span.from_expansion() {
             return;
         }
-        if local.ty.is_some() {
+        if local.span.in_derive_expansion() {
+            return;
+        }
+        if local.span.in_external_macro(cx.tcx.deref().sess.source_map()) {
             return;
         }
         span_lint_and_help(
