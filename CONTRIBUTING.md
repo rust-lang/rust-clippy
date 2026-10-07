@@ -135,7 +135,8 @@ To generate the missing lockfile, run the following command in your terminal:
 cd "$(rustc --print sysroot)/lib/rustlib/rustc-src/rust/compiler/rustc" && cargo generate-lockfile
 ```
 
-After generating the lockfile, restart `rust-analyzer` in your editor. *(Note: You may need to repeat this step after updating your nightly toolchain with `rustup`.)*
+After generating the lockfile, restart `rust-analyzer` in your editor. *(Note:
+You may need to repeat this step after updating your nightly toolchain with `rustup`.)*
 
 [ra_homepage]: https://rust-analyzer.github.io/
 
