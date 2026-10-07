@@ -72,6 +72,9 @@ struct TypeComplexityVisitor {
     /// span to report if the total complexity score exceeds the threshold
     span: Span,
     /// highest complexity score found in stable opaque bounds that can be factored out separately
+    ///
+    /// Keep this separate from `score`: later siblings contribute to the surrounding type's
+    /// score, but must not be added to an independently aliasable type inside an opaque bound.
     max_opaque_bound: Option<Complexity>,
     /// current nesting level
     nest: u64,

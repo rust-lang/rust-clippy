@@ -128,4 +128,26 @@ fn complex_after_opaque() -> (impl Iterator<Item = u32>, Vec<Vec<Box<(u32, u32, 
     (std::iter::empty(), vec![])
 }
 
+// The opaque argument scores 150 independently; the tuple and its other element also score
+// 150. Both are below the default threshold of 250, even though their sum would exceed it.
+fn opaque_bound_before_simple_sibling() -> (impl Fn(Vec<Vec<Vec<Vec<u32>>>>), Vec<Vec<Vec<u32>>>) {
+    (|_| {}, vec![])
+}
+
+// Visiting the sibling first must give the same result.
+fn opaque_bound_after_simple_sibling() -> (Vec<Vec<Vec<u32>>>, impl Fn(Vec<Vec<Vec<Vec<u32>>>>)) {
+    (vec![], |_| {})
+}
+
+// Separate opaque bounds are independent candidates too: 150 each, not 300 together.
+fn separate_simple_opaque_bounds() -> (impl Fn(Vec<Vec<Vec<Vec<u32>>>>), impl Fn(Vec<Vec<Vec<Vec<u32>>>>)) {
+    (|_| {}, |_| {})
+}
+
+// Independent scoring must still report a sibling that exceeds the threshold on its own.
+fn opaque_bound_before_complex_sibling() -> (impl Fn(Vec<Vec<Vec<Vec<u32>>>>), Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
+    //~^ type_complexity
+    (|_| {}, vec![])
+}
+
 fn main() {}

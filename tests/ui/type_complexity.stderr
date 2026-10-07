@@ -103,5 +103,11 @@ error: very complex type used. Consider factoring parts into `type` definitions
 LL | fn complex_after_opaque() -> (impl Iterator<Item = u32>, Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
    |                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-error: aborting due to 17 previous errors
+error: very complex type used. Consider factoring parts into `type` definitions
+  --> tests/ui/type_complexity.rs:148:80
+   |
+LL | fn opaque_bound_before_complex_sibling() -> (impl Fn(Vec<Vec<Vec<Vec<u32>>>>), Vec<Vec<Box<(u32, u32, u32, u32)>>>) {
+   |                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 18 previous errors
 
