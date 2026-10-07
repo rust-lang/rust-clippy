@@ -5876,7 +5876,7 @@ impl Methods {
                     by_ref_peekable_peek::check(cx, expr, recv);
                 },
                 (sym::push, [arg]) => {
-                    path_buf_push_overwrite::check(cx, expr, arg);
+                    path_buf_push_overwrite::check(cx, recv, arg);
                 },
                 (sym::read_to_end, [_]) => {
                     verbose_file_reads::check(cx, expr, recv, verbose_file_reads::READ_TO_END_MSG);
