@@ -83,7 +83,7 @@ declare_clippy_lint! {
     ///
     /// ```
     ///
-    /// Use `File::options` and `OpenOptionsExt::mode` (Unix-exclusive) or `OpenOptionsExt::access_mode`
+    /// Use `File::options` and `OpenOptionsExt::mode` (Unix-exclusive) or `OpenOptionsExt::attributes`
     /// (Windows exclusive) instead:
     /// ```no_run
     /// use std::path::Path;
@@ -107,12 +107,13 @@ declare_clippy_lint! {
     /// symlink file path is used to set file permissions.
     ///
     /// ### Why is this bad?
-    /// Creating a symlink and then modifying permissions on a symlink in two different
-    /// syscalls can cause a path-based Time-Of-Check to Time-Of-Use (TOCTOU) race condition.
-    /// Between the two calls, another process can delete and replace the symlink with a different
-    /// file or replace the target file of the symlink, which could lead to an unintended file
-    /// having its permissions changed. This could be dangerous in the case of a malicious file
-    /// escalating its privileges from a set permission syscall.
+    /// Creating a symlink and then modifying permissions on the path occupied by a symlink
+    /// in two different syscalls can cause a path-based Time-Of-Check to Time-Of-Use (TOCTOU)
+    /// race condition. Between the two calls, another process can delete and replace the symlink
+    /// with a different file or replace the symlink with another symlink pointing to a different
+    /// target file, both of which could lead to an unintended file having its permissions changed.
+    /// This could be dangerous in the case of a malicious file escalating its privileges from a
+    /// set permission syscall.
     ///
     /// ### Example
     /// Creating a symlink and setting permissions on that symlink:
@@ -120,23 +121,37 @@ declare_clippy_lint! {
     /// use std::path::Path;
     /// use std::fs::Permissions;
     /// use std::os::unix::fs::{PermissionsExt, symlink};
-    /// fn example(path: &Path) -> std::io::Result<()> {
+    /// fn example(original: &Path) -> std::io::Result<()> {
     ///     // Symlink path
-    ///     let symlink_path = Path::new("/path/to/symlink");
+    ///     let link = Path::new("/path/to/symlink");
     ///     // Create with default permissions
-    ///     symlink(&symlink_path, &path)?;
+    ///     symlink(&original, &link)?;
     ///     // Fix up permissions
-    ///     std::fs::set_permissions(&path, Permissions::from_mode(0o700))?;
+    ///     std::fs::set_permissions(&link, Permissions::from_mode(0o700))?;
     ///     Ok(())
     /// }
     /// ```
     ///
-    /// Creating a symlink and modifying the permissions on that symlink should be
-    /// avoided altogether.
+    /// Instead set permissions on the original path first before creating
+    /// a symlink:
+    /// ```no_run
+    /// use std::path::Path;
+    /// use std::fs::Permissions;
+    /// use std::os::unix::fs::{PermissionsExt, symlink};
+    /// fn example(original: &Path) -> std::io::Result<()> {
+    ///     // Fix up permissions
+    ///     std::fs::set_permissions(&original, Permissions::from_mode(0o700))?;
+    ///     // Symlink path
+    ///     let link = Path::new("/path/to/symlink");
+    ///     // Create with default permissions
+    ///     symlink(&original, &link)?;
+    ///     Ok(())
+    /// }
+    /// ```
     #[clippy::version = "1.100.0"]
     pub CREATE_SYMLINK_AND_SET_PERMISSIONS,
     suspicious,
-    "modifying permissions of a directory that was created through an earlier function call"
+    "modifying permissions on a path occupied by a symlink that was created through an earlier function call"
 }
 
 declare_lint_pass!(FileCreationAndSetPermissions => [
@@ -185,8 +200,8 @@ impl FileType {
                 to atomically create a directory and set certain permissions"
             },
             FileType::Symlink => {
-                "creating a symlink and modifying the permissions of that symlink should \
-                be avoided altogether"
+                "set the permissions on the resolved destination file of the \
+                symlink first before creating the symlink to that file"
             },
         }
     }
@@ -258,7 +273,7 @@ fn check_expr_is_file_create<'tcx>(
 
 /// Checks if the expression is `symlink*`.
 fn check_expr_is_symlink<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> Option<(&'tcx Expr<'tcx>, FileType)> {
-    if let ExprKind::Call(func, [original, _link]) = e.kind
+    if let ExprKind::Call(func, [_original, link]) = e.kind
         && let ExprKind::Path(ref func_qpath) = func.kind
         && let Some(def_id) = cx.qpath_res(func_qpath, func.hir_id).opt_def_id()
         && matches!(
@@ -266,7 +281,7 @@ fn check_expr_is_symlink<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> O
             Some(sym::fs_symlink | sym::fs_symlink_dir | sym::fs_symlink_file | sym::fs_symlink_path)
         )
     {
-        return Some((original, FileType::Symlink));
+        return Some((link, FileType::Symlink));
     }
     None
 }
