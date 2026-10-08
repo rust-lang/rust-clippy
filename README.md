@@ -1,3 +1,5 @@
+Spam -> goto trashcan
+
 # Clippy
 
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/clippy.svg)](#license)
