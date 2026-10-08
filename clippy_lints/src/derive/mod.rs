@@ -149,7 +149,7 @@ declare_clippy_lint! {
     /// // Since `derive(PartialEq, Eq)` would require `impl Eq for f32`, this would not compile.
     /// impl Eq for Number {}
     /// ```
-    #[clippy::version = "1.100.0"]
+    #[clippy::version = "1.101.0"]
     pub DERIVED_PARTIAL_EQ_WITH_MANUAL_EQ,
     suspicious,
     "deriving `PartialEq` but implementing `Eq` manually"
