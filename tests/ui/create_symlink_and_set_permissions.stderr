@@ -1,0 +1,148 @@
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:14:9
+   |
+LL |         std::fs::set_permissions(link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:13:9
+   |
+LL |         symlink(path, link);
+   |         ^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:14:9
+   |
+LL |         std::fs::set_permissions(link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+   = note: `-D clippy::create-symlink-and-set-permissions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::create_symlink_and_set_permissions)]`
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:16:9
+   |
+LL |         std::fs::set_permissions_nofollow(link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:13:9
+   |
+LL |         symlink(path, link);
+   |         ^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:16:9
+   |
+LL |         std::fs::set_permissions_nofollow(link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:24:17
+   |
+LL |         let _ = std::fs::set_permissions(link_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:23:17
+   |
+LL |         let _ = symlink(path_two, link_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:24:17
+   |
+LL |         let _ = std::fs::set_permissions(link_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:26:17
+   |
+LL |         let _ = std::fs::set_permissions_nofollow(link_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:23:17
+   |
+LL |         let _ = symlink(path_two, link_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:26:17
+   |
+LL |         let _ = std::fs::set_permissions_nofollow(link_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:30:9
+   |
+LL |         std::fs::set_permissions("symlink_foo", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:29:9
+   |
+LL |         symlink("bar", "symlink_foo");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:30:9
+   |
+LL |         std::fs::set_permissions("symlink_foo", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:32:9
+   |
+LL |         std::fs::set_permissions_nofollow("symlink_foo", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:29:9
+   |
+LL |         symlink("bar", "symlink_foo");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:32:9
+   |
+LL |         std::fs::set_permissions_nofollow("symlink_foo", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:38:9
+   |
+LL |         std::fs::set_permissions(&link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:37:9
+   |
+LL |         symlink(&original, &link);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:38:9
+   |
+LL |         std::fs::set_permissions(&link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+
+error: creating a symlink and setting its permissions in two separate steps leaves a brief window where the symlink is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_symlink_and_set_permissions.rs:40:9
+   |
+LL |         std::fs::set_permissions_nofollow(&link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:37:9
+   |
+LL |         symlink(&original, &link);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_symlink_and_set_permissions.rs:40:9
+   |
+LL |         std::fs::set_permissions_nofollow(&link, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: set the permissions on the resolved destination file of the symlink first before creating the symlink to that file
+
+error: aborting due to 8 previous errors
+
