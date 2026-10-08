@@ -62,8 +62,138 @@ LL +                                 *x < 0
 LL ~                             });
    |
 
+error: called `filter(..).map(..).next()` on an `Iterator`
+  --> tests/ui/filter_next.rs:48:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).map(|x| x * 2).next();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.find(..).map(..)` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).map(|x| x * 2).next();
+LL +     let _ = v.iter().find(|&x| *x < 0).map(|x| x * 2);
+   |
+
+error: called `filter(..).cloned().next()` on an `Iterator`
+  --> tests/ui/filter_next.rs:51:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).cloned().next();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.find(..).cloned()` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).cloned().next();
+LL +     let _ = v.iter().find(|&x| *x < 0).cloned();
+   |
+
+error: called `filter(..).copied().next()` on an `Iterator`
+  --> tests/ui/filter_next.rs:54:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).copied().next();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.find(..).copied()` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).copied().next();
+LL +     let _ = v.iter().find(|&x| *x < 0).copied();
+   |
+
+error: called `filter(..).map(..).next_back()` on an `DoubleEndedIterator`
+  --> tests/ui/filter_next.rs:57:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).map(|x| x * 2).next_back();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.rfind(..).map(..)` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).map(|x| x * 2).next_back();
+LL +     let _ = v.iter().rfind(|&x| *x < 0).map(|x| x * 2);
+   |
+
+error: called `filter(..).cloned().next_back()` on an `DoubleEndedIterator`
+  --> tests/ui/filter_next.rs:60:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).cloned().next_back();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.rfind(..).cloned()` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).cloned().next_back();
+LL +     let _ = v.iter().rfind(|&x| *x < 0).cloned();
+   |
+
+error: called `filter(..).copied().next_back()` on an `DoubleEndedIterator`
+  --> tests/ui/filter_next.rs:63:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).copied().next_back();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.rfind(..).copied()` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).copied().next_back();
+LL +     let _ = v.iter().rfind(|&x| *x < 0).copied();
+   |
+
+error: called `filter(..).map(..).next()` on an `Iterator`
+  --> tests/ui/filter_next.rs:68:13
+   |
+LL |       let _ = v
+   |  _____________^
+LL | |
+LL | |         .iter()
+LL | |         .filter(|&x| {
+...  |
+LL | |         })
+LL | |         .next();
+   | |_______________^
+   |
+help: use `.find(..).map(..)` instead
+   |
+LL ~     let _ = v
+LL +
+LL +         .iter().find(|&x| {
+LL +             *x < 0
+LL +         })
+LL +         .map(|x| {
+LL +             x * 2
+LL ~         });
+   |
+
+error: called `filter(..).map(..).next()` on an `Iterator`
+  --> tests/ui/filter_next.rs:80:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).map(|x| x * 2).next().unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.find(..).map(..)` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).map(|x| x * 2).next().unwrap();
+LL +     let _ = v.iter().find(|&x| *x < 0).map(|x| x * 2).unwrap();
+   |
+
+error: called `filter(..).next()` on an `Iterator`
+  --> tests/ui/filter_next.rs:84:13
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).filter(|&x| *x < -1).next();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.find(..)` instead
+   |
+LL -     let _ = v.iter().filter(|&x| *x < 0).filter(|&x| *x < -1).next();
+LL +     let _ = v.iter().filter(|&x| *x < 0).find(|&x| *x < -1);
+   |
+
+error: called `skip(..).next()` on an iterator
+  --> tests/ui/filter_next.rs:95:41
+   |
+LL |     let _ = v.iter().filter(|&x| *x < 0).skip(1).next();
+   |                                         ^^^^^^^^^^^^^^^ help: use `nth` instead: `.nth(1)`
+   |
+   = note: `-D clippy::iter-skip-next` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::iter_skip_next)]`
+
 error: called `filter(..).next_back()` on an `DoubleEndedIterator`
-  --> tests/ui/filter_next.rs:58:13
+  --> tests/ui/filter_next.rs:148:13
    |
 LL |     let _ = vec![1].into_iter().filter(|&x| x < 0).next_back();
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -74,5 +204,29 @@ LL -     let _ = vec![1].into_iter().filter(|&x| x < 0).next_back();
 LL +     let _ = vec![1].into_iter().rfind(|&x| x < 0);
    |
 
-error: aborting due to 5 previous errors
+error: called `filter(..).map(..).next_back()` on an `DoubleEndedIterator`
+  --> tests/ui/filter_next.rs:159:13
+   |
+LL |     let _ = vec![1].into_iter().filter(|&x| x < 0).map(|x| x + 1).next_back();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.rfind(..).map(..)` instead
+   |
+LL -     let _ = vec![1].into_iter().filter(|&x| x < 0).map(|x| x + 1).next_back();
+LL +     let _ = vec![1].into_iter().rfind(|&x| x < 0).map(|x| x + 1);
+   |
+
+error: called `filter(..).map(..).next()` on an `Iterator`
+  --> tests/ui/filter_next.rs:166:13
+   |
+LL |     let _ = vec![1].into_iter().filter(|&x| x < 0).map(|x| x + 1).next();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.find(..).map(..)` instead
+   |
+LL -     let _ = vec![1].into_iter().filter(|&x| x < 0).map(|x| x + 1).next();
+LL +     let _ = vec![1].into_iter().find(|&x| x < 0).map(|x| x + 1);
+   |
+
+error: aborting due to 17 previous errors
 
