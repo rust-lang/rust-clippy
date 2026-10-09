@@ -13,6 +13,7 @@ use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_span::DesugaringKind;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -78,7 +79,11 @@ impl<'tcx> LateLintPass<'tcx> for IfThenSomeElseNone {
             && !is_in_const_context(cx)
             && self.msrv.meets(cx, msrvs::BOOL_THEN)
             && for_each_expr_without_closures(then_block, |e| {
-                if matches!(e.kind, ExprKind::Ret(..) | ExprKind::Yield(..)) {
+                // A `?` inside a `try` block does not lower to a `Ret`, so it is
+                // detected by its desugaring span instead.
+                if matches!(e.kind, ExprKind::Ret(..) | ExprKind::Yield(..))
+                    || e.span.is_desugaring(DesugaringKind::QuestionMark)
+                {
                     ControlFlow::Break(())
                 } else {
                     ControlFlow::Continue(())
