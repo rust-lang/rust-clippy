@@ -72,6 +72,7 @@ declare_clippy_lint! {
     /// ```no_run
     /// use std::path::Path;
     /// use std::fs::{File, Permissions};
+    /// // use std::os::windows::fs::PermissionsExt; (Windows exclusive on nightly)
     /// use std::os::unix::fs::PermissionsExt;
     /// fn example(path: &Path) -> std::io::Result<()> {
     ///     // Create regular file with default permissions
@@ -88,9 +89,16 @@ declare_clippy_lint! {
     /// ```no_run
     /// use std::path::Path;
     /// use std::fs::File;
+    /// #[cfg(target_os = "windows")]
+    /// use std::os::windows::fs::OpenOptionsExt;
+    /// #[cfg(target_family = "unix")]
     /// use std::os::unix::fs::OpenOptionsExt;
     /// fn example(path: &Path) -> std::io::Result<()> {
-    ///     // Create regular file with default permissions
+    ///     // Create regular file with default permissions (on Windows)
+    ///     #[cfg(target_os = "windows")]
+    ///     let mut f = File::options().attributes(0x2).create(true).open(&path)?;
+    ///     // Create regular file with default permissions (on Unix)
+    ///     #[cfg(target_family = "unix")]
     ///     let mut f = File::options().mode(0o700).create(true).open(&path)?;
     ///     Ok(())
     /// }
