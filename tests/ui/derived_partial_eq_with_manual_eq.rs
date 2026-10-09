@@ -49,6 +49,9 @@ struct WithTypeDefinition4<T> {
 impl<T: PartialEq> Eq for WithTypeDefinition4<T> {}
 //~^^^^^ derived_partial_eq_with_manual_eq
 
+#[derive(PartialEq)]
+struct OnlyPartialEq;
+
 mod enum_tests {
     #[derive(PartialEq)]
     enum EnumWithManualEq {
@@ -106,6 +109,20 @@ mod macro_tests {
     // the test will crash when the macro usage near the macro definition.
     mk_type!(StructEqFromExpansion);
     //~^ derived_partial_eq_with_manual_eq
+
+    macro_rules! mk_type2 {
+        ($name:ident) => {
+            #[derive(Eq)]
+            struct $name;
+            impl PartialEq for $name {
+                fn eq(&self, other: &Self) -> bool {
+                    todo!()
+                }
+            }
+        };
+    }
+
+    mk_type2!(StructPeqFromExpansion);
 }
 
 fn main() {}

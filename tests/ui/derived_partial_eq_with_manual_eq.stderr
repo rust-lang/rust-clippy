@@ -45,7 +45,7 @@ LL | impl<T: PartialEq> Eq for WithTypeDefinition4<T> {}
    = note: manually implementing `Eq` may violate its requirement that equality is reflexive
 
 error: when `PartialEq` is derived, `Eq` should be derived too
-  --> tests/ui/derived_partial_eq_with_manual_eq.rs:53:14
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:56:14
    |
 LL |     #[derive(PartialEq)]
    |              ^^^^^^^^^ `PartialEq` is derived here
@@ -56,7 +56,7 @@ LL |     impl Eq for EnumWithManualEq {}
    = note: manually implementing `Eq` may violate its requirement that equality is reflexive
 
 error: when `PartialEq` is derived, `Eq` should be derived too
-  --> tests/ui/derived_partial_eq_with_manual_eq.rs:100:22
+  --> tests/ui/derived_partial_eq_with_manual_eq.rs:103:22
    |
 LL |             #[derive(PartialEq)]
    |                      ^^^^^^^^^ `PartialEq` is derived here

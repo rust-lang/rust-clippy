@@ -132,12 +132,9 @@ declare_clippy_lint! {
     /// properties required by `Eq` even when the derived [`PartialEq`] implementation
     /// does not establish them.
     ///
-    /// `Eq`, which builds on top of [`PartialEq`] also implies:
-    ///
-    /// - reflexive: `a == a`
-    ///
-    /// Floating point types such as [`f32`] and [`f64`] implement only
-    /// [`PartialEq`] but *not* `Eq` because `NaN` != `NaN`.
+    /// ### Known problems
+    /// This lint may warn when the type guarantees that every value is equal to
+    /// itself, even though one of its fields manually implement `Eq`.
     ///
     /// ### Example
     /// ```no_run
