@@ -1,0 +1,1 @@
+allow-in-tests = ["needless_raw_strings", "single_char_lifetime_names"]

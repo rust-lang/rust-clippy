@@ -64,6 +64,9 @@ Don't lint when comparing the result of a modulo operation to zero.
 ## `allow-dbg-in-tests`
 Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+`allow-in-tests = ["dbg_macro"]` instead. This option still works.
+
 **Default Value:** `false`
 
 ---
@@ -94,6 +97,9 @@ Whether `expect` should be allowed in code always evaluated at compile time
 ## `allow-expect-in-tests`
 Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+`allow-in-tests = ["expect_used"]` instead. This option still works.
+
 **Default Value:** `false`
 
 ---
@@ -101,8 +107,47 @@ Whether `expect` should be allowed in test functions or `#[cfg(test)]`
 * [`expect_used`](https://rust-lang.github.io/rust-clippy/main/index.html#expect_used)
 
 
+## `allow-in-tests`
+A list of Clippy lints to suppress in test functions and `#[cfg(test)]` items.
+
+```toml
+# `.expect()` is allowed in tests; `dbg!` is still reported there.
+allow-in-tests = ["expect_used"]
+```
+
+#### Replaces the per-lint options
+
+Options spelled `allow-*-in-tests` still function correctly but are deprecated.
+Here is a list of replacements.
+
+| deprecated option | write instead |
+| --- | --- |
+| `allow-dbg-in-tests = true` | `allow-in-tests = ["dbg_macro"]` |
+| `allow-expect-in-tests = true` | `allow-in-tests = ["expect_used"]` |
+| `allow-indexing-slicing-in-tests = true` | `allow-in-tests = ["indexing_slicing"]` |
+| `allow-panic-in-tests = true` | `allow-in-tests = ["panic"]` |
+| `allow-print-in-tests = true` | `allow-in-tests = ["print_stderr", "print_stdout"]` |
+| `allow-unwrap-in-tests = true` | `allow-in-tests = ["unwrap_used"]` |
+| `allow-useless-vec-in-tests = true` | `allow-in-tests = ["useless_vec"]` |
+
+A lint is suppressed if either spelling in the left or right columns is present.
+
+#### Noteworthy
+
+A suppressed lint will cause a corresponding test expectation to
+fail. For instance, `#[expect(clippy::unwrap_used)]` on a test
+function, while specifying `allow-in-tests = ["unwrap_used"]` will
+cause `rustc` to emit `unfulfilled_lint_expectations`. This is the
+same behavior as the older `allow-*-in-tests` configs.
+
+**Default Value:** `[]`
+
+
 ## `allow-indexing-slicing-in-tests`
 Whether `indexing_slicing` should be allowed in test functions or `#[cfg(test)]`
+
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+`allow-in-tests = ["indexing_slicing"]` instead. This option still works.
 
 **Default Value:** `false`
 
@@ -144,6 +189,9 @@ Whether to allow `r#""#` when `r""` can be used
 ## `allow-panic-in-tests`
 Whether `panic` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+`allow-in-tests = ["panic"]` instead. This option still works.
+
 **Default Value:** `false`
 
 ---
@@ -153,6 +201,9 @@ Whether `panic` should be allowed in test functions or `#[cfg(test)]`
 
 ## `allow-print-in-tests`
 Whether print macros (ex. `println!`) should be allowed in test functions or `#[cfg(test)]`
+
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+`allow-in-tests = ["print_stderr", "print_stdout"]` instead. This option still works.
 
 **Default Value:** `false`
 
@@ -207,6 +258,9 @@ Whether `unwrap` should be allowed in code always evaluated at compile time
 ## `allow-unwrap-in-tests`
 Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`
 
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+`allow-in-tests = ["unwrap_used"]` instead. This option still works.
+
 **Default Value:** `false`
 
 ---
@@ -233,6 +287,9 @@ allow-unwrap-types = [ "std::sync::LockResult" ]
 
 ## `allow-useless-vec-in-tests`
 Whether `useless_vec` should ignore test functions or `#[cfg(test)]`
+
+Deprecated in favor of [`allow-in-tests`](#allow-in-tests): write
+`allow-in-tests = ["useless_vec"]` instead. This option still works.
 
 **Default Value:** `false`
 
