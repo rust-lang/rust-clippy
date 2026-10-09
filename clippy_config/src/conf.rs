@@ -479,6 +479,7 @@ define_Conf! {
         missing_errors_doc,
         missing_panics_doc,
         missing_safety_doc,
+        too_long_first_doc_paragraph,
         unnecessary_safety_doc,
     )]
     check_private_items("check-private-items"): bool = false,
