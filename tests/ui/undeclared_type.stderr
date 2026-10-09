@@ -1,14 +1,9 @@
 error: declared variable has an undeclared type
-  --> tests/ui/undeclared_type.rs:9:5
+  --> tests/ui/undeclared_type.rs:9:9
    |
 LL |     let a = get_value();
-   |     ^^^^^^^^^^^^^^^^^^^^
+   |         ^ help: declare a type for this variable: `a: std::vec::Vec<i32>`
    |
-help: declare a type for this variable
-  --> tests/ui/undeclared_type.rs:9:5
-   |
-LL |     let a = get_value();
-   |     ^^^^^^^^^^^^^^^^^^^^
    = note: `-D clippy::undeclared-type` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::undeclared_type)]`
 
