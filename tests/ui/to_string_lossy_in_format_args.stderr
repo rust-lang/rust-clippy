@@ -1,0 +1,92 @@
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:44:27
+   |
+LL |     println!("{}", os_str.to_string_lossy());
+   |                           ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+   = note: `-D clippy::to-string-lossy-in-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::to_string_lossy_in_format_args)]`
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:45:30
+   |
+LL |     println!("{}", os_string.to_string_lossy());
+   |                              ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:47:42
+   |
+LL |     let _: String = format!("{}", os_str.to_string_lossy());
+   |                                          ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:48:45
+   |
+LL |     let _: String = format!("{}", os_string.to_string_lossy());
+   |                                             ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:51:33
+   |
+LL |     println!("{}", deref_os_str.to_string_lossy());
+   |                                 ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:54:25
+   |
+LL |     println!("{}", path.to_string_lossy());
+   |                         ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:55:29
+   |
+LL |     println!("{}", path_buf.to_string_lossy());
+   |                             ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:57:40
+   |
+LL |     let _: String = format!("{}", path.to_string_lossy());
+   |                                        ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `format!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:58:44
+   |
+LL |     let _: String = format!("{}", path_buf.to_string_lossy());
+   |                                            ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:61:31
+   |
+LL |     println!("{}", deref_path.to_string_lossy());
+   |                               ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: `to_string_lossy` instead of `display` in `println!` args
+  --> tests/ui/to_string_lossy_in_format_args.rs:73:27
+   |
+LL |     println!("{}", os_str.to_string_lossy());
+   |                           ^^^^^^^^^^^^^^^ help: use: `display`
+   |
+   = help: using `display` can avoid an allocation
+
+error: aborting due to 11 previous errors
+
