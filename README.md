@@ -214,8 +214,9 @@ cargo clippy -- -A clippy::all -W clippy::useless_format -W clippy::...
 
 ### Configure the behavior of some lints
 
-Some lints can be configured in a TOML file named `clippy.toml` or `.clippy.toml`. It contains a basic `variable =
-value` mapping e.g.
+Some lints can be configured in a TOML file at `.clippy.toml`, `clippy.toml`, `.cargo/clippy.toml`, or `.config/clippy.toml`.
+See the [configuration documentation](https://doc.rust-lang.org/nightly/clippy/configuration.html) for the search order.
+It contains a basic `variable = value` mapping e.g.
 
 ```toml
 avoid-breaking-exported-api = false
