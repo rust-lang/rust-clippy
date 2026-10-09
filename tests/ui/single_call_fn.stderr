@@ -54,25 +54,25 @@ LL |     a();
    |     ^
 
 error: this function is only used once
-  --> tests/ui/single_call_fn.rs:92:5
+  --> tests/ui/single_call_fn.rs:93:5
    |
 LL |     fn default() {}
    |     ^^^^^^^^^^^^^^^
    |
 note: used here
-  --> tests/ui/single_call_fn.rs:109:5
+  --> tests/ui/single_call_fn.rs:110:5
    |
 LL |     T::default();
    |     ^^^^^^^^^^
 
 error: this function is only used once
-  --> tests/ui/single_call_fn.rs:106:9
+  --> tests/ui/single_call_fn.rs:107:9
    |
 LL |         fn foo() {}
    |         ^^^^^^^^^^^
    |
 note: used here
-  --> tests/ui/single_call_fn.rs:110:5
+  --> tests/ui/single_call_fn.rs:111:5
    |
 LL |     S::foo();
    |     ^^^^^^

@@ -89,6 +89,7 @@ mod issue7274 {
     });
 }
 
+#[allow(clippy::test_without_assertions, reason = "the lint only triggers after rustfix")]
 #[test]
 pub fn issue8481() {
     1;
