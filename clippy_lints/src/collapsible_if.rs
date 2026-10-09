@@ -321,14 +321,13 @@ pub(super) fn parens_around(expr: &Expr<'_>) -> Vec<(Span, String)> {
 fn span_extract_keyword(cx: &LateContext<'_>, span: Span, keyword: &str) -> Option<Span> {
     span.with_source_text(cx, |snippet| {
         tokenize_with_text(snippet)
-            .filter(|(t, s, _)| matches!(t, TokenKind::Ident if *s == keyword))
+            .find(|(t, s, _)| matches!(t, TokenKind::Ident if *s == keyword))
             .map(|(_, _, inner)| {
                 span.split_at(u32::try_from(inner.start).unwrap())
                     .1
                     .split_at(u32::try_from(inner.end - inner.start).unwrap())
                     .0
             })
-            .next()
     })
     .flatten()
 }
