@@ -1,4 +1,7 @@
 #![warn(clippy::match_single_binding)]
+// `stacked_match` can't be `expect`ed: the only `match match` is the one `match_single_binding`
+// fixes, so the expectation would be unfulfilled in the `.fixed` file.
+#![allow(clippy::stacked_match)]
 
 fn main() {
     // Lint (additional curly braces needed, see #6572)
