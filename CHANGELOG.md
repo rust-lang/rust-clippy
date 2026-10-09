@@ -7736,6 +7736,7 @@ Released 2018-09-13
 [`transmuting_null`]: https://rust-lang.github.io/rust-clippy/main/index.html#transmuting_null
 [`trim_split_whitespace`]: https://rust-lang.github.io/rust-clippy/main/index.html#trim_split_whitespace
 [`trivial_regex`]: https://rust-lang.github.io/rust-clippy/main/index.html#trivial_regex
+[`trivial_var_primitive_disjunction`]: https://rust-lang.github.io/rust-clippy/main/index.html#trivial_var_primitive_disjunction
 [`trivially_copy_pass_by_ref`]: https://rust-lang.github.io/rust-clippy/main/index.html#trivially_copy_pass_by_ref
 [`try_err`]: https://rust-lang.github.io/rust-clippy/main/index.html#try_err
 [`try_from_instead_of_from_str`]: https://rust-lang.github.io/rust-clippy/main/index.html#try_from_instead_of_from_str
