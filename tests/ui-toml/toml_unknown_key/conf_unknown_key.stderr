@@ -16,7 +16,6 @@ LL | foobar = 42
            allow-expect-in-tests
            allow-indexing-slicing-in-tests
            allow-large-stack-frames-in-tests
-           allow-mixed-uninlined-format-args
            allow-one-hash-in-raw-strings
            allow-panic-in-tests
            allow-print-in-tests
@@ -42,6 +41,7 @@ LL | foobar = 42
            check-grouped-late-init
            check-incompatible-msrv-in-tests
            check-inconsistent-struct-field-initializers
+           check-partially-inlinable-format-args
            check-private-items
            cognitive-complexity-threshold
            const-literal-digits-threshold
@@ -113,8 +113,8 @@ LL | barfoo = 53
 error: unknown field name
   --> $DIR/tests/ui-toml/toml_unknown_key/clippy.toml:7:1
    |
-LL | allow_mixed_uninlined_format_args = true
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: did you mean: `allow-mixed-uninlined-format-args`
+LL | check_partially_inlinable_format_args = true
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: did you mean: `check-partially-inlinable-format-args`
 
 error: aborting due to 3 previous errors
 
