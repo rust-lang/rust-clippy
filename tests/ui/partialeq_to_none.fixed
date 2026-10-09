@@ -1,4 +1,5 @@
 #![warn(clippy::partialeq_to_none)]
+#![allow(clippy::unnecessary_literal_option)]
 #![expect(clippy::eq_op, clippy::needless_ifs)]
 
 struct Foobar;
