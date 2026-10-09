@@ -107,8 +107,8 @@ use rustc_middle::mir::{AggregateKind, Operand, RETURN_PLACE, Rvalue, StatementK
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, DerefAdjustKind, PointerCoercion};
 use rustc_middle::ty::layout::IntegerExt as _;
 use rustc_middle::ty::{
-    self as rustc_ty, Binder, BorrowKind, ClosureKind, EarlyBinder, GenericArgKind, GenericArgsRef, IntTy, Ty, TyCtxt,
-    TypeFlags, TypeVisitableExt as _, TypeckResults, UintTy, UpvarCapture,
+    self as rustc_ty, AliasTy, Binder, BorrowKind, ClosureKind, EarlyBinder, FnSig, GenericArgKind, GenericArgsRef,
+    IntTy, Ty, TyCtxt, TypeFlags, TypeVisitableExt as _, TypeckResults, UintTy, Unnormalized, UpvarCapture,
 };
 use rustc_session::config::Input;
 use rustc_span::hygiene::{ExpnKind, MacroKind};
@@ -390,6 +390,36 @@ pub fn is_ty_alias(qpath: &QPath<'_>) -> bool {
         QPath::Resolved(_, path) => matches!(path.res, Res::Def(DefKind::TyAlias | DefKind::AssocTy, ..)),
         QPath::TypeRelative(ty, _) if let TyKind::Path(qpath) = ty.kind => is_ty_alias(&qpath),
         QPath::TypeRelative(..) => false,
+    }
+}
+
+/// Checks if the given `Ty` is either an `impl Future` or async coroutine.
+pub fn ty_is_future<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    let Some(future_trait) = cx.tcx.lang_items().future_trait() else {
+        return false;
+    };
+
+    match *ty.kind() {
+        rustc_ty::Alias(_, alias) => {
+            if let AliasTy {
+                kind: rustc_ty::Opaque { def_id },
+                args,
+                ..
+            } = alias
+                && let preds = cx.tcx.explicit_item_self_bounds(def_id)
+                && preds
+                    .iter_instantiated_copied(cx.tcx, args)
+                    .map(Unnormalized::skip_normalization)
+                    .filter_map(|(p, _)| p.as_trait_clause())
+                    .any(|trait_pred| trait_pred.skip_binder().trait_ref.def_id == future_trait)
+            {
+                true
+            } else {
+                false
+            }
+        },
+        rustc_ty::Coroutine(def_id, _) | rustc_ty::CoroutineWitness(def_id, _) => cx.tcx.coroutine_is_async(def_id),
+        _ => false,
     }
 }
 
@@ -1440,9 +1470,14 @@ pub fn is_direct_expn_of(span: Span, name: Symbol) -> Option<Span> {
 }
 
 /// Convenience function to get the return type of a function.
-pub fn return_ty<'tcx>(cx: &LateContext<'tcx>, fn_def_id: OwnerId) -> Ty<'tcx> {
-    let ret_ty = cx.tcx.fn_sig(fn_def_id).instantiate_identity().skip_norm_wip().output();
-    cx.tcx.instantiate_bound_regions_with_erased(ret_ty)
+pub fn return_ty<'tcx>(cx: &LateContext<'tcx>, fn_def_id: OwnerId) -> Option<Ty<'tcx>> {
+    let ret_ty = cx
+        .tcx
+        .fn_sig(fn_def_id)
+        .instantiate_identity()
+        .map(Binder::<'_, FnSig<'_>>::output);
+    let ret_ty = cx.tcx.try_normalize_erasing_regions(cx.typing_env(), ret_ty).ok()?;
+    Some(cx.tcx.instantiate_bound_regions_with_erased(ret_ty))
 }
 
 /// Convenience function to get the nth argument type of a function.

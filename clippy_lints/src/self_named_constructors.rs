@@ -52,8 +52,15 @@ impl<'tcx> LateLintPass<'tcx> for SelfNamedConstructors {
 
         let parent = cx.tcx.hir_get_parent_item(impl_item.hir_id()).def_id;
         let item = cx.tcx.hir_expect_item(parent);
-        let self_ty = cx.tcx.type_of(item.owner_id).instantiate_identity().skip_norm_wip();
-        let ret_ty = return_ty(cx, impl_item.owner_id);
+        let Ok(self_ty) = cx
+            .tcx
+            .try_normalize_erasing_regions(cx.typing_env(), cx.tcx.type_of(item.owner_id).instantiate_identity())
+        else {
+            return;
+        };
+        let Some(ret_ty) = return_ty(cx, impl_item.owner_id) else {
+            return;
+        };
 
         // Do not check trait impls
         if matches!(item.kind, ItemKind::Impl(Impl { of_trait: Some(_), .. })) {
