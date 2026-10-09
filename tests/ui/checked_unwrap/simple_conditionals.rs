@@ -408,6 +408,14 @@ fn issue15321() {
         sopt2.option.option.unwrap()
         //~^ panicking_unwrap
     };
+    // Lint nested field accesses through `as_ref()` as well
+    let _res = if sopt2.option.option.is_some() {
+        sopt2.option.option.as_ref().unwrap()
+        //~^ unnecessary_unwrap
+    } else {
+        sopt2.option.option.as_ref().unwrap()
+        //~^ panicking_unwrap
+    };
     // Lint: an unrelated outer field was mutated -- don't get confused by `Soption2.other` having the
     // same `FieldIdx` of 1 as `Soption.option`
     let _res = if sopt2.option.option.is_some() {
@@ -487,6 +495,91 @@ mod issue16188 {
             if self.value.is_none() {
                 self.value = Some(10);
                 print_value(self.value.unwrap());
+            }
+        }
+    }
+}
+
+mod issue16182 {
+    struct Wrapper {
+        option: Option<String>,
+        result: Result<String, String>,
+    }
+
+    impl Wrapper {
+        fn option_ref(&mut self) -> &String {
+            if self.option.is_some() {
+                return self.option.as_ref().unwrap();
+                //~^ unnecessary_unwrap
+            }
+            self.option.insert(String::new())
+        }
+
+        fn option_mut(&mut self) -> &mut String {
+            if self.option.is_some() {
+                return self.option.as_mut().unwrap();
+                //~^ unnecessary_unwrap
+            }
+            self.option.insert(String::new())
+        }
+
+        fn result_ok(&mut self) -> &String {
+            if self.result.is_ok() {
+                return self.result.as_ref().unwrap();
+                //~^ unnecessary_unwrap
+            }
+            self.result = Ok(String::new());
+            match &self.result {
+                Ok(value) => value,
+                Err(_) => unreachable!(),
+            }
+        }
+
+        fn result_err(&mut self) -> &String {
+            if self.result.is_err() {
+                return self.result.as_ref().unwrap_err();
+                //~^ unnecessary_unwrap
+            }
+            self.result = Err(String::new());
+            match &self.result {
+                Ok(_) => unreachable!(),
+                Err(error) => error,
+            }
+        }
+
+        fn suggested_option_ref(&mut self) -> &String {
+            if let Some(value) = &self.option {
+                return value;
+            }
+            self.option.insert(String::new())
+        }
+
+        fn suggested_option_mut(&mut self) -> &mut String {
+            if let Some(value) = &mut self.option {
+                return value;
+            }
+            self.option.insert(String::new())
+        }
+
+        fn suggested_result_ok(&mut self) -> &String {
+            if let Ok(value) = &self.result {
+                return value;
+            }
+            self.result = Ok(String::new());
+            match &self.result {
+                Ok(value) => value,
+                Err(_) => unreachable!(),
+            }
+        }
+
+        fn suggested_result_err(&mut self) -> &String {
+            if let Err(error) = &self.result {
+                return error;
+            }
+            self.result = Err(String::new());
+            match &self.result {
+                Ok(_) => unreachable!(),
+                Err(error) => error,
             }
         }
     }
