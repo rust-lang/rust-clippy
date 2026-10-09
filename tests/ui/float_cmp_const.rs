@@ -1,7 +1,7 @@
 //@no-rustfix: suggestions have an error margin placeholder
 #![warn(clippy::float_cmp_const)]
 #![expect(clippy::float_cmp)]
-#![allow(clippy::no_effect, clippy::unnecessary_operation)]
+#![allow(clippy::no_effect, clippy::redundant_closure_call, clippy::unnecessary_operation)]
 
 const ONE: f32 = 1.0;
 const TWO: f32 = 2.0;
@@ -77,5 +77,22 @@ fn main() {
 
     // has errors
     NON_ZERO_ARRAY == NON_ZERO_ARRAY2;
+    //~^ float_cmp_const
+
+    // `assert_eq` and `assert_ne` are covered by `float_cmp_const` as long as neither value is zero.
+    let a = (|| 0.0)();
+    let b = (|| 1.0)();
+    assert_eq!(a, 0.0);
+    assert_ne!(b, 0.0);
+    assert_eq!(0.0, a);
+    assert_ne!(0.0, b);
+
+    assert_eq!(a, 2.0);
+    //~^ float_cmp_const
+    assert_ne!(b, 3.0);
+    //~^ float_cmp_const
+    assert_eq!(4.0, a);
+    //~^ float_cmp_const
+    assert_ne!(5.0, b);
     //~^ float_cmp_const
 }
