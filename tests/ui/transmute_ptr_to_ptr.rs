@@ -139,4 +139,24 @@ fn msrv_1_65(ptr: *const u8, mut_ptr: *mut u8) {
     }
 }
 
+fn issue15003(bs: &mut [u8]) {
+    unsafe {
+        transmute::<&mut [u8], &mut [i8]>(bs)[4] = 42;
+        //~^ transmute_ptr_to_ptr
+        let _ = transmute::<&mut [u8], &[u8]>(bs).len();
+        //~^ transmute_ptr_to_ptr
+        // NOTE: need to transmute into something we can then index into
+        let _ = transmute::<&mut [u8], &mut (u8, [u8])>(bs).0;
+        //~^ transmute_ptr_to_ptr
+
+        // Don't add parens if the expression is not the receiver
+        struct S;
+        impl S {
+            fn foo(self, _: &mut [i8]) {}
+        }
+        S.foo(transmute::<&mut [u8], &mut [i8]>(bs));
+        //~^ transmute_ptr_to_ptr
+    }
+}
+
 fn main() {}
