@@ -266,6 +266,12 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
             if let Some(method_def_id) = typeck.type_dependent_def_id(body.value.hir_id)
                 && !find_attr!(cx.tcx, method_def_id, TrackCaller(..))
                 && check_sig(closure_sig, cx.tcx.fn_sig(method_def_id).skip_binder().skip_binder())
+                && let Some(type_name) = get_path_from_caller_to_method_type(
+                    cx.tcx,
+                    self_.hir_id.owner.def_id,
+                    method_def_id,
+                    typeck.node_args(body.value.hir_id),
+                )
             {
                 let mut app = Applicability::MachineApplicable;
                 let generic_args = match path.args.and_then(GenericArgs::span_ext) {
@@ -279,9 +285,6 @@ fn check_closure<'tcx>(cx: &LateContext<'tcx>, outer_receiver: Option<&Expr<'tcx
                     expr.span,
                     "redundant closure",
                     |diag| {
-                        let args = typeck.node_args(body.value.hir_id);
-                        let caller = self_.hir_id.owner.def_id;
-                        let type_name = get_path_from_caller_to_method_type(cx.tcx, caller, method_def_id, args);
                         diag.span_suggestion(
                             expr.span,
                             "replace the closure with the method itself",
