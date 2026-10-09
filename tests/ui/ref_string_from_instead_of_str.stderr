@@ -1,0 +1,53 @@
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:28:20
+   |
+LL |         s.push_str(&String::from(" world"));
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+   |
+   = note: `-D clippy::ref-string-from-instead-of-str` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::ref_string_from_instead_of_str)]`
+
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:33:33
+   |
+LL |         test_struct.test_fn(42, &String::from("hello"));
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:38:31
+   |
+LL |         test_struct.test_fn_2(&String::from("hello"));
+   |                               ^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:43:20
+   |
+LL |         s.push_str(&Into::<String>::into(" world"));
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:48:21
+   |
+LL |         test_fn(42, &String::from("hello"));
+   |                     ^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:52:21
+   |
+LL |         test_fn(42, &Into::<String>::into("hello"));
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:56:19
+   |
+LL |         test_fn_2(&String::from("hello"));
+   |                   ^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: this creates a needless `String` allocation, use `&str` instead
+  --> tests/ui/ref_string_from_instead_of_str.rs:60:19
+   |
+LL |         test_fn_2(&Into::<String>::into("hello"));
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: aborting due to 8 previous errors
+

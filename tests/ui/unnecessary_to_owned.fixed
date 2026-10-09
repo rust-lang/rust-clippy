@@ -1,4 +1,5 @@
 #![warn(clippy::redundant_clone, clippy::unnecessary_to_owned)]
+#![allow(clippy::ref_string_from_instead_of_str)]
 #![expect(
     clippy::manual_async_fn,
     clippy::needless_borrow,

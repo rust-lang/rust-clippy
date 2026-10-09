@@ -1,0 +1,63 @@
+#![warn(clippy::ref_string_from_instead_of_str)]
+#![allow(clippy::needless_borrows_for_generic_args)]
+
+trait TestTrait<T>
+where
+    T: AsRef<str>,
+{
+    fn test_fn(&self, _other_arg: i32, _string: T) {}
+}
+
+trait TestTrait2 {
+    fn test_fn_2<T: AsRef<str>>(&self, _string: T) {}
+}
+
+struct TestStruct;
+
+impl<T: AsRef<str>> TestTrait<T> for TestStruct {}
+impl TestTrait2 for TestStruct {}
+
+fn test_fn<T: AsRef<str>>(_other_arg: i32, _string: T) {}
+
+fn test_fn_2(_str: &str) {}
+
+fn main() {
+    // Methods
+    {
+        let mut s = String::from("hello");
+        s.push_str(&String::from(" world"));
+        //~^ ref_string_from_instead_of_str
+    }
+    {
+        let test_struct = TestStruct;
+        test_struct.test_fn(42, &String::from("hello"));
+        //~^ ref_string_from_instead_of_str
+    }
+    {
+        let test_struct = TestStruct;
+        test_struct.test_fn_2(&String::from("hello"));
+        //~^ ref_string_from_instead_of_str
+    }
+    {
+        let mut s = String::from("hello");
+        s.push_str(&Into::<String>::into(" world"));
+        //~^ ref_string_from_instead_of_str
+    }
+    // Functions
+    {
+        test_fn(42, &String::from("hello"));
+        //~^ ref_string_from_instead_of_str
+    }
+    {
+        test_fn(42, &Into::<String>::into("hello"));
+        //~^ ref_string_from_instead_of_str
+    }
+    {
+        test_fn_2(&String::from("hello"));
+        //~^ ref_string_from_instead_of_str
+    }
+    {
+        test_fn_2(&Into::<String>::into("hello"));
+        //~^ ref_string_from_instead_of_str
+    }
+}
