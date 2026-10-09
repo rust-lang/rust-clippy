@@ -3,6 +3,7 @@
 //! - The `eq_foobar` functions test for semantic equality but ignores `NodeId`s and `Span`s.
 
 #![allow(clippy::enum_glob_use, clippy::wildcard_imports)]
+#![warn(missing_docs)]
 
 use crate::{both, over};
 use rustc_ast::attr::data_structures::CfgEntry;
@@ -11,9 +12,11 @@ use rustc_span::sym;
 use rustc_span::symbol::Ident;
 use std::mem;
 
+/// Utilities for iterating over identifiers in AST nodes.
 pub mod ident_iter;
 pub use ident_iter::IdentIter;
 
+/// Checks if a binary operator is useless when both operands are the same expression.
 pub fn is_useless_with_eq_exprs(kind: BinOpKind) -> bool {
     use BinOpKind::*;
     matches!(
@@ -27,10 +30,12 @@ pub fn unordered_over<X, Y>(left: &[X], right: &[Y], mut eq_fn: impl FnMut(&X, &
     left.len() == right.len() && left.iter().all(|l| right.iter().any(|r| eq_fn(l, r)))
 }
 
+/// Checks if `l` and `r` have the same name.
 pub fn eq_id(l: Ident, r: Ident) -> bool {
     l.name == r.name
 }
 
+/// Checks if two patterns are equivalent, ignoring `NodeId`s and `Span`s.
 pub fn eq_pat(l: &Pat, r: &Pat) -> bool {
     use PatKind::*;
     match (&l.kind, &r.kind) {
@@ -65,6 +70,7 @@ pub fn eq_pat(l: &Pat, r: &Pat) -> bool {
     }
 }
 
+/// Checks if two range ends are equivalent: both are `..` (excluded), or both are `..=` (included).
 fn eq_range_end(l: RangeEnd, r: RangeEnd) -> bool {
     match (l, r) {
         (RangeEnd::Excluded, RangeEnd::Excluded) => true,
@@ -75,6 +81,8 @@ fn eq_range_end(l: RangeEnd, r: RangeEnd) -> bool {
     }
 }
 
+/// Checks if two pattern fields are equivalent, comparing their placeholder status, identifier, pattern, and
+/// attributes.
 pub fn eq_field_pat(l: &PatField, r: &PatField) -> bool {
     l.is_placeholder == r.is_placeholder
         && eq_id(l.ident, r.ident)
@@ -82,10 +90,12 @@ pub fn eq_field_pat(l: &PatField, r: &PatField) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Checks if two qualified self types are equivalent, comparing their position and type.
 fn eq_qself(l: &QSelf, r: &QSelf) -> bool {
     l.position == r.position && eq_ty(&l.ty, &r.ty)
 }
 
+/// Checks if two optional qualified self types are equivalent: both `None`, or both `Some` and equivalent.
 pub fn eq_maybe_qself(l: Option<&QSelf>, r: Option<&QSelf>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => eq_qself(l, r),
@@ -94,14 +104,18 @@ pub fn eq_maybe_qself(l: Option<&QSelf>, r: Option<&QSelf>) -> bool {
     }
 }
 
+/// Checks if two paths are equivalent, comparing their segments.
 pub fn eq_path(l: &Path, r: &Path) -> bool {
     over(&l.segments, &r.segments, eq_path_seg)
 }
 
+/// Checks if two path segments are equivalent, comparing their identifier and generic arguments.
 fn eq_path_seg(l: &PathSegment, r: &PathSegment) -> bool {
     eq_id(l.ident, r.ident) && both(l.args.as_ref(), r.args.as_ref(), |l, r| eq_generic_args(l, r))
 }
 
+/// Checks if two sets of generic arguments are equivalent: both angle-bracketed with equivalent args, or both
+/// parenthesized with equivalent inputs and return type.
 fn eq_generic_args(l: &GenericArgs, r: &GenericArgs) -> bool {
     match (l, r) {
         (AngleBracketed(l), AngleBracketed(r)) => over(&l.args, &r.args, eq_angle_arg),
@@ -112,6 +126,8 @@ fn eq_generic_args(l: &GenericArgs, r: &GenericArgs) -> bool {
     }
 }
 
+/// Checks if two angle-bracketed arguments are equivalent: both are type arguments with equivalent generics, or both
+/// are constraints with equivalent associated items.
 fn eq_angle_arg(l: &AngleBracketedArg, r: &AngleBracketedArg) -> bool {
     match (l, r) {
         (AngleBracketedArg::Arg(l), AngleBracketedArg::Arg(r)) => eq_generic_arg(l, r),
@@ -120,6 +136,8 @@ fn eq_angle_arg(l: &AngleBracketedArg, r: &AngleBracketedArg) -> bool {
     }
 }
 
+/// Checks if two generic arguments are equivalent: both lifetimes with the same name, both types that are equivalent,
+/// or both constants with equivalent values.
 fn eq_generic_arg(l: &GenericArg, r: &GenericArg) -> bool {
     match (l, r) {
         (GenericArg::Lifetime(l), GenericArg::Lifetime(r)) => eq_id(l.ident, r.ident),
@@ -129,10 +147,13 @@ fn eq_generic_arg(l: &GenericArg, r: &GenericArg) -> bool {
     }
 }
 
+/// Checks if two optional expressions are equivalent: both `None`, or both `Some` and equivalent.
 fn eq_expr_opt(l: Option<&Expr>, r: Option<&Expr>) -> bool {
     both(l, r, eq_expr)
 }
 
+/// Checks if two struct rest expressions are equivalent: both are a `..base` with equivalent expressions, both are
+/// `..`, or both are absent.
 fn eq_struct_rest(l: &StructRest, r: &StructRest) -> bool {
     match (l, r) {
         (StructRest::Base(lb), StructRest::Base(rb)) => eq_expr(lb, rb),
@@ -142,6 +163,9 @@ fn eq_struct_rest(l: &StructRest, r: &StructRest) -> bool {
 }
 
 #[expect(clippy::too_many_lines, reason = "big match statement")]
+/// Checks if two expressions are equivalent, ignoring `NodeId`s and `Span`s.
+///
+/// Parentheses are ignored, and method calls are compared by name, receiver, and arguments.
 fn eq_expr(l: &Expr, r: &Expr) -> bool {
     use ExprKind::*;
     if !over(&l.attrs, &r.attrs, eq_attr) {
@@ -248,6 +272,8 @@ fn eq_expr(l: &Expr, r: &Expr) -> bool {
     }
 }
 
+/// Checks if two expression fields are equivalent, comparing their placeholder status, identifier, expression, and
+/// attributes.
 fn eq_field(l: &ExprField, r: &ExprField) -> bool {
     l.is_placeholder == r.is_placeholder
         && eq_id(l.ident, r.ident)
@@ -255,6 +281,7 @@ fn eq_field(l: &ExprField, r: &ExprField) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Checks if two match arms are equivalent, comparing their placeholder status, pattern, body, guard, and attributes.
 fn eq_arm(l: &Arm, r: &Arm) -> bool {
     l.is_placeholder == r.is_placeholder
         && eq_pat(&l.pat, &r.pat)
@@ -263,14 +290,17 @@ fn eq_arm(l: &Arm, r: &Arm) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Checks if `l` and `r` are both `None`, or if both are `Some` and their identifiers have the same name.
 fn eq_label(l: Option<&Label>, r: Option<&Label>) -> bool {
     both(l, r, |l, r| eq_id(l.ident, r.ident))
 }
 
+/// Checks if two blocks are equivalent, comparing their rules and statements.
 fn eq_block(l: &Block, r: &Block) -> bool {
     l.rules == r.rules && over(&l.stmts, &r.stmts, eq_stmt)
 }
 
+/// Checks if two statements are equivalent, comparing their kind and attributes.
 fn eq_stmt(l: &Stmt, r: &Stmt) -> bool {
     use StmtKind::*;
     match (&l.kind, &r.kind) {
@@ -290,6 +320,8 @@ fn eq_stmt(l: &Stmt, r: &Stmt) -> bool {
     }
 }
 
+/// Checks if two local kinds are equivalent: both are `Decl`, both are `Init` with equivalent expressions, or both are
+/// `InitElse` with equivalent expressions and blocks.
 fn eq_local_kind(l: &LocalKind, r: &LocalKind) -> bool {
     use LocalKind::*;
     match (l, r) {
@@ -300,11 +332,13 @@ fn eq_local_kind(l: &LocalKind, r: &LocalKind) -> bool {
     }
 }
 
+/// Checks if two items are equivalent, comparing their attributes, visibility, and kind via `eq_kind`.
 fn eq_item<K>(l: &Item<K>, r: &Item<K>, mut eq_kind: impl FnMut(&K, &K) -> bool) -> bool {
     over(&l.attrs, &r.attrs, eq_attr) && eq_vis(&l.vis, &r.vis) && eq_kind(&l.kind, &r.kind)
 }
 
 #[expect(clippy::too_many_lines, reason = "big match statement")]
+/// Checks if two item kinds are equivalent, comparing their structure and contents.
 fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
     use ItemKind::*;
     match (l, r) {
@@ -511,6 +545,7 @@ fn eq_item_kind(l: &ItemKind, r: &ItemKind) -> bool {
     }
 }
 
+/// Checks if two foreign item kinds are equivalent, comparing their kind and contents.
 fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
     use ForeignItemKind::*;
     match (l, r) {
@@ -593,6 +628,7 @@ fn eq_foreign_item_kind(l: &ForeignItemKind, r: &ForeignItemKind) -> bool {
     }
 }
 
+/// Checks if two associated item kinds are equivalent, comparing their kind and contents.
 fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
     use AssocItemKind::*;
     match (l, r) {
@@ -679,6 +715,8 @@ fn eq_assoc_item_kind(l: &AssocItemKind, r: &AssocItemKind) -> bool {
     }
 }
 
+/// Checks if two variants are equivalent, comparing their placeholder status, attributes, visibility, identifier, data,
+/// and discriminant.
 fn eq_variant(l: &Variant, r: &Variant) -> bool {
     l.is_placeholder == r.is_placeholder
         && over(&l.attrs, &r.attrs, eq_attr)
@@ -690,6 +728,8 @@ fn eq_variant(l: &Variant, r: &Variant) -> bool {
         })
 }
 
+/// Checks if two variant data are equivalent: both are unit, both are struct with equivalent fields, or both are tuple
+/// with equivalent fields.
 fn eq_variant_data(l: &VariantData, r: &VariantData) -> bool {
     use VariantData::*;
     match (l, r) {
@@ -701,6 +741,8 @@ fn eq_variant_data(l: &VariantData, r: &VariantData) -> bool {
     }
 }
 
+/// Checks if two field definitions are equivalent, comparing their placeholder status, attributes, visibility,
+/// mutability, identifier, and type.
 fn eq_struct_field(l: &FieldDef, r: &FieldDef) -> bool {
     l.is_placeholder == r.is_placeholder
         && over(&l.attrs, &r.attrs, eq_attr)
@@ -710,10 +752,12 @@ fn eq_struct_field(l: &FieldDef, r: &FieldDef) -> bool {
         && eq_ty(&l.ty, &r.ty)
 }
 
+/// Checks if two function signatures are equivalent, comparing their declaration and header.
 fn eq_fn_sig(l: &FnSig, r: &FnSig) -> bool {
     eq_fn_decl(&l.decl, &r.decl) && eq_fn_header(&l.header, &r.header)
 }
 
+/// Checks if two optional coroutine markers are equivalent: both `None`, or both `Some` with the same kind.
 fn eq_opt_coroutine_marker(l: Option<CoroutineMarker>, r: Option<CoroutineMarker>) -> bool {
     match (l, r) {
         (Some(lcm), Some(rcm)) => lcm.kind == rcm.kind,
@@ -722,6 +766,7 @@ fn eq_opt_coroutine_marker(l: Option<CoroutineMarker>, r: Option<CoroutineMarker
     }
 }
 
+/// Checks if two function headers are equivalent, comparing safety, coroutine marker, constness, and extern.
 fn eq_fn_header(l: &FnHeader, r: &FnHeader) -> bool {
     matches!(l.safety, Safety::Default) == matches!(r.safety, Safety::Default)
         && eq_opt_coroutine_marker(l.coroutine_marker, r.coroutine_marker)
@@ -730,6 +775,8 @@ fn eq_fn_header(l: &FnHeader, r: &FnHeader) -> bool {
 }
 
 #[expect(clippy::ref_option, reason = "This is the type how it is stored in the AST")]
+/// Checks if two optional function contracts are equivalent: both `None`, or both `Some` with equivalent requires and
+/// ensures clauses.
 fn eq_opt_fn_contract(l: &Option<Box<FnContract>>, r: &Option<Box<FnContract>>) -> bool {
     match (l, r) {
         (Some(l), Some(r)) => {
@@ -741,6 +788,7 @@ fn eq_opt_fn_contract(l: &Option<Box<FnContract>>, r: &Option<Box<FnContract>>) 
     }
 }
 
+/// Checks if two generic parameter lists are equivalent, comparing their parameters and where-clause predicates.
 fn eq_generics(l: &Generics, r: &Generics) -> bool {
     over(&l.params, &r.params, eq_generic_param)
         && over(&l.where_clause.predicates, &r.where_clause.predicates, |l, r| {
@@ -748,6 +796,8 @@ fn eq_generics(l: &Generics, r: &Generics) -> bool {
         })
 }
 
+/// Checks if two where-predicates are equivalent: both are bound predicates with equivalent types and bounds, or both
+/// are region predicates with the same lifetime and bounds.
 fn eq_where_predicate(l: &WherePredicate, r: &WherePredicate) -> bool {
     use WherePredicateKind::*;
     over(&l.attrs, &r.attrs, eq_attr)
@@ -765,14 +815,18 @@ fn eq_where_predicate(l: &WherePredicate, r: &WherePredicate) -> bool {
         }
 }
 
+/// Checks if two use trees are equivalent, comparing their prefix and kind.
 fn eq_use_tree(l: &UseTree, r: &UseTree) -> bool {
     eq_path(&l.prefix, &r.prefix) && eq_use_tree_kind(&l.kind, &r.kind)
 }
 
+/// Checks if two anonymous constants are equivalent, comparing their values.
 fn eq_anon_const(l: &AnonConst, r: &AnonConst) -> bool {
     eq_expr(&l.value, &r.value)
 }
 
+/// Checks if two use tree kinds are equivalent: both glob, both simple with the same identifier, or both nested with
+/// equivalent trees.
 fn eq_use_tree_kind(l: &UseTreeKind, r: &UseTreeKind) -> bool {
     use UseTreeKind::*;
     match (l, r) {
@@ -783,6 +837,7 @@ fn eq_use_tree_kind(l: &UseTreeKind, r: &UseTreeKind) -> bool {
     }
 }
 
+/// Checks if two defaultness values are equivalent: both implicit, both default, or both final.
 fn eq_defaultness(l: Defaultness, r: Defaultness) -> bool {
     matches!(
         (l, r),
@@ -792,6 +847,8 @@ fn eq_defaultness(l: Defaultness, r: Defaultness) -> bool {
     )
 }
 
+/// Checks if two visibility modifiers are equivalent: both public, both inherited, or both restricted to equivalent
+/// paths.
 fn eq_vis(l: &Visibility, r: &Visibility) -> bool {
     use VisibilityKind::*;
     match (&l.kind, &r.kind) {
@@ -801,14 +858,18 @@ fn eq_vis(l: &Visibility, r: &Visibility) -> bool {
     }
 }
 
+/// Checks if two impl restrictions are equivalent, comparing their restriction kinds.
 fn eq_impl_restriction(l: &ImplRestriction, r: &ImplRestriction) -> bool {
     eq_restriction_kind(&l.kind, &r.kind)
 }
 
+/// Checks if two mut restrictions are equivalent, comparing their restriction kinds.
 pub fn eq_mut_restriction(l: &MutRestriction, r: &MutRestriction) -> bool {
     eq_restriction_kind(&l.kind, &r.kind)
 }
 
+/// Checks if two restriction kinds are equivalent: both unrestricted, or both restricted to equivalent paths with the
+/// same shorthand.
 fn eq_restriction_kind(l: &RestrictionKind, r: &RestrictionKind) -> bool {
     match (l, r) {
         (RestrictionKind::Unrestricted, RestrictionKind::Unrestricted) => true,
@@ -828,10 +889,12 @@ fn eq_restriction_kind(l: &RestrictionKind, r: &RestrictionKind) -> bool {
     }
 }
 
+/// Checks if two function declarations are equivalent, comparing their return types and parameters.
 fn eq_fn_decl(l: &FnDecl, r: &FnDecl) -> bool {
     eq_fn_ret_ty(&l.output, &r.output) && over(&l.inputs, &r.inputs, eq_param)
 }
 
+/// Checks if two parameters are equivalent, comparing their placeholder status, pattern, type, and attributes.
 fn eq_param(l: &Param, r: &Param) -> bool {
     l.is_placeholder == r.is_placeholder
         && eq_pat(&l.pat, &r.pat)
@@ -839,6 +902,8 @@ fn eq_param(l: &Param, r: &Param) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Checks if two closure binders are equivalent: both absent, or both `for<...>` with the same number of equivalent
+/// generic parameters.
 fn eq_closure_binder(l: &ClosureBinder, r: &ClosureBinder) -> bool {
     match (l, r) {
         (ClosureBinder::NotPresent, ClosureBinder::NotPresent) => true,
@@ -849,6 +914,7 @@ fn eq_closure_binder(l: &ClosureBinder, r: &ClosureBinder) -> bool {
     }
 }
 
+/// Checks if two function return types are equivalent: both default, or both explicit with equivalent types.
 fn eq_fn_ret_ty(l: &FnRetTy, r: &FnRetTy) -> bool {
     match (l, r) {
         (FnRetTy::Default(_), FnRetTy::Default(_)) => true,
@@ -857,6 +923,7 @@ fn eq_fn_ret_ty(l: &FnRetTy, r: &FnRetTy) -> bool {
     }
 }
 
+/// Checks if two types are equivalent, ignoring `NodeId`s and `Span`s.
 fn eq_ty(l: &Ty, r: &Ty) -> bool {
     use TyKind::*;
     match (&l.kind, &r.kind) {
@@ -889,6 +956,8 @@ fn eq_ty(l: &Ty, r: &Ty) -> bool {
     }
 }
 
+/// Checks if two extern specifications are equivalent: both absent/implicit, or both explicit with equivalent string
+/// literals.
 fn eq_ext(l: &Extern, r: &Extern) -> bool {
     use Extern::*;
     match (l, r) {
@@ -898,10 +967,12 @@ fn eq_ext(l: &Extern, r: &Extern) -> bool {
     }
 }
 
+/// Checks if both string literals have the same style, symbol, and suffix.
 fn eq_str_lit(l: &StrLit, r: &StrLit) -> bool {
     l.style == r.style && l.symbol == r.symbol && l.suffix == r.suffix
 }
 
+/// Checks if two poly trait refs are equivalent, comparing their modifiers, trait path, and bound generic parameters.
 fn eq_poly_ref_trait(l: &PolyTraitRef, r: &PolyTraitRef) -> bool {
     l.modifiers == r.modifiers
         && eq_path(&l.trait_ref.path, &r.trait_ref.path)
@@ -910,6 +981,8 @@ fn eq_poly_ref_trait(l: &PolyTraitRef, r: &PolyTraitRef) -> bool {
         })
 }
 
+/// Checks if two generic parameters are equivalent, comparing their placeholder status, identifier, bounds, kind, and
+/// attributes.
 fn eq_generic_param(l: &GenericParam, r: &GenericParam) -> bool {
     use GenericParamKind::*;
     l.is_placeholder == r.is_placeholder
@@ -935,6 +1008,8 @@ fn eq_generic_param(l: &GenericParam, r: &GenericParam) -> bool {
         && over(&l.attrs, &r.attrs, eq_attr)
 }
 
+/// Checks if two generic bounds are equivalent: both are trait bounds with equivalent trait refs, or both are outlives
+/// bounds with the same lifetime.
 fn eq_generic_bound(l: &GenericBound, r: &GenericBound) -> bool {
     use GenericBound::*;
     match (l, r) {
@@ -944,6 +1019,8 @@ fn eq_generic_bound(l: &GenericBound, r: &GenericBound) -> bool {
     }
 }
 
+/// Checks if two terms are equivalent: both types with equivalent types, or both constants with equivalent anonymous
+/// constants.
 fn eq_term(l: &Term, r: &Term) -> bool {
     match (l, r) {
         (Term::Ty(l), Term::Ty(r)) => eq_ty(l, r),
@@ -952,6 +1029,7 @@ fn eq_term(l: &Term, r: &Term) -> bool {
     }
 }
 
+/// Checks if two associated item constraints are equivalent, comparing their identifier and kind.
 fn eq_assoc_item_constraint(l: &AssocItemConstraint, r: &AssocItemConstraint) -> bool {
     use AssocItemConstraintKind::*;
     eq_id(l.ident, r.ident)
@@ -962,10 +1040,12 @@ fn eq_assoc_item_constraint(l: &AssocItemConstraint, r: &AssocItemConstraint) ->
         }
 }
 
+/// Checks if two macro calls are equivalent, comparing their path and delimiter arguments.
 fn eq_mac_call(l: &MacCall, r: &MacCall) -> bool {
     eq_path(&l.path, &r.path) && eq_delim_args(&l.args, &r.args)
 }
 
+/// Checks if two attributes are equivalent, comparing their style and kind.
 fn eq_attr(l: &Attribute, r: &Attribute) -> bool {
     use AttrKind::*;
     l.style == r.style
@@ -977,6 +1057,8 @@ fn eq_attr(l: &Attribute, r: &Attribute) -> bool {
         }
 }
 
+/// Checks if two attribute arguments are equivalent: both empty, both delimited with equivalent delimiters, or both `=`
+/// with equivalent expressions.
 fn eq_attr_args(l: &AttrArgs, r: &AttrArgs) -> bool {
     use AttrArgs::*;
     match (l, r) {
@@ -987,6 +1069,7 @@ fn eq_attr_args(l: &AttrArgs, r: &AttrArgs) -> bool {
     }
 }
 
+/// Checks if two delimiter arguments are equivalent, comparing their delimiter and token streams.
 fn eq_delim_args(l: &DelimArgs, r: &DelimArgs) -> bool {
     l.delim == r.delim
         && l.tokens.len() == r.tokens.len()
