@@ -1,0 +1,16 @@
+error: use of a disallowed method `renamed_dependency::forbidden_by_alias`
+ --> src/main.rs:4:5
+  |
+4 |     renamed_dependency::forbidden_by_alias();
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: `-D clippy::disallowed-methods` implied by `-D warnings`
+  = help: to override `-D warnings` add `#[allow(clippy::disallowed_methods)]`
+
+error: use of a disallowed method `actual_dependency::forbidden_by_package_name`
+ --> src/main.rs:5:5
+  |
+5 |     renamed_dependency::forbidden_by_package_name();
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `disallowed_paths_renamed_dependency` (bin "disallowed_paths_renamed_dependency") due to 2 previous errors
