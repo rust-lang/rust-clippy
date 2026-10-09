@@ -475,6 +475,7 @@ define_Conf! {
     check_inconsistent_struct_field_initializers("check-inconsistent-struct-field-initializers"): bool = false,
     /// Whether to also run the listed lints on private items.
     #[lints(
+        doc_examples_missing_item,
         missing_errors_doc,
         missing_panics_doc,
         missing_safety_doc,
