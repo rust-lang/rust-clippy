@@ -43,8 +43,8 @@ pub fn check(cx: &LateContext<'_>, doc: &str, fragments: Fragments<'_>) {
     }
 }
 
-#[must_use]
 /// If punctuation is missing, returns the offset where new punctuation should be inserted.
+#[must_use]
 fn is_missing_punctuation(doc_string: &str) -> Vec<MissingPunctuation> {
     // The colon is not exactly a terminal punctuation mark, but this is required for paragraphs that
     // introduce a table or a list for example.
