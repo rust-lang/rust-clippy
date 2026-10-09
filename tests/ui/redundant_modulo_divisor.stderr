@@ -1,0 +1,23 @@
+error: left-hand side of modulo adds its known divisor in a non-overflowing constant expression
+  --> tests/ui/redundant_modulo_divisor.rs:7:5
+   |
+LL |     (1_u32 + 8 + 2) % 8
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::redundant-modulo-divisor` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::redundant_modulo_divisor)]`
+
+error: left-hand side of modulo adds its known divisor in a non-overflowing constant expression
+  --> tests/ui/redundant_modulo_divisor.rs:12:5
+   |
+LL |     (1_u32 + DIVISOR + 2) % DIVISOR
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: left-hand side of modulo adds its known divisor in a non-overflowing constant expression
+  --> tests/ui/redundant_modulo_divisor.rs:17:5
+   |
+LL |     (1_u32 + (4 + 4) + 2) % (4 + 4)
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 3 previous errors
+
