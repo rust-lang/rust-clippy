@@ -323,6 +323,7 @@ mod redundant_test_prefix;
 mod redundant_type_annotations;
 mod ref_option_ref;
 mod ref_patterns;
+mod refcell_cell;
 mod reference;
 mod regex;
 mod repeat_vec_with_capacity;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        RefcellCell: refcell_cell::RefcellCell = refcell_cell::RefcellCell::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
