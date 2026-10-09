@@ -120,6 +120,24 @@ To have `rust-analyzer` also work in the `clippy-dev` and `lintcheck` crates, ad
 }
 ```
 
+#### Troubleshooting missing `Cargo.lock` errors
+
+If `rust-analyzer` still fails to resolve `rustc_*` crates and reports errors like:
+
+> `error: cannot create the lock file ... because --locked was passed to prevent this`
+
+This occurs because `rustup` installs `rustc-src` without a `Cargo.lock`, while
+`rust-analyzer` runs `cargo metadata` with the `--locked` flag enabled.
+
+To generate the missing lockfile, run the following command in your terminal:
+
+```bash
+cd "$(rustc --print sysroot)/lib/rustlib/rustc-src/rust/compiler/rustc" && cargo generate-lockfile
+```
+
+After generating the lockfile, restart `rust-analyzer` in your editor. *(Note:
+You may need to repeat this step after updating your nightly toolchain with `rustup`.)*
+
 [ra_homepage]: https://rust-analyzer.github.io/
 
 ## How Clippy works
