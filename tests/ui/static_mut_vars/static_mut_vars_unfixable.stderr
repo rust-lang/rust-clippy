@@ -1,0 +1,68 @@
+error: static `F32_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:4:1
+   |
+LL | static mut F32_VAR: f32 = 1.0f32;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+   = note: `-D clippy::static-mut-vars` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::static_mut_vars)]`
+
+error: static `F64_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:6:1
+   |
+LL | static mut F64_VAR: f64 = 1.0f64;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+
+error: static `CHAR_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:9:1
+   |
+LL | static mut CHAR_VAR: char = 'a';
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+
+error: static `REF_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:12:1
+   |
+LL | static mut REF_VAR: &str = "foo";
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+
+error: static `PTR_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:15:1
+   |
+LL | static mut PTR_VAR: *const i32 = std::ptr::null();
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+
+error: static `ARR_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:18:1
+   |
+LL | static mut ARR_VAR: [u8; 3] = [0u8, 1u8, 2u8];
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+
+error: static `TUPLE_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:21:1
+   |
+LL | static mut TUPLE_VAR: (u8, u8) = (0u8, 0u8);
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+
+error: static `FN_PTR_VAR` is declared as mutable
+  --> tests/ui/static_mut_vars/static_mut_vars_unfixable.rs:24:1
+   |
+LL | static mut FN_PTR_VAR: fn(i32) -> i32 = |x| x * x;
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using a safer alternative
+
+error: aborting due to 8 previous errors
+
