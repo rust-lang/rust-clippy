@@ -1,5 +1,5 @@
 #![warn(clippy::unused_enumerate_index)]
-#![allow(clippy::map_identity)]
+#![allow(clippy::map_identity, clippy::useless_vec)]
 
 use std::iter::Enumerate;
 
