@@ -285,7 +285,7 @@ fn is_cast_from_ty_alias<'tcx>(cx: &LateContext<'tcx>, expr: impl Visitable<'tcx
         // - local as i32
         if let ExprKind::Path(qpath) = expr.kind {
             let res = cx.qpath_res(&qpath, expr.hir_id);
-            if let Res::Def(DefKind::Fn, def_id) = res {
+            if let Res::Def(DefKind::Fn | DefKind::AssocFn, def_id) = res {
                 let Some(def_id) = def_id.as_local() else {
                     // External function, we can't know, better be safe
                     return ControlFlow::Break(());
