@@ -103,7 +103,6 @@ use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
 use rustc_lint::{LateContext, Level, Lint, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::PlaceBase;
-use rustc_middle::middle::codegen_fn_attrs::CodegenFnAttrFlags;
 use rustc_middle::mir::{AggregateKind, Operand, RETURN_PLACE, Rvalue, StatementKind, TerminatorKind};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, DerefAdjustKind, PointerCoercion};
 use rustc_middle::ty::layout::IntegerExt as _;
@@ -720,12 +719,34 @@ fn is_default_equivalent_from(cx: &LateContext<'_>, from_func: &Expr<'_>, arg: &
 }
 
 fn is_track_caller(cx: &LateContext<'_>, def_id: DefId) -> bool {
+    if find_attr!(cx.tcx, def_id, TrackCaller(..)) {
+        return true;
+    }
+
+    // Trait method implementations also inherit `#[track_caller]` from the trait item.
     cx.tcx
-        .codegen_fn_attrs(def_id)
-        .flags
-        .contains(CodegenFnAttrFlags::TRACK_CALLER)
+        .opt_associated_item(def_id)
+        .and_then(|item| item.trait_item_def_id())
+        .is_some_and(|trait_item| find_attr!(cx.tcx, trait_item, TrackCaller(..)))
 }
 
+/// Returns whether moving `expr` into a closure would change the caller location
+/// propagated to a `#[track_caller]` function.
+///
+/// For example, wrapping the call to `bar` in a closure would make `bar` observe
+/// the closure's call site instead of the caller of `foo`:
+///
+/// ```
+/// #[track_caller]
+/// fn foo() {
+///     bar();
+/// }
+///
+/// #[track_caller]
+/// fn bar() {
+///     let _ = std::panic::Location::caller();
+/// }
+/// ```
 fn would_change_caller_location(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
     let Some(callee) = fn_def_id(cx, expr) else {
         return false;
