@@ -639,7 +639,7 @@ define_Conf! {
     /// (e.g. only "enums").
     #[lints(arbitrary_source_item_ordering)]
     module_items_ordered_within_groupings("module-items-ordered-within-groupings"): SourceItemOrderingWithinModuleItemGroupings,
-    /// The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
+    /// The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`.
     #[default_text = "current version"]
     #[lints(
         allow_attributes,
@@ -958,15 +958,26 @@ impl Conf {
             Conf::default()
         };
 
-        let cargo_msrv = env::var("CARGO_PKG_RUST_VERSION")
-            .ok()
-            .and_then(|v| parse_version(Symbol::intern(&v)));
+        let (cargo_msrv, from_hint) = if sess.is_nightly_build()
+            && let Some(msrv) = sess.opts.unstable_opts.hint_msrv
+        {
+            (Some(msrv), true)
+        } else {
+            (
+                env::var("CARGO_PKG_RUST_VERSION")
+                    .ok()
+                    .and_then(|v| parse_version(Symbol::intern(&v))),
+                false,
+            )
+        };
+
         match (&conf.msrv, cargo_msrv) {
             (None, Some(cargo_msrv)) => conf.msrv = Some(cargo_msrv),
             (Some(clippy_msrv), Some(cargo_msrv)) => {
                 if *clippy_msrv != cargo_msrv {
                     sess.dcx().warn(format!(
-                        "the MSRV in `clippy.toml` and `Cargo.toml` differ; using `{clippy_msrv}` from `clippy.toml`"
+                        "the MSRV in `clippy.toml` and `{}` differ; using `{clippy_msrv}` from `clippy.toml`",
+                        if from_hint { "-Zhint-msrv" } else { "Cargo.toml" }
                     ));
                 }
             },
