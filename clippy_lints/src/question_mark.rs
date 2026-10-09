@@ -548,7 +548,7 @@ fn check_if_let_some_or_err_and_early_return<'tcx>(cx: &LateContext<'tcx>, expr:
             return;
         }
 
-        // Leave `if let Some(x) = opt { .. } else { None }` to `needless_match` or `manual_map_option`.
+        // Leave `if let Some(x) = opt { .. } else { None }` to `needless_match` or `manual_map`.
         if is_option_early_return
             && if_else.is_some_and(|else_| !matches!(peel_blocks_with_stmt(else_).kind, ExprKind::Ret(_)))
         {
