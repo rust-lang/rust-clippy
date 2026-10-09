@@ -203,7 +203,7 @@ impl LateLintPass<'_> for TupleArrayConversions {
                     && match *cx.typeck_results().expr_ty(e).kind() {
                         ty::Array(dst_ty, _) => dst_ty == src_ty,
                         ty::Tuple(dst_tys) => dst_tys.iter().all(|ty| src_ty == ty),
-                        __ => false,
+                        _ => false,
                     }
                     && ctxt == id_parent_pat.span.ctxt()
                     // Check that each binding is used at most once.
