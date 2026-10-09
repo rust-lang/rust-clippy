@@ -68,7 +68,7 @@ impl<'tcx> LateLintPass<'tcx> for UselessFormat {
             let mut applicability = Applicability::MachineApplicable;
             let call_site = macro_call.span;
 
-            match (format_args.arguments.all_args(), &format_args.template[..]) {
+            match (format_args.arguments.all_args(), format_args.template.as_slice()) {
                 ([], []) => span_lint(
                     cx,
                     call_site,

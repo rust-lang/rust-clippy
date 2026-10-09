@@ -294,7 +294,7 @@ fn needless_borrow_count<'tcx>(
             }
 
             let clause = EarlyBinder::bind(cx.tcx, clause)
-                .instantiate(cx.tcx, &args_with_referent_ty[..])
+                .instantiate(cx.tcx, args_with_referent_ty.as_slice())
                 .skip_norm_wip();
             let obligation = Obligation::new(cx.tcx, ObligationCause::dummy(), cx.param_env, clause);
             let infcx = cx.tcx.infer_ctxt().build(cx.typing_mode());
