@@ -44,8 +44,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, arg: &
             .filter(|adj| matches!(adj.kind, Adjust::Deref(_)))
             .count()
         && let Some(param_snippet) = param.span.get_text(cx)
-        // Splitting the closure is the only thing this lint has to offer, and here it cannot be
-        // done at all, not even by hand.
+        // The `filter(...).map(...)` rewrite would create incompatible simultaneous captures.
         && !has_conflicting_captures(cx, &param, recv, then_body)
     {
         let mut applicability = Applicability::MachineApplicable;
@@ -92,8 +91,7 @@ fn find_bindings_from_pat(pat: &Pat<'_>) -> FxHashSet<HirId> {
 /// with at least one of them needing it mutably.
 ///
 /// The two closures are alive at the same time once they are arguments to `filter` and `map`, so
-/// the borrow checker rejects that. There is no way to write the split by hand either, which is
-/// all this lint has to say, so it stays quiet instead.
+/// the borrow checker rejects that.
 fn has_conflicting_captures<'tcx>(
     cx: &LateContext<'tcx>,
     param: &Param<'tcx>,
