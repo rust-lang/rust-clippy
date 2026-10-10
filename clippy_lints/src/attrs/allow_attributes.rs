@@ -11,6 +11,7 @@ pub fn check<'cx>(cx: &EarlyContext<'cx>, attr: &'cx Attribute) {
     if let AttrStyle::Outer = attr.style
         && let Some(path_span) = attr.path_span()
         && !attr.span.in_external_macro(cx.sess().source_map())
+        && !attr.span.from_expansion()
         && !is_from_proc_macro(cx, attr)
     {
         #[expect(clippy::collapsible_span_lint_calls, reason = "rust-clippy#7797")]
