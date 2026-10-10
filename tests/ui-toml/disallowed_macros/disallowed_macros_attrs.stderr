@@ -1,0 +1,115 @@
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:35:5
+   |
+LL |     panic!();
+   |     ^^^^^^^^
+   |
+   = note: `-D clippy::disallowed-macros` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::disallowed_macros)]`
+
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:37:5
+   |
+LL |     panic!("message");
+   |     ^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:39:5
+   |
+LL |     panic!("{}", 1);
+   |     ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:41:5
+   |
+LL |     panic!("{} {}", 1, 2);
+   |     ^^^^^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::println`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:43:5
+   |
+LL |     println!("test");
+   |     ^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::println`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:45:5
+   |
+LL |     println!("{}", 1);
+   |     ^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::vec`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:47:5
+   |
+LL |     vec![1, 2, 3];
+   |     ^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:79:9
+   |
+LL |         panic!();
+   |         ^^^^^^^^
+
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:81:9
+   |
+LL |         panic!("message");
+   |         ^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:83:9
+   |
+LL |         panic!("{}", 1);
+   |         ^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::panic`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:85:9
+   |
+LL |         panic!("{} {}", 1, 2);
+   |         ^^^^^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::println`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:87:9
+   |
+LL |         println!("test");
+   |         ^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::println`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:89:9
+   |
+LL |         println!("{}", 1);
+   |         ^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `std::vec`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:91:9
+   |
+LL |         vec![1, 2, 3];
+   |         ^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::attr_item`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:112:9
+   |
+LL |         macros::attr_item!();
+   |         ^^^^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::attr_item`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:127:9
+   |
+LL |         macros::attr_item!();
+   |         ^^^^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `macros::attr_expr`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:141:9
+   |
+LL |         macros::attr_expr!(1)
+   |         ^^^^^^^^^^^^^^^^^^^^^
+
+error: use of a disallowed macro `serde::Serialize`
+  --> tests/ui-toml/disallowed_macros/disallowed_macros_attrs.rs:158:14
+   |
+LL |     #[derive(Serialize)]
+   |              ^^^^^^^^^
+   |
+   = note: no serializing
+
+error: aborting due to 18 previous errors
+
