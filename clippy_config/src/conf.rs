@@ -474,12 +474,18 @@ define_Conf! {
     #[lints(inconsistent_struct_constructor)]
     check_inconsistent_struct_field_initializers("check-inconsistent-struct-field-initializers"): bool = false,
     /// Whether to also run the listed lints on private items.
-    #[lints(missing_errors_doc, missing_panics_doc, missing_safety_doc, unnecessary_safety_doc)]
+    #[lints(
+        missing_errors_doc,
+        missing_panics_doc,
+        missing_safety_doc,
+        too_long_first_doc_paragraph,
+        unnecessary_safety_doc,
+    )]
     check_private_items("check-private-items"): bool = false,
     /// The maximum cognitive complexity a function can have
     #[lints(cognitive_complexity)]
     cognitive_complexity_threshold("cognitive-complexity-threshold"): u64 = 25,
-    /// The minimum digits a const float literal must have to supress the `excessive_precicion` lint
+    /// The minimum digits a const float literal must have to suppress the `excessive_precision` lint
     #[lints(excessive_precision)]
     const_literal_digits_threshold("const-literal-digits-threshold"): u32 = 30,
     #[rename = cognitive_complexity_threshold]
@@ -714,6 +720,7 @@ define_Conf! {
         repeat_vec_with_capacity,
         same_item_push,
         seek_from_current,
+        swap_ptr_to_ref,
         to_digit_is_some,
         transmute_ptr_to_ref,
         tuple_array_conversions,

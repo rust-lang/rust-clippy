@@ -19,7 +19,7 @@ declare_clippy_lint! {
     /// This often happens when constructing a large type, such as an array with a lot of elements,
     /// or constructing *many* smaller-but-still-large structs, or copying around a lot of large types.
     ///
-    /// This lint is a more general version of [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/master/#large_stack_arrays)
+    /// This lint is a more general version of [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/main/#large_stack_arrays)
     /// that is intended to look at functions as a whole instead of only individual array expressions inside of a function.
     ///
     /// ### Why is this bad?
@@ -183,7 +183,7 @@ impl<'tcx> LateLintPass<'tcx> for LargeStackFrames {
                 return;
             }
 
-            let explain_lint = |diag: &mut Diag<'_, ()>, ctxt: SyntaxContext| {
+            let explain_lint = |diag: &mut Diag<'_>, ctxt: SyntaxContext| {
                 // Point out the largest individual contribution to this size, because
                 // it is the most likely to be unintentionally large.
                 if let Some((local, size)) = sizes_of_locals.iter().max_by_key(|&(_, size)| size)

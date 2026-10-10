@@ -21,6 +21,7 @@ use rustc_middle::mir::ConstValue;
 use rustc_middle::mir::interpret::Scalar;
 use rustc_middle::traits::EvaluationResult;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
+use rustc_middle::ty::consts::ConstExt as _;
 use rustc_middle::ty::layout::{LayoutError, LayoutOf as _, TyAndLayout};
 use rustc_middle::ty::{
     self, AdtDef, AliasTy, AssocItem, AssocTag, Binder, BoundRegion, BoundVarIndexKind, FnSig, GenericArg,
@@ -232,7 +233,7 @@ pub fn has_iter_method(cx: &LateContext<'_>, probably_ref_ty: Ty<'_>) -> Option<
 ///
 /// See [Common tools for writing lints] for an example how to use this function and other options.
 ///
-/// [Common tools for writing lints]: https://github.com/rust-lang/rust-clippy/blob/master/book/src/development/common_tools_writing_lints.md#checking-if-a-type-implements-a-specific-trait
+/// [Common tools for writing lints]: https://github.com/rust-lang/rust-clippy/blob/HEAD/book/src/development/common_tools_writing_lints.md#checking-if-a-type-implements-a-specific-trait
 pub fn implements_trait<'tcx>(
     cx: &LateContext<'tcx>,
     ty: Ty<'tcx>,
@@ -1527,36 +1528,36 @@ pub fn has_non_owning_mutable_access<'tcx>(cx: &LateContext<'tcx>, iter_ty: Ty<'
     /// - A `PhantomData` type containing any of the previous.
     fn has_non_owning_mutable_access_inner<'tcx>(
         cx: &LateContext<'tcx>,
-        phantoms: &mut FxHashSet<Ty<'tcx>>,
+        visited: &mut FxHashSet<Ty<'tcx>>,
         ty: Ty<'tcx>,
     ) -> bool {
+        // Avoid cycles and repeated work by skipping types that have already been visited during this traversal.
+        if !visited.insert(ty) {
+            return false;
+        }
         match ty.kind() {
-            ty::Adt(adt_def, args) if adt_def.is_phantom_data() => {
-                phantoms.insert(ty)
-                    && args
-                        .types()
-                        .any(|arg_ty| has_non_owning_mutable_access_inner(cx, phantoms, arg_ty))
-            },
+            ty::Adt(adt_def, args) if adt_def.is_phantom_data() => args
+                .types()
+                .any(|arg_ty| has_non_owning_mutable_access_inner(cx, visited, arg_ty)),
             ty::Adt(adt_def, args) => adt_def.all_fields().any(|field| {
-                has_non_owning_mutable_access_inner(cx, phantoms, normalize_ty(cx, field.ty(cx.tcx, args)))
+                has_non_owning_mutable_access_inner(cx, visited, normalize_ty(cx, field.ty(cx.tcx, args)))
             }),
-            ty::Array(elem_ty, _) | ty::Slice(elem_ty) => has_non_owning_mutable_access_inner(cx, phantoms, *elem_ty),
+            ty::Array(elem_ty, _) | ty::Slice(elem_ty) => has_non_owning_mutable_access_inner(cx, visited, *elem_ty),
             ty::RawPtr(pointee_ty, mutability) | ty::Ref(_, pointee_ty, mutability) => {
                 mutability.is_mut() || !pointee_ty.is_freeze(cx.tcx, cx.typing_env())
             },
             ty::Closure(_, closure_args) => {
                 matches!(closure_args.types().next_back(),
-                         Some(captures) if has_non_owning_mutable_access_inner(cx, phantoms, captures))
+                         Some(captures) if has_non_owning_mutable_access_inner(cx, visited, captures))
             },
             ty::Tuple(tuple_args) => tuple_args
                 .iter()
-                .any(|arg_ty| has_non_owning_mutable_access_inner(cx, phantoms, arg_ty)),
+                .any(|arg_ty| has_non_owning_mutable_access_inner(cx, visited, arg_ty)),
             _ => false,
         }
     }
 
-    let mut phantoms = FxHashSet::default();
-    has_non_owning_mutable_access_inner(cx, &mut phantoms, iter_ty)
+    has_non_owning_mutable_access_inner(cx, &mut FxHashSet::default(), iter_ty)
 }
 
 /// Check if `ty` is slice-like, i.e., `&[T]`, `[T; N]`, or `Vec<T>`.
