@@ -71,3 +71,25 @@ fn issue15163() {
     const N: u16 = M as u16;
     //~^ cast_possible_truncation
 }
+
+mod issue17764 {
+    fn regular_cast() {
+        1u128 as usize;
+        //~^ cast_possible_truncation
+        1i128 as isize;
+        //~^ cast_possible_truncation
+    }
+    fn reduced_widths(int64: u64, int128: u128) {
+        // 33..=63 bits: fits a 64-bit `usize`, truncates on a 32-bit one
+        (int64 >> 31) as usize;
+        //~^ cast_possible_truncation
+        (int64 >> 20) as usize;
+        //~^ cast_possible_truncation
+        (int128 >> 70) as usize;
+        //~^ cast_possible_truncation
+
+        // 32 bits or fewer: fits `usize` everywhere, so no lint
+        (int64 >> 32) as usize;
+        (int128 >> 96) as usize;
+    }
+}

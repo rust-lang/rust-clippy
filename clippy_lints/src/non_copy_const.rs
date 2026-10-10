@@ -530,7 +530,8 @@ impl<'tcx> NonCopyConst<'tcx> {
                 ExprKind::Index(_, idx, _) if ty.is_array() => {
                     let val = tcx.try_destructure_mir_constant_for_user_output(val, ty).ok_or(())?;
                     if let Some(Constant::Int(idx)) = ConstEvalCtxt::with_env(tcx, typing_env, typeck).eval(idx) {
-                        val.fields.get(idx as usize)
+                        let index = usize::try_from(idx).map_err(|_| ())?;
+                        val.fields.get(index)
                     } else {
                         // It's some value in the array so check all of them.
                         for &(val, _) in val.fields {
@@ -678,7 +679,8 @@ impl<'tcx> NonCopyConst<'tcx> {
                         if let Some(Constant::Int(idx)) = ConstEvalCtxt::with_env(tcx, typing_env, typeck).eval(idx) {
                             // If the index is out of bounds it means the code
                             // unconditionally panics. In that case there is no borrow.
-                            fields.get(idx as usize)?
+                            let index = usize::try_from(idx).ok()?;
+                            fields.get(index)?
                         } else {
                             // Unknown index, just run the check for all values.
                             return fields.iter().find_map(|f| {
