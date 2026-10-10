@@ -937,7 +937,7 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
         let index = self.expr(index);
 
         match (lhs, index) {
-            (Some(Constant::Vec(vec)), Some(Constant::Int(index))) => match vec.get(index as usize) {
+            (Some(Constant::Vec(vec)), Some(Constant::Int(index))) => match vec.get(usize::try_from(index).ok()?) {
                 Some(Constant::F16(x)) => Some(Constant::F16(*x)),
                 Some(Constant::F32(x)) => Some(Constant::F32(*x)),
                 Some(Constant::F64(x)) => Some(Constant::F64(*x)),
