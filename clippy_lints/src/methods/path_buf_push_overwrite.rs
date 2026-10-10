@@ -39,7 +39,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, recv: &'tcx Expr<'tcx>, push_a
                         spanned.span,
                         "if this is unintentional, try removing the starting separator",
                         no_separator,
-                        Applicability::Unspecified,
+                        Applicability::MaybeIncorrect,
                     );
             },
         );
