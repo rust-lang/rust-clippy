@@ -1,6 +1,8 @@
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::is_c_void;
 use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, sym};
+use rustc_errors::{Applicability, Diag};
 use rustc_hir::{Expr, ExprKind, GenericArg};
 use rustc_lint::LateContext;
 use rustc_middle::ty::layout::LayoutOf as _;
@@ -38,7 +40,7 @@ fn lint_cast_ptr_alignment<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, cast_f
         && !is_used_as_unaligned(cx, expr)
         && !expr.span.in_external_macro(cx.tcx.sess.source_map())
     {
-        span_lint(
+        span_lint_and_then(
             cx,
             CAST_PTR_ALIGNMENT,
             expr.span,
@@ -47,6 +49,7 @@ fn lint_cast_ptr_alignment<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, cast_f
                 from_layout.align.bytes(),
                 to_layout.align.bytes(),
             ),
+            |diag| offer_suggestion(cx, expr, diag),
         );
     }
 }
@@ -90,5 +93,30 @@ fn is_used_as_unaligned(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
             }
         },
         _ => false,
+    }
+}
+
+fn offer_suggestion(cx: &LateContext<'_>, expr: &Expr<'_>, diag: &mut Diag<'_>) {
+    match expr.kind {
+        ExprKind::MethodCall(method, ..) => {
+            diag.span_suggestion_verbose(
+                method.ident.span,
+                "try checking the pointer alignment with",
+                "try_cast_aligned",
+                Applicability::MaybeIncorrect,
+            );
+        },
+        ExprKind::Cast(source, _) if let ty::RawPtr(target_ty, _) = cx.typeck_results().expr_ty(expr).kind() => {
+            let source = Sugg::hir(cx, source, "..").maybe_paren();
+            let suggestion = format!("{source}.try_cast_aligned::<{target_ty}>()");
+
+            diag.span_suggestion_verbose(
+                expr.span,
+                "try checking the pointer alignment with",
+                suggestion,
+                Applicability::MaybeIncorrect,
+            );
+        },
+        _ => {},
     }
 }
