@@ -281,11 +281,11 @@ impl LiteralDigitGrouping {
         }
 
         let (part, mistyped_suffixes, is_float) = if let Some((_, exponent)) = &mut num_lit.exponent {
-            (exponent, &["32", "64"][..], true)
+            (exponent, ["32", "64"].as_slice(), true)
         } else if num_lit.fraction.is_some() {
             return true;
         } else {
-            (&mut num_lit.integer, &["8", "16", "32", "64"][..], false)
+            (&mut num_lit.integer, ["8", "16", "32", "64"].as_slice(), false)
         };
 
         let mut split = part.rsplit('_');

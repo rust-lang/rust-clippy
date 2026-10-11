@@ -39,7 +39,7 @@ fn strip_paren_blocks(expr: &Expr) -> &Expr {
                     kind: StmtKind::Expr(e),
                     ..
                 },
-            ] = &b.stmts[..]
+            ] = b.stmts.as_slice()
             {
                 strip_paren_blocks(e)
             } else {

@@ -225,7 +225,7 @@ impl<'tcx> ImplicitHasherType<'tcx> {
 
             let ty = lower_ty(cx.tcx, hir_ty);
 
-            match (ty.opt_diag_name(cx), &params[..]) {
+            match (ty.opt_diag_name(cx), params.as_slice()) {
                 (Some(sym::HashMap), [k, v]) => Some(ImplicitHasherType::HashMap(
                     hir_ty.span,
                     ty,

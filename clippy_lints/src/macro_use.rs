@@ -205,7 +205,7 @@ impl LateLintPass<'_> for MacroUseImports {
         // such as `std::prelude::v1::foo` or some other macro that expands to an import.
         if self.mac_refs.is_empty() {
             for ((root, span, ..), (path, hir_id)) in used {
-                let import = if let [single] = &path[..] {
+                let import = if let [single] = path.as_slice() {
                     format!("{root}::{single}")
                 } else {
                     format!("{root}::{{{}}}", path.join(", "))

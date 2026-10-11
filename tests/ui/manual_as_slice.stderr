@@ -1,0 +1,100 @@
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:12:24
+   |
+LL |     let slice: &[u8] = &array[..];
+   |                        ^^^^^^^^^^
+   |
+   = note: `-D clippy::manual-as-slice` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_as_slice)]`
+help: use `.as_slice()` instead
+   |
+LL -     let slice: &[u8] = &array[..];
+LL +     let slice: &[u8] = array.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:16:28
+   |
+LL |     let mut slice: &[u8] = &mut array[..];
+   |                            ^^^^^^^^^^^^^^
+   |
+help: use `.as_mut_slice()` instead
+   |
+LL -     let mut slice: &[u8] = &mut array[..];
+LL +     let mut slice: &[u8] = array.as_mut_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:19:24
+   |
+LL |     let slice: &[u8] = &nested_1::nested_2::SOME_VALUE[..];
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `.as_slice()` instead
+   |
+LL -     let slice: &[u8] = &nested_1::nested_2::SOME_VALUE[..];
+LL +     let slice: &[u8] = nested_1::nested_2::SOME_VALUE.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:23:24
+   |
+LL |     let slice: &[u8] = &slice[..];
+   |                        ^^^^^^^^^^
+   |
+help: use `.as_slice()` instead
+   |
+LL -     let slice: &[u8] = &slice[..];
+LL +     let slice: &[u8] = slice.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:27:24
+   |
+LL |     let slice: &[u8] = &slice[..];
+   |                        ^^^^^^^^^^
+   |
+help: use `.as_slice()` instead
+   |
+LL -     let slice: &[u8] = &slice[..];
+LL +     let slice: &[u8] = slice.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:38:24
+   |
+LL |     let slice: &[u8] = &vec![1, 2, 3][..];
+   |                        ^^^^^^^^^^^^^^^^^^
+   |
+help: use `.as_slice()` instead
+   |
+LL -     let slice: &[u8] = &vec![1, 2, 3][..];
+LL +     let slice: &[u8] = vec![1, 2, 3].as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:46:24
+   |
+LL |     let slice: &[u8] = &object.field[..];
+   |                        ^^^^^^^^^^^^^^^^^
+   |
+help: use `.as_slice()` instead
+   |
+LL -     let slice: &[u8] = &object.field[..];
+LL +     let slice: &[u8] = object.field.as_slice();
+   |
+
+error: using a full range slice
+  --> tests/ui/manual_as_slice.rs:52:24
+   |
+LL |     let slice: &[u8] = &object.0[..];
+   |                        ^^^^^^^^^^^^^
+   |
+help: use `.as_slice()` instead
+   |
+LL -     let slice: &[u8] = &object.0[..];
+LL +     let slice: &[u8] = object.0.as_slice();
+   |
+
+error: aborting due to 8 previous errors
+
