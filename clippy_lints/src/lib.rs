@@ -268,6 +268,7 @@ mod needless_nonzero_get;
 mod needless_parens_on_range_literals;
 mod needless_pass_by_ref_mut;
 mod needless_pass_by_value;
+mod needless_path_new;
 mod needless_question_mark;
 mod needless_update;
 mod neg_cmp_op_on_partial_ord;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        NeedlessPathNew: needless_path_new::NeedlessPathNew = needless_path_new::NeedlessPathNew,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
