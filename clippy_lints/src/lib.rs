@@ -244,6 +244,7 @@ mod missing_doc;
 mod missing_enforced_import_rename;
 mod missing_fields_in_debug;
 mod missing_inline;
+mod missing_panic_message;
 mod missing_trait_methods;
 mod mixed_read_write_in_expression;
 mod module_style;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        MissingPanicMessage: missing_panic_message::MissingPanicMessage = missing_panic_message::MissingPanicMessage,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
