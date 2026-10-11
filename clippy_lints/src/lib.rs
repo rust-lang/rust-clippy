@@ -359,6 +359,7 @@ mod swap;
 mod swap_ptr_to_ref;
 mod tabs_in_doc_comments;
 mod temporary_assignment;
+mod test_without_assertions;
 mod tests_outside_test_module;
 mod time_subtraction;
 mod to_digit_is_some;
@@ -870,6 +871,7 @@ rustc_lint::late_lint_methods!(
         BlockScrutinee: block_scrutinee::BlockScrutinee = block_scrutinee::BlockScrutinee,
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
+        TestWithoutAssertions: test_without_assertions::TestWithoutAssertions = test_without_assertions::TestWithoutAssertions,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

@@ -1,3 +1,5 @@
+#![expect(clippy::test_without_assertions)]
+
 fn zero() {
     #![warn(clippy::invisible_characters)]
 
