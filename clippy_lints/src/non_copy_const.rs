@@ -321,7 +321,7 @@ impl<'tcx> NonCopyConst<'tcx> {
                         IsFreeze::from_fields(tys.iter().map(|ty| self.is_ty_freeze(tcx, typing_env, ty)))
                     },
                     // Treat type parameters as though they were `Freeze`.
-                    ty::Param(_) | ty::Alias(..) => return IsFreeze::Yes,
+                    ty::Param(_) | ty::Alias(_, ..) => return IsFreeze::Yes,
                     // TODO: check other types.
                     _ => {
                         *e = IsFreeze::No;
@@ -964,9 +964,9 @@ fn get_const_hir_value<'tcx>(
         _ => return None,
     };
     match ct_rhs {
-        ConstItemRhs::Body(body_id) => Some((tcx.typeck(did), tcx.hir_body(body_id).value)),
+        ConstItemRhs::Body(body_id) => Some((tcx.typeck(did), &tcx.hir_body(body_id).value)),
         ConstItemRhs::Direct(ct_arg) => match ct_arg.kind {
-            ConstArgKind::Anon(anon_const) => Some((tcx.typeck(did), tcx.hir_body(anon_const.body).value)),
+            ConstArgKind::Anon(anon_const) => Some((tcx.typeck(did), &tcx.hir_body(anon_const.body).value)),
             _ => None,
         },
     }
