@@ -105,3 +105,18 @@ const fn issue_12402<P>(ptr: *const P) {
     unsafe { std::mem::transmute::<fn(*const P), usize>(issue_12402) };
     let _ = unsafe { std::mem::transmute::<_, usize>(ptr) };
 }
+
+// A pointer to an integer transmuted to that same integer type must get the pointer-cast
+// suggestion, not `crosspointer_transmute`.
+fn ptr_to_int_with_int_pointee(a: *const usize, b: *const u64, c: *mut usize, d: *const isize) {
+    unsafe {
+        let _ = transmute::<*const usize, usize>(a);
+        //~^ transmutes_expressible_as_ptr_casts
+        let _ = transmute::<*const u64, usize>(b);
+        //~^ transmutes_expressible_as_ptr_casts
+        let _ = transmute::<*mut usize, usize>(c);
+        //~^ transmutes_expressible_as_ptr_casts
+        let _ = transmute::<*const isize, isize>(d);
+        //~^ transmutes_expressible_as_ptr_casts
+    }
+}

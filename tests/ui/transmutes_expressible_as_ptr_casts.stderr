@@ -72,5 +72,29 @@ error: transmute from `fn()` to `*const u8` which could be expressed as a pointe
 LL |     let _x: u8 = unsafe { *std::mem::transmute::<fn(), *const u8>(f) };
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(f as *const u8)`
 
-error: aborting due to 9 previous errors
+error: transmute from `*const usize` to `usize` which could be expressed as a pointer cast instead
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:113:17
+   |
+LL |         let _ = transmute::<*const usize, usize>(a);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `a as usize`
+
+error: transmute from `*const u64` to `usize` which could be expressed as a pointer cast instead
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:115:17
+   |
+LL |         let _ = transmute::<*const u64, usize>(b);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `b as usize`
+
+error: transmute from `*mut usize` to `usize` which could be expressed as a pointer cast instead
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:117:17
+   |
+LL |         let _ = transmute::<*mut usize, usize>(c);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `c as usize`
+
+error: transmute from `*const isize` to `isize` which could be expressed as a pointer cast instead
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:119:17
+   |
+LL |         let _ = transmute::<*const isize, isize>(d);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `d as isize`
+
+error: aborting due to 13 previous errors
 
