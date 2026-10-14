@@ -11,7 +11,7 @@ document.
 ### Enhancements
 
 * [`wrong_self_convention`]: Now also lints `as_*` methods that return an owned value instead of a borrowed one
-  [#7676](https://github.com/rust-lang/rust-clippy/pull/7676)
+  [#17878](https://github.com/rust-lang/rust-clippy/pull/17878)
 
 ## Rust 1.99
 
