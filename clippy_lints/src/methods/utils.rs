@@ -1,15 +1,15 @@
 use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::{get_parent_expr, usage};
+use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{BorrowKind, Expr, ExprKind, HirId, Mutability, Pat, QPath, Stmt, StmtKind};
 use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
+use rustc_middle::hir::place::PlaceBase;
 use rustc_middle::ty::consts::ConstExt as _;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 use rustc_span::symbol::sym;
-use rustc_hir::def_id::LocalDefId;
-use rustc_middle::hir::place::PlaceBase;
 
 /// Checks if `expr`, of type `ty`, corresponds to a slice or can be dereferenced to a slice, or if
 /// `expr` is a method call to `.iter()` on such a type. In these cases, return the slice-like
@@ -104,7 +104,8 @@ impl<'tcx> Visitor<'tcx> for CloneOrCopyVisitor<'_, 'tcx> {
         // A closure that captures a binding by value takes
         // ownership of it, whatever the body does with it.
         if let ExprKind::Closure(closure) = expr.kind
-            && self.captures_binding_by_value(closure.def_id) {
+            && self.captures_binding_by_value(closure.def_id)
+        {
             self.clone_or_copy_needed = true;
             return;
         }
