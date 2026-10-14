@@ -244,11 +244,7 @@ impl ItemNameRepetitions {
             | ItemKind::Trait { ident, .. }
             | ItemKind::TraitAlias(_, ident, ..)
             | ItemKind::TyAlias(ident, ..)
-            | ItemKind::Union(ident, ..)
-            | ItemKind::Use(UseTree {
-                kind: UseKind::Single(ident),
-                ..
-            }) => Some(ident),
+            | ItemKind::Union(ident, ..) => Some(ident),
 
             ItemKind::ForeignMod { .. }
             | ItemKind::GlobalAsm { .. }

@@ -76,6 +76,29 @@ impl Bar {
     fn to_mut(&mut self) {}
 }
 
+// `as_` conversions must return a borrowed view (borrowed -> borrowed, C-CONV),
+// so returning an owned type is also a violation (#7676).
+mod as_return_type {
+    pub struct Target;
+
+    impl Target {
+        // borrowed return: correct, no lint
+        pub fn as_bytes(&self) -> &'static [u8] {
+            &[]
+        }
+        pub fn as_mut_bytes(&mut self) -> &'static mut [u8] {
+            &mut []
+        }
+        // owned return: violates the convention
+        pub fn as_owned(&self) -> Vec<u8> {
+            //~^ wrong_self_convention
+            Vec::new()
+        }
+        // unit return is not a conversion, so it is not flagged
+        pub fn as_unit(&self) {}
+    }
+}
+
 // Allow Box<Self>, Rc<Self>, Arc<Self> for methods that take conventionally take Self by value
 #[allow(clippy::boxed_local)]
 mod issue4293 {

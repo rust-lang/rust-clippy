@@ -89,6 +89,7 @@ pub(super) fn check<'tcx>(
     first_arg_span: Span,
     implements_trait: bool,
     is_trait_item: bool,
+    return_ty: Ty<'tcx>,
 ) {
     let item_name_str = item_name.as_str();
     if let Some((conventions, self_kinds)) = &CONVENTIONS.iter().find(|(convs, _)| {
@@ -137,5 +138,27 @@ pub(super) fn check<'tcx>(
                 "consider choosing a less ambiguous name",
             );
         }
+    }
+
+    // `as_` conversions are expected to return a borrowed view (borrowed -> borrowed, C-CONV).
+    // The `CONVENTIONS` table only inspects the receiver, so a method like
+    // `fn as_bytes(&self) -> Vec<u8>` passes the receiver check while still breaking the
+    // convention. Flag an owned return type here (#7676). Unit returns are ignored: a method
+    // returning `()` is not claiming to be a conversion.
+    if item_name_str.starts_with("as_")
+        && item_name_str != "as_"
+        && !return_ty.is_ref()
+        && !return_ty.is_unit()
+        && !implements_trait
+        && first_arg_ty.is_ref()
+    {
+        span_lint_and_help(
+            cx,
+            WRONG_SELF_CONVENTION,
+            first_arg_span,
+            "methods called `as_*` usually return a borrowed value",
+            None,
+            "return a reference, or choose a less ambiguous name",
+        );
     }
 }

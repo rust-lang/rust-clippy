@@ -5386,6 +5386,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 && let Some(first_arg) = iter_input_pats(sig.decl, cx.tcx.hir_body(id)).next()
                 && let Some(first_arg_ty) = first_arg_ty_opt
             {
+                let return_ty = method_sig.output();
                 wrong_self_convention::check(
                     cx,
                     impl_item.ident.name,
@@ -5394,6 +5395,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     first_arg.pat.span,
                     implements_trait,
                     false,
+                    return_ty,
                 );
             }
 
@@ -5417,6 +5419,13 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     .first()
             {
                 let self_ty = TraitRef::identity(cx.tcx, item.owner_id.to_def_id()).self_ty();
+                let return_ty = cx
+                    .tcx
+                    .fn_sig(item.owner_id)
+                    .instantiate_identity()
+                    .skip_norm_wip()
+                    .output()
+                    .skip_binder();
                 wrong_self_convention::check(
                     cx,
                     item.ident.name,
@@ -5425,6 +5434,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                     first_arg_hir_ty.span,
                     false,
                     true,
+                    return_ty,
                 );
             }
 
@@ -5493,7 +5503,7 @@ impl Methods {
                                 && let body = cx.tcx.hir_body(arg.body)
                                 && let [param] = body.params =>
                         {
-                            string_lit_chars_any::check(cx, expr, recv, param, peel_blocks(&body.value), self.msrv);
+                            string_lit_chars_any::check(cx, expr, recv, param, peel_blocks(body.value), self.msrv);
                         },
                         Some((sym::map, _, [map_arg], _, map_call_span)) => {
                             map_all_any_identity::check(cx, expr, recv, map_call_span, map_arg, call_span, arg, "any");

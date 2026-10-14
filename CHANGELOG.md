@@ -8,6 +8,11 @@ document.
 
 [49e2f89...master](https://github.com/rust-lang/rust-clippy/compare/49e2f89...master)
 
+### Enhancements
+
+* [`wrong_self_convention`]: Now also lints `as_*` methods that return an owned value instead of a borrowed one
+  [#7676](https://github.com/rust-lang/rust-clippy/pull/7676)
+
 ## Rust 1.99
 
 Current stable, released 2026-10-01
