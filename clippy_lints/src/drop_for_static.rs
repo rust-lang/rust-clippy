@@ -37,12 +37,17 @@ declare_clippy_lint! {
     nursery,
     "static items with a type that implements 'Drop'"
 }
+
 declare_lint_pass!(DropForStatic => [DROP_FOR_STATIC]);
 
 impl LateLintPass<'_> for DropForStatic {
     fn check_item<'a>(&mut self, cx: &LateContext<'a>, item: &'a Item<'a>) {
         if let ItemKind::Static(_, ident, _, _) = item.kind
-            && let ty = cx.tcx.type_of(item.owner_id.def_id).instantiate_identity()
+            && let ty = cx
+                .tcx
+                .type_of(item.owner_id.def_id)
+                .instantiate_identity()
+                .skip_normalization()
             && ty.needs_drop(cx.tcx, cx.typing_env())
         {
             span_lint(cx, DROP_FOR_STATIC, ident.span, "static items with drop implementation");
