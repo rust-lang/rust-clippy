@@ -1,0 +1,1 @@
+allow-in-tests = ["dbg_macro", "clippy::unwrap_used", "indexing-slicing"]
