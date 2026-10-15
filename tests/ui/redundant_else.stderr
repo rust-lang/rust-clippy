@@ -503,7 +503,7 @@ LL |             if black_box(true) { return } else { black_box(0) }
    |                                          ^^^^^^^^^^^^^^^^^^^^^^ help: remove the `else` block and move the contents out: `black_box(0)`
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:425:14
+  --> tests/ui/redundant_else.rs:431:14
    |
 LL |               } else {
    |  ______________^
@@ -521,7 +521,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:432:14
+  --> tests/ui/redundant_else.rs:438:14
    |
 LL |               } else {
    |  ______________^
@@ -539,7 +539,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:445:14
+  --> tests/ui/redundant_else.rs:451:14
    |
 LL |               } else {
    |  ______________^
@@ -557,7 +557,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:440:18
+  --> tests/ui/redundant_else.rs:446:18
    |
 LL |                   } else {
    |  __________________^
@@ -577,7 +577,7 @@ LL +         return
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:458:14
+  --> tests/ui/redundant_else.rs:464:14
    |
 LL |               } else {
    |  ______________^
@@ -595,7 +595,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:472:14
+  --> tests/ui/redundant_else.rs:478:14
    |
 LL |               } else {
    |  ______________^
@@ -613,7 +613,7 @@ LL +         inline!({ black_box(()); });
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:480:14
+  --> tests/ui/redundant_else.rs:486:14
    |
 LL |               } else {
    |  ______________^
