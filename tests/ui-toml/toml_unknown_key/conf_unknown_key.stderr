@@ -90,6 +90,8 @@ LL | foobar = 42
            suppress-restriction-lint-in-const
            too-large-for-stack
            too-many-arguments-threshold
+           too-many-code-lines-in-file-threshold
+           too-many-lines-in-file-threshold
            too-many-lines-threshold
            trait-assoc-item-kinds-order
            trait-impl-item-order
