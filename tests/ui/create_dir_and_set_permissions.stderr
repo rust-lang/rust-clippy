@@ -1,0 +1,292 @@
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:14:9
+   |
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:12:9
+   |
+LL |         std::fs::create_dir(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:14:9
+   |
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+   = note: `-D clippy::create-dir-and-set-permissions` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::create_dir_and_set_permissions)]`
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:16:9
+   |
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:12:9
+   |
+LL |         std::fs::create_dir(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:16:9
+   |
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:23:17
+   |
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:22:17
+   |
+LL |         let _ = std::fs::create_dir(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:23:17
+   |
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:25:17
+   |
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:22:17
+   |
+LL |         let _ = std::fs::create_dir(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:25:17
+   |
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:29:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:28:9
+   |
+LL |         std::fs::create_dir("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:29:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:31:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:28:9
+   |
+LL |         std::fs::create_dir("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:31:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:44:9
+   |
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:43:9
+   |
+LL |         std::fs::create_dir_all(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:44:9
+   |
+LL |         std::fs::set_permissions(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:46:9
+   |
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:43:9
+   |
+LL |         std::fs::create_dir_all(path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:46:9
+   |
+LL |         std::fs::set_permissions_nofollow(path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:53:17
+   |
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:52:17
+   |
+LL |         let _ = std::fs::create_dir_all(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:53:17
+   |
+LL |         let _ = std::fs::set_permissions(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:55:17
+   |
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:52:17
+   |
+LL |         let _ = std::fs::create_dir_all(path_two);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:55:17
+   |
+LL |         let _ = std::fs::set_permissions_nofollow(path_two, Permissions::from_mode(0o700));
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:59:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:58:9
+   |
+LL |         std::fs::create_dir_all("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:59:9
+   |
+LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:61:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:58:9
+   |
+LL |         std::fs::create_dir_all("bar");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:61:9
+   |
+LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:73:9
+   |
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:72:9
+   |
+LL |         std::fs::create_dir(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:73:9
+   |
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:75:9
+   |
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:72:9
+   |
+LL |         std::fs::create_dir(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:75:9
+   |
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:81:9
+   |
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:80:9
+   |
+LL |         std::fs::create_dir_all(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:81:9
+   |
+LL |         std::fs::set_permissions(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: creating a directory and setting its permissions in two separate steps leaves a brief window where the directory is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
+  --> tests/ui/create_dir_and_set_permissions.rs:83:9
+   |
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: create file operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:80:9
+   |
+LL |         std::fs::create_dir_all(&path);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: the set permission operation occurred here
+  --> tests/ui/create_dir_and_set_permissions.rs:83:9
+   |
+LL |         std::fs::set_permissions_nofollow(&path, Permissions::from_mode(0o700));
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   = help: on unix, consider using `DirBuilderExt::new().mode()` instead to atomically create a directory and set certain permissions
+
+error: aborting due to 16 previous errors
+
