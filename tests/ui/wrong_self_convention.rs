@@ -94,6 +94,10 @@ mod as_return_type {
             //~^ wrong_self_convention
             Vec::new()
         }
+        // a borrow inside another type is still borrowed, so it is not flagged
+        pub fn as_result(&self) -> Result<&'static u8, &'static u8> {
+            Ok(&0)
+        }
         // unit return is not a conversion, so it is not flagged
         pub fn as_unit(&self) {}
     }

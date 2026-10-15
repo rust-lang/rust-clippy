@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::ty::is_copy;
 use itertools::Itertools as _;
 use rustc_lint::LateContext;
-use rustc_middle::ty::Ty;
+use rustc_middle::ty::{GenericArgKind, Ty};
 use rustc_span::{Span, Symbol};
 use std::fmt;
 
@@ -143,12 +143,13 @@ pub(super) fn check<'tcx>(
     // `as_` conversions are expected to return a borrowed view (borrowed -> borrowed, C-CONV).
     // The `CONVENTIONS` table only inspects the receiver, so a method like
     // `fn as_bytes(&self) -> Vec<u8>` passes the receiver check while still breaking the
-    // convention. Flag an owned return type here (#7676). Unit returns are ignored: a method
-    // returning `()` is not claiming to be a conversion.
+    // convention. Flag a return type that carries no borrow at all here (#7676). A borrow wrapped
+    // in another type still counts as borrowed, and unit returns are ignored: a method returning
+    // `()` is not claiming to be a conversion.
     if item_name_str.starts_with("as_")
         && item_name_str != "as_"
-        && !return_ty.is_ref()
         && !return_ty.is_unit()
+        && !return_ty.walk().any(|arg| matches!(arg.kind(), GenericArgKind::Lifetime(_)))
         && !implements_trait
         && first_arg_ty.is_ref()
     {
