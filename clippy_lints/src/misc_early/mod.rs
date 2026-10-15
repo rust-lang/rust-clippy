@@ -1,4 +1,5 @@
 mod builtin_type_shadow;
+mod float_without_fraction;
 mod literal_suffix;
 mod mixed_case_hex_literals;
 mod redundant_at_rest_pattern;
@@ -33,6 +34,29 @@ declare_clippy_lint! {
     pub BUILTIN_TYPE_SHADOW,
     style,
     "shadowing a builtin type"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Warns if a float literal has no fraction after the dot.
+    ///
+    /// ### Why is this bad?
+    /// The fraction makes it immediately clear
+    /// that the literal is a floating point value.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = 3.;
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// let _ = 3.0;
+    /// ```
+    #[clippy::version = "1.100.0"]
+    pub FLOAT_WITHOUT_FRACTION,
+    nursery,
+    "float literal without a fraction after the dot"
 }
 
 declare_clippy_lint! {
@@ -297,6 +321,7 @@ declare_clippy_lint! {
 
 declare_lint_pass!(MiscEarlyLints => [
     BUILTIN_TYPE_SHADOW,
+    FLOAT_WITHOUT_FRACTION,
     MIXED_CASE_HEX_LITERALS,
     REDUNDANT_AT_REST_PATTERN,
     REDUNDANT_PATTERN,
@@ -322,13 +347,9 @@ impl EarlyLintPass for MiscEarlyLints {
     }
 
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
-        // `check_lit` only lints integer literals and suffixed float literals.
+        // `check_lit` only lints integer and float literals.
         if let ExprKind::Lit(lit) = expr.kind
-            && match lit.kind {
-                token::LitKind::Integer => true,
-                token::LitKind::Float => lit.suffix.is_some(),
-                _ => false,
-            }
+            && matches!(lit.kind, token::LitKind::Integer | token::LitKind::Float)
             && !expr.span.in_external_macro(cx.sess().source_map())
         {
             MiscEarlyLints::check_lit(cx, lit, expr.span);
@@ -363,9 +384,17 @@ impl MiscEarlyLints {
             } else if value != 0 && lit_snip.starts_with('0') {
                 zero_prefixed_literal::check(cx, span, &lit_snip);
             }
-        } else if let Ok(LitKind::Float(_, LitFloatType::Suffixed(float_ty))) = lit_kind {
-            let suffix = float_ty.name_str();
-            literal_suffix::check(cx, span, &lit_snip, suffix, "float");
+        } else if let Ok(LitKind::Float(_, float_type)) = lit_kind {
+            let suffix = match float_type {
+                LitFloatType::Suffixed(float_ty) => float_ty.name_str(),
+                LitFloatType::Unsuffixed => "",
+            };
+
+            if let LitFloatType::Suffixed(_) = float_type {
+                literal_suffix::check(cx, span, &lit_snip, suffix, "float");
+            }
+
+            float_without_fraction::check(cx, span, &lit_snip, suffix);
         }
     }
 }

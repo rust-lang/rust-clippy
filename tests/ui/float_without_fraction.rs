@@ -1,0 +1,23 @@
+#![warn(clippy::float_without_fraction)]
+
+fn main() {
+    let _ = 0.;
+    //~^ float_without_fraction
+    let _ = 1234.;
+    //~^ float_without_fraction
+    #[expect(clippy::inconsistent_digit_grouping)]
+    let _ = 0_.;
+    //~^ float_without_fraction
+    let _ = -0.;
+    //~^ float_without_fraction
+
+    let _ = 0.0;
+    let _ = 0.0f32;
+    let _ = 123.456;
+    #[expect(clippy::inconsistent_digit_grouping)]
+    let _ = 0_.0;
+    let _ = 0.00;
+    let _ = 0.3;
+    let _ = -0.0;
+    let _ = 0f32;
+}
