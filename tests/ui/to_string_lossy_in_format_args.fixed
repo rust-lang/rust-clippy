@@ -1,0 +1,75 @@
+#![warn(clippy::to_string_lossy_in_format_args)]
+#![expect(unused)]
+
+use std::ffi::OsStr;
+use std::path::Path;
+
+macro_rules! value_to_string {
+    ($value:expr) => {
+        $value.to_string_lossy()
+    };
+}
+
+struct Deref<'a, T: ?Sized> {
+    ref_: &'a T,
+}
+
+impl<T: ?Sized> std::ops::Deref for Deref<'_, T> {
+    type Target = T;
+    fn deref(&self) -> &Self::Target {
+        self.ref_
+    }
+}
+
+fn main() {
+    let os_str = OsStr::new("abc");
+    let os_string = os_str.to_os_string();
+
+    let path = Path::new("/a/b/c");
+    let path_buf = path.to_path_buf();
+
+    // negative `OsStr` tests
+    println!("{}", os_str.display());
+    println!("{}", os_string.display());
+
+    println!("{}", value_to_string!(os_str));
+
+    // negative `Path` tests
+    println!("{}", path.display());
+    println!("{}", path_buf.display());
+
+    println!("{}", value_to_string!(path));
+
+    // positive `OsStr` tests
+    println!("{}", os_str.display()); //~ to_string_lossy_in_format_args
+    println!("{}", os_string.display()); //~ to_string_lossy_in_format_args
+
+    let _: String = format!("{}", os_str.display()); //~ to_string_lossy_in_format_args
+    let _: String = format!("{}", os_string.display()); //~ to_string_lossy_in_format_args
+
+    let deref_os_str = Deref { ref_: os_str };
+    println!("{}", deref_os_str.display()); //~ to_string_lossy_in_format_args
+
+    // positive `Path` tests
+    println!("{}", path.display()); //~ to_string_lossy_in_format_args
+    println!("{}", path_buf.display()); //~ to_string_lossy_in_format_args
+
+    let _: String = format!("{}", path.display()); //~ to_string_lossy_in_format_args
+    let _: String = format!("{}", path_buf.display()); //~ to_string_lossy_in_format_args
+
+    let deref_path = Deref { ref_: path };
+    println!("{}", deref_path.display()); //~ to_string_lossy_in_format_args
+}
+
+#[clippy::msrv = "1.86"]
+fn msrv_1_86() {
+    let os_str = OsStr::new("test");
+    println!("{}", os_str.to_string_lossy());
+}
+
+#[clippy::msrv = "1.87"]
+fn msrv_1_87() {
+    let os_str = OsStr::new("test");
+    println!("{}", os_str.display());
+    //~^ to_string_lossy_in_format_args
+}
