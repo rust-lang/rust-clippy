@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
+use clippy_utils::source::SpanExt as _;
 use rustc_ast::ast::{
     self, Arm, AssocItem, AssocItemKind, Attribute, Block, FnDecl, Item, ItemKind, Local, Pat, PatKind,
 };
@@ -393,6 +394,8 @@ impl EarlyLintPass for NonExpressiveNames {
         if let PatKind::Ident(_, ident, _) = pat.kind
             && !pat.span.from_expansion()
             && is_just_underscores_and_digits(ident.name.as_str())
+            // TODO: We should use `is_from_proc_macro` instead.
+            && ident.span.check_text(cx, |src| src == ident.name.as_str())
         {
             span_lint(
                 cx,
