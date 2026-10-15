@@ -1,0 +1,60 @@
+error: global variable should not be used
+  --> tests/ui/global_variables.rs:8:16
+   |
+LL |         static GLOBAL_VARIABLE_0: AtomicU32 = AtomicU32::new(2);
+   |                ^^^^^^^^^^^^^^^^^
+...
+LL |     define_global_variables_with_macro!();
+   |     ------------------------------------- in this macro invocation
+   |
+   = help: consider passing this as a function argument or using a `thread_local`
+   = note: `-D clippy::global-variables` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::global_variables)]`
+   = note: this error originates in the macro `define_global_variables_with_macro` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: global variable should not be used
+  --> tests/ui/global_variables.rs:11:16
+   |
+LL |         static GLOBAL_VARIABLE_1: Mutex<u32> = Mutex::new(3);
+   |                ^^^^^^^^^^^^^^^^^
+...
+LL |     define_global_variables_with_macro!();
+   |     ------------------------------------- in this macro invocation
+   |
+   = help: consider passing this as a function argument or using a `thread_local`
+   = note: this error originates in the macro `define_global_variables_with_macro` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: global variable should not be used
+  --> tests/ui/global_variables.rs:20:12
+   |
+LL |     static GLOBAL_VARIABLE_2: AtomicU32 = AtomicU32::new(2);
+   |            ^^^^^^^^^^^^^^^^^
+   |
+   = help: consider passing this as a function argument or using a `thread_local`
+
+error: global variable should not be used
+  --> tests/ui/global_variables.rs:23:12
+   |
+LL |     static GLOBAL_VARIABLE_3: Mutex<u32> = Mutex::new(3);
+   |            ^^^^^^^^^^^^^^^^^
+   |
+   = help: consider passing this as a function argument or using a `thread_local`
+
+error: global variable should not be used
+  --> tests/ui/global_variables.rs:26:12
+   |
+LL |     static GLOBAL_VARIABLE_4: Option<AtomicU32> = Some(AtomicU32::new(0));
+   |            ^^^^^^^^^^^^^^^^^
+   |
+   = help: consider passing this as a function argument or using a `thread_local`
+
+error: global variable should not be used
+  --> tests/ui/global_variables.rs:46:20
+   |
+LL |             static GLOBAL_VARIABLE_IN_THREAD_LOCAL: AtomicU32 = AtomicU32::new(0);
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: consider passing this as a function argument or using a `thread_local`
+
+error: aborting due to 6 previous errors
+
