@@ -1,10 +1,12 @@
-use super::{DocHeaders, MISSING_ERRORS_DOC, MISSING_PANICS_DOC, MISSING_SAFETY_DOC, UNNECESSARY_SAFETY_DOC};
+use super::{
+    DocHeaders, MISSING_ERRORS_DOC, MISSING_PANICS_DOC, MISSING_SAFETY_DOC, UNNECESSARY_SAFETY_DOC, is_public_api,
+};
 use clippy_utils::diagnostics::{span_lint, span_lint_and_note};
 use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::ty::implements_trait_with_env;
 use clippy_utils::visitors::for_each_expr;
-use clippy_utils::{fulfill_or_allowed, is_doc_hidden, is_inside_always_const_context, method_chain_args, return_ty};
+use clippy_utils::{fulfill_or_allowed, is_inside_always_const_context, method_chain_args, return_ty};
 use rustc_hir::{BodyId, FnSig, OwnerId, Safety};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
@@ -19,17 +21,7 @@ pub fn check(
     body_id: Option<BodyId>,
     check_private_items: bool,
 ) {
-    if !check_private_items && !cx.effective_visibilities.is_exported(owner_id.def_id) {
-        return; // Private functions do not require doc comments
-    }
-
-    // do not lint if any parent has `#[doc(hidden)]` attribute (#7347)
-    if !check_private_items
-        && cx
-            .tcx
-            .hir_parent_iter(owner_id.into())
-            .any(|(id, _node)| is_doc_hidden(cx.tcx.hir_attrs(id)))
-    {
+    if !check_private_items && !is_public_api(cx, owner_id) {
         return;
     }
 
