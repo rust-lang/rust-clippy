@@ -81,6 +81,7 @@ impl fmt::Display for Convention {
     }
 }
 
+#[expect(clippy::too_many_arguments)]
 pub(super) fn check<'tcx>(
     cx: &LateContext<'tcx>,
     item_name: Symbol,
@@ -149,7 +150,9 @@ pub(super) fn check<'tcx>(
     if item_name_str.starts_with("as_")
         && item_name_str != "as_"
         && !return_ty.is_unit()
-        && !return_ty.walk().any(|arg| matches!(arg.kind(), GenericArgKind::Lifetime(_)))
+        && !return_ty
+            .walk()
+            .any(|arg| matches!(arg.kind(), GenericArgKind::Lifetime(_)))
         && !implements_trait
         && first_arg_ty.is_ref()
     {
