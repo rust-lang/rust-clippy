@@ -1,6 +1,6 @@
 #![warn(clippy::match_single_binding)]
 #![allow(clippy::no_effect, clippy::toplevel_ref_arg)]
-#![expect(clippy::let_unit_value, clippy::useless_vec)]
+#![expect(clippy::let_unit_value, clippy::stacked_match, clippy::useless_vec)]
 
 struct Point {
     x: i32,
