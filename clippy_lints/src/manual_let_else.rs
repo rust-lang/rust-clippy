@@ -152,6 +152,23 @@ pub fn is_enum_variant(cx: &LateContext<'_>, pat: &Pat<'_>) -> bool {
     )
 }
 
+/// Checks whether `pat` contains a `name @ subpat` binding whose `name` is replaced by a non-binding
+/// pattern (such as a tuple) from the `let` statement. Such a binding cannot be written as
+/// `(a, b) @ subpat`, so the lint must not suggest it.
+fn has_at_binding_on_destructured_pat(ident_map: &FxHashMap<Symbol, (&Pat<'_>, BindingMode)>, pat: &Pat<'_>) -> bool {
+    let mut found = false;
+    pat.walk_short(|p| {
+        if let PatKind::Binding(_, _, name, Some(_)) = p.kind
+            && let Some((pat_to_put, _)) = ident_map.get(&name.name)
+            && !matches!(pat_to_put.kind, PatKind::Binding(..))
+        {
+            found = true;
+        }
+        !found
+    });
+    found
+}
+
 fn emit_manual_let_else(
     cx: &LateContext<'_>,
     span: Span,
@@ -160,6 +177,10 @@ fn emit_manual_let_else(
     pat: &Pat<'_>,
     else_body: &Expr<'_>,
 ) {
+    if has_at_binding_on_destructured_pat(ident_map, pat) {
+        return;
+    }
+
     span_lint_and_then(
         cx,
         MANUAL_LET_ELSE,

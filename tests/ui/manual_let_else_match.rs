@@ -263,3 +263,24 @@ mod issue16433 {
         };
     }
 }
+
+#[allow(dead_code)]
+mod issue17285 {
+    // https://github.com/rust-lang/rust-clippy/issues/17285
+    // The binding `contact` is destructured by the `let` pattern, so the suggestion
+    // cannot be written as `(a, b) @ pattern`.
+    enum Variant {
+        Contact(i32),
+        Other,
+    }
+
+    fn foo(constraints: Vec<(i32, Variant)>) {
+        for constraint in constraints {
+            let (object_pair, contact) = match constraint {
+                contact @ (_, Variant::Contact(_)) => contact,
+                _ => continue,
+            };
+            let _ = (object_pair, contact);
+        }
+    }
+}
