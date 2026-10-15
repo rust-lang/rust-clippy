@@ -1,0 +1,38 @@
+warning: `std::nonexistent::FakeType` does not refer to a reachable type
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:3:43
+   |
+LL |     { trait = "std::fmt::Debug", types = ["std::nonexistent::FakeType"] },
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `allow-invalid = true` to the entry to suppress this warning
+
+warning: `std::nonexistent::FakeTrait` does not refer to a reachable trait
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:5:5
+   |
+LL |     { trait = "std::nonexistent::FakeTrait", types = ["i32"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: expected a type, found a function
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:7:43
+   |
+LL |     { trait = "std::fmt::Debug", types = ["std::mem::swap"] },
+   |                                           ^^^^^^^^^^^^^^^^
+   |
+   = help: add `allow-invalid = true` to the entry to suppress this warning
+
+warning: expected a trait, found a struct
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:9:5
+   |
+LL |     { trait = "std::string::String", types = ["i32"] },
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: expected a trait, found a struct
+  --> $DIR/tests/ui-toml/toml_disallowed_trait_usage_invalid/clippy.toml:11:48
+   |
+LL |     { trait = "std::fmt::Debug", implements = ["std::string::String"] },
+   |                                                ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add `allow-invalid = true` to the entry to suppress this warning
+
+warning: 5 warnings emitted
+
