@@ -1100,7 +1100,7 @@ The maximum allowed size for arrays on the stack
 
 ---
 **Affected lints:**
-* [`large_stack_arrays`](https://rust-lang.github.io/rust-clippy/main/index.html#large_stack_arrays)
+* [`large_stack_arrays`](https://clippy.rust-lang.org/main/index.html#large_stack_arrays)
 
 
 ## `stack-size-threshold`
