@@ -60,4 +60,70 @@ fn should_not_help_0(bomb: &mut Bomb) {
     let _: Vec<u8> = bomb.fire.drain(..).collect();
 }
 
+// https://github.com/rust-lang/rust-clippy/issues/15119
+// `into_iter()` would move `current`, which the loop condition reads again.
+fn issue_15119() {
+    let mut current = vec![];
+    while !current.is_empty() {
+        current.drain(..).for_each(|_: ()| {});
+    }
+}
+
+fn should_not_help_reused_by_loop() {
+    let mut a = vec![1, 2, 3];
+    for _ in 0..3 {
+        // `a` is drained again on the next iteration even though it isn't mentioned again.
+        let _: Vec<_> = a.drain(..).collect();
+    }
+}
+
+fn should_not_help_used_after() {
+    let mut a = vec![1, 2, 3];
+    let _: Vec<_> = a.drain(..).collect();
+    a.push(4);
+}
+
+fn should_not_help_swapped_layers() {
+    let mut curr = vec![1];
+    let mut next = vec![];
+    while !curr.is_empty() {
+        curr.drain(..).for_each(|x| {
+            if x < 4 {
+                next.push(x + 1);
+            }
+        });
+        std::mem::swap(&mut curr, &mut next);
+    }
+}
+
+fn should_not_help_fn_mut_closure() {
+    let mut a = vec![1, 2, 3];
+    let mut f = || {
+        let _: Vec<_> = a.drain(..).collect();
+    };
+    f();
+    f();
+}
+
+fn should_help_declared_inside_loop() {
+    for _ in 0..3 {
+        let mut a = vec![1, 2, 3];
+        let _: Vec<_> = a.into_iter().collect();
+        //~^ iter_with_drain
+    }
+}
+
+fn should_help_last_use() {
+    let mut a = vec![1, 2, 3];
+    a.push(4);
+    let _: Vec<_> = a.into_iter().collect();
+    //~^ iter_with_drain
+}
+
+// `into_iter()` can't move out of a deref or an index.
+fn should_not_help_place_receivers(x: &mut Vec<String>, y: &mut [Vec<String>]) {
+    let _: Vec<String> = (*x).drain(..).collect();
+    let _: Vec<String> = y[0].drain(..).collect();
+}
+
 fn main() {}
