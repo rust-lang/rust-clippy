@@ -122,7 +122,7 @@ fn emit_lint<'tcx>(
     if let Some(range) = clippy_utils::higher::Range::hir(cx, arg_expression) {
         if range.start.is_some() {
             // Only suggest iterating over ranges that have a start value.
-            let range_expr = snippet(cx, arg_expression.span, "?").to_string();
+            let range_expr = snippet(cx, arg_expression.span, "?").into_owned();
             let sugg = snippet(cx, arg_expression.span, "..");
             span_lint_and_sugg(
                 cx,

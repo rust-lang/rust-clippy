@@ -1,5 +1,6 @@
 #![warn(clippy::redundant_clone, clippy::unnecessary_to_owned)]
 #![expect(
+    clippy::cow_to_owned,
     clippy::manual_async_fn,
     clippy::needless_borrow,
     clippy::needless_borrows_for_generic_args,
