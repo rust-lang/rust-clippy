@@ -98,22 +98,22 @@ fn main() {
 
     // Don't write a warning if we call `clone()` on the iterator
     // https://github.com/rust-lang/rust-clippy/issues/13430
-    let my_collection: Vec<()> = vec![()].into_iter().map(|()| {}).collect();
+    let my_collection: Vec<()> = [()].into_iter().map(|()| {}).collect();
     let _cloned = my_collection.into_iter().clone();
-    let my_collection: Vec<()> = vec![()].into_iter().map(|()| {}).collect();
+    let my_collection: Vec<()> = [()].into_iter().map(|()| {}).collect();
     let my_iter = my_collection.into_iter();
     let _cloned = my_iter.clone();
     // Same for `as_slice()`, for same reason.
-    let my_collection: Vec<()> = vec![()].into_iter().map(|()| {}).collect();
+    let my_collection: Vec<()> = [()].into_iter().map(|()| {}).collect();
     let _sliced = my_collection.into_iter().as_slice();
-    let my_collection: Vec<()> = vec![()].into_iter().map(|()| {}).collect();
+    let my_collection: Vec<()> = [()].into_iter().map(|()| {}).collect();
     let my_iter = my_collection.into_iter();
     let _sliced = my_iter.as_slice();
     // Assignment outside of main scope
     {
         let x;
         {
-            let xxx: Vec<()> = vec![()].into_iter().map(|()| {}).collect();
+            let xxx: Vec<()> = [()].into_iter().map(|()| {}).collect();
             x = xxx.into_iter();
             for i in x.as_slice() {}
         }

@@ -291,6 +291,7 @@ generate! {
     from_days,
     from_fn,
     from_hours,
+    from_iter_fn,
     from_le_bytes,
     from_micros,
     from_millis,

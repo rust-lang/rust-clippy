@@ -38,10 +38,10 @@ LL |     let _ = (0..4).filter_map(|x| Some(x + 1));
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: this call to `.filter_map(..)` is unnecessary
-  --> tests/ui/unnecessary_filter_map.rs:29:46
+  --> tests/ui/unnecessary_filter_map.rs:29:42
    |
-LL |     let _ = vec![Some(10), None].into_iter().filter_map(|x| Some(x));
-   |                                              ^^^^^^^^^^^^^^^^^^^^^^^
+LL |     let _ = [Some(10), None].into_iter().filter_map(|x| Some(x));
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^
 
 error: this `.filter_map(..)` can be written more simply using `.filter(..)`
   --> tests/ui/unnecessary_filter_map.rs:166:33
