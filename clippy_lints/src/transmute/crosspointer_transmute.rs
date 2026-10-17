@@ -8,7 +8,11 @@ use rustc_middle::ty::{self, Ty};
 /// Returns `true` if it's triggered, otherwise returns `false`.
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, from_ty: Ty<'tcx>, to_ty: Ty<'tcx>) -> bool {
     match (*from_ty.kind(), *to_ty.kind()) {
-        (ty::RawPtr(from_ptr_ty, _), _) if from_ptr_ty == to_ty => {
+        // A pointer to an integer transmuted to that integer is an address conversion, which is
+        // covered by `transmutes_expressible_as_ptr_casts`.
+        (ty::RawPtr(from_ptr_ty, _), _)
+            if from_ptr_ty == to_ty && !matches!(to_ty.kind(), ty::Int(_) | ty::Uint(_)) =>
+        {
             span_lint(
                 cx,
                 CROSSPOINTER_TRANSMUTE,
