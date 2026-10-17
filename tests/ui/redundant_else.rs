@@ -64,6 +64,25 @@ fn main() {
         }
     }
 
+    // then and else both diverge
+    {
+        if black_box(false) {
+            panic!("then");
+        } else {
+            panic!("else");
+        }
+
+        fn diverge(value: i32) -> ! {
+            panic!("{value}");
+        }
+
+        if black_box(false) {
+            diverge(0);
+        } else {
+            diverge(1);
+        }
+    }
+
     // then panic
     {
         if black_box(false) {
@@ -229,7 +248,6 @@ fn main() {
             if black_box(true) {
                 panic!();
             } else {
-                //~^ redundant_else
                 return;
             }
         } else {
@@ -438,7 +456,6 @@ fn main() {
                 if black_box(true) {
                     return;
                 } else {
-                    //~^ redundant_else
                     let _ = ();
                     return
                 }
@@ -448,7 +465,6 @@ fn main() {
             }
 
             if black_box(true) {
-                #[expect(clippy::redundant_else)]
                 if black_box(true) {
                     return;
                 } else {
