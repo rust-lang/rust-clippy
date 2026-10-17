@@ -66,6 +66,10 @@ impl MissingDoc {
         }
     }
 
+    fn is_allow_unused_name(&self, name: &str) -> bool {
+        self.allow_unused && name.starts_with('_')
+    }
+
     fn is_missing_docs(&self, cx: &LateContext<'_>, def_id: LocalDefId, hir_id: HirId) -> bool {
         if cx.tcx.sess.opts.test {
             return false;
@@ -164,6 +168,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingDoc {
         };
 
         if !item.span.from_expansion()
+            && !self.is_allow_unused_name(cx.tcx.item_name(item.owner_id.def_id).as_str())
             && self.is_missing_docs(cx, item.owner_id.def_id, item.hir_id())
             && !is_from_proc_macro(cx, item)
         {
@@ -198,6 +203,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingDoc {
             && self.automatically_derived_depth == 0
             && self.in_body.is_none()
             && !item.span.from_expansion()
+            && !self.is_allow_unused_name(item.ident.name.as_str())
             && self.is_missing_docs(cx, item.owner_id.def_id, item.hir_id())
             && !is_from_proc_macro(cx, item)
         {
@@ -219,6 +225,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingDoc {
             && let ItemKind::Impl(impl_) = parent.kind
             && impl_.of_trait.is_none()
             && !item.span.from_expansion()
+            && !self.is_allow_unused_name(item.ident.name.as_str())
             && self.is_missing_docs(cx, item.owner_id.def_id, item.hir_id())
             && !is_from_proc_macro(cx, item)
         {
@@ -250,7 +257,7 @@ impl<'tcx> LateLintPass<'tcx> for MissingDoc {
             && self.in_body.is_none()
             && !field.is_positional()
             && !field.span.from_expansion()
-            && !(self.allow_unused && field.ident.name.as_str().starts_with('_'))
+            && !self.is_allow_unused_name(field.ident.name.as_str())
             && self.is_missing_docs(cx, field.def_id, field.hir_id)
             && !is_from_proc_macro(cx, field)
         {
