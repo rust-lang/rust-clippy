@@ -1,6 +1,6 @@
 // Issue #5746
 #![warn(clippy::redundant_pattern_matching)]
-#![allow(clippy::needless_ifs)]
+#![allow(clippy::needless_ifs, clippy::unnecessary_literal_option)]
 #![expect(clippy::needless_else)]
 use std::task::Poll::{Pending, Ready};
 

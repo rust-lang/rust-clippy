@@ -1,6 +1,6 @@
 #![warn(clippy::manual_option_zip)]
 #![expect(clippy::bind_instead_of_map)]
-#![allow(clippy::option_zip_none)]
+#![allow(clippy::option_zip_none, clippy::unnecessary_literal_option)]
 
 fn main() {}
 
