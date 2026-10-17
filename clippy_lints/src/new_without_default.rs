@@ -89,8 +89,9 @@ impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
                 && impl_item.generics.params.is_empty()
                 && sig.decl.inputs.is_empty()
                 && cx.effective_visibilities.is_exported(impl_item.owner_id.def_id)
-                && let self_ty = cx.tcx.type_of(item.owner_id).instantiate_identity().skip_norm_wip()
-                && self_ty == return_ty(cx, impl_item.owner_id)
+                && let self_ty = cx.tcx.type_of(item.owner_id).instantiate_identity()
+                && let Ok(self_ty) = cx.tcx.try_normalize_erasing_regions(cx.typing_env(), self_ty)
+                && Some(self_ty) == return_ty(cx, impl_item.owner_id)
                 && let Some(default_trait_id) = cx.tcx.get_diagnostic_item(sym::Default)
             {
                 if self.impling_types.is_none() {
