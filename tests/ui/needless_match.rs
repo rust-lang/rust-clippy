@@ -56,7 +56,7 @@ fn option_match(x: Option<i32>) {
         Some(a) => Some(a),
         None => None,
     };
-    // Don't trigger, this is the case for manual_map_option
+    // Don't trigger, this is the case for manual_map
     let _: Option<i32> = match x {
         Some(a) => Some(-a),
         None => None,
