@@ -1,0 +1,263 @@
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:14:29
+   |
+LL |     println!("{}", unsafe { *&raw const N });
+   |                             ^^^^^^^^^^^^^ help: try: `N`
+   |
+   = note: `-D clippy::deref-addrof` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::deref_addrof)]`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:40:18
+   |
+LL |         let _ = &*&raw const n;
+   |                  ^^^^^^^^^^^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:42:18
+   |
+LL |         let _ = &*&raw mut n;
+   |                  ^^^^^^^^^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:44:22
+   |
+LL |         let _ = &mut *&raw mut n;
+   |                      ^^^^^^^^^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:51:17
+   |
+LL |         let _ = *&raw const N;
+   |                 ^^^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:53:17
+   |
+LL |         let _ = *&raw mut N;
+   |                 ^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:55:9
+   |
+LL |         *&raw mut N = 1;
+   |         ^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:58:28
+   |
+LL |         let _ = &raw const *&raw const N;
+   |                            ^^^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:60:26
+   |
+LL |         let _ = &raw mut *&raw mut N;
+   |                          ^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:65:14
+   |
+LL |     let _ = &*&n;
+   |              ^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:67:18
+   |
+LL |     let _ = &mut *&mut n;
+   |                  ^^^^^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:123:9
+   |
+LL |         (*&raw mut V)[0] = 1;
+   |         ^^^^^^^^^^^^^ help: try: `V`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:125:17
+   |
+LL |         let _ = (*&raw const V)[0];
+   |                 ^^^^^^^^^^^^^^^ help: try: `V`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:127:9
+   |
+LL |         (*&raw mut P).field[0] = 1;
+   |         ^^^^^^^^^^^^^ help: try: `P`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:130:9
+   |
+LL |         (*&raw mut ARR)[0] = 1;
+   |         ^^^^^^^^^^^^^^^ help: try: `ARR`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:132:17
+   |
+LL |         let _ = (*&raw const ARR)[0];
+   |                 ^^^^^^^^^^^^^^^^^ help: try: `ARR`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:134:22
+   |
+LL |         let _ = &mut (*&raw mut ARR)[0];
+   |                      ^^^^^^^^^^^^^^^ help: try: `ARR`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:137:17
+   |
+LL |         let _ = (*&raw const V) == Vec::<i32>::new();
+   |                 ^^^^^^^^^^^^^^^ help: try: `V`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:139:23
+   |
+LL |         let _ = match *&raw const S {
+   |                       ^^^^^^^^^^^^^ help: try: `S`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:144:30
+   |
+LL |         if let Some(ref s) = *&raw const S {
+   |                              ^^^^^^^^^^^^^ help: try: `S`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:148:28
+   |
+LL |         let Some(ref _s) = *&raw const S else {
+   |                            ^^^^^^^^^^^^^ help: try: `S`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:152:27
+   |
+LL |         let (ref _a, _) = *&raw const T;
+   |                           ^^^^^^^^^^^^^ help: try: `T`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:154:9
+   |
+LL |         *&raw mut C += 1;
+   |         ^^^^^^^^^^^ help: try: `C`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:156:17
+   |
+LL |         let _ = (*&raw const N).abs();
+   |                 ^^^^^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:158:17
+   |
+LL |         let _ = (*&raw const C).0;
+   |                 ^^^^^^^^^^^^^^^ help: try: `C`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:160:17
+   |
+LL |         let _ = (*&raw const C.0).abs();
+   |                 ^^^^^^^^^^^^^^^^^ help: try: `C.0`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:162:24
+   |
+LL |         let _ = &mut { *&raw mut N };
+   |                        ^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:216:17
+   |
+LL |         let _ = *&raw const m::MN;
+   |                 ^^^^^^^^^^^^^^^^^ help: try: `m::MN`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:218:17
+   |
+LL |         let _ = (*&raw const TV).0;
+   |                 ^^^^^^^^^^^^^^^^ help: try: `TV`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:220:9
+   |
+LL |         (*&raw mut TV).0 += 1;
+   |         ^^^^^^^^^^^^^^ help: try: `TV`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:222:9
+   |
+LL |         (*&raw mut Q).inner.field = Vec::new();
+   |         ^^^^^^^^^^^^^ help: try: `Q`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:225:16
+   |
+LL |         v.push(*&raw const N);
+   |                ^^^^^^^^^^^^^ help: try: `N`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:227:17
+   |
+LL |         let _ = (*&raw const RV).by_value();
+   |                 ^^^^^^^^^^^^^^^^ help: try: `RV`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:243:18
+   |
+LL |         let _ = &*&raw const n;
+   |                  ^^^^^^^^^^^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:245:22
+   |
+LL |         let _ = &mut *&raw mut n;
+   |                      ^^^^^^^^^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:247:17
+   |
+LL |         let _ = (*&raw const v).len();
+   |                 ^^^^^^^^^^^^^^^ help: try: `v`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:249:9
+   |
+LL |         (*&raw mut v).push(1);
+   |         ^^^^^^^^^^^^^ help: try: `v`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:251:21
+   |
+LL |         let ref r = *&raw const n;
+   |                     ^^^^^^^^^^^^^ help: try: `n`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:253:17
+   |
+LL |         let _ = (*&raw const p).v.len();
+   |                 ^^^^^^^^^^^^^^^ help: try: `p`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:255:18
+   |
+LL |         let _ = &*&raw const ST;
+   |                  ^^^^^^^^^^^^^^ help: try: `ST`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:257:17
+   |
+LL |         let _ = (*&raw const ST).len();
+   |                 ^^^^^^^^^^^^^^^^ help: try: `ST`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:259:17
+   |
+LL |         let _ = (*&raw const (*pp).v).len();
+   |                 ^^^^^^^^^^^^^^^^^^^^^ help: try: `(*pp).v`
+
+error: immediately dereferencing a reference
+  --> tests/ui/deref_addrof_raw.rs:261:18
+   |
+LL |         let _ = &*&raw const (*pp).v;
+   |                  ^^^^^^^^^^^^^^^^^^^ help: try: `(*pp).v`
+
+error: aborting due to 43 previous errors
+
