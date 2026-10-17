@@ -1,4 +1,5 @@
 //@aux-build:proc_macros.rs
+//@aux-build:proc_macro_derive.rs
 #![warn(clippy::redundant_field_names)]
 #![expect(clippy::no_effect)]
 
@@ -82,6 +83,12 @@ fn main() {
         };
     }
     internal!(v);
+
+    // Derive-generated code should not be linted.
+    #[derive(proc_macro_derive::ConstructStructWithRedundantFields)]
+    struct DerivedS {
+        v: usize,
+    }
 }
 
 fn issue_3476() {
