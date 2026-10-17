@@ -8,15 +8,17 @@ fn is_any(acc: bool, x: usize) -> bool {
 fn unnecessary_fold() {
     use std::ops::{Add, Mul};
 
-    // Can be replaced by .any
+    // Make non-short-circuiting behavior explicit
     let _ = (0..3).fold(false, |acc, x| acc || x > 2);
+    //~^ unnecessary_fold
+    let _ = [false, true].into_iter().fold(false, |acc, x| acc || x);
     //~^ unnecessary_fold
 
     // Can be replaced by .any (checking suggestion)
     let _ = (0..3).fold(false, |acc, x| is_any(acc, x));
     //~^ redundant_closure
 
-    // Can be replaced by .all
+    // Make non-short-circuiting behavior explicit
     let _ = (0..3).fold(true, |acc, x| acc && x > 2);
     //~^ unnecessary_fold
 
