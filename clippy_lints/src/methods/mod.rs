@@ -910,22 +910,27 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks for usage of `_.filter(_).next()`.
+    /// Checks for usage of `_.filter(_).next()`, and of `_.filter(_).map(_).next()`,
+    /// `_.filter(_).cloned().next()` and `_.filter(_).copied().next()`.
     ///
     /// ### Why is this bad?
     /// Readability, this can be written more concisely as
-    /// `_.find(_)`.
+    /// `_.find(_)`, followed by the same `map`, `cloned` or `copied` call on the resulting `Option`.
     ///
     /// ### Example
     /// ```no_run
     /// # let vec = vec![1];
     /// vec.iter().filter(|x| **x == 0).next();
+    /// vec.iter().filter(|x| **x == 0).map(|x| x + 1).next();
+    /// vec.iter().filter(|x| **x == 0).cloned().next();
     /// ```
     ///
     /// Use instead:
     /// ```no_run
     /// # let vec = vec![1];
     /// vec.iter().find(|x| **x == 0);
+    /// vec.iter().find(|x| **x == 0).map(|x| x + 1);
+    /// vec.iter().find(|x| **x == 0).cloned();
     /// ```
     #[clippy::version = "pre 1.29.0"]
     pub FILTER_NEXT,
@@ -5816,16 +5821,42 @@ impl Methods {
                 (sym::next, []) => {
                     if let Some((name2, recv2, args2, _, _)) = method_call(recv) {
                         match (name2, args2) {
-                            (sym::cloned, []) => iter_overeager_cloned::check(
-                                cx,
-                                expr,
-                                recv,
-                                recv2,
-                                iter_overeager_cloned::Op::LaterCloned,
-                                false,
-                            ),
+                            (sym::cloned, []) => {
+                                iter_overeager_cloned::check(
+                                    cx,
+                                    expr,
+                                    recv,
+                                    recv2,
+                                    iter_overeager_cloned::Op::LaterCloned,
+                                    false,
+                                );
+                                if let Some((sym::filter, recv3, [arg], _, _)) = method_call(recv2) {
+                                    filter_next::check_adapter(
+                                        cx,
+                                        expr,
+                                        recv,
+                                        recv2,
+                                        recv3,
+                                        arg,
+                                        filter_next::Direction::Forward,
+                                    );
+                                }
+                            },
                             (sym::filter, [arg]) => {
-                                filter_next::check(cx, expr, recv2, arg, filter_next::Direction::Forward);
+                                filter_next::check(cx, expr, recv, recv2, arg, filter_next::Direction::Forward);
+                            },
+                            (sym::map, [_]) | (sym::copied, []) => {
+                                if let Some((sym::filter, recv3, [arg], _, _)) = method_call(recv2) {
+                                    filter_next::check_adapter(
+                                        cx,
+                                        expr,
+                                        recv,
+                                        recv2,
+                                        recv3,
+                                        arg,
+                                        filter_next::Direction::Forward,
+                                    );
+                                }
                             },
                             (sym::filter_map, [arg]) => filter_map_next::check(cx, expr, recv2, arg, self.msrv),
                             (sym::iter | sym::iter_mut, []) => iter_next_slice::check(cx, expr, recv2, name2),
@@ -5837,11 +5868,28 @@ impl Methods {
                     }
                 },
                 (sym::next_back, []) => {
-                    if let Some((name2, recv2, args2, _, _)) = method_call(recv)
-                        && let (sym::filter, [arg]) = (name2, args2)
-                        && self.msrv.meets(cx, msrvs::DOUBLE_ENDED_ITERATOR_RFIND)
-                    {
-                        filter_next::check(cx, expr, recv2, arg, filter_next::Direction::Backward);
+                    if let Some((name2, recv2, args2, _, _)) = method_call(recv) {
+                        match (name2, args2) {
+                            (sym::filter, [arg]) if self.msrv.meets(cx, msrvs::DOUBLE_ENDED_ITERATOR_RFIND) => {
+                                filter_next::check(cx, expr, recv, recv2, arg, filter_next::Direction::Backward);
+                            },
+                            (sym::map, [_]) | (sym::cloned | sym::copied, [])
+                                if self.msrv.meets(cx, msrvs::DOUBLE_ENDED_ITERATOR_RFIND) =>
+                            {
+                                if let Some((sym::filter, recv3, [arg], _, _)) = method_call(recv2) {
+                                    filter_next::check_adapter(
+                                        cx,
+                                        expr,
+                                        recv,
+                                        recv2,
+                                        recv3,
+                                        arg,
+                                        filter_next::Direction::Backward,
+                                    );
+                                }
+                            },
+                            _ => {},
+                        }
                     }
                 },
                 (sym::nth, [n_arg]) => match method_call(recv) {
