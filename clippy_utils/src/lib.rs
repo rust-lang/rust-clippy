@@ -1,5 +1,8 @@
+#![feature(closure_track_caller)]
 #![feature(deref_patterns)]
 #![feature(macro_metavar_expr)]
+#![feature(maybe_uninit_array_assume_init)]
+#![feature(pattern)]
 #![feature(rustc_private)]
 #![recursion_limit = "512"]
 #![expect(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
