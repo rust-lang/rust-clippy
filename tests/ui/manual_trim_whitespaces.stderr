@@ -1,0 +1,68 @@
+error: manual implementation of `trim` method
+  --> tests/ui/manual_trim_whitespaces.rs:6:13
+   |
+LL |     let _ = some_str.trim_matches(|c: char| c.is_whitespace());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `some_str.trim()`
+   |
+   = note: `-D clippy::manual-trim-whitespaces` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_trim_whitespaces)]`
+
+error: manual implementation of `trim_ascii` method
+  --> tests/ui/manual_trim_whitespaces.rs:9:13
+   |
+LL |     let _ = some_str.trim_matches(|c: char| c.is_ascii_whitespace());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `some_str.trim_ascii()`
+
+error: manual implementation of `trim_start` method
+  --> tests/ui/manual_trim_whitespaces.rs:12:13
+   |
+LL |     let _ = some_str.trim_start_matches(|c: char| c.is_whitespace());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `some_str.trim_start()`
+
+error: manual implementation of `trim_ascii_start` method
+  --> tests/ui/manual_trim_whitespaces.rs:15:13
+   |
+LL |     let _ = some_str.trim_start_matches(|c: char| c.is_ascii_whitespace());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `some_str.trim_ascii_start()`
+
+error: manual implementation of `trim_end` method
+  --> tests/ui/manual_trim_whitespaces.rs:18:13
+   |
+LL |     let _ = some_str.trim_end_matches(|c: char| c.is_whitespace());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `some_str.trim_end()`
+
+error: manual implementation of `trim_ascii_end` method
+  --> tests/ui/manual_trim_whitespaces.rs:21:13
+   |
+LL |     let _ = some_str.trim_end_matches(|c: char| c.is_ascii_whitespace());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `some_str.trim_ascii_end()`
+
+error: manual implementation of `trim_ascii_start` method
+  --> tests/ui/manual_trim_whitespaces.rs:25:13
+   |
+LL |     let _ = "a literal string".trim_start_matches(|c: char| c.is_ascii_whitespace());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"a literal string".trim_ascii_start()`
+
+error: manual implementation of `trim_ascii` method
+  --> tests/ui/manual_trim_whitespaces.rs:30:13
+   |
+LL |       let _ = "a literal string"
+   |  _____________^
+LL | |         .repeat(2)
+LL | |         .trim_matches(|c: char| c.is_ascii_whitespace());
+   | |________________________________________________________^
+   |
+help: use
+   |
+LL ~     let _ = "a literal string"
+LL ~         .repeat(2).trim_ascii();
+   |
+
+error: manual implementation of `trim_ascii` method
+  --> tests/ui/manual_trim_whitespaces.rs:35:33
+   |
+LL |     let _ = "boo".replace("bo", "a literal string".trim_matches(|c: char| c.is_ascii_whitespace()));
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"a literal string".trim_ascii()`
+
+error: aborting due to 9 previous errors
+
