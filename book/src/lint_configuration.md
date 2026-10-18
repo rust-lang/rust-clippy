@@ -983,6 +983,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`manual_retain`](https://clippy.rust-lang.org/main/index.html#manual_retain)
 * [`manual_slice_fill`](https://clippy.rust-lang.org/main/index.html#manual_slice_fill)
 * [`manual_slice_size_calculation`](https://clippy.rust-lang.org/main/index.html#manual_slice_size_calculation)
+* [`manual_split_at`](https://clippy.rust-lang.org/main/index.html#manual_split_at)
 * [`manual_split_once`](https://clippy.rust-lang.org/main/index.html#manual_split_once)
 * [`manual_str_repeat`](https://clippy.rust-lang.org/main/index.html#manual_str_repeat)
 * [`manual_strip`](https://clippy.rust-lang.org/main/index.html#manual_strip)
