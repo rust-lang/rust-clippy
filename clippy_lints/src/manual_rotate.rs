@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "using bit shifts to rotate integers"
 }
 
-declare_lint_pass!(ManualRotate => [MANUAL_ROTATE]);
+declare_clippy_pass!(ManualRotate => [MANUAL_ROTATE]);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum ShiftDirection {

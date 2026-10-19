@@ -71,7 +71,7 @@ declare_clippy_lint! {
     "asserting on emptiness without showing the asserted value on failure"
 }
 
-declare_lint_pass!(AssertIsEmpty => [ASSERT_IS_EMPTY]);
+declare_clippy_pass!(AssertIsEmpty => [ASSERT_IS_EMPTY]);
 
 impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
     /// Finds assertion conditions that only test emptiness.

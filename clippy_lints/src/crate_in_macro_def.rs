@@ -49,7 +49,7 @@ declare_clippy_lint! {
     "using `crate` in a macro definition"
 }
 
-declare_lint_pass!(CrateInMacroDef => [CRATE_IN_MACRO_DEF]);
+declare_clippy_pass!(CrateInMacroDef => [CRATE_IN_MACRO_DEF]);
 
 impl EarlyLintPass for CrateInMacroDef {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

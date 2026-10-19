@@ -47,7 +47,7 @@ declare_clippy_lint! {
     "usage of unconstrained numeric literals which may cause default numeric fallback."
 }
 
-declare_lint_pass!(DefaultNumericFallback => [DEFAULT_NUMERIC_FALLBACK]);
+declare_clippy_pass!(DefaultNumericFallback => [DEFAULT_NUMERIC_FALLBACK]);
 
 impl<'tcx> LateLintPass<'tcx> for DefaultNumericFallback {
     fn check_body(&mut self, cx: &LateContext<'tcx>, body: &'tcx Body<'tcx>) {

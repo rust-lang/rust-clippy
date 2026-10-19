@@ -91,7 +91,7 @@ declare_clippy_lint! {
     "using `result.map(f)`, where `f` is a function or closure that returns `()`"
 }
 
-declare_lint_pass!(MapUnit => [OPTION_MAP_UNIT_FN, RESULT_MAP_UNIT_FN]);
+declare_clippy_pass!(MapUnit => [OPTION_MAP_UNIT_FN, RESULT_MAP_UNIT_FN]);
 
 fn is_unit_type(ty: Ty<'_>) -> bool {
     ty.is_unit() || ty.is_never()

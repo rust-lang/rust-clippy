@@ -45,11 +45,9 @@ declare_clippy_lint! {
     "from_str_radix with radix 10"
 }
 
-impl_lint_pass!(FromStrRadix10 => [FROM_STR_RADIX_10]);
-
-pub struct FromStrRadix10 {
+declare_clippy_pass!(FromStrRadix10 {
     msrv: Msrv,
-}
+}=> [FROM_STR_RADIX_10]);
 
 impl FromStrRadix10 {
     pub fn new(conf: &'static Conf) -> Self {

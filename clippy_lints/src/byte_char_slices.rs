@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "hard to read byte char slice"
 }
 
-declare_lint_pass!(ByteCharSlice => [BYTE_CHAR_SLICES]);
+declare_clippy_pass!(ByteCharSlice => [BYTE_CHAR_SLICES]);
 
 impl<'tcx> LateLintPass<'tcx> for ByteCharSlice {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

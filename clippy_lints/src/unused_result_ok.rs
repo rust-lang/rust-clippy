@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "Use of `.ok()` to silence `Result`'s `#[must_use]` is misleading. Use `let _ =` instead."
 }
 
-declare_lint_pass!(UnusedResultOk => [UNUSED_RESULT_OK]);
+declare_clippy_pass!(UnusedResultOk => [UNUSED_RESULT_OK]);
 
 impl LateLintPass<'_> for UnusedResultOk {
     fn check_stmt(&mut self, cx: &LateContext<'_>, stmt: &Stmt<'_>) {

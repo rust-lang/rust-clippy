@@ -37,7 +37,7 @@ declare_clippy_lint! {
   "needless parenthesis on range literals can be removed"
 }
 
-declare_lint_pass!(NeedlessParensOnRangeLiterals => [
+declare_clippy_pass!(NeedlessParensOnRangeLiterals => [
     NEEDLESS_PARENS_ON_RANGE_LITERALS,
 ]);
 

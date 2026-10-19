@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "manual implementations of `async` functions can be simplified using the dedicated syntax"
 }
 
-declare_lint_pass!(ManualAsyncFn => [MANUAL_ASYNC_FN]);
+declare_clippy_pass!(ManualAsyncFn => [MANUAL_ASYNC_FN]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualAsyncFn {
     fn check_fn(

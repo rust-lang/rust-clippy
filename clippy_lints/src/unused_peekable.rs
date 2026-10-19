@@ -42,7 +42,7 @@ declare_clippy_lint! {
     "creating a peekable iterator without using any of its methods"
 }
 
-declare_lint_pass!(UnusedPeekable => [UNUSED_PEEKABLE]);
+declare_clippy_pass!(UnusedPeekable => [UNUSED_PEEKABLE]);
 
 impl<'tcx> LateLintPass<'tcx> for UnusedPeekable {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &Block<'tcx>) {

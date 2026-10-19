@@ -54,7 +54,7 @@ declare_clippy_lint! {
     "using a potentially dangerous silent `as` conversion"
 }
 
-declare_lint_pass!(AsConversions => [AS_CONVERSIONS]);
+declare_clippy_pass!(AsConversions => [AS_CONVERSIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for AsConversions {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {

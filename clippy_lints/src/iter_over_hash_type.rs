@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "iterating over unordered hash-based types (`HashMap` and `HashSet`)"
 }
 
-declare_lint_pass!(IterOverHashType => [ITER_OVER_HASH_TYPE]);
+declare_clippy_pass!(IterOverHashType => [ITER_OVER_HASH_TYPE]);
 
 impl LateLintPass<'_> for IterOverHashType {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ rustc_hir::Expr<'_>) {

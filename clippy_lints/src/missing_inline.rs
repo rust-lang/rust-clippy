@@ -62,7 +62,7 @@ declare_clippy_lint! {
     "detects missing `#[inline]` attribute for public callables (functions, trait methods, methods...)"
 }
 
-declare_lint_pass!(MissingInline => [MISSING_INLINE_IN_PUBLIC_ITEMS]);
+declare_clippy_pass!(MissingInline => [MISSING_INLINE_IN_PUBLIC_ITEMS]);
 
 fn check(cx: &LateContext<'_>, item: OwnerId, sp: Span) {
     if cx.effective_visibilities.is_exported(item.def_id)

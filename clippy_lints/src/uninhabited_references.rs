@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "reference to uninhabited type"
 }
 
-declare_lint_pass!(UninhabitedReferences => [UNINHABITED_REFERENCES]);
+declare_clippy_pass!(UninhabitedReferences => [UNINHABITED_REFERENCES]);
 
 impl LateLintPass<'_> for UninhabitedReferences {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {

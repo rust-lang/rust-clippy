@@ -80,7 +80,7 @@ declare_clippy_lint! {
     "unnecessary rest pattern (`..`) in destructuring expression"
 }
 
-declare_lint_pass!(RestWhenDestructuringStruct => [
+declare_clippy_pass!(RestWhenDestructuringStruct => [
     REST_PATTERN_ACCESSIBLE_FIELD,
     UNNECESSARY_REST_PATTERN,
 ]);

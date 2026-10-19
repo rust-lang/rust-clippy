@@ -60,7 +60,7 @@ declare_clippy_lint! {
     "functions taking arguments by value, but not consuming them in its body"
 }
 
-declare_lint_pass!(NeedlessPassByValue => [NEEDLESS_PASS_BY_VALUE]);
+declare_clippy_pass!(NeedlessPassByValue => [NEEDLESS_PASS_BY_VALUE]);
 
 macro_rules! need {
     ($e: expr) => {

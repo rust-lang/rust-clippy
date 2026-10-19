@@ -47,7 +47,7 @@ declare_clippy_lint! {
     "call to `<set>::contains` followed by `<set>::insert`"
 }
 
-declare_lint_pass!(SetContainsOrInsert => [SET_CONTAINS_OR_INSERT]);
+declare_clippy_pass!(SetContainsOrInsert => [SET_CONTAINS_OR_INSERT]);
 
 impl<'tcx> LateLintPass<'tcx> for SetContainsOrInsert {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

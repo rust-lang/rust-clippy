@@ -48,7 +48,7 @@ declare_clippy_lint! {
     "unions without a `#[repr(C)]` attribute"
 }
 
-declare_lint_pass!(DefaultUnionRepresentation => [DEFAULT_UNION_REPRESENTATION]);
+declare_clippy_pass!(DefaultUnionRepresentation => [DEFAULT_UNION_REPRESENTATION]);
 
 impl<'tcx> LateLintPass<'tcx> for DefaultUnionRepresentation {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "checks for initialization of `Vec` or arrays which consist of a single range"
 }
 
-declare_lint_pass!(SingleRangeInVecInit => [SINGLE_RANGE_IN_VEC_INIT]);
+declare_clippy_pass!(SingleRangeInVecInit => [SINGLE_RANGE_IN_VEC_INIT]);
 
 enum SuggestedType {
     Vec,

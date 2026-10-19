@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "comparing a variable to a boolean, e.g., `if x == true` or `if x != true`"
 }
 
-declare_lint_pass!(BoolComparison => [BOOL_COMPARISON]);
+declare_clippy_pass!(BoolComparison => [BOOL_COMPARISON]);
 
 impl<'tcx> LateLintPass<'tcx> for BoolComparison {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "needless unit expression"
 }
 
-declare_lint_pass!(UnusedUnit => [UNUSED_UNIT]);
+declare_clippy_pass!(UnusedUnit => [UNUSED_UNIT]);
 
 impl<'tcx> LateLintPass<'tcx> for UnusedUnit {
     fn check_fn(

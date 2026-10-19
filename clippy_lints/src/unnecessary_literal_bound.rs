@@ -52,7 +52,7 @@ declare_clippy_lint! {
     "detects &str that could be &'static str in function return types"
 }
 
-declare_lint_pass!(UnnecessaryLiteralBound => [UNNECESSARY_LITERAL_BOUND]);
+declare_clippy_pass!(UnnecessaryLiteralBound => [UNNECESSARY_LITERAL_BOUND]);
 
 fn extract_anonymous_ref<'tcx>(hir_ty: &Ty<'tcx>) -> Option<&'tcx Ty<'tcx>> {
     let TyKind::Ref(lifetime, ty, mutbl) = hir_ty.kind else {

@@ -39,7 +39,7 @@ declare_clippy_lint! {
     "The use of negated comparison operators on partially ordered types may produce confusing code."
 }
 
-declare_lint_pass!(NoNegCompOpForPartialOrd => [NEG_CMP_OP_ON_PARTIAL_ORD]);
+declare_clippy_pass!(NoNegCompOpForPartialOrd => [NEG_CMP_OP_ON_PARTIAL_ORD]);
 
 impl<'tcx> LateLintPass<'tcx> for NoNegCompOpForPartialOrd {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

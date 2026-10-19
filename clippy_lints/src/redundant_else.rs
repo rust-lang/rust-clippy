@@ -44,7 +44,7 @@ declare_clippy_lint! {
     "`else` branch that can be removed without changing semantics"
 }
 
-declare_lint_pass!(RedundantElse => [REDUNDANT_ELSE]);
+declare_clippy_pass!(RedundantElse => [REDUNDANT_ELSE]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantElse {
     fn check_block_post(&mut self, cx: &LateContext<'tcx>, b: &'tcx Block<'_>) {

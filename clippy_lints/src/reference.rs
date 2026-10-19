@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "use of `*&` or `*&mut` in an expression"
 }
 
-declare_lint_pass!(DerefAddrOf => [DEREF_ADDROF]);
+declare_clippy_pass!(DerefAddrOf => [DEREF_ADDROF]);
 
 impl LateLintPass<'_> for DerefAddrOf {
     fn check_expr(&mut self, cx: &LateContext<'_>, e: &Expr<'_>) {

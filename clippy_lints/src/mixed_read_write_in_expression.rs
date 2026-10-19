@@ -78,7 +78,7 @@ declare_clippy_lint! {
     "whether a variable read occurs before a write depends on sub-expression evaluation order"
 }
 
-declare_lint_pass!(EvalOrderDependence => [
+declare_clippy_pass!(EvalOrderDependence => [
     DIVERGING_SUB_EXPRESSION,
     MIXED_READ_WRITE_IN_EXPRESSION,
 ]);

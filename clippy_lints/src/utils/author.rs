@@ -15,7 +15,7 @@ use rustc_span::symbol::{Ident, Symbol};
 use std::cell::Cell;
 use std::fmt::{Display, Formatter};
 
-declare_lint_pass!(
+declare_clippy_pass!(
     /// ### What it does
     /// Generates clippy code that detects the offending pattern
     ///

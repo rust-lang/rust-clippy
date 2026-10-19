@@ -31,7 +31,7 @@ declare_clippy_lint! {
     "implementing `Iterator` on a `Copy` type"
 }
 
-declare_lint_pass!(CopyIterator => [COPY_ITERATOR]);
+declare_clippy_pass!(CopyIterator => [COPY_ITERATOR]);
 
 impl<'tcx> LateLintPass<'tcx> for CopyIterator {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {

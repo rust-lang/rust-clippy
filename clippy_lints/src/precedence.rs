@@ -43,7 +43,7 @@ declare_clippy_lint! {
     "operations mixing bit shifting with bit combining/masking"
 }
 
-declare_lint_pass!(Precedence => [PRECEDENCE, PRECEDENCE_BITS]);
+declare_clippy_pass!(Precedence => [PRECEDENCE, PRECEDENCE_BITS]);
 
 impl EarlyLintPass for Precedence {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

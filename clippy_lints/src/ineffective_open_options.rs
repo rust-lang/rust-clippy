@@ -39,7 +39,7 @@ declare_clippy_lint! {
     "usage of both `write(true)` and `append(true)` on same `OpenOptions`"
 }
 
-declare_lint_pass!(IneffectiveOpenOptions => [INEFFECTIVE_OPEN_OPTIONS]);
+declare_clippy_pass!(IneffectiveOpenOptions => [INEFFECTIVE_OPEN_OPTIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for IneffectiveOpenOptions {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

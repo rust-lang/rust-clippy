@@ -126,7 +126,7 @@ declare_clippy_lint! {
     "non-binding `let` without a type annotation"
 }
 
-declare_lint_pass!(LetUnderscore => [
+declare_clippy_pass!(LetUnderscore => [
     LET_UNDERSCORE_FUTURE,
     LET_UNDERSCORE_LOCK,
     LET_UNDERSCORE_MUST_USE,

@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "use `Option<&T>` instead of `&Option<&T>`"
 }
 
-declare_lint_pass!(RefOptionRef => [REF_OPTION_REF]);
+declare_clippy_pass!(RefOptionRef => [REF_OPTION_REF]);
 
 impl<'tcx> LateLintPass<'tcx> for RefOptionRef {
     fn check_ty(&mut self, cx: &LateContext<'tcx>, ty: &'tcx Ty<'tcx, AmbigArg>) {

@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "instead of using `a = b = c;` use `a = c; b = c;`"
 }
 
-declare_lint_pass!(MultiAssignments => [MULTI_ASSIGNMENTS]);
+declare_clippy_pass!(MultiAssignments => [MULTI_ASSIGNMENTS]);
 
 fn strip_paren_blocks(expr: &Expr) -> &Expr {
     match &expr.kind {

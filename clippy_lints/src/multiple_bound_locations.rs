@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "defining generic bounds in multiple locations"
 }
 
-declare_lint_pass!(MultipleBoundLocations => [MULTIPLE_BOUND_LOCATIONS]);
+declare_clippy_pass!(MultipleBoundLocations => [MULTIPLE_BOUND_LOCATIONS]);
 
 impl EarlyLintPass for MultipleBoundLocations {
     fn check_fn(&mut self, cx: &EarlyContext<'_>, kind: FnKind<'_>, _: Span, _: NodeId) {

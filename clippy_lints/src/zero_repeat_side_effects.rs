@@ -41,7 +41,7 @@ declare_clippy_lint! {
     "usage of zero-sized initializations of arrays or vecs causing side effects"
 }
 
-declare_lint_pass!(ZeroRepeatSideEffects => [ZERO_REPEAT_SIDE_EFFECTS]);
+declare_clippy_pass!(ZeroRepeatSideEffects => [ZERO_REPEAT_SIDE_EFFECTS]);
 
 impl LateLintPass<'_> for ZeroRepeatSideEffects {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

@@ -56,7 +56,7 @@ declare_clippy_lint! {
     "type of `self` parameter is already by default `Self`"
 }
 
-declare_lint_pass!(NeedlessArbitrarySelfType => [NEEDLESS_ARBITRARY_SELF_TYPE]);
+declare_clippy_pass!(NeedlessArbitrarySelfType => [NEEDLESS_ARBITRARY_SELF_TYPE]);
 
 enum Mode {
     Ref(Option<Lifetime>),

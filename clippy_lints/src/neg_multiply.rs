@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "multiplying integers by `-1`"
 }
 
-declare_lint_pass!(NegMultiply => [NEG_MULTIPLY]);
+declare_clippy_pass!(NegMultiply => [NEG_MULTIPLY]);
 
 fn is_in_parens_with_postfix(cx: &LateContext<'_>, mul_expr: &Expr<'_>) -> bool {
     if let Some(parent) = get_parent_expr(cx, mul_expr) {

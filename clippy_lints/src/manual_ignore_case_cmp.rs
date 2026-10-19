@@ -39,7 +39,7 @@ declare_clippy_lint! {
     "manual case-insensitive ASCII comparison"
 }
 
-declare_lint_pass!(ManualIgnoreCaseCmp => [MANUAL_IGNORE_CASE_CMP]);
+declare_clippy_pass!(ManualIgnoreCaseCmp => [MANUAL_IGNORE_CASE_CMP]);
 
 enum MatchType<'a> {
     ToAscii(bool, Ty<'a>),

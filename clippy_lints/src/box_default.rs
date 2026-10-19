@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "Using Box::new(T::default()) instead of Box::default()"
 }
 
-declare_lint_pass!(BoxDefault => [BOX_DEFAULT]);
+declare_clippy_pass!(BoxDefault => [BOX_DEFAULT]);
 
 impl LateLintPass<'_> for BoxDefault {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

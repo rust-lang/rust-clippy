@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "checks for reads into a zero-length `Vec`"
 }
 
-declare_lint_pass!(ReadZeroByteVec => [READ_ZERO_BYTE_VEC]);
+declare_clippy_pass!(ReadZeroByteVec => [READ_ZERO_BYTE_VEC]);
 
 impl<'tcx> LateLintPass<'tcx> for ReadZeroByteVec {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &hir::Block<'tcx>) {

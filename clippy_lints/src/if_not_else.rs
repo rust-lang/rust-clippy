@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "`if` branches that could be swapped so no negation operation is necessary on the condition"
 }
 
-declare_lint_pass!(IfNotElse => [IF_NOT_ELSE]);
+declare_clippy_pass!(IfNotElse => [IF_NOT_ELSE]);
 
 impl LateLintPass<'_> for IfNotElse {
     fn check_expr(&mut self, cx: &LateContext<'_>, e: &Expr<'_>) {

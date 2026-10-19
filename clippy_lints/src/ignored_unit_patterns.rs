@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "suggest replacing `_` by `()` in patterns where appropriate"
 }
 
-declare_lint_pass!(IgnoredUnitPatterns => [IGNORED_UNIT_PATTERNS]);
+declare_clippy_pass!(IgnoredUnitPatterns => [IGNORED_UNIT_PATTERNS]);
 
 impl<'tcx> LateLintPass<'tcx> for IgnoredUnitPatterns {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx hir::Pat<'tcx>) {

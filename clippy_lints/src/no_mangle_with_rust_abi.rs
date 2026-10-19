@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "convert Rust ABI functions to C ABI"
 }
 
-declare_lint_pass!(NoMangleWithRustAbi => [NO_MANGLE_WITH_RUST_ABI]);
+declare_clippy_pass!(NoMangleWithRustAbi => [NO_MANGLE_WITH_RUST_ABI]);
 
 impl<'tcx> LateLintPass<'tcx> for NoMangleWithRustAbi {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

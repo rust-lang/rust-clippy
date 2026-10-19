@@ -44,7 +44,7 @@ declare_clippy_lint! {
     "`assert!(r.is_ok())` or `assert!(r.is_err())` gives worse panic messages than directly calling `r.unwrap()` or `r.unwrap_err()`"
 }
 
-declare_lint_pass!(AssertionsOnResultStates => [ASSERTIONS_ON_RESULT_STATES]);
+declare_clippy_pass!(AssertionsOnResultStates => [ASSERTIONS_ON_RESULT_STATES]);
 
 impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

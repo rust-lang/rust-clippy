@@ -62,7 +62,7 @@ declare_clippy_lint! {
     "disallows usage of the `to_le_bytes` method"
 }
 
-declare_lint_pass!(EndianBytes => [
+declare_clippy_pass!(EndianBytes => [
     BIG_ENDIAN_BYTES,
     HOST_ENDIAN_BYTES,
     LITTLE_ENDIAN_BYTES,

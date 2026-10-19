@@ -42,7 +42,7 @@ declare_clippy_lint! {
     "using `Ok(x?)` or `Some(x?)` where `x` would be equivalent"
 }
 
-declare_lint_pass!(NeedlessQuestionMark => [NEEDLESS_QUESTION_MARK]);
+declare_clippy_pass!(NeedlessQuestionMark => [NEEDLESS_QUESTION_MARK]);
 
 impl LateLintPass<'_> for NeedlessQuestionMark {
     /*

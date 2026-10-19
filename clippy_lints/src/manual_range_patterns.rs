@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "manually writing range patterns using a combined OR pattern (`|`)"
 }
 
-declare_lint_pass!(ManualRangePatterns => [MANUAL_RANGE_PATTERNS]);
+declare_clippy_pass!(ManualRangePatterns => [MANUAL_RANGE_PATTERNS]);
 
 fn expr_as_i128(expr: &PatExpr<'_>) -> Option<i128> {
     if let PatExprKind::Lit { lit, negated } = expr.kind {

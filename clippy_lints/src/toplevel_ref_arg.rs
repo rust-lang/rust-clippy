@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "an entire binding declared as `ref`, in a function argument or a `let` statement"
 }
 
-declare_lint_pass!(ToplevelRefArg => [TOPLEVEL_REF_ARG]);
+declare_clippy_pass!(ToplevelRefArg => [TOPLEVEL_REF_ARG]);
 
 impl<'tcx> LateLintPass<'tcx> for ToplevelRefArg {
     fn check_fn(

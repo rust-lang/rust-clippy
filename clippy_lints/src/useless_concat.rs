@@ -29,7 +29,7 @@ declare_clippy_lint! {
     "checks that the `concat` macro has at least two arguments"
 }
 
-declare_lint_pass!(UselessConcat => [USELESS_CONCAT]);
+declare_clippy_pass!(UselessConcat => [USELESS_CONCAT]);
 
 impl LateLintPass<'_> for UselessConcat {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

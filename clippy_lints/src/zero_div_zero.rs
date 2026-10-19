@@ -25,7 +25,7 @@ declare_clippy_lint! {
     "usage of `0.0 / 0.0` to obtain NaN instead of `f32::NAN` or `f64::NAN`"
 }
 
-declare_lint_pass!(ZeroDiv => [ZERO_DIVIDED_BY_ZERO]);
+declare_clippy_pass!(ZeroDiv => [ZERO_DIVIDED_BY_ZERO]);
 
 impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

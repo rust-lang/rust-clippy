@@ -65,7 +65,7 @@ declare_clippy_lint! {
     "redundant closures for method calls"
 }
 
-declare_lint_pass!(EtaReduction => [
+declare_clippy_pass!(EtaReduction => [
     REDUNDANT_CLOSURE,
     REDUNDANT_CLOSURE_FOR_METHOD_CALLS,
 ]);

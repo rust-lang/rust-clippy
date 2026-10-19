@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "an argument passed as a mutable reference although the callee only demands an immutable reference"
 }
 
-declare_lint_pass!(UnnecessaryMutPassed => [UNNECESSARY_MUT_PASSED]);
+declare_clippy_pass!(UnnecessaryMutPassed => [UNNECESSARY_MUT_PASSED]);
 
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryMutPassed {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

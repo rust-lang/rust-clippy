@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "`async { future.await }` can be replaced by `future`"
 }
 
-declare_lint_pass!(RedundantAsyncBlock => [REDUNDANT_ASYNC_BLOCK]);
+declare_clippy_pass!(RedundantAsyncBlock => [REDUNDANT_ASYNC_BLOCK]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantAsyncBlock {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

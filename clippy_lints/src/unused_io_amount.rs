@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "unused written/read amount"
 }
 
-declare_lint_pass!(UnusedIoAmount => [UNUSED_IO_AMOUNT]);
+declare_clippy_pass!(UnusedIoAmount => [UNUSED_IO_AMOUNT]);
 
 #[derive(Copy, Clone)]
 enum IoOp {

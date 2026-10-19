@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "checks if the `?` operator is used"
 }
 
-declare_lint_pass!(QuestionMarkUsed => [QUESTION_MARK_USED]);
+declare_clippy_pass!(QuestionMarkUsed => [QUESTION_MARK_USED]);
 
 impl<'tcx> LateLintPass<'tcx> for QuestionMarkUsed {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

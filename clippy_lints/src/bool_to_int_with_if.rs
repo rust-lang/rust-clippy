@@ -42,7 +42,7 @@ declare_clippy_lint! {
     "using if to convert bool to int"
 }
 
-declare_lint_pass!(BoolToIntWithIf => [BOOL_TO_INT_WITH_IF]);
+declare_clippy_pass!(BoolToIntWithIf => [BOOL_TO_INT_WITH_IF]);
 
 impl<'tcx> LateLintPass<'tcx> for BoolToIntWithIf {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

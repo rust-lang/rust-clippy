@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "add a semicolon if nothing is returned"
 }
 
-declare_lint_pass!(SemicolonIfNothingReturned => [SEMICOLON_IF_NOTHING_RETURNED]);
+declare_clippy_pass!(SemicolonIfNothingReturned => [SEMICOLON_IF_NOTHING_RETURNED]);
 
 impl<'tcx> LateLintPass<'tcx> for SemicolonIfNothingReturned {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {

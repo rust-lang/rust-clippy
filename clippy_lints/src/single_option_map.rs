@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "Checks for functions with method calls to `.map(_)` on an arg of type `Option` as the outermost expression."
 }
 
-declare_lint_pass!(SingleOptionMap => [SINGLE_OPTION_MAP]);
+declare_clippy_pass!(SingleOptionMap => [SINGLE_OPTION_MAP]);
 
 impl<'tcx> LateLintPass<'tcx> for SingleOptionMap {
     fn check_fn(

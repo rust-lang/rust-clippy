@@ -43,7 +43,7 @@ declare_clippy_lint! {
     "redundant redefinition of a local binding"
 }
 
-declare_lint_pass!(RedundantLocals => [REDUNDANT_LOCALS]);
+declare_clippy_pass!(RedundantLocals => [REDUNDANT_LOCALS]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantLocals {
     fn check_local(&mut self, cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {

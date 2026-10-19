@@ -43,7 +43,7 @@ declare_clippy_lint! {
     "checks for assertions consisting of an (in)equality check"
 }
 
-declare_lint_pass!(ManualAssertEq => [MANUAL_ASSERT_EQ]);
+declare_clippy_pass!(ManualAssertEq => [MANUAL_ASSERT_EQ]);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum EqKind {

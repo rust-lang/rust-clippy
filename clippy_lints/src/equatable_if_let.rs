@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "using pattern matching instead of equality"
 }
 
-declare_lint_pass!(PatternEquality => [EQUATABLE_IF_LET]);
+declare_clippy_pass!(PatternEquality => [EQUATABLE_IF_LET]);
 
 /// detects if pattern matches just one thing
 fn is_unary_pattern(pat: &Pat<'_>) -> bool {

@@ -31,7 +31,7 @@ declare_clippy_lint! {
     "`panic!` and only a `panic!` in `if`-then statement"
 }
 
-declare_lint_pass!(ManualAssert => [MANUAL_ASSERT]);
+declare_clippy_pass!(ManualAssert => [MANUAL_ASSERT]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualAssert {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {

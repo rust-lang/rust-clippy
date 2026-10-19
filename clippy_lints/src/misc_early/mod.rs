@@ -295,7 +295,7 @@ declare_clippy_lint! {
     "integer literals starting with `0`"
 }
 
-declare_lint_pass!(MiscEarlyLints => [
+declare_clippy_pass!(MiscEarlyLints => [
     BUILTIN_TYPE_SHADOW,
     MIXED_CASE_HEX_LITERALS,
     REDUNDANT_AT_REST_PATTERN,

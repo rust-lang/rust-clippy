@@ -127,7 +127,7 @@ declare_clippy_lint! {
     "`continue` statements that can be replaced by a rearrangement of code"
 }
 
-declare_lint_pass!(NeedlessContinue => [NEEDLESS_CONTINUE]);
+declare_clippy_pass!(NeedlessContinue => [NEEDLESS_CONTINUE]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessContinue {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

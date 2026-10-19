@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "Using a boolean as comparison value in an assert_* macro when there is no need"
 }
 
-declare_lint_pass!(BoolAssertComparison => [BOOL_ASSERT_COMPARISON]);
+declare_clippy_pass!(BoolAssertComparison => [BOOL_ASSERT_COMPARISON]);
 
 fn extract_bool_lit(e: &Expr<'_>) -> Option<bool> {
     if let ExprKind::Lit(Lit {

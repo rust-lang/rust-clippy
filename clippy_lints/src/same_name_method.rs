@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "two method with same name"
 }
 
-declare_lint_pass!(SameNameMethod => [SAME_NAME_METHOD]);
+declare_clippy_pass!(SameNameMethod => [SAME_NAME_METHOD]);
 
 struct ExistingName {
     impl_methods: BTreeMap<Symbol, (Span, HirId)>,

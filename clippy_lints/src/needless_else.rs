@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "empty else branch"
 }
 
-declare_lint_pass!(NeedlessElse => [NEEDLESS_ELSE]);
+declare_clippy_pass!(NeedlessElse => [NEEDLESS_ELSE]);
 
 impl EarlyLintPass for NeedlessElse {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

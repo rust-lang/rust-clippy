@@ -77,7 +77,7 @@ declare_clippy_lint! {
     "missing fields in manual `Debug` implementation"
 }
 
-declare_lint_pass!(MissingFieldsInDebug => [MISSING_FIELDS_IN_DEBUG]);
+declare_clippy_pass!(MissingFieldsInDebug => [MISSING_FIELDS_IN_DEBUG]);
 
 fn report_lints(cx: &LateContext<'_>, span: Span, span_notes: Vec<(Span, &'static str)>) {
     span_lint_and_then(

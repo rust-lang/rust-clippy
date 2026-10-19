@@ -54,7 +54,7 @@ declare_clippy_lint! {
     "not waiting on a spawned child process"
 }
 
-declare_lint_pass!(ZombieProcesses => [ZOMBIE_PROCESSES]);
+declare_clippy_pass!(ZombieProcesses => [ZOMBIE_PROCESSES]);
 
 impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

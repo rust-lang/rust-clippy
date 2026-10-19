@@ -42,7 +42,7 @@ declare_clippy_lint! {
     "check for direct implementations of `ToString`"
 }
 
-declare_lint_pass!(ToStringTraitImpl => [TO_STRING_TRAIT_IMPL]);
+declare_clippy_pass!(ToStringTraitImpl => [TO_STRING_TRAIT_IMPL]);
 
 impl<'tcx> LateLintPass<'tcx> for ToStringTraitImpl {
     fn check_item(&mut self, cx: &LateContext<'tcx>, it: &'tcx Item<'tcx>) {

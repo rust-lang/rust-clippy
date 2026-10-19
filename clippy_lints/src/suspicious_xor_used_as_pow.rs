@@ -27,7 +27,7 @@ declare_clippy_lint! {
     "XOR (`^`) operator possibly used as exponentiation operator"
 }
 
-declare_lint_pass!(ConfusingXorAndPow => [SUSPICIOUS_XOR_USED_AS_POW]);
+declare_clippy_pass!(ConfusingXorAndPow => [SUSPICIOUS_XOR_USED_AS_POW]);
 
 impl LateLintPass<'_> for ConfusingXorAndPow {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

@@ -47,7 +47,7 @@ declare_clippy_lint! {
     "locking a `Mutex` in an `if let` block can cause deadlocks"
 }
 
-declare_lint_pass!(IfLetMutex => [IF_LET_MUTEX]);
+declare_clippy_pass!(IfLetMutex => [IF_LET_MUTEX]);
 
 impl<'tcx> LateLintPass<'tcx> for IfLetMutex {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "empty String is being created manually"
 }
 
-declare_lint_pass!(ManualStringNew => [MANUAL_STRING_NEW]);
+declare_clippy_pass!(ManualStringNew => [MANUAL_STRING_NEW]);
 
 impl LateLintPass<'_> for ManualStringNew {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

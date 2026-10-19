@@ -54,7 +54,7 @@ declare_clippy_lint! {
     "missing generalization over different hashers"
 }
 
-declare_lint_pass!(ImplicitHasher => [IMPLICIT_HASHER]);
+declare_clippy_pass!(ImplicitHasher => [IMPLICIT_HASHER]);
 
 impl<'tcx> LateLintPass<'tcx> for ImplicitHasher {
     #[expect(clippy::too_many_lines)]

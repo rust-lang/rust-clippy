@@ -136,7 +136,7 @@ declare_clippy_lint! {
     "suspicious formatting of unary `-` or `!` on the RHS of a BinOp"
 }
 
-declare_lint_pass!(Formatting => [
+declare_clippy_pass!(Formatting => [
     POSSIBLE_MISSING_COMMA,
     POSSIBLE_MISSING_ELSE,
     SUSPICIOUS_ASSIGNMENT_FORMATTING,

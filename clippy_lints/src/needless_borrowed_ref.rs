@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "destructuring a reference and borrowing the inner value"
 }
 
-declare_lint_pass!(NeedlessBorrowedRef => [NEEDLESS_BORROWED_REFERENCE]);
+declare_clippy_pass!(NeedlessBorrowedRef => [NEEDLESS_BORROWED_REFERENCE]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessBorrowedRef {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, ref_pat: &'tcx Pat<'_>) {

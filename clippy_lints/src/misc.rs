@@ -95,7 +95,7 @@ declare_clippy_lint! {
     "using a item which is prefixed with an underscore"
 }
 
-declare_lint_pass!(LintPass => [
+declare_clippy_pass!(LintPass => [
     SHORT_CIRCUIT_STATEMENT,
     USED_UNDERSCORE_BINDING,
     USED_UNDERSCORE_ITEMS,

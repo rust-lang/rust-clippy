@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "traits or impls with a public `len` method but no corresponding `is_empty` method"
 }
 
-declare_lint_pass!(LenWithoutIsEmpty => [LEN_WITHOUT_IS_EMPTY]);
+declare_clippy_pass!(LenWithoutIsEmpty => [LEN_WITHOUT_IS_EMPTY]);
 
 impl<'tcx> LateLintPass<'tcx> for LenWithoutIsEmpty {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {

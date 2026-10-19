@@ -71,7 +71,7 @@ declare_clippy_lint! {
     "`from_raw_parts` with same length and capacity"
 }
 
-declare_lint_pass!(SameLengthAndCapacity => [SAME_LENGTH_AND_CAPACITY]);
+declare_clippy_pass!(SameLengthAndCapacity => [SAME_LENGTH_AND_CAPACITY]);
 
 impl<'tcx> LateLintPass<'tcx> for SameLengthAndCapacity {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

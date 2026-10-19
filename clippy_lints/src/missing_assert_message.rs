@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "checks assertions without a custom panic message"
 }
 
-declare_lint_pass!(MissingAssertMessage => [MISSING_ASSERT_MESSAGE]);
+declare_clippy_pass!(MissingAssertMessage => [MISSING_ASSERT_MESSAGE]);
 
 impl<'tcx> LateLintPass<'tcx> for MissingAssertMessage {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

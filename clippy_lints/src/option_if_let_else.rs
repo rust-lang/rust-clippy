@@ -79,7 +79,7 @@ declare_clippy_lint! {
     "reimplementation of Option::map_or"
 }
 
-declare_lint_pass!(OptionIfLetElse => [OPTION_IF_LET_ELSE]);
+declare_clippy_pass!(OptionIfLetElse => [OPTION_IF_LET_ELSE]);
 
 /// A struct containing information about occurrences of construct that this lint detects
 ///

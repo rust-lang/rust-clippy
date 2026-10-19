@@ -114,7 +114,7 @@ declare_clippy_lint! {
     "using a return statement like `return Err(expr)?;` where removing it would suffice"
 }
 
-declare_lint_pass!(Return => [
+declare_clippy_pass!(Return => [
     LET_AND_RETURN,
     NEEDLESS_RETURN,
     NEEDLESS_RETURN_WITH_QUESTION_MARK,
