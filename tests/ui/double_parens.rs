@@ -177,4 +177,19 @@ fn issue16224() {
     let _: Result<i32, String> = call!(_ => 42);
 }
 
+fn issue17475(x: DummyStruct) {
+    // Every redundant pair is removed at once, so only one diagnostic is emitted.
+    let _ = ((((1))));
+    //~^ double_parens
+
+    dummy_fn((((1))));
+    //~^ double_parens
+
+    x.dummy_method((((1))));
+    //~^ double_parens
+
+    let _ = (((1, 2)));
+    //~^ double_parens
+}
+
 fn main() {}

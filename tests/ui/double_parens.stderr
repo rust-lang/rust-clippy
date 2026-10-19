@@ -98,5 +98,29 @@ LL |             let c = std::convert::identity((5));
 LL |         pub const E: InterruptMask = double_parens!((Self::OE), Self::BE, Self::PE, Self::FE);
    |                                      -------------------------------------------------------- in this macro invocation
 
-error: aborting due to 13 previous errors
+error: unnecessary parentheses
+  --> tests/ui/double_parens.rs:182:13
+   |
+LL |     let _ = ((((1))));
+   |             ^^^^^^^^^ help: remove them: `(1)`
+
+error: unnecessary parentheses
+  --> tests/ui/double_parens.rs:185:14
+   |
+LL |     dummy_fn((((1))));
+   |              ^^^^^^^ help: remove them: `1`
+
+error: unnecessary parentheses
+  --> tests/ui/double_parens.rs:188:20
+   |
+LL |     x.dummy_method((((1))));
+   |                    ^^^^^^^ help: remove them: `1`
+
+error: unnecessary parentheses
+  --> tests/ui/double_parens.rs:191:13
+   |
+LL |     let _ = (((1, 2)));
+   |             ^^^^^^^^^^ help: remove them: `(1, 2)`
+
+error: aborting due to 17 previous errors
 

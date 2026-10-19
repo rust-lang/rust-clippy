@@ -504,7 +504,7 @@ rustc_lint::early_lint_methods!(
         EarlyFunctions: functions::EarlyFunctions = functions::EarlyFunctions,
         Documentation: doc::Documentation = doc::Documentation::new(conf),
         SuspiciousOperationGroupings: suspicious_operation_groupings::SuspiciousOperationGroupings = <suspicious_operation_groupings::SuspiciousOperationGroupings>::default(),
-        DoubleParens: double_parens::DoubleParens = double_parens::DoubleParens,
+        DoubleParens: double_parens::DoubleParens = double_parens::DoubleParens::default(),
         UnsafeNameRemoval: unsafe_removed_from_name::UnsafeNameRemoval = unsafe_removed_from_name::UnsafeNameRemoval,
         ElseIfWithoutElse: else_if_without_else::ElseIfWithoutElse = else_if_without_else::ElseIfWithoutElse,
         IntPlusOne: int_plus_one::IntPlusOne = int_plus_one::IntPlusOne,

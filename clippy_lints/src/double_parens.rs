@@ -2,7 +2,8 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{SpanExt as _, snippet_with_applicability, snippet_with_context};
 use rustc_ast::ast::{Expr, ExprKind, MethodCall};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -37,10 +38,26 @@ declare_clippy_lint! {
     "Warn on unnecessary double parentheses"
 }
 
-declare_lint_pass!(DoubleParens => [DOUBLE_PARENS]);
+impl_lint_pass!(DoubleParens => [DOUBLE_PARENS]);
+
+#[derive(Default)]
+pub struct DoubleParens {
+    /// The redundant parentheses that have already been reported, as a pair of the outermost
+    /// parentheses and the innermost one that is kept. The parentheses in between are removed by
+    /// that diagnostic, so they must not be reported again.
+    reported: Option<(Span, Span)>,
+}
 
 impl EarlyLintPass for DoubleParens {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {
+        // The parentheses are already removed by an enclosing diagnostic.
+        if let Some((outer, keep)) = self.reported
+            && encloses_or_eq(outer, expr.span)
+            && !encloses_or_eq(keep, expr.span)
+        {
+            return;
+        }
+
         match &expr.kind {
             // ((..))
             // ^^^^^^ expr
@@ -51,13 +68,17 @@ impl EarlyLintPass for DoubleParens {
                     && !expr.span.in_external_macro(cx.sess().source_map())
                     && check_source(cx, inner) =>
             {
-                // suggest removing the outer parens
+                // Every nested pair of parentheses is removed at once, so only report the outermost
+                // one. `keep` is the pair that remains after the suggestion is applied.
+                let keep = innermost_paren(inner);
 
                 let mut applicability = Applicability::MachineApplicable;
                 // We don't need to use `snippet_with_context` here, because:
                 // - if `inner`'s `ctxt` is from macro, we don't lint in the first place (see the check above)
                 // - otherwise, calling `snippet_with_applicability` on a not-from-macro span is fine
-                let sugg = snippet_with_applicability(cx.sess(), inner.span, "_", &mut applicability);
+                let sugg = snippet_with_applicability(cx.sess(), keep.span, "_", &mut applicability);
+                self.reported = Some((expr.span, keep.span));
+
                 span_lint_and_sugg(
                     cx,
                     DOUBLE_PARENS,
@@ -80,10 +101,13 @@ impl EarlyLintPass for DoubleParens {
                     && !arg.span.in_external_macro(cx.sess().source_map())
                     && check_source(cx, arg) =>
             {
-                // suggest removing the inner parens
+                // See the comment in the branch above.
+                let keep = innermost_expr(inner);
 
                 let mut applicability = Applicability::MachineApplicable;
-                let sugg = snippet_with_context(cx.sess(), inner.span, arg.span.ctxt(), "_", &mut applicability).0;
+                let sugg = snippet_with_context(cx.sess(), keep.span, arg.span.ctxt(), "_", &mut applicability).0;
+                self.reported = Some((arg.span, keep.span));
+
                 span_lint_and_sugg(
                     cx,
                     DOUBLE_PARENS,
@@ -97,6 +121,48 @@ impl EarlyLintPass for DoubleParens {
             _ => {},
         }
     }
+
+    fn check_expr_post(&mut self, _: &EarlyContext<'_>, expr: &Expr) {
+        // The whole expression that was reported has been visited, nothing else is removed by it.
+        if self.reported.is_some_and(|(outer, _)| outer == expr.span) {
+            self.reported = None;
+        }
+    }
+}
+
+/// Returns the parentheses that remain when all the redundant parentheses around `inner` are
+/// removed.
+///
+/// `inner` is the expression directly enclosed by the first redundant pair, so for `((((1))))` this
+/// returns `(1)`, and for `(((1, 2)))` it returns `(1, 2)`, the tuple's span including the
+/// parentheses that are part of it. Note that a single pair is kept, since removing it as well may
+/// change how the expression is parsed.
+fn innermost_paren(inner: &Expr) -> &Expr {
+    let mut inner = inner;
+    while let ExprKind::Paren(next) = &inner.kind
+        && matches!(next.kind, ExprKind::Paren(_) | ExprKind::Tup(_))
+    {
+        inner = next;
+    }
+    inner
+}
+
+/// Returns the expression enclosed by all the redundant parentheses around `inner`.
+///
+/// `inner` is the expression directly enclosed by the first redundant pair. Every pair is removed
+/// here, because parentheses are never needed around the sole argument of a call, so for
+/// `func((((1))))` this returns `1`.
+fn innermost_expr(inner: &Expr) -> &Expr {
+    let mut inner = inner;
+    while let ExprKind::Paren(next) = &inner.kind {
+        inner = next;
+    }
+    inner
+}
+
+/// Returns `true` if `outer` encloses `inner` or is `inner`.
+fn encloses_or_eq(outer: Span, inner: Span) -> bool {
+    outer == inner || outer.contains(inner)
 }
 
 /// Check that the span does indeed look like `(  (..)  )`
