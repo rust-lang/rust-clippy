@@ -18,8 +18,7 @@ on:
     types: [completed]
 
 # Restrict the default permission scope https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions#defining-access-for-the-github_token-scopes
-permissions:
-  pull-requests: write
+permissions: {}
 
 jobs:
   download:
