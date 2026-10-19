@@ -5,7 +5,7 @@ use hir::ExprKind;
 use hir::def::Res;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::sym;
 

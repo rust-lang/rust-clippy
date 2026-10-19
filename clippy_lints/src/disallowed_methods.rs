@@ -5,7 +5,7 @@ use clippy_utils::paths::PathNS;
 use rustc_hir::def::{CtorKind, DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 
 declare_clippy_lint! {

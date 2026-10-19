@@ -3,7 +3,7 @@ use clippy_utils::macros::{is_panic, root_macro_call_first_node};
 use clippy_utils::method_chain_args;
 use clippy_utils::res::MaybeDef as _;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::{Span, sym};
 

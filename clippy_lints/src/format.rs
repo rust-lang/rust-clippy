@@ -6,7 +6,7 @@ use clippy_utils::sugg::Sugg;
 use rustc_ast::{FormatArgsPiece, FormatOptions, FormatTrait};
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::{Span, sym};
 

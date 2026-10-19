@@ -9,7 +9,7 @@ use rustc_data_structures::smallvec::SmallVec;
 use rustc_errors::Applicability;
 use rustc_hir::{Body, BodyId, Expr, ExprKind, HirId, QPath};
 use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::place::ProjectionKind;
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty;

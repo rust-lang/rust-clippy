@@ -9,7 +9,7 @@ use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
 use rustc_lexer::TokenKind;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{BytePos, Ident, Span, Symbol};
 
 declare_clippy_lint! {

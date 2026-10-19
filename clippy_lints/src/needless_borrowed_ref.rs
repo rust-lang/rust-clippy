@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::usage::local_used_after_expr;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, BindingMode, ExprKind, Mutability, Node, Pat, PatKind, Pinnedness, QPath};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does

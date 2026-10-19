@@ -3,7 +3,7 @@ use clippy_utils::macros::{MacroCall, find_assert_args, find_assert_eq_args, roo
 use clippy_utils::sym;
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{BorrowKind, Expr, ExprKind, MatchSource, Mutability};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty;
 use rustc_span::Span;

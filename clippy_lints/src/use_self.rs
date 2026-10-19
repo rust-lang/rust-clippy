@@ -12,7 +12,7 @@ use rustc_hir::{
     self as hir, AmbigArg, Expr, ExprKind, FnRetTy, FnSig, GenericArgsParentheses, GenericParamKind, HirId, Impl,
     ImplItemImplKind, ImplItemKind, Item, ItemKind, Node, Pat, PatExpr, PatExprKind, PatKind, Path, QPath, Ty, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty as MiddleTy;
 use rustc_span::Span;
 use std::iter;

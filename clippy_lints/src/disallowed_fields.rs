@@ -6,7 +6,7 @@ use clippy_utils::ty::get_field_def_id_by_name;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Expr, ExprKind, Pat, PatKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 
 declare_clippy_lint! {

@@ -5,7 +5,7 @@ mod utils;
 
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_hir::{Expr, LetStmt};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does

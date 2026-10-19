@@ -4,7 +4,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::source::snippet;
 use clippy_utils::{is_entrypoint_fn, is_no_std_crate};
 use rustc_hir::{Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does

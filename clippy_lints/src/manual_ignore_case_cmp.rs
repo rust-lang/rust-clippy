@@ -8,7 +8,7 @@ use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::ExprKind::{Binary, Lit, MethodCall};
 use rustc_hir::{BinOpKind, Expr};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::{Ty, UintTy};
 use rustc_span::Span;

@@ -6,7 +6,7 @@ use clippy_utils::ty::peel_and_count_ty_refs;
 use clippy_utils::{expr_or_init, is_in_const_context, std_or_core, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {

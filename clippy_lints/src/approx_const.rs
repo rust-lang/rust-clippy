@@ -4,7 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use rustc_ast::ast::{FloatTy, LitFloatType, LitKind};
 use rustc_attr_ir::RustcVersion;
 use rustc_hir::{HirId, Lit};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, symbol};
 use std::f64::consts as f64;
 

@@ -10,7 +10,7 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::{BindingMode, Expr, ExprKind, HirId, MatchSource, Mutability, Node, PatKind};
 use rustc_infer::infer::TyCtxtInferExt as _;
 use rustc_infer::traits::Obligation;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::traits::ObligationCause;
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{self, EarlyBinder, GenericArg, GenericArgsRef, Ty, TypeVisitableExt as _};

@@ -10,7 +10,7 @@ use rustc_attr_ir::lang_items::LangItem::{OptionSome, ResultOk};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, ExprKind, FnDecl, Impl, ItemKind, Node};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;

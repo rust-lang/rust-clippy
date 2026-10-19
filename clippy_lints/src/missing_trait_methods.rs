@@ -6,7 +6,7 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::source::snippet_opt;
 use rustc_hir::def_id::DefIdSet;
 use rustc_hir::{Impl, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does

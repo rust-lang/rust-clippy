@@ -7,7 +7,7 @@ use clippy_utils::source::snippet;
 use clippy_utils::{fn_has_unsatisfiable_clauses, peel_blocks, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, intravisit};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does

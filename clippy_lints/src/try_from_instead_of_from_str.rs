@@ -7,7 +7,7 @@ use clippy_utils::{is_from_proc_macro, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{BodyId, GenericArg, Impl, ImplItemKind, Item, ItemKind, LifetimeKind, TraitRef, Ty};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::symbol::kw;
 
 use core::ops::ControlFlow;

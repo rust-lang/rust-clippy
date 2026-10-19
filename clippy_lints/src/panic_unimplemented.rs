@@ -5,7 +5,7 @@ use clippy_utils::source::SpanExt as _;
 use clippy_utils::{is_in_test, is_inside_always_const_context, sym};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::def_id::DefId;
 

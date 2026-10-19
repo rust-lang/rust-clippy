@@ -3,7 +3,7 @@ use clippy_utils::{return_ty, sym};
 use rustc_hir::{
     Body, BodyOwnerKind, Expr, ExprKind, FnSig, ImplItem, ImplItemKind, Item, ItemKind, OwnerId, PathSegment, QPath,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 use rustc_span::{Ident, Span, Symbol};
 

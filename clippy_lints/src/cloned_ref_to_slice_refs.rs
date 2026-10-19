@@ -11,7 +11,7 @@ use rustc_ast::Mutability;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, HirId};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::adjustment::{Adjust, DerefAdjustKind, OverloadedDeref};
 use rustc_span::Symbol;

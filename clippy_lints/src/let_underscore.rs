@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::ty::{describe_must_use_type, implements_trait, opt_must_use_path};
 use clippy_utils::{is_from_proc_macro, is_must_use_func_call, paths};
 use rustc_hir::{LetStmt, LocalSource, PatKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{GenericArgKind, IsSuggestable as _};
 use rustc_span::{BytePos, Span};
 

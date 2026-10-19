@@ -21,7 +21,7 @@ use rustc_hir::{
     Arm, BindingMode, Block, Body, ByRef, Expr, ExprKind, FnRetTy, HirId, LetStmt, MatchSource, Mutability, Node, Pat,
     PatKind, PathSegment, QPath, Stmt, StmtKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 use rustc_span::symbol::Symbol;

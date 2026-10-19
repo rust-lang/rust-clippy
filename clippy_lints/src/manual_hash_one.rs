@@ -7,7 +7,7 @@ use clippy_utils::sym;
 use clippy_utils::visitors::{is_local_used, local_used_once};
 use rustc_errors::Applicability;
 use rustc_hir::{BindingMode, ExprKind, LetStmt, Node, PatKind, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does

@@ -6,7 +6,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{AmbigArg, Item, ItemKind, PolyTraitRef, PrimTy, Ty, TyKind, UseKind, UseTree};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 

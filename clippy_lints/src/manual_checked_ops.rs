@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::visitors::{Descend, for_each_expr_without_closures};
 use clippy_utils::{SpanlessEq, is_integer_literal};
 use rustc_hir::{AssignOpKind, BinOpKind, Block, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::SyntaxContext;
 use std::ops::ControlFlow;
