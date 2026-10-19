@@ -47,9 +47,11 @@ jobs:
 
     - name: Install toolchain
       run: |
-        rustup set default-host ${{ matrix.host }}
+        rustup set default-host "${MATRIX_HOST}"
         # Use a way compatible with Rustup pre-1.28.0 and Rustup 1.28.0
         rustup show active-toolchain || rustup toolchain install
+      env:
+        MATRIX_HOST: ${{ matrix.host }}
 
     # Run
     - name: Build
