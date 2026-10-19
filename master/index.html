@@ -4758,9 +4758,10 @@ let _ = unsafe { Box::from_raw(ptr) };
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.67.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+from_raw_with_void_ptr">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/from_raw_with_void_ptr.rs#L10">View Source</a></div></div></article><article id="from_str_radix_10"><input id="label-from_str_radix_10" type="checkbox"><label for="label-from_str_radix_10"><h2 class="lint-title"><div class="panel-title-name" id="lint-from_str_radix_10">from_str_radix_10
 <a href="#from_str_radix_10" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
-<p>Checks for function invocations of the form <code>primitive::from_str_radix(s, 10)</code></p>
+<p>Checks for function invocations of the form <code>integer::from_str_radix(s, 10)</code></p>
+<p>This also applies to <code>NonZero</code> integer types on Rust 1.98 and later.</p>
 <h3>Why is this bad?</h3>
-<p>This specific common use case can be rewritten as <code>s.parse::&lt;primitive&gt;()</code>
+<p>This specific common use case can be rewritten as <code>s.parse::&lt;integer&gt;()</code>
 (and in most cases, the turbofish can be removed), which reduces code length
 and complexity.</p>
 <h3>Known problems</h3>
@@ -4774,7 +4775,7 @@ let num = u16::from_str_radix(input, 10)?;
 <pre><code class="language-rust">let input: &amp;str = get_input();
 let num: u16 = input.parse()?;
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.52.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+from_str_radix_10">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/from_str_radix_10.rs#L11">View Source</a></div></div></article><article id="future_not_send"><input id="label-future_not_send" type="checkbox"><label for="label-future_not_send"><h2 class="lint-title"><div class="panel-title-name" id="lint-future_not_send">future_not_send
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.52.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+from_str_radix_10">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/from_str_radix_10.rs#L14">View Source</a></div></div></article><article id="future_not_send"><input id="label-future_not_send" type="checkbox"><label for="label-future_not_send"><h2 class="lint-title"><div class="panel-title-name" id="lint-future_not_send">future_not_send
 <a href="#future_not_send" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-nursery">nursery</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>This lint requires Future implementations returned from
 functions and methods to implement the <code>Send</code> marker trait,
