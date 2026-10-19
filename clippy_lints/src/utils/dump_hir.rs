@@ -3,7 +3,7 @@ use hir::TraitItem;
 use rustc_hir as hir;
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 
-declare_lint_pass!(
+declare_clippy_pass!(
     /// ### What it does
     /// It formats the attached node with `{:#?}` and writes the result to the
     /// standard output. This is intended for debugging.

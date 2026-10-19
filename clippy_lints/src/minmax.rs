@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "`min(_, max(_, _))` (or vice versa) with bounds clamping the result to a constant"
 }
 
-declare_lint_pass!(MinMaxPass => [MIN_MAX]);
+declare_clippy_pass!(MinMaxPass => [MIN_MAX]);
 
 impl<'tcx> LateLintPass<'tcx> for MinMaxPass {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

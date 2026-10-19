@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "Binary comparison to `Option<T>::None` relies on `T: PartialEq`, which is unneeded"
 }
 
-declare_lint_pass!(PartialeqToNone => [PARTIALEQ_TO_NONE]);
+declare_clippy_pass!(PartialeqToNone => [PARTIALEQ_TO_NONE]);
 
 impl<'tcx> LateLintPass<'tcx> for PartialeqToNone {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

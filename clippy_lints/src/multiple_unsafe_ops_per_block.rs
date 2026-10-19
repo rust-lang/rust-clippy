@@ -72,7 +72,7 @@ declare_clippy_lint! {
     "more than one unsafe operation per `unsafe` block"
 }
 
-declare_lint_pass!(MultipleUnsafeOpsPerBlock => [MULTIPLE_UNSAFE_OPS_PER_BLOCK]);
+declare_clippy_pass!(MultipleUnsafeOpsPerBlock => [MULTIPLE_UNSAFE_OPS_PER_BLOCK]);
 
 impl<'tcx> LateLintPass<'tcx> for MultipleUnsafeOpsPerBlock {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx hir::Block<'_>) {

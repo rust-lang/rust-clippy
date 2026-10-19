@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "re-implementing `PartialEq::ne`"
 }
 
-declare_lint_pass!(PartialEqNeImpl => [PARTIALEQ_NE_IMPL]);
+declare_clippy_pass!(PartialEqNeImpl => [PARTIALEQ_NE_IMPL]);
 
 impl<'tcx> LateLintPass<'tcx> for PartialEqNeImpl {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {

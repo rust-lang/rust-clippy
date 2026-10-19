@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "warns about needless / redundant type annotations."
 }
 
-declare_lint_pass!(RedundantTypeAnnotations => [REDUNDANT_TYPE_ANNOTATIONS]);
+declare_clippy_pass!(RedundantTypeAnnotations => [REDUNDANT_TYPE_ANNOTATIONS]);
 
 fn is_same_type<'tcx>(cx: &LateContext<'tcx>, ty_resolved_path: hir::def::Res, func_return_type: Ty<'tcx>) -> bool {
     // type annotation is primitive

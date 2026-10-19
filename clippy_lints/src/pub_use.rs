@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "restricts the usage of `pub use`"
 }
 
-declare_lint_pass!(PubUse => [PUB_USE]);
+declare_clippy_pass!(PubUse => [PUB_USE]);
 
 impl EarlyLintPass for PubUse {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

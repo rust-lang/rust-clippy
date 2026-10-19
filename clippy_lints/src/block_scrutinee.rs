@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "warns when the scrutinee is wrapped in a block in older editions"
 }
 
-declare_lint_pass!(BlockScrutinee => [BLOCK_SCRUTINEE]);
+declare_clippy_pass!(BlockScrutinee => [BLOCK_SCRUTINEE]);
 
 impl<'tcx> LateLintPass<'tcx> for BlockScrutinee {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

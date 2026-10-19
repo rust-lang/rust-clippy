@@ -66,7 +66,7 @@ declare_clippy_lint! {
     "redundant slicing of the whole range of a type"
 }
 
-declare_lint_pass!(RedundantSlicing => [DEREF_BY_SLICING, REDUNDANT_SLICING]);
+declare_clippy_pass!(RedundantSlicing => [DEREF_BY_SLICING, REDUNDANT_SLICING]);
 
 static REDUNDANT_SLICING_LINT: (&Lint, &str) = (REDUNDANT_SLICING, "redundant slicing of the whole range");
 static DEREF_BY_SLICING_LINT: (&Lint, &str) = (DEREF_BY_SLICING, "slicing when dereferencing would work");

@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "unit structs can be constructed without calling `default`"
 }
 
-declare_lint_pass!(DefaultConstructedUnitStructs => [
+declare_clippy_pass!(DefaultConstructedUnitStructs => [
     DEFAULT_CONSTRUCTED_UNIT_STRUCTS,
 ]);
 

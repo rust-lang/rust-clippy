@@ -120,9 +120,9 @@ declare_clippy_lint! {
     "prefer AT&T x86 assembly syntax"
 }
 
-declare_lint_pass!(InlineAsmX86AttSyntax => [INLINE_ASM_X86_ATT_SYNTAX]);
+declare_clippy_pass!(InlineAsmX86AttSyntax => [INLINE_ASM_X86_ATT_SYNTAX]);
 
-declare_lint_pass!(InlineAsmX86IntelSyntax => [INLINE_ASM_X86_INTEL_SYNTAX]);
+declare_clippy_pass!(InlineAsmX86IntelSyntax => [INLINE_ASM_X86_INTEL_SYNTAX]);
 
 impl EarlyLintPass for InlineAsmX86IntelSyntax {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

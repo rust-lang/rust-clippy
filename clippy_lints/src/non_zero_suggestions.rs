@@ -44,7 +44,7 @@ declare_clippy_lint! {
     "suggests using `NonZero#` from `u#` or `i#` for more efficient and type-safe conversions"
 }
 
-declare_lint_pass!(NonZeroSuggestions => [NON_ZERO_SUGGESTIONS]);
+declare_clippy_pass!(NonZeroSuggestions => [NON_ZERO_SUGGESTIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for NonZeroSuggestions {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

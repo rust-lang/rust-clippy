@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "Uselessly rounding a whole number floating-point literal"
 }
 
-declare_lint_pass!(UnusedRounding => [UNUSED_ROUNDING]);
+declare_clippy_pass!(UnusedRounding => [UNUSED_ROUNDING]);
 
 fn is_useless_rounding(cx: &EarlyContext<'_>, expr: &Expr) -> Option<(Symbol, String)> {
     if let ExprKind::MethodCall(MethodCall {

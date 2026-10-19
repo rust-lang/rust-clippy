@@ -49,7 +49,7 @@ declare_clippy_lint! {
     "possible infinite iteration"
 }
 
-declare_lint_pass!(InfiniteIter => [INFINITE_ITER, MAYBE_INFINITE_ITER]);
+declare_clippy_pass!(InfiniteIter => [INFINITE_ITER, MAYBE_INFINITE_ITER]);
 
 impl<'tcx> LateLintPass<'tcx> for InfiniteIter {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

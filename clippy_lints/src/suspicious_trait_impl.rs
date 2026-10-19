@@ -52,7 +52,7 @@ declare_clippy_lint! {
     "suspicious use of operators in impl of OpAssign trait"
 }
 
-declare_lint_pass!(SuspiciousImpl => [
+declare_clippy_pass!(SuspiciousImpl => [
     SUSPICIOUS_ARITHMETIC_IMPL,
     SUSPICIOUS_OP_ASSIGN_IMPL,
 ]);

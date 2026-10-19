@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "pointers in nomem asm block"
 }
 
-declare_lint_pass!(PointersInNomemAsmBlock => [POINTERS_IN_NOMEM_ASM_BLOCK]);
+declare_clippy_pass!(PointersInNomemAsmBlock => [POINTERS_IN_NOMEM_ASM_BLOCK]);
 
 impl<'tcx> LateLintPass<'tcx> for PointersInNomemAsmBlock {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {

@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "throwaway closures called in the expression they are defined"
 }
 
-declare_lint_pass!(RedundantClosureCall => [REDUNDANT_CLOSURE_CALL]);
+declare_clippy_pass!(RedundantClosureCall => [REDUNDANT_CLOSURE_CALL]);
 
 // Used to find `return` statements or equivalents e.g., `?`
 struct ReturnVisitor;

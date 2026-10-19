@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "Checks if string literals have formatting arguments"
 }
 
-declare_lint_pass!(LiteralStringWithFormattingArg => [
+declare_clippy_pass!(LiteralStringWithFormattingArg => [
     LITERAL_STRING_WITH_FORMATTING_ARGS,
 ]);
 

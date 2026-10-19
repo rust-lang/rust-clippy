@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "checks for empty if branches"
 }
 
-declare_lint_pass!(NeedlessIfs => [NEEDLESS_IFS]);
+declare_clippy_pass!(NeedlessIfs => [NEEDLESS_IFS]);
 
 impl LateLintPass<'_> for NeedlessIfs {
     fn check_stmt<'tcx>(&mut self, cx: &LateContext<'tcx>, stmt: &Stmt<'tcx>) {

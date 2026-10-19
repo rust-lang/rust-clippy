@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "Warn on impls of `From<..>` that contain `panic!()` or `unwrap()`"
 }
 
-declare_lint_pass!(FallibleImplFrom => [FALLIBLE_IMPL_FROM]);
+declare_clippy_pass!(FallibleImplFrom => [FALLIBLE_IMPL_FROM]);
 
 impl<'tcx> LateLintPass<'tcx> for FallibleImplFrom {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx hir::Item<'_>) {

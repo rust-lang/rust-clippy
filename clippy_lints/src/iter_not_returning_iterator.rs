@@ -39,7 +39,7 @@ declare_clippy_lint! {
     "methods named `iter` or `iter_mut` that do not return an `Iterator`"
 }
 
-declare_lint_pass!(IterNotReturningIterator => [ITER_NOT_RETURNING_ITERATOR]);
+declare_clippy_pass!(IterNotReturningIterator => [ITER_NOT_RETURNING_ITERATOR]);
 
 impl<'tcx> LateLintPass<'tcx> for IterNotReturningIterator {
     fn check_trait_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx TraitItem<'_>) {

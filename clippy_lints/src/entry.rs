@@ -58,7 +58,7 @@ declare_clippy_lint! {
     "use of `contains_key` followed by `insert` on a `HashMap` or `BTreeMap`"
 }
 
-declare_lint_pass!(HashMapPass => [MAP_ENTRY]);
+declare_clippy_pass!(HashMapPass => [MAP_ENTRY]);
 
 impl<'tcx> LateLintPass<'tcx> for HashMapPass {
     #[expect(clippy::too_many_lines)]

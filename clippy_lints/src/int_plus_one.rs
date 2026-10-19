@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "instead of using `x >= y + 1`, use `x > y`"
 }
 
-declare_lint_pass!(IntPlusOne => [INT_PLUS_ONE]);
+declare_clippy_pass!(IntPlusOne => [INT_PLUS_ONE]);
 
 // cases:
 // LeOrGe::Ge

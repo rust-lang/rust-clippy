@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "usage of map with zero-sized value type"
 }
 
-declare_lint_pass!(ZeroSizedMapValues => [ZERO_SIZED_MAP_VALUES]);
+declare_clippy_pass!(ZeroSizedMapValues => [ZERO_SIZED_MAP_VALUES]);
 
 impl LateLintPass<'_> for ZeroSizedMapValues {
     fn check_ty<'tcx>(&mut self, cx: &LateContext<'tcx>, hir_ty: &hir::Ty<'tcx, AmbigArg>) {

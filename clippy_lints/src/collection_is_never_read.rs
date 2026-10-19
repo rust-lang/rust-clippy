@@ -41,7 +41,7 @@ declare_clippy_lint! {
     "a collection is never queried"
 }
 
-declare_lint_pass!(CollectionIsNeverRead => [COLLECTION_IS_NEVER_READ]);
+declare_clippy_pass!(CollectionIsNeverRead => [COLLECTION_IS_NEVER_READ]);
 
 impl<'tcx> LateLintPass<'tcx> for CollectionIsNeverRead {
     fn check_local(&mut self, cx: &LateContext<'tcx>, local: &'tcx LetStmt<'tcx>) {

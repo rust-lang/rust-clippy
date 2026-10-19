@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "creating a `Box` from a void raw pointer"
 }
 
-declare_lint_pass!(FromRawWithVoidPtr => [FROM_RAW_WITH_VOID_PTR]);
+declare_clippy_pass!(FromRawWithVoidPtr => [FROM_RAW_WITH_VOID_PTR]);
 
 impl LateLintPass<'_> for FromRawWithVoidPtr {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

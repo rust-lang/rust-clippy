@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "slow vector initialization"
 }
 
-declare_lint_pass!(SlowVectorInit => [SLOW_VECTOR_INITIALIZATION]);
+declare_clippy_pass!(SlowVectorInit => [SLOW_VECTOR_INITIALIZATION]);
 
 /// `VecAllocation` contains data regarding a vector allocated with `with_capacity` and then
 /// assigned to a variable. For example, `let mut vec = Vec::with_capacity(0)` or

@@ -65,7 +65,7 @@ declare_clippy_lint! {
     "missing `#[must_use]` annotation on a method returning `Self`"
 }
 
-declare_lint_pass!(ReturnSelfNotMustUse => [RETURN_SELF_NOT_MUST_USE]);
+declare_clippy_pass!(ReturnSelfNotMustUse => [RETURN_SELF_NOT_MUST_USE]);
 
 fn check_method(cx: &LateContext<'_>, decl: &FnDecl<'_>, fn_def: LocalDefId, span: Span, owner_id: OwnerId) {
     if decl.implicit_self().has_implicit_self()

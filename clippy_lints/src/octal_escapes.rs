@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "string escape sequences looking like octal characters"
 }
 
-declare_lint_pass!(OctalEscapes => [OCTAL_ESCAPES]);
+declare_clippy_pass!(OctalEscapes => [OCTAL_ESCAPES]);
 
 impl EarlyLintPass for OctalEscapes {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

@@ -52,7 +52,7 @@ declare_clippy_lint! {
     "`if`s that can be rewritten with `match` and `cmp`"
 }
 
-declare_lint_pass!(ComparisonChain => [COMPARISON_CHAIN]);
+declare_clippy_pass!(ComparisonChain => [COMPARISON_CHAIN]);
 
 impl<'tcx> LateLintPass<'tcx> for ComparisonChain {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

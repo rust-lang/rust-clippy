@@ -44,7 +44,7 @@ declare_clippy_lint! {
     "overflow checks which will panic in debug mode"
 }
 
-declare_lint_pass!(PanickingOverflowChecks => [PANICKING_OVERFLOW_CHECKS]);
+declare_clippy_pass!(PanickingOverflowChecks => [PANICKING_OVERFLOW_CHECKS]);
 
 impl<'tcx> LateLintPass<'tcx> for PanickingOverflowChecks {
     // a + b < a, a > a + b, a < a - b, a - b > a

@@ -26,7 +26,7 @@ declare_clippy_lint! {
     "`unsafe` removed from API names on import"
 }
 
-declare_lint_pass!(UnsafeNameRemoval => [UNSAFE_REMOVED_FROM_NAME]);
+declare_clippy_pass!(UnsafeNameRemoval => [UNSAFE_REMOVED_FROM_NAME]);
 
 impl EarlyLintPass for UnsafeNameRemoval {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

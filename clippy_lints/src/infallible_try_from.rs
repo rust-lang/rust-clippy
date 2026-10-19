@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "TryFrom with infallible Error type"
 }
 
-declare_lint_pass!(InfallibleTryFrom => [INFALLIBLE_TRY_FROM]);
+declare_clippy_pass!(InfallibleTryFrom => [INFALLIBLE_TRY_FROM]);
 
 impl<'tcx> LateLintPass<'tcx> for InfallibleTryFrom {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

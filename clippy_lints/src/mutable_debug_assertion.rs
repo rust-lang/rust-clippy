@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "mutable arguments in `debug_assert{,_ne,_eq}!`"
 }
 
-declare_lint_pass!(DebugAssertWithMutCall => [DEBUG_ASSERT_WITH_MUT_CALL]);
+declare_clippy_pass!(DebugAssertWithMutCall => [DEBUG_ASSERT_WITH_MUT_CALL]);
 
 impl<'tcx> LateLintPass<'tcx> for DebugAssertWithMutCall {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

@@ -56,7 +56,7 @@ declare_clippy_lint! {
     "redundant `test_` prefix in test function name"
 }
 
-declare_lint_pass!(RedundantTestPrefix => [REDUNDANT_TEST_PREFIX]);
+declare_clippy_pass!(RedundantTestPrefix => [REDUNDANT_TEST_PREFIX]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantTestPrefix {
     fn check_fn(

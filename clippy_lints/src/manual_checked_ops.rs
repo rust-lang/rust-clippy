@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "manual zero checks before dividing integers"
 }
 
-declare_lint_pass!(ManualCheckedOps => [MANUAL_CHECKED_OPS]);
+declare_clippy_pass!(ManualCheckedOps => [MANUAL_CHECKED_OPS]);
 
 #[derive(Copy, Clone)]
 enum NonZeroBranch {

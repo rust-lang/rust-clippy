@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "coercing to `&dyn Any` when dereferencing could produce a `dyn Any` without coercion is usually not intended"
 }
 
-declare_lint_pass!(CoerceContainerToAny => [COERCE_CONTAINER_TO_ANY]);
+declare_clippy_pass!(CoerceContainerToAny => [COERCE_CONTAINER_TO_ANY]);
 
 impl<'tcx> LateLintPass<'tcx> for CoerceContainerToAny {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

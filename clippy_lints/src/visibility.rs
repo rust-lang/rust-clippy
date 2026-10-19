@@ -76,7 +76,7 @@ declare_clippy_lint! {
     "disallows usage of `pub(in <loc>)` with `in`"
 }
 
-declare_lint_pass!(Visibility => [
+declare_clippy_pass!(Visibility => [
     NEEDLESS_PUB_SELF,
     PUB_WITHOUT_SHORTHAND,
     PUB_WITH_SHORTHAND,

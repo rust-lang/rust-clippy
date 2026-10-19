@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "usage of `ok()` in `let Some(pat)` statements is unnecessary, match on `Ok(pat)` instead"
 }
 
-declare_lint_pass!(MatchResultOk => [MATCH_RESULT_OK]);
+declare_clippy_pass!(MatchResultOk => [MATCH_RESULT_OK]);
 
 impl<'tcx> LateLintPass<'tcx> for MatchResultOk {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

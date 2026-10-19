@@ -47,7 +47,7 @@ declare_clippy_lint! {
     "deref on an immutable reference returns the same type as itself"
 }
 
-declare_lint_pass!(BorrowDerefRef => [BORROW_DEREF_REF]);
+declare_clippy_pass!(BorrowDerefRef => [BORROW_DEREF_REF]);
 
 impl<'tcx> LateLintPass<'tcx> for BorrowDerefRef {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {

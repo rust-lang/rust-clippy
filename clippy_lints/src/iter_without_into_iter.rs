@@ -104,7 +104,7 @@ declare_clippy_lint! {
     "implementing `iter(_mut)` without an associated `IntoIterator for (&|&mut) Type` impl"
 }
 
-declare_lint_pass!(IterWithoutIntoIter => [
+declare_clippy_pass!(IterWithoutIntoIter => [
     INTO_ITER_WITHOUT_ITER,
     ITER_WITHOUT_INTO_ITER,
 ]);

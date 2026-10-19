@@ -31,7 +31,7 @@ declare_clippy_lint! {
     "empty `Drop` implementations"
 }
 
-declare_lint_pass!(EmptyDrop => [EMPTY_DROP]);
+declare_clippy_pass!(EmptyDrop => [EMPTY_DROP]);
 
 impl LateLintPass<'_> for EmptyDrop {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {

@@ -26,7 +26,7 @@ declare_clippy_lint! {
     "use of `#[inline]` on trait methods without bodies"
 }
 
-declare_lint_pass!(InlineFnWithoutBody => [INLINE_FN_WITHOUT_BODY]);
+declare_clippy_pass!(InlineFnWithoutBody => [INLINE_FN_WITHOUT_BODY]);
 
 impl<'tcx> LateLintPass<'tcx> for InlineFnWithoutBody {
     fn check_trait_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx TraitItem<'_>) {

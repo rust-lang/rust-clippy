@@ -70,7 +70,7 @@ declare_clippy_lint! {
     "`mem::forget` usage on `Drop` types, likely to cause memory leaks"
 }
 
-declare_lint_pass!(DropForgetRef => [DROP_NON_DROP, FORGET_NON_DROP, MEM_FORGET]);
+declare_clippy_pass!(DropForgetRef => [DROP_NON_DROP, FORGET_NON_DROP, MEM_FORGET]);
 
 const DROP_NON_DROP_SUMMARY: &str = "call to `std::mem::drop` with a value that does not implement `Drop`. \
                                  Dropping such a type only extends its contained lifetimes";

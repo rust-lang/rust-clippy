@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "a `?Sized` bound that is unusable due to a `Sized` requirement"
 }
 
-declare_lint_pass!(NeedlessMaybeSized => [NEEDLESS_MAYBE_SIZED]);
+declare_clippy_pass!(NeedlessMaybeSized => [NEEDLESS_MAYBE_SIZED]);
 
 #[expect(clippy::struct_field_names)]
 #[derive(Debug)]

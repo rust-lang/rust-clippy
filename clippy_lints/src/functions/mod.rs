@@ -502,8 +502,6 @@ declare_clippy_lint! {
     "functions with too many lines"
 }
 
-declare_lint_pass!(EarlyFunctions => [DUPLICATE_UNDERSCORE_ARGUMENT]);
-
 impl_lint_pass!(Functions => [
     DOUBLE_MUST_USE,
     IMPL_TRAIT_IN_PARAMS,
@@ -519,6 +517,8 @@ impl_lint_pass!(Functions => [
     TOO_MANY_ARGUMENTS,
     TOO_MANY_LINES,
 ]);
+
+declare_clippy_pass!(EarlyFunctions => [DUPLICATE_UNDERSCORE_ARGUMENT]);
 
 impl EarlyLintPass for EarlyFunctions {
     fn check_fn(&mut self, cx: &EarlyContext<'_>, fn_kind: visit::FnKind<'_>, _: Span, _: ast::NodeId) {

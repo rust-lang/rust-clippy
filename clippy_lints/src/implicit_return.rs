@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "use a return statement like `return expr` instead of an expression"
 }
 
-declare_lint_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
+declare_clippy_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
 
 fn lint_return(cx: &LateContext<'_>, emission_place: HirId, span: Span) {
     span_lint_hir_and_then(

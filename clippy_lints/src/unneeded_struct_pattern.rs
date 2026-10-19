@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "using struct pattern to match against unit variant"
 }
 
-declare_lint_pass!(UnneededStructPattern => [UNNEEDED_STRUCT_PATTERN]);
+declare_clippy_pass!(UnneededStructPattern => [UNNEEDED_STRUCT_PATTERN]);
 
 impl LateLintPass<'_> for UnneededStructPattern {
     fn check_pat(&mut self, cx: &LateContext<'_>, pat: &Pat<'_>) {

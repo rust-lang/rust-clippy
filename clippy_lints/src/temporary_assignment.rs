@@ -22,7 +22,7 @@ declare_clippy_lint! {
     "assignments to temporaries"
 }
 
-declare_lint_pass!(TemporaryAssignment => [TEMPORARY_ASSIGNMENT]);
+declare_clippy_pass!(TemporaryAssignment => [TEMPORARY_ASSIGNMENT]);
 
 fn is_temporary(expr: &Expr<'_>) -> bool {
     matches!(&expr.kind, ExprKind::Struct(..) | ExprKind::Tup(..))

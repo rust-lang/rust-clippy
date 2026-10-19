@@ -59,7 +59,7 @@ declare_clippy_lint! {
     "public Futures must be Send"
 }
 
-declare_lint_pass!(FutureNotSend => [FUTURE_NOT_SEND]);
+declare_clippy_pass!(FutureNotSend => [FUTURE_NOT_SEND]);
 
 impl<'tcx> LateLintPass<'tcx> for FutureNotSend {
     fn check_fn(

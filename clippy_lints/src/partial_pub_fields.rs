@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "partial fields of a struct are public"
 }
 
-declare_lint_pass!(PartialPubFields => [PARTIAL_PUB_FIELDS]);
+declare_clippy_pass!(PartialPubFields => [PARTIAL_PUB_FIELDS]);
 
 impl EarlyLintPass for PartialPubFields {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

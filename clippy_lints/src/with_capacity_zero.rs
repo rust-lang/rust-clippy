@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "calling `with_capacity(0)` which is equivalent to `new()`"
 }
 
-declare_lint_pass!(WithCapacityZero => [WITH_CAPACITY_ZERO]);
+declare_clippy_pass!(WithCapacityZero => [WITH_CAPACITY_ZERO]);
 
 fn is_target_type(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     let ty = ty.peel_refs();

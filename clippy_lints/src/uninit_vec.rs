@@ -57,7 +57,7 @@ declare_clippy_lint! {
     "Vec with uninitialized data"
 }
 
-declare_lint_pass!(UninitVec => [UNINIT_VEC]);
+declare_clippy_pass!(UninitVec => [UNINIT_VEC]);
 
 // FIXME: update to a visitor-based implementation.
 // Threads: https://github.com/rust-lang/rust-clippy/pull/7682#discussion_r710998368

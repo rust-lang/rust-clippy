@@ -49,7 +49,7 @@ declare_clippy_lint! {
     "specifying bounds that are implied by other bounds in `impl Trait` type"
 }
 
-declare_lint_pass!(ImpliedBoundsInImpls => [IMPLIED_BOUNDS_IN_IMPLS]);
+declare_clippy_pass!(ImpliedBoundsInImpls => [IMPLIED_BOUNDS_IN_IMPLS]);
 
 fn emit_lint(
     cx: &LateContext<'_>,

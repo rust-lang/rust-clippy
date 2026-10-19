@@ -77,7 +77,7 @@ declare_clippy_lint! {
     "type of pattern does not match the expression type"
 }
 
-declare_lint_pass!(PatternTypeMismatch => [PATTERN_TYPE_MISMATCH]);
+declare_clippy_pass!(PatternTypeMismatch => [PATTERN_TYPE_MISMATCH]);
 
 impl<'tcx> LateLintPass<'tcx> for PatternTypeMismatch {
     fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) {

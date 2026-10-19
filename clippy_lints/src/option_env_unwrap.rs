@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "using `option_env!(...).unwrap()` to get environment variable"
 }
 
-declare_lint_pass!(OptionEnvUnwrap => [OPTION_ENV_UNWRAP]);
+declare_clippy_pass!(OptionEnvUnwrap => [OPTION_ENV_UNWRAP]);
 
 impl EarlyLintPass for OptionEnvUnwrap {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

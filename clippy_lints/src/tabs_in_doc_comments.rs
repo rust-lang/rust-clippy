@@ -57,7 +57,7 @@ declare_clippy_lint! {
     "using tabs in doc comments is not recommended"
 }
 
-declare_lint_pass!(TabsInDocComments => [TABS_IN_DOC_COMMENTS]);
+declare_clippy_pass!(TabsInDocComments => [TABS_IN_DOC_COMMENTS]);
 
 impl TabsInDocComments {
     fn warn_if_tabs_in_doc(cx: &EarlyContext<'_>, attr: &ast::Attribute) {

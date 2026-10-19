@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "numbered fields in tuple struct initializer"
 }
 
-declare_lint_pass!(NumberedFields => [INIT_NUMBERED_FIELDS]);
+declare_clippy_pass!(NumberedFields => [INIT_NUMBERED_FIELDS]);
 
 impl<'tcx> LateLintPass<'tcx> for NumberedFields {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

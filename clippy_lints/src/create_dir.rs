@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "calling `std::fs::create_dir` instead of `std::fs::create_dir_all`"
 }
 
-declare_lint_pass!(CreateDir => [CREATE_DIR]);
+declare_clippy_pass!(CreateDir => [CREATE_DIR]);
 
 impl LateLintPass<'_> for CreateDir {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

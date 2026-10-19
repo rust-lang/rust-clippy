@@ -29,7 +29,7 @@ declare_clippy_lint! {
     "using `size_of::<T>` or `size_of_val::<T>` where a count of elements of `T` is expected"
 }
 
-declare_lint_pass!(SizeOfInElementCount => [SIZE_OF_IN_ELEMENT_COUNT]);
+declare_clippy_pass!(SizeOfInElementCount => [SIZE_OF_IN_ELEMENT_COUNT]);
 
 fn get_size_of_ty<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, inverted: bool) -> Option<Ty<'tcx>> {
     match expr.kind {

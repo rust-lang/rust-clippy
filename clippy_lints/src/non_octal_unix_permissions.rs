@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "use of non-octal value to set unix file permissions, which will be translated into octal"
 }
 
-declare_lint_pass!(NonOctalUnixPermissions => [NON_OCTAL_UNIX_PERMISSIONS]);
+declare_clippy_pass!(NonOctalUnixPermissions => [NON_OCTAL_UNIX_PERMISSIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for NonOctalUnixPermissions {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

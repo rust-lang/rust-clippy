@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "unidiomatic `let mut` declaration followed by initialization in `if`"
 }
 
-declare_lint_pass!(LetIfSeq => [USELESS_LET_IF_SEQ]);
+declare_clippy_pass!(LetIfSeq => [USELESS_LET_IF_SEQ]);
 
 impl<'tcx> LateLintPass<'tcx> for LetIfSeq {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx hir::Block<'_>) {

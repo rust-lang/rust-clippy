@@ -29,7 +29,7 @@ declare_clippy_lint! {
     "enforce against excluding code from test builds"
 }
 
-declare_lint_pass!(CfgNotTest => [CFG_NOT_TEST]);
+declare_clippy_pass!(CfgNotTest => [CFG_NOT_TEST]);
 
 impl EarlyLintPass for CfgNotTest {
     fn check_attribute(&mut self, cx: &EarlyContext<'_>, attr: &rustc_ast::Attribute) {

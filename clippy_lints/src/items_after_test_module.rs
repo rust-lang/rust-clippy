@@ -41,7 +41,7 @@ declare_clippy_lint! {
     "An item was found after the testing module `tests`"
 }
 
-declare_lint_pass!(ItemsAfterTestModule => [ITEMS_AFTER_TEST_MODULE]);
+declare_clippy_pass!(ItemsAfterTestModule => [ITEMS_AFTER_TEST_MODULE]);
 
 fn cfg_test_module<'tcx>(cx: &LateContext<'tcx>, item: &Item<'tcx>) -> bool {
     if let ItemKind::Mod(_, test_mod) = item.kind

@@ -49,7 +49,7 @@ declare_clippy_lint! {
     "enum with no variants"
 }
 
-declare_lint_pass!(EmptyEnums => [EMPTY_ENUMS]);
+declare_clippy_pass!(EmptyEnums => [EMPTY_ENUMS]);
 
 impl LateLintPass<'_> for EmptyEnums {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {

@@ -90,7 +90,7 @@ declare_clippy_lint! {
     "using a mutex for an integer type"
 }
 
-declare_lint_pass!(Mutex => [MUTEX_ATOMIC, MUTEX_INTEGER]);
+declare_clippy_pass!(Mutex => [MUTEX_ATOMIC, MUTEX_INTEGER]);
 
 // NOTE: we don't use `check_expr` because that would make us lint every _use_ of such mutexes, not
 // just their definitions

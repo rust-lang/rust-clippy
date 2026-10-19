@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "check `std::iter::Empty::default()` and replace with `std::iter::empty()`"
 }
 
-declare_lint_pass!(DefaultIterEmpty => [DEFAULT_INSTEAD_OF_ITER_EMPTY]);
+declare_clippy_pass!(DefaultIterEmpty => [DEFAULT_INSTEAD_OF_ITER_EMPTY]);
 
 impl<'tcx> LateLintPass<'tcx> for DefaultIterEmpty {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

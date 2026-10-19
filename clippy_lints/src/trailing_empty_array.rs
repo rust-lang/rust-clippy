@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "struct with a trailing zero-sized array but without `#[repr(C)]` or another `repr` attribute"
 }
 
-declare_lint_pass!(TrailingEmptyArray => [TRAILING_EMPTY_ARRAY]);
+declare_clippy_pass!(TrailingEmptyArray => [TRAILING_EMPTY_ARRAY]);
 
 impl<'tcx> LateLintPass<'tcx> for TrailingEmptyArray {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

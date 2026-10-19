@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "using `Foo { ..base }` when there are no missing fields"
 }
 
-declare_lint_pass!(NeedlessUpdate => [NEEDLESS_UPDATE]);
+declare_clippy_pass!(NeedlessUpdate => [NEEDLESS_UPDATE]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessUpdate {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

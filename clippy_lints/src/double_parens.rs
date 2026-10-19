@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "Warn on unnecessary double parentheses"
 }
 
-declare_lint_pass!(DoubleParens => [DOUBLE_PARENS]);
+declare_clippy_pass!(DoubleParens => [DOUBLE_PARENS]);
 
 impl EarlyLintPass for DoubleParens {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

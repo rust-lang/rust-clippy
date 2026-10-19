@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "Perform saturating addition instead of implicitly checking max bound of data type"
 }
 
-declare_lint_pass!(ImplicitSaturatingAdd => [IMPLICIT_SATURATING_ADD]);
+declare_clippy_pass!(ImplicitSaturatingAdd => [IMPLICIT_SATURATING_ADD]);
 
 impl<'tcx> LateLintPass<'tcx> for ImplicitSaturatingAdd {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

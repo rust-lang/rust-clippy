@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "`clone()` of an owned value that is going to be dropped immediately"
 }
 
-declare_lint_pass!(RedundantClone => [REDUNDANT_CLONE]);
+declare_clippy_pass!(RedundantClone => [REDUNDANT_CLONE]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantClone {
     #[expect(clippy::too_many_lines)]

@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "fn arguments of type Fn(...) -> Ord returning the unit type ()."
 }
 
-declare_lint_pass!(UnitReturnExpectingOrd => [UNIT_RETURN_EXPECTING_ORD]);
+declare_clippy_pass!(UnitReturnExpectingOrd => [UNIT_RETURN_EXPECTING_ORD]);
 
 fn get_trait_predicates_for_trait_ids<'tcx>(
     cx: &LateContext<'tcx>,

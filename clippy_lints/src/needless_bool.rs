@@ -103,7 +103,7 @@ declare_clippy_lint! {
     "setting the same boolean variable in both branches of an if-statement"
 }
 
-declare_lint_pass!(NeedlessBool => [NEEDLESS_BOOL, NEEDLESS_BOOL_ASSIGN]);
+declare_clippy_pass!(NeedlessBool => [NEEDLESS_BOOL, NEEDLESS_BOOL_ASSIGN]);
 
 fn condition_needs_parentheses(e: &Expr<'_>) -> bool {
     let mut inner = e;

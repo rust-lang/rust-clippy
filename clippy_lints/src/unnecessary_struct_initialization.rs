@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "struct built from a base that can be written mode concisely"
 }
 
-declare_lint_pass!(UnnecessaryStruct => [UNNECESSARY_STRUCT_INITIALIZATION]);
+declare_clippy_pass!(UnnecessaryStruct => [UNNECESSARY_STRUCT_INITIALIZATION]);
 
 impl LateLintPass<'_> for UnnecessaryStruct {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

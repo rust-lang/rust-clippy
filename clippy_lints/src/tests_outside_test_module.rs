@@ -44,7 +44,7 @@ declare_clippy_lint! {
     "A test function is outside the testing module."
 }
 
-declare_lint_pass!(TestsOutsideTestModule => [TESTS_OUTSIDE_TEST_MODULE]);
+declare_clippy_pass!(TestsOutsideTestModule => [TESTS_OUTSIDE_TEST_MODULE]);
 
 impl LateLintPass<'_> for TestsOutsideTestModule {
     fn check_fn(

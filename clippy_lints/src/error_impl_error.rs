@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "exported types named `Error` that implement `Error`"
 }
 
-declare_lint_pass!(ErrorImplError => [ERROR_IMPL_ERROR]);
+declare_clippy_pass!(ErrorImplError => [ERROR_IMPL_ERROR]);
 
 impl<'tcx> LateLintPass<'tcx> for ErrorImplError {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

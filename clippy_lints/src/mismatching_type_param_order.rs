@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "type parameter positioned inconsistently between type def and impl block"
 }
 
-declare_lint_pass!(TypeParamMismatch => [MISMATCHING_TYPE_PARAM_ORDER]);
+declare_clippy_pass!(TypeParamMismatch => [MISMATCHING_TYPE_PARAM_ORDER]);
 
 impl<'tcx> LateLintPass<'tcx> for TypeParamMismatch {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "initializing reference-counted pointer in `vec![elem; len]`"
 }
 
-declare_lint_pass!(RcCloneInVecInit => [RC_CLONE_IN_VEC_INIT]);
+declare_clippy_pass!(RcCloneInVecInit => [RC_CLONE_IN_VEC_INIT]);
 
 impl LateLintPass<'_> for RcCloneInVecInit {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

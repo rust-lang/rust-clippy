@@ -160,11 +160,11 @@ declare_clippy_lint! {
     "slicing a string"
 }
 
-declare_lint_pass!(StrToString => [STR_TO_STRING]);
+declare_clippy_pass!(StrToString => [STR_TO_STRING]);
 
-declare_lint_pass!(StringAdd => [STRING_ADD, STRING_ADD_ASSIGN, STRING_SLICE]);
+declare_clippy_pass!(StringAdd => [STRING_ADD, STRING_ADD_ASSIGN, STRING_SLICE]);
 
-declare_lint_pass!(StringLitAsBytes => [STRING_LIT_AS_BYTES]);
+declare_clippy_pass!(StringLitAsBytes => [STRING_LIT_AS_BYTES]);
 
 impl<'tcx> LateLintPass<'tcx> for StringAdd {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

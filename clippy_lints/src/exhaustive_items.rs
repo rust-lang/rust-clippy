@@ -65,7 +65,7 @@ declare_clippy_lint! {
     "detects exported structs that have not been marked #[non_exhaustive]"
 }
 
-declare_lint_pass!(ExhaustiveItems => [EXHAUSTIVE_ENUMS, EXHAUSTIVE_STRUCTS]);
+declare_clippy_pass!(ExhaustiveItems => [EXHAUSTIVE_ENUMS, EXHAUSTIVE_STRUCTS]);
 
 impl LateLintPass<'_> for ExhaustiveItems {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {
