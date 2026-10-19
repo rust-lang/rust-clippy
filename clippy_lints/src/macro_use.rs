@@ -5,7 +5,7 @@ use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{self as hir, AmbigArg, UseTree};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::edition::Edition;
 use rustc_span::{OrdSpan, Span};
 use std::collections::BTreeMap;

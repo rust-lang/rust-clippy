@@ -4,7 +4,7 @@ use clippy_utils::{ExprUseNode, get_expr_use_site, numeric_literal};
 use rustc_ast::ast::{LitFloatType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, FloatTy};
 use std::fmt;
 

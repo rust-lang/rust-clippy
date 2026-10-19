@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::sym;
 use rustc_errors::MultiSpan;
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::AssocTag;
 
 declare_clippy_lint! {

@@ -5,7 +5,7 @@ use rustc_attr_ir::find_attr;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, FnDecl, OwnerId, TraitItem, TraitItemKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {

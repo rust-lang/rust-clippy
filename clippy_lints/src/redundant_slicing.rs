@@ -7,7 +7,7 @@ use rustc_ast::util::parser::ExprPrecedence;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
-use rustc_lint::{LateContext, LateLintPass, Lint, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, Lint};
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{self, GenericArg, Ty, Unnormalized};
 

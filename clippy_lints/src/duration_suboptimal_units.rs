@@ -9,7 +9,7 @@ use clippy_utils::sym;
 use rustc_attr_ir::RustcVersion;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::{self, TyCtxt, UintTy};
 use rustc_span::Symbol;
 

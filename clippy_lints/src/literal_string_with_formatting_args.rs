@@ -1,7 +1,7 @@
 use rustc_ast::{LitKind, StrStyle};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lexer::is_ident;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_parse_format::{ParseMode, Parser, Piece};
 use rustc_span::{BytePos, Span};
 

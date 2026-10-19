@@ -6,7 +6,7 @@ use rustc_ast::ast::{LitIntType, LitKind};
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{AssignOpKind, BinOpKind, Block, Expr, ExprKind, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{IntTy, Ty, UintTy};
 
 declare_clippy_lint! {

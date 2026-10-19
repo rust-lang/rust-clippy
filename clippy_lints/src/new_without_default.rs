@@ -6,7 +6,7 @@ use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::HirIdSet;
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::AssocKind;
 use rustc_span::sym;
 

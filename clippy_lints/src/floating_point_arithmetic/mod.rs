@@ -3,7 +3,7 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{is_in_const_context, is_no_std_crate, sym};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 mod custom_abs;
 mod expm1;

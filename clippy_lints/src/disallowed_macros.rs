@@ -10,7 +10,7 @@ use rustc_hir::{
     AmbigArg, Expr, ExprKind, ForeignItem, HirId, ImplItem, ImplItemImplKind, Item, ItemKind, OwnerId, Pat, Path, Stmt,
     TraitItem, Ty,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{ExpnId, MacroKind, Span};
 

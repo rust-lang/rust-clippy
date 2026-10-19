@@ -15,7 +15,7 @@ use clippy_utils::paths::{PathNS, lookup_path_str};
 use rustc_ast::{self as ast, visit};
 use rustc_hir as hir;
 use rustc_hir::intravisit;
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, declare_lint_pass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 use rustc_span::def_id::{DefIdSet, LocalDefId};

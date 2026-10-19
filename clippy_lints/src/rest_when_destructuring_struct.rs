@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
 use rustc_errors::Applicability;
-use rustc_lint::{LateLintPass, declare_lint_pass};
+use rustc_lint::LateLintPass;
 use rustc_middle::ty;
 
 use std::fmt::Write as _;

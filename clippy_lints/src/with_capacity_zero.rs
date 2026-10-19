@@ -4,7 +4,7 @@ use clippy_utils::{fn_def_id, is_integer_literal, last_path_segment, span_contai
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 
 declare_clippy_lint! {

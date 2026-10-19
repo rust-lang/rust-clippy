@@ -4,7 +4,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::ty::{is_copy, opt_must_use_path};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_hir::{Arm, Expr, ExprKind, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::sym;
 use std::borrow::Cow;
 
