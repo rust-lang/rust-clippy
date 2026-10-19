@@ -244,5 +244,126 @@ fn _with_generics<T: 'static, U: 'static>() {
         let _: *const u32 = transmute(value::<Box<T>>());
         // Ok
         let _: Box<T> = transmute(value::<*const u32>());
+
+        // Ok, differs only in type parameters
+        let _: Vec<Option<U>> = transmute(value::<Vec<Option<T>>>());
+        // Ok
+        let _: Vec<Option<u32>> = transmute(value::<Vec<Option<T>>>());
+    }
+}
+
+fn _enums() {
+    use core::num::NonZeroU32;
+
+    enum Data {
+        Int(u32),
+        Float(f32),
+    }
+    enum Fieldless {
+        Off,
+        On,
+    }
+    enum Other {
+        A(u32),
+        B(u32),
+    }
+    #[repr(u8)]
+    enum ReprU8 {
+        Off,
+        On,
+    }
+    #[repr(C)]
+    enum ReprC {
+        Off,
+        On,
+    }
+    #[repr(C, u8)]
+    enum ReprCU8 {
+        Off(u8),
+        On,
+    }
+    enum Never {}
+    enum Generic<T> {
+        A(T),
+        B,
+    }
+    #[repr(transparent)]
+    struct Transparent<'a>(&'a u32);
+
+    unsafe {
+        // Err
+        let _: u64 = transmute(value::<Data>());
+        //~^ transmute_undefined_repr
+
+        // Err
+        let _: Data = transmute(value::<u64>());
+        //~^ transmute_undefined_repr
+
+        // Err
+        let _: u8 = transmute(value::<Fieldless>());
+        //~^ transmute_undefined_repr
+
+        // Err
+        let _: Fieldless = transmute(value::<u8>());
+        //~^ transmute_undefined_repr
+
+        // Err
+        let _: Other = transmute(value::<Data>());
+        //~^ transmute_undefined_repr
+
+        // Err
+        let _: Ty2<u32, u32> = transmute(value::<Data>());
+        //~^ transmute_undefined_repr
+
+        // Err, not guaranteed to be niche optimized
+        let _: u64 = transmute(value::<Option<u32>>());
+        //~^ transmute_undefined_repr
+
+        // Err, `*const T` has no niche
+        let _: u128 = transmute(value::<Option<*const u32>>());
+        //~^ transmute_undefined_repr
+
+        // Err
+        let _: Generic<i32> = transmute(value::<Generic<u32>>());
+        //~^ transmute_undefined_repr
+
+        // Ok, explicit representation
+        let _: u8 = transmute(value::<ReprU8>());
+        // Ok
+        let _: ReprU8 = transmute(value::<u8>());
+        // Ok
+        let _: u32 = transmute(value::<ReprC>());
+        // Ok
+        let _: ReprC = transmute(value::<u32>());
+        // Ok
+        let _: u16 = transmute(value::<ReprCU8>());
+
+        // Ok, empty enum
+        let _: () = transmute(value::<Never>());
+        // Ok, `c_void`
+        let _: *const c_void = transmute(value::<*const Data>());
+
+        // Ok, documented `Option` layout guarantees
+        let _: *const u32 = transmute(value::<Option<&u32>>());
+        let _: Option<&u32> = transmute(value::<*const u32>());
+        let _: *mut u32 = transmute(value::<Option<&mut u32>>());
+        let _: *const u32 = transmute(value::<Option<Box<u32>>>());
+        let _: *const u32 = transmute(value::<Option<NonNull<u32>>>());
+        let _: u32 = transmute(value::<Option<NonZeroU32>>());
+        let _: usize = transmute(value::<Option<fn()>>());
+        let _: *const u32 = transmute(value::<Option<Transparent<'_>>>());
+
+        // Ok, documented `Result` layout guarantees
+        let _: *const u32 = transmute(value::<Result<&u32, ()>>());
+        let _: *const u32 = transmute(value::<Result<(), Box<u32>>>());
+        let _: u32 = transmute(value::<Result<NonZeroU32, ()>>());
+
+        // Err, `Result` without a guarantee
+        let _: u64 = transmute(value::<Result<u32, u32>>());
+        //~^ transmute_undefined_repr
+
+        // Err, `u64` is not a 1-ZST
+        let _: u128 = transmute(value::<Result<&u32, u64>>());
+        //~^ transmute_undefined_repr
     }
 }
