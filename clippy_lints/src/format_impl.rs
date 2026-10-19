@@ -89,8 +89,6 @@ declare_clippy_lint! {
     "Format trait method called while implementing the same Format trait"
 }
 
-impl_lint_pass!(FormatImpl => [PRINT_IN_FORMAT_IMPL, RECURSIVE_FORMAT_IMPL]);
-
 #[derive(Clone, Copy)]
 struct FormatTraitNames {
     /// e.g. `sym::Display`
@@ -99,11 +97,11 @@ struct FormatTraitNames {
     formatter_name: Option<Symbol>,
 }
 
-pub struct FormatImpl {
+declare_clippy_pass!(FormatImpl { 
     format_args: FormatArgsStorage,
     // Whether we are inside Display or Debug trait impl - None for neither
     format_trait_impl: Option<FormatTraitNames>,
-}
+ } => [PRINT_IN_FORMAT_IMPL, RECURSIVE_FORMAT_IMPL]);
 
 impl FormatImpl {
     pub fn new(format_args: FormatArgsStorage) -> Self {

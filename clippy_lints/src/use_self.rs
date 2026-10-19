@@ -55,13 +55,11 @@ declare_clippy_lint! {
     "unnecessary structure name repetition whereas `Self` is applicable"
 }
 
-impl_lint_pass!(UseSelf => [USE_SELF]);
-
-pub struct UseSelf {
+declare_clippy_pass!(UseSelf { 
     msrv: Msrv,
     stack: Vec<StackItem>,
     recursive_self_in_type_definitions: bool,
-}
+ } => [USE_SELF]);
 
 impl UseSelf {
     pub fn new(conf: &'static Conf) -> Self {

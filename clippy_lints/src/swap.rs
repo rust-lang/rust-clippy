@@ -75,11 +75,9 @@ declare_clippy_lint! {
     "manual swap of two variables"
 }
 
-impl_lint_pass!(Swap => [ALMOST_SWAPPED, MANUAL_SWAP]);
-
-pub struct Swap {
+declare_clippy_pass!(Swap { 
     msrv: Msrv,
-}
+ } => [ALMOST_SWAPPED, MANUAL_SWAP]);
 
 impl Swap {
     pub fn new(conf: &'static Conf) -> Self {

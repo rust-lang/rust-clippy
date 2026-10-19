@@ -39,11 +39,9 @@ declare_clippy_lint! {
     "manual `Option::as_slice`"
 }
 
-impl_lint_pass!(ManualOptionAsSlice => [MANUAL_OPTION_AS_SLICE]);
-
-pub struct ManualOptionAsSlice {
+declare_clippy_pass!(ManualOptionAsSlice { 
     msrv: Msrv,
-}
+ } => [MANUAL_OPTION_AS_SLICE]);
 
 impl ManualOptionAsSlice {
     pub fn new(conf: &Conf) -> Self {

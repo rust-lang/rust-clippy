@@ -50,15 +50,14 @@ declare_clippy_lint! {
     "definitions in `mod.rs` should be in named files"
 }
 
-impl_lint_pass!(DefinitionInModuleRoot => [DEFINITION_IN_MODULE_ROOT]);
-
-#[derive(Default)]
-pub struct DefinitionInModuleRoot {
+declare_clippy_pass!(
+    #[derive(Default)]
+    DefinitionInModuleRoot { 
     /// Stack tracking whether items at the current nesting level are in a
     /// `mod.rs` file. When the stack is empty, we are at crate root depth
     /// (not linted).
     module_stack: Vec<bool>,
-}
+ } => [DEFINITION_IN_MODULE_ROOT]);
 
 impl EarlyLintPass for DefinitionInModuleRoot {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &ast::Item) {

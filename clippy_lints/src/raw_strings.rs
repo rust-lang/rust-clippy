@@ -55,11 +55,9 @@ declare_clippy_lint! {
     "suggests using a string literal when a raw string literal is unnecessary"
 }
 
-impl_lint_pass!(RawStrings => [NEEDLESS_RAW_STRINGS, NEEDLESS_RAW_STRING_HASHES]);
-
-pub struct RawStrings {
+declare_clippy_pass!(RawStrings { 
     pub allow_one_hash_in_raw_strings: bool,
-}
+ } => [NEEDLESS_RAW_STRINGS, NEEDLESS_RAW_STRING_HASHES]);
 
 impl RawStrings {
     pub fn new(conf: &'static Conf) -> Self {

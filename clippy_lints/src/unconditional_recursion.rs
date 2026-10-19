@@ -70,14 +70,13 @@ declare_clippy_lint! {
     "detect unconditional recursion in some traits implementation"
 }
 
-impl_lint_pass!(UnconditionalRecursion => [UNCONDITIONAL_RECURSION]);
-
-#[derive(Default)]
-pub struct UnconditionalRecursion {
+declare_clippy_pass!(
+    #[derive(Default)]
+    UnconditionalRecursion { 
     /// The key is the `DefId` of the type implementing the `Default` trait and the value is the
     /// `DefId` of the return call.
     default_impl_for_type: FxHashMap<DefId, DefId>,
-}
+ } => [UNCONDITIONAL_RECURSION]);
 
 fn span_error(cx: &LateContext<'_>, method_span: Span, expr: &Expr<'_>) {
     span_lint_and_then(

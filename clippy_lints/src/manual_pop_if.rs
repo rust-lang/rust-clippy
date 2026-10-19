@@ -57,12 +57,10 @@ declare_clippy_lint! {
     "manual implementation of `pop_if` methods"
 }
 
-impl_lint_pass!(ManualPopIf => [MANUAL_POP_IF]);
-
-pub struct ManualPopIf {
+declare_clippy_pass!(ManualPopIf { 
     msrv: Msrv,
     binary_heap_pop_if_feature_enabled: bool,
-}
+ } => [MANUAL_POP_IF]);
 
 impl ManualPopIf {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

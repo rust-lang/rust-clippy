@@ -55,11 +55,9 @@ declare_clippy_lint! {
     "declaration of a disallowed field use"
 }
 
-impl_lint_pass!(DisallowedFields => [DISALLOWED_FIELDS]);
-
-pub struct DisallowedFields {
+declare_clippy_pass!(DisallowedFields { 
     disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
-}
+ } => [DISALLOWED_FIELDS]);
 
 impl DisallowedFields {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

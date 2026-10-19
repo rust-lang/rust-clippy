@@ -59,11 +59,9 @@ declare_clippy_lint! {
     "functions that only return `Ok` or `Some`"
 }
 
-impl_lint_pass!(UnnecessaryWraps => [UNNECESSARY_WRAPS]);
-
-pub struct UnnecessaryWraps {
+declare_clippy_pass!(UnnecessaryWraps { 
     avoid_breaking_exported_api: bool,
-}
+ } => [UNNECESSARY_WRAPS]);
 
 impl UnnecessaryWraps {
     pub fn new(conf: &'static Conf) -> Self {

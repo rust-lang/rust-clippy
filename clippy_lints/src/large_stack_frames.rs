@@ -81,12 +81,10 @@ declare_clippy_lint! {
     "checks for functions that allocate a lot of stack space"
 }
 
-impl_lint_pass!(LargeStackFrames => [LARGE_STACK_FRAMES]);
-
-pub struct LargeStackFrames {
+declare_clippy_pass!(LargeStackFrames { 
     maximum_allowed_size: u64,
     allow_large_stack_frames_in_tests: bool,
-}
+ } => [LARGE_STACK_FRAMES]);
 
 impl LargeStackFrames {
     pub fn new(conf: &'static Conf) -> Self {

@@ -55,11 +55,9 @@ declare_clippy_lint! {
     "manual implementation of the `Default` trait which is equal to a derive"
 }
 
-impl_lint_pass!(DerivableImpls => [DERIVABLE_IMPLS]);
-
-pub struct DerivableImpls {
+declare_clippy_pass!(DerivableImpls { 
     msrv: Msrv,
-}
+ } => [DERIVABLE_IMPLS]);
 
 impl DerivableImpls {
     pub fn new(conf: &'static Conf) -> Self {

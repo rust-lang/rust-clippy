@@ -44,11 +44,9 @@ declare_clippy_lint! {
     "usage of non-allowed Unicode scripts"
 }
 
-impl_lint_pass!(DisallowedScriptIdents => [DISALLOWED_SCRIPT_IDENTS]);
-
-pub struct DisallowedScriptIdents {
+declare_clippy_pass!(DisallowedScriptIdents { 
     whitelist: FxHashSet<Script>,
-}
+ } => [DISALLOWED_SCRIPT_IDENTS]);
 
 impl DisallowedScriptIdents {
     pub fn new(conf: &'static Conf) -> Self {

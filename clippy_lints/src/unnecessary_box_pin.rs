@@ -73,11 +73,9 @@ declare_clippy_lint! {
     "using `Box::pin` where `pin!` suffices"
 }
 
-impl_lint_pass!(UnnecessaryBoxPin => [UNNECESSARY_BOX_PIN]);
-
-pub struct UnnecessaryBoxPin {
+declare_clippy_pass!(UnnecessaryBoxPin { 
     msrv: Msrv,
-}
+ } => [UNNECESSARY_BOX_PIN]);
 
 impl UnnecessaryBoxPin {
     pub fn new(conf: &'static Conf) -> Self {

@@ -36,11 +36,9 @@ declare_clippy_lint! {
     "manual implementations of noop wakers can be simplified using Waker::noop()"
 }
 
-impl_lint_pass!(ManualNoopWaker => [MANUAL_NOOP_WAKER]);
-
-pub struct ManualNoopWaker {
+declare_clippy_pass!(ManualNoopWaker { 
     msrv: Msrv,
-}
+ } => [MANUAL_NOOP_WAKER]);
 
 impl ManualNoopWaker {
     pub fn new(conf: &'static Conf) -> Self {

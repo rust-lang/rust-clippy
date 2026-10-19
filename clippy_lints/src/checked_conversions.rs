@@ -33,11 +33,9 @@ declare_clippy_lint! {
     "`try_from` could replace manual bounds checking when casting"
 }
 
-impl_lint_pass!(CheckedConversions => [CHECKED_CONVERSIONS]);
-
-pub struct CheckedConversions {
+declare_clippy_pass!(CheckedConversions { 
     msrv: Msrv,
-}
+ } => [CHECKED_CONVERSIONS]);
 
 impl CheckedConversions {
     pub fn new(conf: &'static Conf) -> Self {

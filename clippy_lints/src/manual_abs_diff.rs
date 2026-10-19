@@ -40,11 +40,9 @@ declare_clippy_lint! {
     "using an if-else pattern instead of `abs_diff`"
 }
 
-impl_lint_pass!(ManualAbsDiff => [MANUAL_ABS_DIFF]);
-
-pub struct ManualAbsDiff {
+declare_clippy_pass!(ManualAbsDiff { 
     msrv: Msrv,
-}
+ } => [MANUAL_ABS_DIFF]);
 
 impl ManualAbsDiff {
     pub fn new(conf: &'static Conf) -> Self {

@@ -47,11 +47,9 @@ declare_clippy_lint! {
     "unnested or-patterns, e.g., `Foo(Bar) | Foo(Baz) instead of `Foo(Bar | Baz)`"
 }
 
-impl_lint_pass!(UnnestedOrPatterns => [UNNESTED_OR_PATTERNS]);
-
-pub struct UnnestedOrPatterns {
+declare_clippy_pass!(UnnestedOrPatterns { 
     msrv: MsrvStack,
-}
+ } => [UNNESTED_OR_PATTERNS]);
 
 impl UnnestedOrPatterns {
     pub fn new(conf: &'static Conf) -> Self {

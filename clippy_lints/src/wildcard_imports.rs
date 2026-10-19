@@ -100,12 +100,10 @@ declare_clippy_lint! {
     "lint `use _::*` statements"
 }
 
-impl_lint_pass!(WildcardImports => [ENUM_GLOB_USE, WILDCARD_IMPORTS]);
-
-pub struct WildcardImports {
+declare_clippy_pass!(WildcardImports { 
     warn_on_all: bool,
     allowed_segments: &'static FxHashSet<String>,
-}
+ } => [ENUM_GLOB_USE, WILDCARD_IMPORTS]);
 
 impl WildcardImports {
     pub fn new(conf: &'static Conf) -> Self {

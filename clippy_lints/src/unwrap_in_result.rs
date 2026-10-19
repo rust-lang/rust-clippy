@@ -55,8 +55,6 @@ declare_clippy_lint! {
     "functions of type `Result<..>` or `Option`<...> that contain `expect()` or `unwrap()`"
 }
 
-impl_lint_pass!(UnwrapInResult => [UNWRAP_IN_RESULT]);
-
 #[derive(Clone, Copy, Eq, PartialEq)]
 enum OptionOrResult {
     Option,
@@ -77,11 +75,12 @@ struct OptionOrResultFn {
     return_ty_span: Option<Span>,
 }
 
-#[derive(Default)]
-pub struct UnwrapInResult {
+declare_clippy_pass!(
+    #[derive(Default)]
+    UnwrapInResult { 
     fn_stack: Vec<Option<OptionOrResultFn>>,
     current_fn: Option<OptionOrResultFn>,
-}
+ } => [UNWRAP_IN_RESULT]);
 
 impl UnwrapInResult {
     fn enter_item(&mut self, cx: &LateContext<'_>, fn_def_id: OwnerId, sig: &FnSig<'_>) {

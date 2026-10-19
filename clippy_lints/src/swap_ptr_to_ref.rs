@@ -39,11 +39,9 @@ declare_clippy_lint! {
     "call to `mem::swap` using pointer derived references"
 }
 
-impl_lint_pass!(SwapPtrToRef => [SWAP_PTR_TO_REF]);
-
-pub struct SwapPtrToRef {
+declare_clippy_pass!(SwapPtrToRef { 
     msrv: Msrv,
-}
+ } => [SWAP_PTR_TO_REF]);
 
 impl SwapPtrToRef {
     pub fn new(conf: &'static Conf) -> Self {

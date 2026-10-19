@@ -45,11 +45,9 @@ declare_clippy_lint! {
     "enforce import renames"
 }
 
-impl_lint_pass!(ImportRename => [MISSING_ENFORCED_IMPORT_RENAMES]);
-
-pub struct ImportRename {
+declare_clippy_pass!(ImportRename { 
     renames: DefIdMap<Symbol>,
-}
+ } => [MISSING_ENFORCED_IMPORT_RENAMES]);
 
 impl ImportRename {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

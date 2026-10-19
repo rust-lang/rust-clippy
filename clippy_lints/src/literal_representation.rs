@@ -144,9 +144,9 @@ declare_clippy_lint! {
     "binary or hex literals that aren't grouped by four"
 }
 
-impl_lint_pass!(DecimalLiteralRepresentation => [DECIMAL_LITERAL_REPRESENTATION]);
-
-impl_lint_pass!(LiteralDigitGrouping => [
+declare_clippy_pass!(LiteralDigitGrouping {
+    lint_fraction_readability: bool,
+} => [
     INCONSISTENT_DIGIT_GROUPING,
     LARGE_DIGIT_GROUPS,
     MISTYPED_LITERAL_SUFFIXES,
@@ -198,10 +198,6 @@ impl WarningType {
             diag.span_suggestion(span, try_msg, num_lit.format(), Applicability::MaybeIncorrect);
         });
     }
-}
-
-pub struct LiteralDigitGrouping {
-    lint_fraction_readability: bool,
 }
 
 impl EarlyLintPass for LiteralDigitGrouping {
@@ -413,9 +409,9 @@ impl LiteralDigitGrouping {
     }
 }
 
-pub struct DecimalLiteralRepresentation {
+declare_clippy_pass!(DecimalLiteralRepresentation { 
     threshold: u64,
-}
+ } => [DECIMAL_LITERAL_REPRESENTATION]);
 
 impl EarlyLintPass for DecimalLiteralRepresentation {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

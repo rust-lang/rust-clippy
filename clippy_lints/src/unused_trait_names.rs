@@ -44,11 +44,9 @@ declare_clippy_lint! {
     "use items that import a trait but only use it anonymously"
 }
 
-impl_lint_pass!(UnusedTraitNames => [UNUSED_TRAIT_NAMES]);
-
-pub struct UnusedTraitNames {
+declare_clippy_pass!(UnusedTraitNames { 
     msrv: Msrv,
-}
+ } => [UNUSED_TRAIT_NAMES]);
 
 impl UnusedTraitNames {
     pub fn new(conf: &'static Conf) -> Self {

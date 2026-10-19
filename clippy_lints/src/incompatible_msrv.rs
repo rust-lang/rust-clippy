@@ -71,8 +71,6 @@ declare_clippy_lint! {
     "ensures that all items used in the crate are available for the current MSRV"
 }
 
-impl_lint_pass!(IncompatibleMsrv => [INCOMPATIBLE_MSRV]);
-
 #[derive(Clone, Copy)]
 enum Availability {
     FeatureEnabled,
@@ -104,7 +102,7 @@ impl StdCrates {
     }
 }
 
-pub struct IncompatibleMsrv {
+declare_clippy_pass!(IncompatibleMsrv { 
     msrv: Msrv,
     availability_cache: FxHashMap<(DefId, bool), Availability>,
     check_in_tests: bool,
@@ -113,7 +111,7 @@ pub struct IncompatibleMsrv {
     // The most recently called path. Used to skip checking the path after it's
     // been checked when visiting the call expression.
     called_path: Option<HirId>,
-}
+ } => [INCOMPATIBLE_MSRV]);
 
 impl IncompatibleMsrv {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

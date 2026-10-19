@@ -73,11 +73,9 @@ declare_clippy_lint! {
     "Lint functions definitions that could be made `const fn`"
 }
 
-impl_lint_pass!(MissingConstForFn => [MISSING_CONST_FOR_FN]);
-
-pub struct MissingConstForFn {
+declare_clippy_pass!(MissingConstForFn { 
     msrv: Msrv,
-}
+ } => [MISSING_CONST_FOR_FN]);
 
 impl MissingConstForFn {
     pub fn new(conf: &'static Conf) -> Self {

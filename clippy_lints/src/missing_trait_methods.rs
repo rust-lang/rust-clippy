@@ -57,11 +57,9 @@ declare_clippy_lint! {
     "trait implementation uses default provided method"
 }
 
-impl_lint_pass!(MissingTraitMethods => [MISSING_TRAIT_METHODS]);
-
-pub struct MissingTraitMethods {
+declare_clippy_pass!(MissingTraitMethods { 
     msrv: Msrv,
-}
+ } => [MISSING_TRAIT_METHODS]);
 
 impl MissingTraitMethods {
     pub fn new(conf: &'static Conf) -> Self {

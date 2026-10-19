@@ -62,8 +62,6 @@ declare_clippy_lint! {
     "use dedicated method to check if a float is infinite"
 }
 
-impl_lint_pass!(ManualFloatMethods => [MANUAL_IS_FINITE, MANUAL_IS_INFINITE]);
-
 #[derive(Clone, Copy)]
 enum Variant {
     ManualIsInfinite,
@@ -86,9 +84,9 @@ impl Variant {
     }
 }
 
-pub struct ManualFloatMethods {
+declare_clippy_pass!(ManualFloatMethods { 
     msrv: Msrv,
-}
+ } => [MANUAL_IS_FINITE, MANUAL_IS_INFINITE]);
 
 impl ManualFloatMethods {
     pub fn new(conf: &'static Conf) -> Self {

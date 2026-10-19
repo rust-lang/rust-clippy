@@ -51,12 +51,10 @@ declare_clippy_lint! {
     "constructing a `Duration` using a smaller unit when a larger unit would be more readable"
 }
 
-impl_lint_pass!(DurationSuboptimalUnits => [DURATION_SUBOPTIMAL_UNITS]);
-
-pub struct DurationSuboptimalUnits {
+declare_clippy_pass!(DurationSuboptimalUnits { 
     msrv: Msrv,
     units: Vec<Unit>,
-}
+ } => [DURATION_SUBOPTIMAL_UNITS]);
 
 impl DurationSuboptimalUnits {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

@@ -41,13 +41,12 @@ declare_clippy_lint! {
     "calls to `Into`, `TryInto`, `From`, `TryFrom`, or `IntoIterator` which perform useless conversions to the same type"
 }
 
-impl_lint_pass!(UselessConversion => [USELESS_CONVERSION]);
-
-#[derive(Default)]
-pub struct UselessConversion {
+declare_clippy_pass!(
+    #[derive(Default)]
+    UselessConversion { 
     try_desugar_arm: Vec<HirId>,
     expn_depth: u32,
-}
+ } => [USELESS_CONVERSION]);
 
 enum MethodOrFunction {
     Method,

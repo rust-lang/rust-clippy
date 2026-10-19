@@ -44,11 +44,9 @@ declare_clippy_lint! {
     "`retain()` is simpler and the same functionalities"
 }
 
-impl_lint_pass!(ManualRetain => [MANUAL_RETAIN]);
-
-pub struct ManualRetain {
+declare_clippy_pass!(ManualRetain { 
     msrv: Msrv,
-}
+ } => [MANUAL_RETAIN]);
 
 impl ManualRetain {
     pub fn new(conf: &'static Conf) -> Self {

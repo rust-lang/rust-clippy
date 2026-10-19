@@ -96,11 +96,9 @@ declare_clippy_lint! {
     "comparing unit values"
 }
 
-impl_lint_pass!(UnitTypes => [LET_UNIT_VALUE, UNIT_ARG, UNIT_CMP]);
-
-pub struct UnitTypes {
+declare_clippy_pass!(UnitTypes { 
     format_args: FormatArgsStorage,
-}
+ } => [LET_UNIT_VALUE, UNIT_ARG, UNIT_CMP]);
 
 impl UnitTypes {
     pub fn new(format_args: FormatArgsStorage) -> Self {

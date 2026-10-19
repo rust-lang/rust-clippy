@@ -43,12 +43,11 @@ declare_clippy_lint! {
     "`push` immediately after `Vec` creation"
 }
 
-impl_lint_pass!(VecInitThenPush => [VEC_INIT_THEN_PUSH]);
-
-#[derive(Default)]
-pub struct VecInitThenPush {
+declare_clippy_pass!(
+    #[derive(Default)]
+    VecInitThenPush { 
     searcher: Option<VecPushSearcher>,
-}
+ } => [VEC_INIT_THEN_PUSH]);
 
 struct VecPushSearcher {
     local_id: HirId,

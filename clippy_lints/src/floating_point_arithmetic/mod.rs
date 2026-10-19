@@ -104,11 +104,9 @@ declare_clippy_lint! {
     "usage of sub-optimal floating point operations"
 }
 
-impl_lint_pass!(FloatingPointArithmetic => [IMPRECISE_FLOPS, SUBOPTIMAL_FLOPS]);
-
-pub struct FloatingPointArithmetic {
+declare_clippy_pass!(FloatingPointArithmetic { 
     msrv: Msrv,
-}
+ } => [IMPRECISE_FLOPS, SUBOPTIMAL_FLOPS]);
 
 impl FloatingPointArithmetic {
     pub fn new(conf: &'static Conf) -> Self {

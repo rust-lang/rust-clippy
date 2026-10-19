@@ -89,17 +89,16 @@ declare_clippy_lint! {
     "finds async trait impl functions with no await statements"
 }
 
-impl_lint_pass!(UnusedAsync => [UNUSED_ASYNC, UNUSED_ASYNC_TRAIT_IMPL]);
-
-#[derive(Default)]
-pub struct UnusedAsync {
+declare_clippy_pass!(
+    #[derive(Default)]
+    UnusedAsync { 
     /// Keeps track of async functions used as values (i.e. path expressions to async functions that
     /// are not immediately called)
     async_fns_as_value: LocalDefIdSet,
     /// Functions with unused `async`, linted post-crate after we've found all uses of local async
     /// functions
     unused_async_fns: Vec<UnusedAsyncFn>,
-}
+ } => [UNUSED_ASYNC, UNUSED_ASYNC_TRAIT_IMPL]);
 
 #[derive(Copy, Clone)]
 struct UnusedAsyncFn {

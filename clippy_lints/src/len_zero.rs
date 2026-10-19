@@ -87,11 +87,9 @@ declare_clippy_lint! {
     "checking `.len() == 0` or `.len() > 0` (or similar) when `.is_empty()` could be used instead"
 }
 
-impl_lint_pass!(LenZero => [COMPARISON_TO_EMPTY, LEN_ZERO]);
-
-pub struct LenZero {
+declare_clippy_pass!(LenZero { 
     msrv: Msrv,
-}
+ } => [COMPARISON_TO_EMPTY, LEN_ZERO]);
 
 impl LenZero {
     pub fn new(conf: &'static Conf) -> Self {

@@ -45,20 +45,19 @@ declare_clippy_lint! {
     "file loaded as module multiple times"
 }
 
-impl_lint_pass!(DuplicateMod => [DUPLICATE_MOD]);
-
 struct Modules {
     local_path: PathBuf,
     spans: Vec<Span>,
     lint_level_specs: Vec<UnstableLevelSpec>,
 }
 
-#[derive(Default)]
-pub struct DuplicateMod {
+declare_clippy_pass!(
+    #[derive(Default)]
+    DuplicateMod { 
     /// map from the canonicalized path to `Modules`, `BTreeMap` to make the
     /// order deterministic for tests
     modules: BTreeMap<PathBuf, Modules>,
-}
+ } => [DUPLICATE_MOD]);
 
 impl EarlyLintPass for DuplicateMod {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

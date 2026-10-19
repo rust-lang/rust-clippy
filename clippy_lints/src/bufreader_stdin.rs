@@ -32,9 +32,7 @@ declare_clippy_lint! {
     "using `BufReader::new` with `Stdin` or `StdinLock` is unnecessary and less efficient"
 }
 
-impl_lint_pass!(BufreaderStdin => [BUFREADER_STDIN]);
-
-pub struct BufreaderStdin {}
+declare_clippy_pass!(BufreaderStdin {  } => [BUFREADER_STDIN]);
 
 impl BufreaderStdin {
     pub fn new() -> Self {

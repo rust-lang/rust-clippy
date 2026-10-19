@@ -39,11 +39,9 @@ declare_clippy_lint! {
     "manual `mem::take` implementation"
 }
 
-impl_lint_pass!(ManualTake => [MANUAL_TAKE]);
-
-pub struct ManualTake {
+declare_clippy_pass!(ManualTake { 
     msrv: Msrv,
-}
+ } => [MANUAL_TAKE]);
 
 impl ManualTake {
     pub fn new(conf: &'static Conf) -> Self {

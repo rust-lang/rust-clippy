@@ -31,11 +31,9 @@ declare_clippy_lint! {
     "`assert!(true)` / `assert!(false)` will be optimized out by the compiler, and should probably be replaced by a `panic!()` or `unreachable!()`"
 }
 
-impl_lint_pass!(AssertionsOnConstants => [ASSERTIONS_ON_CONSTANTS]);
-
-pub struct AssertionsOnConstants {
+declare_clippy_pass!(AssertionsOnConstants { 
     msrv: Msrv,
-}
+ } => [ASSERTIONS_ON_CONSTANTS]);
 impl AssertionsOnConstants {
     pub fn new(conf: &Conf) -> Self {
         Self { msrv: conf.msrv.into() }
