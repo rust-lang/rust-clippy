@@ -57,7 +57,9 @@ jobs:
 
     - name: Create cache key
       id: key
-      run: echo "key=lintcheck-base-${{ hashfiles('lintcheck/**') }}-$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      run: echo "key=lintcheck-base-${LINTCHECK_FILES_HASH}-$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      env:
+        LINTCHECK_FILES_HASH: ${{ hashfiles('lintcheck/**') }}
 
     - name: Cache results JSON
       id: cache-json
