@@ -23,6 +23,8 @@ permissions: {}
 jobs:
   download:
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write # Required by `gh pr comment` to create/update comments on PRs
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Download artifact
