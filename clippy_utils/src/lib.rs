@@ -1,3 +1,4 @@
+#![cfg_attr(bootstrap, feature(unwrap_infallible))]
 #![feature(deref_patterns)]
 #![feature(macro_metavar_expr)]
 #![feature(rustc_private)]
