@@ -44,7 +44,7 @@ jobs:
 
     - name: Cache lintcheck bin
       id: cache-lintcheck-bin
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: target/debug/lintcheck
         key: lintcheck-bin-${{ hashfiles('lintcheck/**') }}
@@ -59,7 +59,7 @@ jobs:
 
     - name: Cache results JSON
       id: cache-json
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: lintcheck-logs/ci_crates_logs.json
         key: ${{ steps.key.outputs.key }}
@@ -87,7 +87,7 @@ jobs:
 
     - name: Cache lintcheck bin
       id: cache-lintcheck-bin
-      uses: actions/cache@v5
+      uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: target/debug/lintcheck
         key: lintcheck-bin-${{ hashfiles('lintcheck/**') }}
@@ -119,7 +119,7 @@ jobs:
         persist-credentials: false
 
     - name: Restore lintcheck bin
-      uses: actions/cache/restore@v5
+      uses: actions/cache/restore@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
       with:
         path: target/debug/lintcheck
         key: lintcheck-bin-${{ hashfiles('lintcheck/**') }}
