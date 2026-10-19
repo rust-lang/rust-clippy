@@ -40,7 +40,9 @@ jobs:
     - name: Checkout current lintcheck
       run: |
         rm -rf lintcheck
-        git checkout ${{ github.sha }} -- lintcheck
+        git checkout "${GITHUB_SHA}" -- lintcheck
+      env:
+        GITHUB_SHA: ${{ github.sha }}
 
     - name: Cache lintcheck bin
       id: cache-lintcheck-bin
