@@ -88,11 +88,9 @@ declare_clippy_lint! {
     "using a clamp pattern instead of the clamp function"
 }
 
-impl_lint_pass!(ManualClamp => [MANUAL_CLAMP]);
-
-pub struct ManualClamp {
+declare_clippy_pass!(ManualClamp { 
     msrv: Msrv,
-}
+ } => [MANUAL_CLAMP]);
 
 impl ManualClamp {
     pub fn new(conf: &'static Conf) -> Self {

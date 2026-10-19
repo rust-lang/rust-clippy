@@ -34,11 +34,9 @@ declare_clippy_lint! {
     "manually reimplementing `rem_euclid`"
 }
 
-impl_lint_pass!(ManualRemEuclid => [MANUAL_REM_EUCLID]);
-
-pub struct ManualRemEuclid {
+declare_clippy_pass!(ManualRemEuclid { 
     msrv: Msrv,
-}
+ } => [MANUAL_REM_EUCLID]);
 
 impl ManualRemEuclid {
     pub fn new(conf: &'static Conf) -> Self {

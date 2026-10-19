@@ -36,11 +36,9 @@ declare_clippy_lint! {
     "manually reimplementing `ilog2`"
 }
 
-impl_lint_pass!(ManualIlog2 => [MANUAL_ILOG2]);
-
-pub struct ManualIlog2 {
+declare_clippy_pass!(ManualIlog2 { 
     msrv: Msrv,
-}
+ } => [MANUAL_ILOG2]);
 
 impl ManualIlog2 {
     pub fn new(conf: &Conf) -> Self {

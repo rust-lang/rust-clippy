@@ -41,11 +41,9 @@ declare_clippy_lint! {
     "suggest using `const` in `thread_local!` macro"
 }
 
-impl_lint_pass!(MissingConstForThreadLocal => [MISSING_CONST_FOR_THREAD_LOCAL]);
-
-pub struct MissingConstForThreadLocal {
+declare_clippy_pass!(MissingConstForThreadLocal { 
     msrv: Msrv,
-}
+ } => [MISSING_CONST_FOR_THREAD_LOCAL]);
 
 impl MissingConstForThreadLocal {
     pub fn new(conf: &'static Conf) -> Self {

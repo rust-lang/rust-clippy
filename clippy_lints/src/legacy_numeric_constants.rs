@@ -33,11 +33,9 @@ declare_clippy_lint! {
     "checks for usage of legacy std numeric constants and methods"
 }
 
-impl_lint_pass!(LegacyNumericConstants => [LEGACY_NUMERIC_CONSTANTS]);
-
-pub struct LegacyNumericConstants {
+declare_clippy_pass!(LegacyNumericConstants { 
     msrv: Msrv,
-}
+ } => [LEGACY_NUMERIC_CONSTANTS]);
 
 impl LegacyNumericConstants {
     pub fn new(conf: &'static Conf) -> Self {

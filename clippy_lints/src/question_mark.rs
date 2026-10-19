@@ -51,9 +51,7 @@ declare_clippy_lint! {
     "checks for expressions that could be replaced by the `?` operator"
 }
 
-impl_lint_pass!(QuestionMark => [MANUAL_LET_ELSE, QUESTION_MARK]);
-
-pub struct QuestionMark {
+declare_clippy_pass!(QuestionMark { 
     pub(crate) msrv: Msrv,
     pub(crate) matches_behaviour: MatchLintBehaviour,
     /// Keeps track of how many try blocks we are in at any point during linting.
@@ -65,7 +63,7 @@ pub struct QuestionMark {
     /// Keeps track of the number of inferred return type closures we are inside, to avoid problems
     /// with the `Err(x.into())` expansion being ambiguous.
     inferred_ret_closure_stack: u16,
-}
+ } => [MANUAL_LET_ELSE, QUESTION_MARK]);
 
 impl QuestionMark {
     pub fn new(conf: &'static Conf) -> Self {

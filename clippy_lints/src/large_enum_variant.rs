@@ -57,11 +57,9 @@ declare_clippy_lint! {
     "large size difference between variants on an enum"
 }
 
-impl_lint_pass!(LargeEnumVariant => [LARGE_ENUM_VARIANT]);
-
-pub struct LargeEnumVariant {
+declare_clippy_pass!(LargeEnumVariant { 
     maximum_size_difference_allowed: u64,
-}
+ } => [LARGE_ENUM_VARIANT]);
 
 impl LargeEnumVariant {
     pub fn new(conf: &'static Conf) -> Self {

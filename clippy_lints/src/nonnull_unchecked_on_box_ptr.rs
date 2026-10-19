@@ -36,11 +36,9 @@ declare_clippy_lint! {
     "checks for uses of `NonNull::new_unchecked` with `Box::into_raw`"
 }
 
-impl_lint_pass!(NonnullUncheckedOnBoxPtr => [NONNULL_UNCHECKED_ON_BOX_PTR]);
-
-pub struct NonnullUncheckedOnBoxPtr {
+declare_clippy_pass!(NonnullUncheckedOnBoxPtr { 
     msrv: Msrv,
-}
+ } => [NONNULL_UNCHECKED_ON_BOX_PTR]);
 
 impl NonnullUncheckedOnBoxPtr {
     pub fn new(conf: &Conf) -> Self {

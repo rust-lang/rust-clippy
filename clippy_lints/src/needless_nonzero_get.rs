@@ -50,11 +50,9 @@ declare_clippy_lint! {
     "unnecessary `NonZero::get` call"
 }
 
-impl_lint_pass!(NeedlessNonzeroGet => [NEEDLESS_NONZERO_GET]);
-
-pub struct NeedlessNonzeroGet {
+declare_clippy_pass!(NeedlessNonzeroGet { 
     msrv: Msrv,
-}
+ } => [NEEDLESS_NONZERO_GET]);
 
 impl NeedlessNonzeroGet {
     pub fn new(conf: &'static Conf) -> Self {

@@ -163,11 +163,10 @@ declare_clippy_lint! {
     "arbitrary source item ordering"
 }
 
-impl_lint_pass!(ArbitrarySourceItemOrdering => [ARBITRARY_SOURCE_ITEM_ORDERING]);
-
-#[derive(Debug)]
-#[expect(clippy::struct_excessive_bools, reason = "Bools are cached feature flags")]
-pub struct ArbitrarySourceItemOrdering {
+declare_clippy_pass!(
+    #[derive(Debug)]
+    #[expect(clippy::struct_excessive_bools, reason = "Bools are cached feature flags")]
+    ArbitrarySourceItemOrdering { 
     assoc_types_order: SourceItemOrderingTraitAssocItemKinds,
     enable_ordering_for_enum: bool,
     enable_ordering_for_impl: bool,
@@ -177,7 +176,7 @@ pub struct ArbitrarySourceItemOrdering {
     module_item_order_groupings: SourceItemOrderingModuleItemGroupings,
     module_items_ordered_within_groupings: SourceItemOrderingWithinModuleItemGroupings,
     trait_impl_item_order: TraitImplItemOrder,
-}
+ } => [ARBITRARY_SOURCE_ITEM_ORDERING]);
 
 impl ArbitrarySourceItemOrdering {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

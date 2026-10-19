@@ -45,9 +45,7 @@ declare_clippy_lint! {
     "disallows idents that are too short"
 }
 
-impl_lint_pass!(MinIdentChars => [MIN_IDENT_CHARS]);
-
-pub struct MinIdentChars {
+declare_clippy_pass!(MinIdentChars { 
     allowed_idents_below_min_chars: &'static FxHashSet<String>,
     min_chars_threshold: u64,
     /// The number of parameter bindings which still need to be skipped for the current
@@ -58,7 +56,7 @@ pub struct MinIdentChars {
     current_fn_params_remaining: u32,
     /// Whether to lint idents that have too few chars even when following trait declaration.
     lint_trait_impl: bool,
-}
+ } => [MIN_IDENT_CHARS]);
 
 impl MinIdentChars {
     pub fn new(conf: &'static Conf) -> Self {

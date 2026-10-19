@@ -40,11 +40,9 @@ declare_clippy_lint! {
     @eval_always = true
 }
 
-impl_lint_pass!(CognitiveComplexity => [COGNITIVE_COMPLEXITY]);
-
-pub struct CognitiveComplexity {
+declare_clippy_pass!(CognitiveComplexity { 
     limit: LimitStack,
-}
+ } => [COGNITIVE_COMPLEXITY]);
 
 impl CognitiveComplexity {
     pub fn new(conf: &'static Conf) -> Self {

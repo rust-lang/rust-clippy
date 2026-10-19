@@ -37,11 +37,9 @@ declare_clippy_lint! {
     "including a large file"
 }
 
-impl_lint_pass!(LargeIncludeFile => [LARGE_INCLUDE_FILE]);
-
-pub struct LargeIncludeFile {
+declare_clippy_pass!(LargeIncludeFile { 
     max_file_size: u64,
-}
+ } => [LARGE_INCLUDE_FILE]);
 
 impl LargeIncludeFile {
     pub fn new(conf: &'static Conf) -> Self {

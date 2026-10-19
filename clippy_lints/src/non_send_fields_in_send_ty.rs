@@ -54,11 +54,9 @@ declare_clippy_lint! {
     "there is a field that is not safe to be sent to another thread in a `Send` struct"
 }
 
-impl_lint_pass!(NonSendFieldInSendTy => [NON_SEND_FIELDS_IN_SEND_TY]);
-
-pub struct NonSendFieldInSendTy {
+declare_clippy_pass!(NonSendFieldInSendTy { 
     enable_raw_pointer_heuristic: bool,
-}
+ } => [NON_SEND_FIELDS_IN_SEND_TY]);
 
 impl NonSendFieldInSendTy {
     pub fn new(conf: &'static Conf) -> Self {

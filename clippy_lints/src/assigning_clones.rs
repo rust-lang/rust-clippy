@@ -52,11 +52,9 @@ declare_clippy_lint! {
     "assigning the result of cloning may be inefficient"
 }
 
-impl_lint_pass!(AssigningClones => [ASSIGNING_CLONES]);
-
-pub struct AssigningClones {
+declare_clippy_pass!(AssigningClones { 
     msrv: Msrv,
-}
+ } => [ASSIGNING_CLONES]);
 
 impl AssigningClones {
     pub fn new(conf: &'static Conf) -> Self {

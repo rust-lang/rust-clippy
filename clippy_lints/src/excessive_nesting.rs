@@ -61,12 +61,10 @@ declare_clippy_lint! {
     "checks for blocks nested beyond a certain threshold"
 }
 
-impl_lint_pass!(ExcessiveNesting => [EXCESSIVE_NESTING]);
-
-pub struct ExcessiveNesting {
+declare_clippy_pass!(ExcessiveNesting { 
     pub excessive_nesting_threshold: u64,
     pub nodes: NodeSet,
-}
+ } => [EXCESSIVE_NESTING]);
 
 impl ExcessiveNesting {
     pub fn new(conf: &'static Conf) -> Self {

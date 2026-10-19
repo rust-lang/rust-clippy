@@ -52,12 +52,10 @@ declare_clippy_lint! {
     "avoid indexing on slices which could be destructed"
 }
 
-impl_lint_pass!(IndexRefutableSlice => [INDEX_REFUTABLE_SLICE]);
-
-pub struct IndexRefutableSlice {
+declare_clippy_pass!(IndexRefutableSlice { 
     max_suggested_slice: u64,
     msrv: Msrv,
-}
+ } => [INDEX_REFUTABLE_SLICE]);
 
 impl IndexRefutableSlice {
     pub fn new(conf: &'static Conf) -> Self {

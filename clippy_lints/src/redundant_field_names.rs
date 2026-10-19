@@ -34,11 +34,9 @@ declare_clippy_lint! {
     "checks for fields in struct literals where shorthands could be used"
 }
 
-impl_lint_pass!(RedundantFieldNames => [REDUNDANT_FIELD_NAMES]);
-
-pub struct RedundantFieldNames {
+declare_clippy_pass!(RedundantFieldNames { 
     msrv: MsrvStack,
-}
+ } => [REDUNDANT_FIELD_NAMES]);
 
 impl RedundantFieldNames {
     pub fn new(conf: &'static Conf) -> Self {

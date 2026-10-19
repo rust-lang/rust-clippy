@@ -31,11 +31,9 @@ declare_clippy_lint! {
     "large non-scalar const array may cause performance overhead"
 }
 
-impl_lint_pass!(LargeConstArrays => [LARGE_CONST_ARRAYS]);
-
-pub struct LargeConstArrays {
+declare_clippy_pass!(LargeConstArrays { 
     maximum_allowed_size: u64,
-}
+ } => [LARGE_CONST_ARRAYS]);
 
 impl LargeConstArrays {
     pub fn new(conf: &'static Conf) -> Self {

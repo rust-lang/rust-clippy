@@ -74,11 +74,9 @@ declare_clippy_lint! {
     "TryFrom<str> instead of FromStr"
 }
 
-impl_lint_pass!(TryFromInsteadOfFromStr => [TRY_FROM_INSTEAD_OF_FROM_STR]);
-
-pub struct TryFromInsteadOfFromStr {
+declare_clippy_pass!(TryFromInsteadOfFromStr { 
     avoid_breaking_exported_api: bool,
-}
+ } => [TRY_FROM_INSTEAD_OF_FROM_STR]);
 
 impl TryFromInsteadOfFromStr {
     pub fn new(conf: &'static Conf) -> Self {

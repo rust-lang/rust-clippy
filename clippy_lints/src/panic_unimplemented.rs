@@ -84,15 +84,13 @@ declare_clippy_lint! {
     "usage of the `unreachable!` macro"
 }
 
-impl_lint_pass!(PanicUnimplemented => [PANIC, TODO, UNIMPLEMENTED, UNREACHABLE]);
-
-pub struct PanicUnimplemented {
+declare_clippy_pass!(PanicUnimplemented { 
     allow_panic_in_tests: bool,
     /// Cache of linted macro calls for avoiding lint duplication.
     /// Considering proc-macros, multiple different macros can be called at the same span.
     /// Therefore, both of `DefId` and `Span` are necessary.
     cache: FxHashSet<(DefId, Span)>,
-}
+ } => [PANIC, TODO, UNIMPLEMENTED, UNREACHABLE]);
 
 impl PanicUnimplemented {
     pub fn new(conf: &'static Conf) -> Self {

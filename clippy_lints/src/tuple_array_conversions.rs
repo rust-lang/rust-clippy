@@ -45,11 +45,9 @@ declare_clippy_lint! {
     "checks for tuple<=>array conversions that are not done with `.into()`"
 }
 
-impl_lint_pass!(TupleArrayConversions => [TUPLE_ARRAY_CONVERSIONS]);
-
-pub struct TupleArrayConversions {
+declare_clippy_pass!(TupleArrayConversions { 
     msrv: Msrv,
-}
+ } => [TUPLE_ARRAY_CONVERSIONS]);
 impl TupleArrayConversions {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv.into() }

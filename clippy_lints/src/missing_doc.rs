@@ -26,9 +26,7 @@ declare_clippy_lint! {
     "detects missing documentation for private members"
 }
 
-impl_lint_pass!(MissingDoc => [MISSING_DOCS_IN_PRIVATE_ITEMS]);
-
-pub struct MissingDoc {
+declare_clippy_pass!(MissingDoc { 
     /// Whether to **only** check for missing documentation in items visible within the current
     /// crate. For example, `pub(crate)` items.
     crate_items_only: bool,
@@ -49,7 +47,7 @@ pub struct MissingDoc {
     in_body: Option<BodyId>,
     /// The module/crate id an item must be visible at to be linted.
     require_visibility_at: Option<LocalDefId>,
-}
+ } => [MISSING_DOCS_IN_PRIVATE_ITEMS]);
 
 impl MissingDoc {
     pub fn new(conf: &'static Conf) -> Self {

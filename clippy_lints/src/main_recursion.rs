@@ -26,12 +26,11 @@ declare_clippy_lint! {
     "recursion using the entrypoint"
 }
 
-impl_lint_pass!(MainRecursion => [MAIN_RECURSION]);
-
-#[derive(Default)]
-pub struct MainRecursion {
+declare_clippy_pass!(
+    #[derive(Default)]
+    MainRecursion { 
     has_no_std_attr: bool,
-}
+ } => [MAIN_RECURSION]);
 
 impl LateLintPass<'_> for MainRecursion {
     fn check_crate(&mut self, cx: &LateContext<'_>) {

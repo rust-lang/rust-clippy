@@ -105,8 +105,6 @@ declare_clippy_lint! {
     "trivial regular expressions"
 }
 
-impl_lint_pass!(Regex => [INVALID_REGEX, REGEX_CREATION_IN_LOOPS, TRIVIAL_REGEX]);
-
 #[derive(Copy, Clone)]
 enum RegexKind {
     Unicode,
@@ -115,11 +113,13 @@ enum RegexKind {
     BytesSet,
 }
 
-#[derive(Default)]
-pub struct Regex {
+declare_clippy_pass!(
+    #[derive(Default)]
+    
+    Regex { 
     definitions: DefIdMap<RegexKind>,
     loop_stack: Vec<(OwnerId, Span)>,
-}
+ } => [INVALID_REGEX, REGEX_CREATION_IN_LOOPS, TRIVIAL_REGEX]);
 
 impl<'tcx> LateLintPass<'tcx> for Regex {
     fn check_crate(&mut self, cx: &LateContext<'tcx>) {

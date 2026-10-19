@@ -52,12 +52,10 @@ declare_clippy_lint! {
     "checks for usage of an item without a `use` statement"
 }
 
-impl_lint_pass!(AbsolutePaths => [ABSOLUTE_PATHS]);
-
-pub struct AbsolutePaths {
+declare_clippy_pass!(AbsolutePaths { 
     absolute_paths_max_segments: u64,
     absolute_paths_allowed_crates: &'static FxHashSet<Symbol>,
-}
+ } => [ABSOLUTE_PATHS]);
 
 impl AbsolutePaths {
     pub fn new(conf: &'static Conf) -> Self {

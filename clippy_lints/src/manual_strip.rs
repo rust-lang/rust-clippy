@@ -48,11 +48,9 @@ declare_clippy_lint! {
     "suggests using `strip_{prefix,suffix}` over `str::{starts,ends}_with` and slicing"
 }
 
-impl_lint_pass!(ManualStrip => [MANUAL_STRIP]);
-
-pub struct ManualStrip {
+declare_clippy_pass!(ManualStrip { 
     msrv: Msrv,
-}
+ } => [MANUAL_STRIP]);
 
 impl ManualStrip {
     pub fn new(conf: &'static Conf) -> Self {

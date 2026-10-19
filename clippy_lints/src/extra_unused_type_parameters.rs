@@ -39,11 +39,9 @@ declare_clippy_lint! {
     "unused type parameters in function definitions"
 }
 
-impl_lint_pass!(ExtraUnusedTypeParameters => [EXTRA_UNUSED_TYPE_PARAMETERS]);
-
-pub struct ExtraUnusedTypeParameters {
+declare_clippy_pass!(ExtraUnusedTypeParameters { 
     avoid_breaking_exported_api: bool,
-}
+ } => [EXTRA_UNUSED_TYPE_PARAMETERS]);
 
 impl ExtraUnusedTypeParameters {
     pub fn new(conf: &'static Conf) -> Self {

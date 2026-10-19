@@ -46,11 +46,9 @@ declare_clippy_lint! {
     "Multiple inherent impl that could be grouped"
 }
 
-impl_lint_pass!(MultipleInherentImpl => [MULTIPLE_INHERENT_IMPL]);
-
-pub struct MultipleInherentImpl {
+declare_clippy_pass!(MultipleInherentImpl { 
     scope: InherentImplLintScope,
-}
+ } => [MULTIPLE_INHERENT_IMPL]);
 
 impl MultipleInherentImpl {
     pub fn new(conf: &'static Conf) -> Self {

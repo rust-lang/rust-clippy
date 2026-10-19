@@ -46,11 +46,9 @@ declare_clippy_lint! {
     "manual implementations of `BuildHasher::hash_one`"
 }
 
-impl_lint_pass!(ManualHashOne => [MANUAL_HASH_ONE]);
-
-pub struct ManualHashOne {
+declare_clippy_pass!(ManualHashOne { 
     msrv: Msrv,
-}
+ } => [MANUAL_HASH_ONE]);
 
 impl ManualHashOne {
     pub fn new(conf: &'static Conf) -> Self {

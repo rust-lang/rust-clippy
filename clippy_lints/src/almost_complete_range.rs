@@ -28,11 +28,10 @@ declare_clippy_lint! {
     "almost complete range"
 }
 
-impl_lint_pass!(AlmostCompleteRange => [ALMOST_COMPLETE_RANGE]);
-
-pub struct AlmostCompleteRange {
+declare_clippy_pass!(AlmostCompleteRange { 
     msrv: MsrvStack,
-}
+ } => [ALMOST_COMPLETE_RANGE]);
+
 impl AlmostCompleteRange {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv.into() }

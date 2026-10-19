@@ -58,18 +58,16 @@ declare_clippy_lint! {
     "checks for functions that are only used once"
 }
 
-impl_lint_pass!(SingleCallFn => [SINGLE_CALL_FN]);
-
 #[derive(Debug, Clone)]
 pub enum CallState {
     Once { call_site: Span },
     Multiple,
 }
 
-pub struct SingleCallFn {
+declare_clippy_pass!(SingleCallFn { 
     avoid_breaking_exported_api: bool,
     def_id_to_usage: FxIndexMap<LocalDefId, CallState>,
-}
+ } => [SINGLE_CALL_FN]);
 
 impl SingleCallFn {
     pub fn new(conf: &'static Conf) -> Self {

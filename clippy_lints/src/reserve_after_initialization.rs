@@ -31,12 +31,11 @@ declare_clippy_lint! {
     "`reserve` called immediately after `Vec` creation"
 }
 
-impl_lint_pass!(ReserveAfterInitialization => [RESERVE_AFTER_INITIALIZATION]);
-
-#[derive(Default)]
-pub struct ReserveAfterInitialization {
+declare_clippy_pass!(
+    #[derive(Default)]
+    ReserveAfterInitialization { 
     searcher: Option<VecReserveSearcher>,
-}
+ } => [RESERVE_AFTER_INITIALIZATION]);
 
 struct VecReserveSearcher {
     local_id: HirId,

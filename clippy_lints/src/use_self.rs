@@ -12,7 +12,7 @@ use rustc_hir::{
     self as hir, AmbigArg, Expr, ExprKind, FnRetTy, FnSig, GenericArgsParentheses, GenericParamKind, HirId, Impl,
     ImplItemImplKind, ImplItemKind, Item, ItemKind, Node, Pat, PatExpr, PatExprKind, PatKind, Path, QPath, Ty, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty as MiddleTy;
 use rustc_span::Span;
 use std::iter;
@@ -55,13 +55,11 @@ declare_clippy_lint! {
     "unnecessary structure name repetition whereas `Self` is applicable"
 }
 
-impl_lint_pass!(UseSelf => [USE_SELF]);
-
-pub struct UseSelf {
+declare_clippy_pass!(UseSelf { 
     msrv: Msrv,
     stack: Vec<StackItem>,
     recursive_self_in_type_definitions: bool,
-}
+ } => [USE_SELF]);
 
 impl UseSelf {
     pub fn new(conf: &'static Conf) -> Self {

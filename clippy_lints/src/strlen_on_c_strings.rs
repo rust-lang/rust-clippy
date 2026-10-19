@@ -37,11 +37,9 @@ declare_clippy_lint! {
     "using `libc::strlen` on a `CString` or `CStr` value, while `count_bytes()` can be used instead"
 }
 
-impl_lint_pass!(StrlenOnCStrings => [STRLEN_ON_C_STRINGS]);
-
-pub struct StrlenOnCStrings {
+declare_clippy_pass!(StrlenOnCStrings { 
     msrv: Msrv,
-}
+ } => [STRLEN_ON_C_STRINGS]);
 
 impl StrlenOnCStrings {
     pub fn new(conf: &Conf) -> Self {

@@ -49,11 +49,9 @@ declare_clippy_lint! {
     "Finds if-else that could be written using either `bool::then` or `bool::then_some`"
 }
 
-impl_lint_pass!(IfThenSomeElseNone => [IF_THEN_SOME_ELSE_NONE]);
-
-pub struct IfThenSomeElseNone {
+declare_clippy_pass!(IfThenSomeElseNone { 
     msrv: Msrv,
-}
+ } => [IF_THEN_SOME_ELSE_NONE]);
 
 impl IfThenSomeElseNone {
     pub fn new(conf: &'static Conf) -> Self {

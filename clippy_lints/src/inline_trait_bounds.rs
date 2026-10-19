@@ -37,13 +37,12 @@ declare_clippy_lint! {
     "enforce that `where` bounds are used for all trait bounds"
 }
 
-impl_lint_pass!(InlineTraitBounds => [INLINE_TRAIT_BOUNDS]);
-
-#[derive(Default)]
-pub struct InlineTraitBounds {
+declare_clippy_pass!(
+    #[derive(Default)]
+    InlineTraitBounds { 
     /// The top-level item onto which `#[automatically_derived]` has been encountered
     automatically_derived_at: Option<NodeId>,
-}
+ } => [INLINE_TRAIT_BOUNDS]);
 
 impl EarlyLintPass for InlineTraitBounds {
     fn check_item(&mut self, _: &EarlyContext<'_>, item: &rustc_ast::Item) {

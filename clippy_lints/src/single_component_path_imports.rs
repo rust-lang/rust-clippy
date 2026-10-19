@@ -36,13 +36,12 @@ declare_clippy_lint! {
     "imports with single component path are redundant"
 }
 
-impl_lint_pass!(SingleComponentPathImports => [SINGLE_COMPONENT_PATH_IMPORTS]);
-
-#[derive(Default)]
-pub struct SingleComponentPathImports {
+declare_clippy_pass!(
+    #[derive(Default)]
+    SingleComponentPathImports { 
     /// Buffer found usages to emit when visiting that item so that `#[allow]` works as expected
     found: NodeMap<Vec<SingleUse>>,
-}
+ } => [SINGLE_COMPONENT_PATH_IMPORTS]);
 
 struct SingleUse {
     name: Symbol,

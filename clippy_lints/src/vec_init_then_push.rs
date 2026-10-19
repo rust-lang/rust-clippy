@@ -8,7 +8,7 @@ use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BindingMode, Block, Expr, ExprKind, HirId, LetStmt, Mutability, PatKind, QPath, Stmt, StmtKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
@@ -43,12 +43,11 @@ declare_clippy_lint! {
     "`push` immediately after `Vec` creation"
 }
 
-impl_lint_pass!(VecInitThenPush => [VEC_INIT_THEN_PUSH]);
-
-#[derive(Default)]
-pub struct VecInitThenPush {
+declare_clippy_pass!(
+    #[derive(Default)]
+    VecInitThenPush { 
     searcher: Option<VecPushSearcher>,
-}
+ } => [VEC_INIT_THEN_PUSH]);
 
 struct VecPushSearcher {
     local_id: HirId,

@@ -51,11 +51,9 @@ declare_clippy_lint! {
     "cloning a reference for slice references"
 }
 
-impl_lint_pass!(ClonedRefToSliceRefs => [CLONED_REF_TO_SLICE_REFS]);
-
-pub struct ClonedRefToSliceRefs {
+declare_clippy_pass!(ClonedRefToSliceRefs { 
     msrv: Msrv,
-}
+ } => [CLONED_REF_TO_SLICE_REFS]);
 impl ClonedRefToSliceRefs {
     pub fn new(conf: &Conf) -> Self {
         Self { msrv: conf.msrv.into() }

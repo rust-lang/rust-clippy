@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{Item, ItemKind, UseKind, UseTree};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Visibility;
 use rustc_span::symbol::kw;
 
@@ -44,11 +44,9 @@ declare_clippy_lint! {
     "use items that import a trait but only use it anonymously"
 }
 
-impl_lint_pass!(UnusedTraitNames => [UNUSED_TRAIT_NAMES]);
-
-pub struct UnusedTraitNames {
+declare_clippy_pass!(UnusedTraitNames { 
     msrv: Msrv,
-}
+ } => [UNUSED_TRAIT_NAMES]);
 
 impl UnusedTraitNames {
     pub fn new(conf: &'static Conf) -> Self {

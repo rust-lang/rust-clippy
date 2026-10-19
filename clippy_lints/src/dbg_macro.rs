@@ -32,15 +32,13 @@ declare_clippy_lint! {
     "`dbg!` macro is intended as a debugging tool"
 }
 
-impl_lint_pass!(DbgMacro => [DBG_MACRO]);
-
-pub struct DbgMacro {
+declare_clippy_pass!(DbgMacro { 
     allow_dbg_in_tests: bool,
     /// Tracks the `dbg!` macro callsites that are already checked.
     checked_dbg_call_site: FxHashSet<Span>,
     /// Tracks the previous `SyntaxContext`, to avoid walking the same context chain.
     prev_ctxt: SyntaxContext,
-}
+ } => [DBG_MACRO]);
 
 impl DbgMacro {
     pub fn new(conf: &'static Conf) -> Self {
