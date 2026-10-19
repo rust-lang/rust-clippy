@@ -82,10 +82,11 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
         }
 
         // Define which traits must be implemented for the lint to work
-        let must_impl_trait = [
-            cx.tcx.lang_items().clone_trait().unwrap(),
-            cx.tcx.lang_items().drop_trait().unwrap(),
-        ];
+        let lang_items = cx.tcx.lang_items();
+        let (Some(clone_trait), Some(drop_trait)) = (lang_items.clone_trait(), lang_items.drop_trait()) else {
+            return;
+        };
+        let must_impl_trait = [clone_trait, drop_trait];
 
         // Get all candidates of params that implement said traits and zip them with function signature
         // params
@@ -124,7 +125,7 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
         }
 
         // Look whether the candidates call the `.clone()` method anywhere
-        _ = for_each_expr(cx.tcx, fn_body.value, move |expr| match expr.kind {
+        _ = for_each_expr(cx.tcx, &fn_body.value, move |expr| match expr.kind {
             rustc_hir::ExprKind::If(_, _, _) | rustc_hir::ExprKind::Match(_, _, _) => {
                 ControlFlow::<(), Descend>::Continue(Descend::No)
             },
