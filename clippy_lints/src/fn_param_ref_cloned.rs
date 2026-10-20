@@ -32,7 +32,7 @@ declare_clippy_lint! {
     ///     // Turns out we don't actually need ownership!
     /// }
     /// ```
-    #[clippy::version = "1.98.0"]
+    #[clippy::version = "1.101.0"]
     pub FN_PARAM_REF_CLONED,
     pedantic,
     "you should pass by value instead of cloning a passed reference"
