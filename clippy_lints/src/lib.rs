@@ -7,7 +7,6 @@
 #![feature(iter_partition_in_place)]
 #![feature(macro_metavar_expr)]
 #![feature(macro_metavar_expr_concat)]
-#![cfg_attr(bootstrap, feature(never_type))]
 #![cfg_attr(bootstrap, feature(unwrap_infallible))]
 #![feature(rustc_private)]
 #![feature(stmt_expr_attributes)]
@@ -83,6 +82,7 @@ mod bool_to_int_with_if;
 mod booleans;
 mod borrow_deref_ref;
 mod box_default;
+mod bufreader_stdin;
 mod byte_char_slices;
 mod cargo;
 mod casts;
@@ -721,7 +721,7 @@ rustc_lint::late_lint_methods!(
         ZeroSizedMapValues: zero_sized_map_values::ZeroSizedMapValues = zero_sized_map_values::ZeroSizedMapValues,
         VecInitThenPush: vec_init_then_push::VecInitThenPush = <vec_init_then_push::VecInitThenPush>::default(),
         RedundantSlicing: redundant_slicing::RedundantSlicing = redundant_slicing::RedundantSlicing,
-        FromStrRadix10: from_str_radix_10::FromStrRadix10 = from_str_radix_10::FromStrRadix10,
+        FromStrRadix10: from_str_radix_10::FromStrRadix10 = from_str_radix_10::FromStrRadix10::new(conf),
         IfThenSomeElseNone: if_then_some_else_none::IfThenSomeElseNone = if_then_some_else_none::IfThenSomeElseNone::new(conf),
         BoolAssertComparison: bool_assert_comparison::BoolAssertComparison = bool_assert_comparison::BoolAssertComparison,
         UnusedAsync: unused_async::UnusedAsync = <unused_async::UnusedAsync>::default(),
@@ -873,6 +873,7 @@ rustc_lint::late_lint_methods!(
         NonnullUncheckedOnBoxPtr: nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr = nonnull_unchecked_on_box_ptr::NonnullUncheckedOnBoxPtr::new(conf),
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
+        BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IgnoredResultErr: ignored_result_err::IgnoredResultErr = ignored_result_err::IgnoredResultErr::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
