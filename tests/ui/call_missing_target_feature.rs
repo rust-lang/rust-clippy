@@ -4,7 +4,7 @@
 
 pub fn test_f() {
     unsafe { f() };
-    //~^ call_missing_target_feature
+    //~ call_missing_target_feature
 }
 
 pub(crate) fn test_g() {
