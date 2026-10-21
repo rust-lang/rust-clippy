@@ -4,7 +4,7 @@
 
 pub fn test_f() {
     unsafe { f() };
-    //~^ ERROR: this call requires target features
+    //~^ call_missing_target_feature
 }
 
 pub(crate) fn test_g() {
