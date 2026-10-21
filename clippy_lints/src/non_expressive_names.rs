@@ -392,10 +392,11 @@ impl<'tcx> Visitor<'tcx> for SimilarNamesLocalVisitor<'_, 'tcx> {
 impl EarlyLintPass for NonExpressiveNames {
     fn check_pat(&mut self, cx: &EarlyContext<'_>, pat: &Pat) {
         if let PatKind::Ident(_, ident, _) = pat.kind
+            && let name = ident.name.as_str()
             && !pat.span.from_expansion()
-            && is_just_underscores_and_digits(ident.name.as_str())
+            && name.chars().all(|c| c.is_ascii_digit() || c == '_')
             // TODO: We should use `is_from_proc_macro` instead.
-            && ident.span.check_text(cx, |src| src == ident.name.as_str())
+            && ident.span.check_text(cx, |src| src == name)
         {
             span_lint(
                 cx,
@@ -435,10 +436,6 @@ impl EarlyLintPass for NonExpressiveNames {
             do_check(self, cx, &item.attrs, &sig.decl, blk);
         }
     }
-}
-
-fn is_just_underscores_and_digits(name: &str) -> bool {
-    !name.is_empty() && name.chars().all(|c| c.is_ascii_digit() || c == '_')
 }
 
 fn do_check(lint: &NonExpressiveNames, cx: &EarlyContext<'_>, attrs: &[Attribute], decl: &FnDecl, blk: &Block) {
