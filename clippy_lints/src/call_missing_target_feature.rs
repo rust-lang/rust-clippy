@@ -1,10 +1,15 @@
 #![allow(clippy::similar_names)]
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::fn_has_unsatisfiable_clauses;
 use rustc_hir as hir;
+use rustc_hir::intravisit::FnKind;
 use rustc_hir::def::Res;
-use rustc_hir::def_id::DefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_index::bit_set::DenseBitSet;
 use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
 use rustc_middle::middle::codegen_fn_attrs::TargetFeatureKind;
+use rustc_middle::mir::{START_BLOCK, TerminatorKind};
+use rustc_span::Span;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -122,6 +127,123 @@ impl<'tcx> LateLintPass<'tcx> for CallMissingTargetFeature {
                 );
             },
         );
+    }
+
+    fn check_fn(
+        &mut self,
+        cx: &LateContext<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx hir::FnDecl<'tcx>,
+        _: &'tcx hir::Body<'tcx>,
+        _: Span,
+        local_def_id: LocalDefId,
+    ) {
+        let caller_def_id = local_def_id.to_def_id();
+
+        if fn_has_unsatisfiable_clauses(cx, caller_def_id) {
+            return;
+        }
+
+        let body = cx.tcx.optimized_mir(caller_def_id);
+        let mut seen_blocks = DenseBitSet::new_empty(body.basic_blocks.len());
+        seen_blocks.insert(START_BLOCK);
+        let mut outstanding_blocks = 1;
+
+        for &bb in body.basic_blocks.reverse_postorder() {
+            if !seen_blocks.contains(bb) {
+                // this will skip unwind blocks
+                continue;
+            }
+            outstanding_blocks -= 1;
+            let bb = &body.basic_blocks[bb];
+            if outstanding_blocks == 0
+                && let TerminatorKind::Call { func, .. } | TerminatorKind::TailCall { func, .. } = &bb.terminator().kind
+                && let Some((callee, _)) = func.const_fn_def()
+            {
+                // Check target features
+                let callee_features = &cx.tcx.codegen_fn_attrs(callee).target_features;
+                let caller_features = &cx.tcx.body_codegen_attrs(caller_def_id).target_features;
+
+                // callee must be a subset of caller for this to be safe
+                let is_safe = cx.tcx.is_target_feature_call_safe(callee_features, caller_features);
+                if !is_safe {
+                    let missing: Vec<_> = callee_features
+                        .iter()
+                        .filter(|feature| {
+                            feature.kind != TargetFeatureKind::Implied
+                                && !caller_features.iter().any(|tf| tf.name == feature.name)
+                        })
+                        .map(|feature| feature.name.as_str())
+                        .collect();
+
+                    if !missing.is_empty() {
+                        let span = bb.terminator().source_info.span;
+                        let attr = format!("#[target_feature(enable = \"{}\")]", missing.join(","));
+
+                        span_lint_and_then(
+                            cx,
+                            CALL_MISSING_TARGET_FEATURE,
+                            span,
+                            "this call requires target features that the surrounding function does not enable",
+                            |diag| {
+                                diag.span_label(span, "this function call requires target features to be enabled");
+
+                                let fn_sig = cx.tcx.fn_sig(caller_def_id).skip_binder();
+
+                                let mut suggestions = Vec::with_capacity(2);
+
+                                let hir::Node::Item(caller_item) = cx.tcx.hir_node_by_def_id(local_def_id) else {
+                                    return;
+                                };
+
+                                let Some(indent) = clippy_utils::source::snippet_indent(cx, caller_item.span) else {
+                                    return;
+                                };
+
+                                let lo_span = caller_item.span.shrink_to_lo();
+
+                                match fn_sig.safety() {
+                                    hir::Safety::Safe => {
+                                        // the `target_feature` attribute can only be applied to unsafe functions
+                                        if caller_item.vis_span.is_empty() {
+                                            suggestions.push((lo_span, format!("{attr}\n{indent}unsafe ")));
+                                        } else {
+                                            suggestions.push((lo_span, format!("{attr}\n{indent}")));
+                                            suggestions
+                                                .push((caller_item.vis_span.shrink_to_hi(), " unsafe".to_string()));
+                                        }
+                                    },
+                                    hir::Safety::Unsafe => {
+                                        suggestions.push((lo_span, format!("{attr}\n{indent}")));
+                                    },
+                                }
+
+                                diag.multipart_suggestion(
+                                    "add the missing target features to the surrounding function",
+                                    suggestions,
+                                    rustc_errors::Applicability::MaybeIncorrect,
+                                );
+                            },
+                        );
+                    }
+                }
+            }
+            match &bb.terminator().kind {
+                // Logically these add an outstanding block we never encounter
+                // This means all remaining blocks are treated as conditional blocks
+                TerminatorKind::Return
+                | TerminatorKind::TailCall { .. }
+                | TerminatorKind::Call { target: None, .. } => break,
+
+                kind => {
+                    for target in kind.successors() {
+                        if !body.basic_blocks[target].is_cleanup {
+                            outstanding_blocks += u32::from(seen_blocks.insert(target));
+                        }
+                    }
+                },
+            }
+        }
     }
 }
 
