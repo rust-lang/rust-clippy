@@ -125,6 +125,7 @@ mod string_extend_chars;
 mod string_from_utf8_as_bytes;
 mod string_lit_chars_any;
 mod suspicious_command_arg_space;
+mod suspicious_literal_option;
 mod suspicious_map;
 mod suspicious_splitn;
 mod suspicious_to_owned;
@@ -3947,6 +3948,27 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for `and`, `and_then`, `map`, `is_some`, `is_none`, `or`, and `or_else` calls on a literal `Some` or `None`
+    /// where the result is already known.
+    ///
+    /// ### Why is this bad?
+    /// Certain method calls on a known `Option` constructor (like `.is_some()` on `Some`,
+    /// or `.or()` on `Some`) evaluate to a constant or act as a no-op. This usually
+    /// indicates a typo, logic error, or leftover debug code.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let _ = Some(1).is_some();
+    /// let _ = Some(1).or(None);
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub SUSPICIOUS_LITERAL_OPTION,
+    suspicious,
+    "using `is_some`, `is_none`, `or`, `or_else`, `and`, `and_then` or `map` on a literal `Some` or `None`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for calls to `map` followed by a `count`.
     ///
     /// ### Why is this bad?
@@ -5209,6 +5231,7 @@ impl_lint_pass!(Methods => [
     STRING_LIT_CHARS_ANY,
     STR_SPLIT_AT_NEWLINE,
     SUSPICIOUS_COMMAND_ARG_SPACE,
+    SUSPICIOUS_LITERAL_OPTION,
     SUSPICIOUS_MAP,
     SUSPICIOUS_OPEN_OPTIONS,
     SUSPICIOUS_SPLITN,
@@ -5464,6 +5487,9 @@ impl Methods {
                 (name @ (sym::chunks_exact | sym::chunks_exact_mut), [arg]) => {
                     chunks_exact_to_as_chunks::check(cx, recv, arg, expr, call_span, name, self.msrv);
                 },
+                (sym::and, [_arg]) => {
+                    suspicious_literal_option::check(cx, expr, recv, name);
+                },
                 (sym::and_then, [arg]) => {
                     manual_option_zip::check(cx, expr, recv, arg, self.msrv);
                     let biom_option_linted = bind_instead_of_map::check_and_then_some(cx, expr, recv, arg);
@@ -5476,6 +5502,7 @@ impl Methods {
                     }
 
                     manual_filter::check_and_then_method(cx, recv, arg, call_span, expr);
+                    suspicious_literal_option::check(cx, expr, recv, name);
                 },
                 (sym::any, [arg]) => {
                     needless_character_iteration::check(cx, expr, recv, arg, false);
@@ -5731,8 +5758,14 @@ impl Methods {
                 },
                 (sym::is_file, []) => filetype_is_file::check(cx, expr, recv),
                 (sym::is_digit, [radix]) => is_digit_ascii_radix::check(cx, expr, recv, radix, self.msrv),
-                (sym::is_none, []) => check_is_some_is_none(cx, expr, recv, call_span, false, self.msrv),
-                (sym::is_some, []) => check_is_some_is_none(cx, expr, recv, call_span, true, self.msrv),
+                (sym::is_none, []) => {
+                    check_is_some_is_none(cx, expr, recv, call_span, false, self.msrv);
+                    suspicious_literal_option::check(cx, expr, recv, name);
+                },
+                (sym::is_some, []) => {
+                    check_is_some_is_none(cx, expr, recv, call_span, true, self.msrv);
+                    suspicious_literal_option::check(cx, expr, recv, name);
+                },
                 (sym::is_some_and, [arg]) => manual_is_variant_and::check_ok_is_some_and(cx, expr, recv, arg),
                 (sym::iter | sym::iter_mut | sym::into_iter, []) => {
                     iter_on_single_or_empty_collections::check(cx, expr, name, recv);
@@ -5770,6 +5803,7 @@ impl Methods {
                         map_clone::check(cx, expr, recv, m_arg, self.msrv);
                         map_with_unused_argument_over_ranges::check(cx, expr, recv, m_arg, self.msrv, span);
                         manual_is_variant_and::check_map(cx, expr, self.msrv);
+                        suspicious_literal_option::check(cx, expr, recv, name);
                         match method_call(recv) {
                             Some((map_name @ (sym::iter | sym::into_iter), recv2, _, _, _)) => {
                                 iter_kv_map::check(cx, map_name, expr, recv2, m_arg, self.msrv, sym::map);
@@ -5873,10 +5907,14 @@ impl Methods {
                 (sym::open, [_]) => {
                     open_options::check(cx, expr, recv);
                 },
+                (sym::or, [_arg]) => {
+                    suspicious_literal_option::check(cx, expr, recv, name);
+                },
                 (sym::or_else, [arg]) => {
                     if !bind_instead_of_map::check_or_else_err(cx, expr, recv, arg) {
                         unnecessary_lazy_eval::check(cx, expr, recv, arg, "or", false);
                     }
+                    suspicious_literal_option::check(cx, expr, recv, name);
                 },
                 (sym::peek, []) => {
                     by_ref_peekable_peek::check(cx, expr, recv);

@@ -7694,6 +7694,7 @@ Released 2018-09-13
 [`suspicious_command_arg_space`]: https://clippy.rust-lang.org/main/index.html#suspicious_command_arg_space
 [`suspicious_doc_comments`]: https://clippy.rust-lang.org/main/index.html#suspicious_doc_comments
 [`suspicious_else_formatting`]: https://clippy.rust-lang.org/main/index.html#suspicious_else_formatting
+[`suspicious_literal_option`]: https://clippy.rust-lang.org/main/index.html#suspicious_literal_option
 [`suspicious_map`]: https://clippy.rust-lang.org/main/index.html#suspicious_map
 [`suspicious_op_assign_impl`]: https://clippy.rust-lang.org/main/index.html#suspicious_op_assign_impl
 [`suspicious_open_options`]: https://clippy.rust-lang.org/main/index.html#suspicious_open_options
