@@ -1,10 +1,41 @@
 #![feature(rustc_private)]
-use std::io::{Read as _, Write as _};
+use std::io::{BufWriter, Read as _, Write as _, stdout};
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::{env, fs};
 
+use serde::{Deserialize, Serialize};
+
 const ENABLED_GROUPS: [&str; 5] = ["all", "pedantic", "restriction", "nursery", "cargo"];
+// const ENABLED_GROUPS: [&str; 5] = ["all", "pedantic", "restriction", "nursery", "cargo"];
+
+
+// Keep these in sync with rustdoc's `ExtractedDocTest`.
+#[derive(Deserialize, Debug)]
+struct ExtractedDocTest {
+    format_version: u32,
+    doctests: Vec<DocTest>
+}
+
+#[derive(Deserialize, Debug)]
+struct DocTest {
+    file: String,
+    line: usize,
+    #[serde(skip)]
+    doctest_attributes: usize,
+    original_code: String,
+    /// `None` if the code syntax is invalid.
+    pub(crate) doctest_code: Option<DocTestCode>,
+    name: String,
+}
+
+#[derive(Deserialize, Debug)]
+struct DocTestCode {
+    crate_level: String,
+    code: String,
+    #[serde(skip)]
+    wrapper: usize,
+}
 
 #[test]
 fn doctest() {
@@ -13,15 +44,22 @@ fn doctest() {
     let command = command.args(["test", "--doc"]).current_dir("clippy_lints").env(
         "RUSTDOCFLAGS",
         format!(
-            "--no-capture --no-run --test-builder {} -Zunstable-options {}",
-            clippy_driver.display(),
-            ENABLED_GROUPS
-                .map(|group| format!("--doctest-build-arg=-Dclippy::{group}"))
-                .join(" ")
+            "--no-capture --no-run -Zunstable-options --output-format=doctest",
+            // clippy_driver.display()
         ),
     );
 
     let out = command.output().unwrap();
+    let utf8_out = str::from_utf8(&out.stdout).unwrap();
+
+    let extracted_doc_tests: ExtractedDocTest = serde_json::from_str(utf8_out).unwrap();
+
+    for doctest in extracted_doc_tests.doctests {
+        let buf = vec![];
+        let writer = BufWriter::new(buf);
+        let mut dest = Command::new(&clippy_driver).args(&["-", "-Dclippy::all"]).stdin(b"fn main() { ret; }").output().unwrap();
+        str::from_utf8(&dest.stdout).unwrap();
+    }
 
     let lints_declared = clippy_lints::declared_lints::LINTS
         .iter()
@@ -33,7 +71,7 @@ fn doctest() {
         .lines()
         // Isolate the ones with the lint.
         .filter_map(|line| {
-            if line.contains("for further information") {
+            if dbg!(line).contains("for further information") {
                 Some(line.split('#').nth(1).unwrap())
             } else {
                 None

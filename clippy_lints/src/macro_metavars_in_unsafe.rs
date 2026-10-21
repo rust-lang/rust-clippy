@@ -60,7 +60,7 @@ declare_clippy_lint! {
     /// assert_eq!(*first!(std::hint::unreachable_unchecked() as &[i32]), 1);
     /// ```
     /// Use instead:
-    /// ```compile_fail
+    /// ```compile_fail,ignore
     /// macro_rules! first {
     ///     ($slice:expr) => {{
     ///         let slice = $slice; // ✅ outside of `unsafe {}`

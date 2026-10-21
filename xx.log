@@ -1,0 +1,61 @@
+
+running 1 test
+test doctest ... FAILED
+
+failures:
+
+---- doctest stdout ----
+[tests/doctest.rs:37:16] line = "   Compiling clippy_lints v0.1.101 (/home/moon/git/clippy/clippy_lints)"
+[tests/doctest.rs:37:16] line = "    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.71s"
+[tests/doctest.rs:37:16] line = "   Doc-tests clippy_lints"
+[tests/doctest.rs:37:16] line = ""
+[tests/doctest.rs:37:16] line = "thread 'main' (108426) panicked at src/functions/mod.rs:17:15:"
+[tests/doctest.rs:37:16] line = "called `Result::unwrap()` on an `Err` value: EndOfStream"
+[tests/doctest.rs:37:16] line = "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+[tests/doctest.rs:37:16] line = ""
+[tests/doctest.rs:37:16] line = "thread 'main' (109527) panicked at src/methods/mod.rs:4:9:"
+[tests/doctest.rs:37:16] line = "Testing err().expect()"
+[tests/doctest.rs:37:16] line = "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+[tests/doctest.rs:37:16] line = ""
+[tests/doctest.rs:37:16] line = "thread 'main' (109534) panicked at src/methods/mod.rs:4:3:"
+[tests/doctest.rs:37:16] line = "Testing expect_err: 10"
+[tests/doctest.rs:37:16] line = "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+[tests/doctest.rs:37:16] line = ""
+[tests/doctest.rs:37:16] line = "thread 'main' (109699) panicked at /home/moon/.rustup/toolchains/nightly-2026-10-15-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/iter/adapters/step_by.rs:36:9:"
+[tests/doctest.rs:37:16] line = "assertion failed: step != 0"
+[tests/doctest.rs:37:16] line = "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = "not found"
+[tests/doctest.rs:37:16] line = ""
+[tests/doctest.rs:37:16] line = "thread 'main' (112095) panicked at src/strings.rs:3:11:"
+[tests/doctest.rs:37:16] line = "start byte index 1 is not a char boundary; it is inside 'Ö' (bytes 0..2 of string)"
+[tests/doctest.rs:37:16] line = "note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace"
+
+thread 'doctest' (106758) panicked at tests/doctest.rs:44:5:
+explicit panic
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    doctest
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.57s
+

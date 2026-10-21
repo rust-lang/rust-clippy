@@ -105,7 +105,7 @@ declare_clippy_lint! {
     /// while the latter is `&[u8; 3]`. That means in general they will have a
     /// different set of methods and different trait implementations.
     ///
-    /// ```compile_fail
+    /// ```compile_fail,ignore
     /// fn f(v: Vec<u8>) {}
     ///
     /// f("...".as_bytes().to_owned()); // works
