@@ -1737,7 +1737,8 @@ declare_clippy_lint! {
     /// the original path. If this is intentional, prefer using `Path::new` instead.
     ///
     /// Note the behavior is platform dependent. A leading `\\` will be accepted
-    /// on unix systems as part of the file name.
+    /// when compiling to Unix platforms, but will cause problems if compiling
+    /// for Windows targets.
     ///
     /// See [`Path::join`](https://doc.rust-lang.org/std/path/struct.Path.html#method.join).
     ///
@@ -3139,7 +3140,8 @@ declare_clippy_lint! {
     /// the original path. If this is intentional, prefer using `PathBuf::from` instead.
     ///
     /// Note the behavior is platform dependent. A leading `\\` will be accepted
-    /// on unix systems as part of the file name.
+    /// when compiling to Unix platforms, but will cause problems if compiling
+    /// for Windows targets.
     ///
     /// See [`PathBuf::push`](https://doc.rust-lang.org/std/path/struct.PathBuf.html#method.push).
     ///
