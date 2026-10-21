@@ -396,6 +396,8 @@ impl EarlyLintPass for NonExpressiveNames {
             && !pat.span.from_expansion()
             && !ident.span.from_expansion()
             && name.chars().all(|c| c.is_ascii_digit() || c == '_')
+            // Only lint identifiers written directly in source, not generated
+            // by a proc macro.
             && ident.span.check_text(cx, |src| src == name)
         {
             span_lint(
