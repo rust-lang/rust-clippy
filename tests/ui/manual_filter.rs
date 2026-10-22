@@ -426,3 +426,13 @@ fn issue16776(v: Option<usize>) -> Option<usize> {
         None => None,
     }
 }
+
+fn issue16776_lifetime_conflict(mut values: Vec<u32>) -> Option<usize> {
+    match values.first() {
+        Some(_value) => {
+            values.push(1);
+            if values.len() > 1 { Some(values.len()) } else { None }
+        },
+        None => None,
+    }
+}

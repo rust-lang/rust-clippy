@@ -12,9 +12,13 @@ use rustc_ast::util::parser::ExprPrecedence;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{
-    BindingMode, Block, BlockCheckMode, Expr, ExprKind, HirId, Mutability, Pat, PatKind, Path, QPath, UnsafeSource,
+    BindingMode, Block, BlockCheckMode, Expr, ExprKind, HirId, HirIdMap, Mutability, Pat, PatKind, Path, QPath,
+    UnsafeSource,
 };
+use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
 use rustc_lint::LateContext;
+use rustc_middle::mir::FakeReadCause;
+use rustc_middle::ty::{BorrowKind, TypeVisitableExt as _};
 use rustc_span::{Span, SyntaxContext, sym};
 
 type GetSomeExprFn<'a, 'tcx, T> =
@@ -101,9 +105,15 @@ pub(super) fn check_with<'a, 'tcx, T: SomeExprInfo<'tcx>>(
             .block_info
             .map_or(some_expr_within_block.some_expr.expr, |b| b.outermost_block),
     )?;
-    // Check if captures the closure will need conflict with borrows made in the scrutinee.
-    // TODO: check all the references made in the scrutinee expression. This will require interacting
-    // with the borrow checker. Currently only `<local>[.<field>]*` is checked for.
+
+    // Skip suggestions that would borrow the same value in both the receiver and the closure.
+    if cx.typeck_results().expr_ty(scrutinee).has_erased_regions()
+        && captures_conflict_with_scrutinee_borrows(cx, scrutinee, &captures)
+    {
+        return None;
+    }
+
+    // Also check when the scrutinee itself is a reference.
     if let Some(binding_ref_mutability) = binding_ref {
         let e = peel_hir_expr_while(scrutinee, |e| match e.kind {
             ExprKind::Field(e, _) | ExprKind::AddrOf(_, _, e) => Some(e),
@@ -174,6 +184,50 @@ pub(super) fn check_with<'a, 'tcx, T: SomeExprInfo<'tcx>>(
         app,
         extra_info: some_expr_within_block.some_expr.extra_info,
     })
+}
+
+fn captures_conflict_with_scrutinee_borrows(
+    cx: &LateContext<'_>,
+    scrutinee: &Expr<'_>,
+    captures: &HirIdMap<CaptureKind>,
+) -> bool {
+    struct BorrowVisitor<'a> {
+        captures: &'a HirIdMap<CaptureKind>,
+        conflict: bool,
+    }
+
+    impl Delegate<'_> for BorrowVisitor<'_> {
+        fn borrow(&mut self, place: &PlaceWithHirId<'_>, _: HirId, kind: BorrowKind) {
+            let local = match place.place.base {
+                PlaceBase::Local(id) => id,
+                PlaceBase::Upvar(id) => id.var_path.hir_id,
+                _ => return,
+            };
+            let Some(capture) = self.captures.get(&local) else {
+                return;
+            };
+
+            self.conflict |= match kind {
+                BorrowKind::Immutable => !capture.is_imm_ref(),
+                BorrowKind::UniqueImmutable | BorrowKind::Mutable => true,
+            };
+        }
+
+        fn consume(&mut self, _: &PlaceWithHirId<'_>, _: HirId) {}
+        fn use_cloned(&mut self, _: &PlaceWithHirId<'_>, _: HirId) {}
+        fn mutate(&mut self, _: &PlaceWithHirId<'_>, _: HirId) {}
+        fn fake_read(&mut self, _: &PlaceWithHirId<'_>, _: FakeReadCause, _: HirId) {}
+        fn copy(&mut self, _: &PlaceWithHirId<'_>, _: HirId) {}
+    }
+
+    let mut visitor = BorrowVisitor {
+        captures,
+        conflict: false,
+    };
+    ExprUseVisitor::for_clippy(cx, scrutinee.hir_id.owner.def_id, &mut visitor)
+        .consume_expr(scrutinee)
+        .into_ok();
+    visitor.conflict
 }
 
 pub struct SuggInfo<'a, T> {

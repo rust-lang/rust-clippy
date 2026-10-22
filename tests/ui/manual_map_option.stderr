@@ -260,5 +260,25 @@ LL +             42
 LL +         })
    |
 
-error: aborting due to 23 previous errors
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map_option.rs:287:5
+   |
+LL | /     match values.first().copied() {
+LL | |
+LL | |         Some(value) => {
+LL | |             values.push(value);
+...  |
+LL | |         None => None,
+LL | |     }
+   | |_____^
+   |
+help: try
+   |
+LL ~     values.first().copied().map(|value| {
+LL +             values.push(value);
+LL +             values.len()
+LL +         })
+   |
+
+error: aborting due to 24 previous errors
 
