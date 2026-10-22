@@ -614,6 +614,7 @@ declare_clippy_lint! {
     ///
     /// fn main() {
     ///     let f = Foo;
+    ///     let l = Foo;
     ///     let _ = matches!(f.foo(), Some(_) if l.is_bar());
     /// }
     /// ```
@@ -632,6 +633,7 @@ declare_clippy_lint! {
     ///
     /// fn main() {
     ///     let f = Foo;
+    ///     let l = Foo;
     ///     let _ = matches!(f.foo(), Some(_)) && l.is_bar();
     /// }
     /// ```
