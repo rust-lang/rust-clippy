@@ -2,9 +2,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::fn_has_unsatisfiable_clauses;
 use rustc_hir as hir;
-use rustc_hir::intravisit::FnKind;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::{DefId, LocalDefId};
+use rustc_hir::intravisit::FnKind;
 use rustc_index::bit_set::DenseBitSet;
 use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
 use rustc_middle::middle::codegen_fn_attrs::TargetFeatureKind;
