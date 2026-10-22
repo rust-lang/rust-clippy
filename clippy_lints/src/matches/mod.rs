@@ -14,6 +14,7 @@ mod match_single_binding;
 mod match_str_case_mismatch;
 mod match_wild_enum;
 mod match_wild_err_arm;
+mod matches_with_unrelated_if;
 mod needless_match;
 mod overlapping_arms;
 mod redundant_guards;
@@ -590,6 +591,58 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Warns against code where the if inside matches! doesn't use any of the variables introduced
+    /// by the pattern, and suggest moving the if out of the matches!
+    ///
+    /// ### Why is this bad?
+    /// This removes the illusory connection between the pattern-matching and the if-check.
+    /// If the user did intend to use the variable(s) in the if, the lint could hint at their oversight.
+    /// This also makes for less complex `matches!`, which rustfmt tends to appreciate
+    ///
+    /// ### Example
+    /// ```no_run
+    /// struct Foo;
+    ///
+    /// impl Foo {
+    ///     fn foo(&self) -> Option<i32> {
+    ///         todo!()
+    ///     }
+    ///     fn is_bar(&self) -> bool {
+    ///         todo!()
+    ///     }
+    /// }
+    ///
+    /// fn main() {
+    ///     let f = Foo;
+    ///     let _ = matches!(f.foo(), Some(_) if l.is_bar());
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// struct Foo;
+    ///
+    /// impl Foo {
+    ///     fn foo(&self) -> Option<i32> {
+    ///         todo!()
+    ///     }
+    ///     fn is_bar(&self) -> bool {
+    ///         todo!()
+    ///     }
+    /// }
+    ///
+    /// fn main() {
+    ///     let f = Foo;
+    ///     let _ = matches!(f.foo(), Some(_)) && l.is_bar();
+    /// }
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub MATCHES_WITH_UNRELATED_IF,
+    style,
+    "moves the if out of the matches! when the if doesn't use any of the variables introduced by the pattern"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for unnecessary `match` or match-like `if let` returns for `Option` and `Result`
     /// when function signatures are the same.
     ///
@@ -1014,6 +1067,7 @@ impl_lint_pass!(Matches => [
     MANUAL_OK_ERR,
     MANUAL_UNWRAP_OR,
     MANUAL_UNWRAP_OR_DEFAULT,
+    MATCHES_WITH_UNRELATED_IF,
     MATCH_AS_REF,
     MATCH_BOOL,
     MATCH_LIKE_MATCHES_MACRO,
@@ -1056,11 +1110,12 @@ impl<'tcx> LateLintPass<'tcx> for Matches {
         let from_expansion = expr.span.from_expansion();
 
         if let ExprKind::Match(ex, arms, source) = expr.kind {
-            if is_direct_expn_of(expr.span, sym::matches).is_some()
+            if let Some(call_site) = is_direct_expn_of(expr.span, sym::matches)
                 && let [arm, _] = arms
             {
                 redundant_pattern_match::check_match(cx, expr, ex, arms);
                 redundant_pattern_match::check_matches_true(cx, expr, arm, ex);
+                matches_with_unrelated_if::check(cx, expr, ex, arm, call_site);
             }
             if expr.span.in_external_macro(cx.tcx.sess.source_map()) {
                 return;
