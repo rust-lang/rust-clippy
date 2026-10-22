@@ -1,5 +1,5 @@
 error: this `if` guard doesn't use any variable bound by the pattern
-  --> tests/ui/matches_with_unrelated_if.rs:25:13
+  --> tests/ui/matches_with_unrelated_if.rs:43:13
    |
 LL |     let _ = matches!(f.foo(), Some(_) if f.is_bar());
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(_)) && f.is_bar()`
@@ -8,28 +8,52 @@ LL |     let _ = matches!(f.foo(), Some(_) if f.is_bar());
    = help: to override `-D warnings` add `#[allow(clippy::matches_with_unrelated_if)]`
 
 error: this `if` guard doesn't use any variable bound by the pattern
-  --> tests/ui/matches_with_unrelated_if.rs:29:13
+  --> tests/ui/matches_with_unrelated_if.rs:47:13
    |
 LL |     let _ = matches!(f.foo(), Some(_) if a || b);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(_)) && (a || b)`
 
 error: this `if` guard doesn't use any variable bound by the pattern
-  --> tests/ui/matches_with_unrelated_if.rs:32:14
+  --> tests/ui/matches_with_unrelated_if.rs:50:14
    |
 LL |     let _ = !matches!(f.foo(), Some(_) if a);
-   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(_)) && a`
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `(matches!(f.foo(), Some(_)) && a)`
 
 error: this `if` guard doesn't use any variable bound by the pattern
-  --> tests/ui/matches_with_unrelated_if.rs:35:13
+  --> tests/ui/matches_with_unrelated_if.rs:53:13
    |
 LL |     let _ = matches!(f.foo(), Some(_) | None if a);
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(_) | None) && a`
 
 error: this `if` guard doesn't use any variable bound by the pattern
-  --> tests/ui/matches_with_unrelated_if.rs:39:13
+  --> tests/ui/matches_with_unrelated_if.rs:57:13
    |
 LL |     let _ = matches!(f.foo(), Some(_) if a) && b;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(_)) && a`
 
-error: aborting due to 5 previous errors
+error: this `if` guard doesn't use any variable bound by the pattern
+  --> tests/ui/matches_with_unrelated_if.rs:61:14
+   |
+LL |     let _ = !matches!(f.foo(), Some(_) if f.is_bar());
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `(matches!(f.foo(), Some(_)) && f.is_bar())`
+
+error: this `if` guard doesn't use any variable bound by the pattern
+  --> tests/ui/matches_with_unrelated_if.rs:64:13
+   |
+LL |     let _ = matches!(some_one!(), Some(_) if a);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(some_one!(), Some(_)) && a`
+
+error: this `if` guard doesn't use any variable bound by the pattern
+  --> tests/ui/matches_with_unrelated_if.rs:67:13
+   |
+LL |     let _ = matches!(f.foo(), some_pat!() if a);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), some_pat!()) && a`
+
+error: this `if` guard doesn't use any variable bound by the pattern
+  --> tests/ui/matches_with_unrelated_if.rs:70:13
+   |
+LL |     let _ = matches!(f.foo(), Some(_) if truthy!());
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: move the guard outside of `matches!`: `matches!(f.foo(), Some(_)) && truthy!()`
+
+error: aborting due to 9 previous errors
 

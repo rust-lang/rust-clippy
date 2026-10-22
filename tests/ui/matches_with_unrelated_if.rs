@@ -18,6 +18,24 @@ macro_rules! wrapper {
     };
 }
 
+macro_rules! some_one {
+    () => {
+        Some(1)
+    };
+}
+
+macro_rules! some_pat {
+    () => {
+        Some(_)
+    };
+}
+
+macro_rules! truthy {
+    () => {
+        true
+    };
+}
+
 fn main() {
     let f = Foo;
     let (a, b) = (false, true);
@@ -37,6 +55,19 @@ fn main() {
 
     // `&&` parent is not an `||` operand, so this should still lints
     let _ = matches!(f.foo(), Some(_) if a) && b;
+    //~^ matches_with_unrelated_if
+
+    // unary `!` parent: the whole `&&` must be parenthesized
+    let _ = !matches!(f.foo(), Some(_) if f.is_bar());
+    //~^ matches_with_unrelated_if
+
+    let _ = matches!(some_one!(), Some(_) if a);
+    //~^ matches_with_unrelated_if
+
+    let _ = matches!(f.foo(), some_pat!() if a);
+    //~^ matches_with_unrelated_if
+
+    let _ = matches!(f.foo(), Some(_) if truthy!());
     //~^ matches_with_unrelated_if
 
     let _ = matches!(f.foo(), Some(x) if x > 0);

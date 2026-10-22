@@ -1,7 +1,7 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::redundant_guards)]
 #![allow(clippy::single_match)]
-#![expect(invalid_nan_comparisons)]
+#![expect(invalid_nan_comparisons, clippy::matches_with_unrelated_if)]
 
 #[macro_use]
 extern crate proc_macros;
