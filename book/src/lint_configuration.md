@@ -662,7 +662,7 @@ disallowed-trait-usage = ["std::fmt::Pointer"]
 
 ---
 **Affected lints:**
-* [`disallowed_trait_usage`](https://rust-lang.github.io/rust-clippy/main/index.html#disallowed_trait_usage)
+* [`disallowed_trait_usage`](https://clippy.rust-lang.org/main/index.html#disallowed_trait_usage)
 
 
 ## `disallowed-types`

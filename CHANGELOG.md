@@ -7073,6 +7073,7 @@ Released 2018-09-13
 [`disallowed_methods`]: https://clippy.rust-lang.org/main/index.html#disallowed_methods
 [`disallowed_names`]: https://clippy.rust-lang.org/main/index.html#disallowed_names
 [`disallowed_script_idents`]: https://clippy.rust-lang.org/main/index.html#disallowed_script_idents
+[`disallowed_trait_usage`]: https://clippy.rust-lang.org/main/index.html#disallowed_trait_usage
 [`disallowed_type`]: https://clippy.rust-lang.org/main/index.html#disallowed_type
 [`disallowed_types`]: https://clippy.rust-lang.org/main/index.html#disallowed_types
 [`diverging_sub_expression`]: https://clippy.rust-lang.org/main/index.html#diverging_sub_expression

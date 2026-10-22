@@ -11,9 +11,8 @@ use rustc_errors::Diag;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::{DefId, DefIdMap};
 use rustc_hir::{Expr, ExprKind, PrimTy};
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::{self, Ty, TyCtxt};
-use rustc_session::impl_lint_pass;
 use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
@@ -65,7 +64,7 @@ declare_clippy_lint! {
     /// let path = PathBuf::from("/tmp");
     /// println!("{}", path.display()); // OK
     /// ```
-    #[clippy::version = "1.99.0"]
+    #[clippy::version = "1.101.0"]
     pub DISALLOWED_TRAIT_USAGE,
     style,
     "use of a type via a disallowed trait interface"
@@ -257,7 +256,7 @@ impl DisallowedTraitUsage {
                 continue;
             }
 
-            let note_reason = |diag: &mut Diag<'_, ()>| {
+            let note_reason = |diag: &mut Diag<'_>| {
                 if let Some(reason) = reason {
                     diag.note((*reason).to_owned());
                 }
