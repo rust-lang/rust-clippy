@@ -73,46 +73,49 @@ LL |     let _x: u8 = unsafe { *std::mem::transmute::<fn(), *const u8>(f) };
    |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(f as *const u8)`
 
 error: transmute from a type (`*const usize`) to the type that it points to (`usize`)
-  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:113:17
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:114:17
    |
 LL |         let _ = transmute::<*const usize, usize>(a);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-   = note: `-D clippy::crosspointer-transmute` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::crosspointer_transmute)]`
+note: the lint level is defined here
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:111:8
+   |
+LL | #[deny(clippy::crosspointer_transmute)]
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: transmute from `*const usize` to `usize` which could be expressed as a pointer cast instead
-  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:113:17
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:114:17
    |
 LL |         let _ = transmute::<*const usize, usize>(a);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `a as usize`
 
 error: transmute from `*const u64` to `usize` which could be expressed as a pointer cast instead
-  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:116:17
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:117:17
    |
 LL |         let _ = transmute::<*const u64, usize>(b);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `b as usize`
 
 error: transmute from a type (`*mut usize`) to the type that it points to (`usize`)
-  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:118:17
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:119:17
    |
 LL |         let _ = transmute::<*mut usize, usize>(c);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: transmute from `*mut usize` to `usize` which could be expressed as a pointer cast instead
-  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:118:17
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:119:17
    |
 LL |         let _ = transmute::<*mut usize, usize>(c);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `c as usize`
 
 error: transmute from a type (`*const isize`) to the type that it points to (`isize`)
-  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:121:17
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:122:17
    |
 LL |         let _ = transmute::<*const isize, isize>(d);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 error: transmute from `*const isize` to `isize` which could be expressed as a pointer cast instead
-  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:121:17
+  --> tests/ui/transmutes_expressible_as_ptr_casts.rs:122:17
    |
 LL |         let _ = transmute::<*const isize, isize>(d);
    |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `d as isize`

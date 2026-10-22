@@ -108,6 +108,7 @@ const fn issue_12402<P>(ptr: *const P) {
 
 // A pointer to an integer transmuted to that same integer type is ambiguous: either the address
 // was intended, or the target type was typed wrong. We can't know which, so both lints are emitted.
+#[deny(clippy::crosspointer_transmute)]
 fn ptr_to_int_with_int_pointee(a: *const usize, b: *const u64, c: *mut usize, d: *const isize) {
     unsafe {
         let _ = transmute::<*const usize, usize>(a);
