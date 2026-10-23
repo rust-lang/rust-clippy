@@ -591,51 +591,31 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Warns against code where the if inside matches! doesn't use any of the variables introduced
-    /// by the pattern, and suggest moving the if out of the matches!
+    /// Warns against code where the `if` inside `matches!` doesn't use any of the variables introduced
+    /// by the pattern, and suggest moving the `if` out of the `matches!`.
     ///
     /// ### Why is this bad?
-    /// This removes the illusory connection between the pattern-matching and the if-check.
-    /// If the user did intend to use the variable(s) in the if, the lint could hint at their oversight.
-    /// This also makes for less complex `matches!`, which rustfmt tends to appreciate
+    /// An `if` guard inside a match pattern implies a dependency on the matched variables.
+    /// When the guard doesn't use any bound variables, moving the condition outside the `matches!` macro improves readability, simplifies the pattern, and helps `rustfmt` format the code better.
+    /// It can also surface potential logic bugs where a variable was intended to be used in the condition.
     ///
     /// ### Example
     /// ```no_run
-    /// struct Foo;
-    ///
-    /// impl Foo {
-    ///     fn foo(&self) -> Option<i32> {
-    ///         todo!()
-    ///     }
-    ///     fn is_bar(&self) -> bool {
-    ///         todo!()
-    ///     }
+    /// fn somefunc() -> bool {
+    ///     todo!()
     /// }
     ///
-    /// fn main() {
-    ///     let f = Foo;
-    ///     let l = Foo;
-    ///     let _ = matches!(f.foo(), Some(_) if l.is_bar());
-    /// }
+    /// let e = Some(true);
+    /// let _ = matches!(e, Some(_) if somefunc());
     /// ```
     /// Use instead:
     /// ```no_run
-    /// struct Foo;
-    ///
-    /// impl Foo {
-    ///     fn foo(&self) -> Option<i32> {
-    ///         todo!()
-    ///     }
-    ///     fn is_bar(&self) -> bool {
-    ///         todo!()
-    ///     }
+    /// fn somefunc() -> bool {
+    ///     todo!()
     /// }
     ///
-    /// fn main() {
-    ///     let f = Foo;
-    ///     let l = Foo;
-    ///     let _ = matches!(f.foo(), Some(_)) && l.is_bar();
-    /// }
+    /// let e = Some(true);
+    /// let _ = matches!(e, Some(_)) && somefunc();
     /// ```
     #[clippy::version = "1.101.0"]
     pub MATCHES_WITH_UNRELATED_IF,
