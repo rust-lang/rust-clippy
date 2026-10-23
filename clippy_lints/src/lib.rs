@@ -223,6 +223,7 @@ mod manual_rem_euclid;
 mod manual_retain;
 mod manual_rotate;
 mod manual_slice_size_calculation;
+mod manual_split;
 mod manual_string_new;
 mod manual_strip;
 mod manual_take;
@@ -873,6 +874,7 @@ rustc_lint::late_lint_methods!(
         NeedlessNonzeroGet: needless_nonzero_get::NeedlessNonzeroGet = needless_nonzero_get::NeedlessNonzeroGet::new(conf),
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
+        ManualSplitAt: manual_split::ManualSplitAt = manual_split::ManualSplitAt::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
