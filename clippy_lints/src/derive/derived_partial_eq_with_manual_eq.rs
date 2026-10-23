@@ -35,7 +35,6 @@ pub(super) fn check<'tcx>(
             let eq_is_automatically_derived = cx.tcx.is_automatically_derived(eq_impl_id);
             let eq_trait_ref = cx.tcx.impl_trait_ref(eq_impl_id);
 
-            // Only care about manually implementing Eq and PartialEq is automatically derived.
             if !eq_is_automatically_derived
                     // `for_each_relevant_impl` only does a coarse "could possibly match" filter,
                     // so it can return impls unrelated to `ty` (e.g. blanket impls like
