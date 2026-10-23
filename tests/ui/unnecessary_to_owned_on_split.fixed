@@ -43,4 +43,13 @@ fn main() {
 
     let _ = [1].split(|x| *x == 2).next().unwrap();
     //~^ unnecessary_to_owned
+
+    // A custom type whose `split` takes an owned `String` must not be flagged.
+    // See https://github.com/rust-lang/rust-clippy/issues/17913.
+    struct TypeWithSplitMethod;
+    impl TypeWithSplitMethod {
+        pub fn split(&self, _s: String) {}
+    }
+    let x = TypeWithSplitMethod;
+    x.split("example".to_string());
 }

@@ -314,6 +314,10 @@ fn check_string_from_utf8<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, 
 fn check_split_call_arg(cx: &LateContext<'_>, expr: &Expr<'_>, method_name: Symbol, receiver: &Expr<'_>) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr)
         && let Some((sym::split, argument_expr)) = get_fn_name_and_arg(cx, parent)
+        // Only lint when the `to_owned`-like call is the receiver of `split`, not one of its
+        // arguments. Otherwise custom `split` methods taking an owned value would be flagged
+        // incorrectly. See https://github.com/rust-lang/rust-clippy/issues/17913.
+        && argument_expr.hir_id != expr.hir_id
         && let Some(receiver_snippet) = receiver.span.get_text(cx)
         && let Some(arg_snippet) = argument_expr.span.get_text(cx)
     {
