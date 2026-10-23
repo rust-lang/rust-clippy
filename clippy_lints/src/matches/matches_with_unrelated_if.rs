@@ -16,54 +16,42 @@ pub(super) fn check<'tcx>(
     arm: &'tcx Arm<'tcx>,
     call_site: Span,
 ) {
-    if call_site.from_expansion() {
-        return;
-    }
-
-    let Some(guard) = arm.guard else {
-        return;
-    };
-
-    if guard_uses_binding(cx, arm, guard) {
-        return;
-    }
-
-    let parent = get_parent_expr(cx, expr);
-
+    if !call_site.from_expansion()
+    && let Some(guard) = arm.guard
+    && !guard_uses_binding(cx, arm, guard)
+    && let parent = get_parent_expr(cx, expr)
     // `matches!(.. if ..) || matches!(.. if ..)` reads better with the guards grouped
     // inside their `matches!`, so don't suggest hoisting them out.
-    if let Some(parent) = parent
-        && let ExprKind::Binary(op, ..) = parent.kind
-        && op.node == BinOpKind::Or
-    {
-        return;
+    && !parent.is_some_and(|parent| {
+        matches!(parent.kind, ExprKind::Binary(op, ..) if op.node == BinOpKind::Or)
+    }) {
+        let mut app = Applicability::MachineApplicable;
+        let ctxt = call_site.ctxt();
+
+        let scrutinee = snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0;
+        let pat = snippet_with_context(cx, arm.pat.span, ctxt, "..", &mut app).0;
+
+        let lhs = Sugg::NonParen(format!("matches!({scrutinee}, {pat})").into());
+        let rhs = Sugg::hir_with_context(cx, guard, ctxt, "..", &mut app);
+
+        // parenthesizes `rhs` when needed (e.g. `a || b`).
+        let mut sugg = sugg::make_binop(BinOpKind::And, &lhs, &rhs);
+
+        // wrap it if the parent binds tighter.
+        if parent.is_some_and(|p| parent_binds_tighter_than_and(expr, p)) {
+            sugg = sugg.maybe_paren();
+        }
+
+        span_lint_and_sugg(
+            cx,
+            MATCHES_WITH_UNRELATED_IF,
+            call_site,
+            "this `if` guard doesn't use any variable bound by the pattern",
+            "move the guard outside of `matches!`",
+            sugg.to_string(),
+            app,
+        );
     }
-    let mut app = Applicability::MachineApplicable;
-    let ctxt = call_site.ctxt();
-
-    let scrutinee = snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0;
-    let pat = snippet_with_context(cx, arm.pat.span, ctxt, "..", &mut app).0;
-
-    let lhs = Sugg::NonParen(format!("matches!({scrutinee}, {pat})").into());
-    let rhs = Sugg::hir_with_context(cx, guard, ctxt, "..", &mut app);
-
-    // parenthesizes `rhs` when needed (e.g. `a || b`).
-    let mut sugg = sugg::make_binop(BinOpKind::And, &lhs, &rhs);
-
-    // wrap it if the parent binds tighter.
-    if parent.is_some_and(|p| parent_binds_tighter_than_and(expr, p)) {
-        sugg = sugg.maybe_paren();
-    }
-
-    span_lint_and_sugg(
-        cx,
-        MATCHES_WITH_UNRELATED_IF,
-        call_site,
-        "this `if` guard doesn't use any variable bound by the pattern",
-        "move the guard outside of `matches!`",
-        sugg.to_string(),
-        app,
-    );
 }
 
 fn guard_uses_binding<'tcx>(cx: &LateContext<'tcx>, arm: &Arm<'tcx>, guard: &'tcx Expr<'tcx>) -> bool {
