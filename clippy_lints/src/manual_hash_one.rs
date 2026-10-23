@@ -7,7 +7,7 @@ use clippy_utils::sym;
 use clippy_utils::visitors::{is_local_used, local_used_once};
 use rustc_errors::Applicability;
 use rustc_hir::{BindingMode, ExprKind, LetStmt, Node, PatKind, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -46,11 +46,9 @@ declare_clippy_lint! {
     "manual implementations of `BuildHasher::hash_one`"
 }
 
-impl_lint_pass!(ManualHashOne => [MANUAL_HASH_ONE]);
-
-pub struct ManualHashOne {
+declare_clippy_pass!(ManualHashOne { 
     msrv: Msrv,
-}
+ } => [MANUAL_HASH_ONE]);
 
 impl ManualHashOne {
     pub fn new(conf: &'static Conf) -> Self {

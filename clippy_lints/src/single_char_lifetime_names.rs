@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_ast::ast::{GenericParam, GenericParamKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "warns against single-character lifetime names"
 }
 
-declare_lint_pass!(SingleCharLifetimeNames => [SINGLE_CHAR_LIFETIME_NAMES]);
+declare_clippy_pass!(SingleCharLifetimeNames => [SINGLE_CHAR_LIFETIME_NAMES]);
 
 impl EarlyLintPass for SingleCharLifetimeNames {
     fn check_generic_param(&mut self, cx: &EarlyContext<'_>, param: &GenericParam) {

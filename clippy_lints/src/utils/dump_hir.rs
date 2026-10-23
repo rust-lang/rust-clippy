@@ -1,9 +1,9 @@
 use clippy_utils::{get_builtin_attr, sym};
 use hir::TraitItem;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
-declare_lint_pass!(
+declare_clippy_pass!(
     /// ### What it does
     /// It formats the attached node with `{:#?}` and writes the result to the
     /// standard output. This is intended for debugging.

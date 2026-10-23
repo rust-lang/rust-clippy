@@ -5,7 +5,7 @@ use clippy_utils::source::snippet;
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, HirId};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use unicode_normalization::UnicodeNormalization as _;
 
@@ -71,7 +71,7 @@ declare_clippy_lint! {
     "using a Unicode literal not in NFC normal form (see [Unicode tr15](http://www.unicode.org/reports/tr15/) for further information)"
 }
 
-declare_lint_pass!(Unicode => [
+declare_clippy_pass!(Unicode => [
     INVISIBLE_CHARACTERS,
     NON_ASCII_LITERAL,
     UNICODE_NOT_NFC,

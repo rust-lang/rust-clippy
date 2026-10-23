@@ -1,5 +1,5 @@
 use rustc_hir::{BinOpKind, Body, Expr, ExprKind, ImplItemKind, ItemKind, Node, TraitFn, TraitItem, TraitItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 mod cmp_null;
 mod mut_from_ref;
@@ -134,7 +134,7 @@ declare_clippy_lint! {
     "use `std::ptr::eq` when comparing raw pointers"
 }
 
-declare_lint_pass!(Ptr => [CMP_NULL, MUT_FROM_REF, PTR_ARG, PTR_EQ]);
+declare_clippy_pass!(Ptr => [CMP_NULL, MUT_FROM_REF, PTR_ARG, PTR_EQ]);
 
 impl<'tcx> LateLintPass<'tcx> for Ptr {
     fn check_trait_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx TraitItem<'_>) {

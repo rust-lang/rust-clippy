@@ -5,7 +5,7 @@ use clippy_utils::source::SpanExt as _;
 use rustc_ast::ast::{Expr, ExprKind, LitKind};
 use rustc_ast::token;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, Lint, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, Lint, LintContext as _};
 use rustc_span::Span;
 use std::iter;
 
@@ -144,9 +144,9 @@ declare_clippy_lint! {
     "binary or hex literals that aren't grouped by four"
 }
 
-impl_lint_pass!(DecimalLiteralRepresentation => [DECIMAL_LITERAL_REPRESENTATION]);
-
-impl_lint_pass!(LiteralDigitGrouping => [
+declare_clippy_pass!(LiteralDigitGrouping {
+    lint_fraction_readability: bool,
+} => [
     INCONSISTENT_DIGIT_GROUPING,
     LARGE_DIGIT_GROUPS,
     MISTYPED_LITERAL_SUFFIXES,
@@ -198,10 +198,6 @@ impl WarningType {
             diag.span_suggestion(span, try_msg, num_lit.format(), Applicability::MaybeIncorrect);
         });
     }
-}
-
-pub struct LiteralDigitGrouping {
-    lint_fraction_readability: bool,
 }
 
 impl EarlyLintPass for LiteralDigitGrouping {
@@ -413,9 +409,9 @@ impl LiteralDigitGrouping {
     }
 }
 
-pub struct DecimalLiteralRepresentation {
+declare_clippy_pass!(DecimalLiteralRepresentation { 
     threshold: u64,
-}
+ } => [DECIMAL_LITERAL_REPRESENTATION]);
 
 impl EarlyLintPass for DecimalLiteralRepresentation {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

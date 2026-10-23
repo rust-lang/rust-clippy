@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::leaks_droppable_temporary_with_limited_lifetime;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, ExprKind, HirId, MatchSource, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::edition::Edition::Edition2021;
 
 declare_clippy_lint! {
@@ -34,12 +34,11 @@ declare_clippy_lint! {
     "unnecessary semicolon after expression returning `()`"
 }
 
-impl_lint_pass!(UnnecessarySemicolon => [UNNECESSARY_SEMICOLON]);
-
-#[derive(Default)]
-pub struct UnnecessarySemicolon {
+declare_clippy_pass!(
+    #[derive(Default)]
+    UnnecessarySemicolon { 
     last_statements: Vec<(HirId, bool)>,
-}
+ } => [UNNECESSARY_SEMICOLON]);
 
 impl UnnecessarySemicolon {
     /// Enter or leave a block, remembering the last statement of the block.

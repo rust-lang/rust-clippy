@@ -12,7 +12,7 @@ use rustc_ast::visit::{VisitorResult, try_visit, visit_opt, walk_list};
 use rustc_data_structures::packed::Pu128;
 use rustc_hir::intravisit::Visitor;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, ImplItemKind, ItemKind, Node, PatKind, Stmt, TraitFn, TraitItemKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_span::sym;
 
@@ -45,11 +45,9 @@ declare_clippy_lint! {
     "checks for tuple<=>array conversions that are not done with `.into()`"
 }
 
-impl_lint_pass!(TupleArrayConversions => [TUPLE_ARRAY_CONVERSIONS]);
-
-pub struct TupleArrayConversions {
+declare_clippy_pass!(TupleArrayConversions { 
     msrv: Msrv,
-}
+ } => [TUPLE_ARRAY_CONVERSIONS]);
 impl TupleArrayConversions {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv.into() }

@@ -7,7 +7,7 @@ use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -36,11 +36,9 @@ declare_clippy_lint! {
     "manually reimplementing `ilog2`"
 }
 
-impl_lint_pass!(ManualIlog2 => [MANUAL_ILOG2]);
-
-pub struct ManualIlog2 {
+declare_clippy_pass!(ManualIlog2 { 
     msrv: Msrv,
-}
+ } => [MANUAL_ILOG2]);
 
 impl ManualIlog2 {
     pub fn new(conf: &Conf) -> Self {

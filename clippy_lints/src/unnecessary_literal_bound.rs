@@ -5,7 +5,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::intravisit::{FnKind, Visitor};
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, Lit, Mutability, PrimTy, Ty, TyKind, intravisit};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -52,7 +52,7 @@ declare_clippy_lint! {
     "detects &str that could be &'static str in function return types"
 }
 
-declare_lint_pass!(UnnecessaryLiteralBound => [UNNECESSARY_LITERAL_BOUND]);
+declare_clippy_pass!(UnnecessaryLiteralBound => [UNNECESSARY_LITERAL_BOUND]);
 
 fn extract_anonymous_ref<'tcx>(hir_ty: &Ty<'tcx>) -> Option<&'tcx Ty<'tcx>> {
     let TyKind::Ref(lifetime, ty, mutbl) = hir_ty.kind else {

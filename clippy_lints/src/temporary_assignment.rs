@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_adjusted;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -22,7 +22,7 @@ declare_clippy_lint! {
     "assignments to temporaries"
 }
 
-declare_lint_pass!(TemporaryAssignment => [TEMPORARY_ASSIGNMENT]);
+declare_clippy_pass!(TemporaryAssignment => [TEMPORARY_ASSIGNMENT]);
 
 fn is_temporary(expr: &Expr<'_>) -> bool {
     matches!(&expr.kind, ExprKind::Struct(..) | ExprKind::Tup(..))

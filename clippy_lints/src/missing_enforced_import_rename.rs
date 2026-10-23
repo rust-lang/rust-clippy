@@ -6,7 +6,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{Item, ItemKind, UseKind, UseTree};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Symbol;
 
@@ -45,11 +45,9 @@ declare_clippy_lint! {
     "enforce import renames"
 }
 
-impl_lint_pass!(ImportRename => [MISSING_ENFORCED_IMPORT_RENAMES]);
-
-pub struct ImportRename {
+declare_clippy_pass!(ImportRename { 
     renames: DefIdMap<Symbol>,
-}
+ } => [MISSING_ENFORCED_IMPORT_RENAMES]);
 
 impl ImportRename {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

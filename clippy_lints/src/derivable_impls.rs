@@ -8,7 +8,7 @@ use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::{
     self as hir, Body, Expr, ExprKind, GenericArg, Impl, ImplItemKind, Item, ItemKind, Node, PathSegment, QPath, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_middle::ty::{self, AdtDef, GenericArgsRef, Ty, TypeckResults, VariantDef};
 use rustc_span::sym;
@@ -55,11 +55,9 @@ declare_clippy_lint! {
     "manual implementation of the `Default` trait which is equal to a derive"
 }
 
-impl_lint_pass!(DerivableImpls => [DERIVABLE_IMPLS]);
-
-pub struct DerivableImpls {
+declare_clippy_pass!(DerivableImpls { 
     msrv: Msrv,
-}
+ } => [DERIVABLE_IMPLS]);
 
 impl DerivableImpls {
     pub fn new(conf: &'static Conf) -> Self {

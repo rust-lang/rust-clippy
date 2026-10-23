@@ -3,7 +3,7 @@ use clippy_utils::is_lint_allowed;
 use rustc_ast::LitKind;
 use rustc_hir as hir;
 use rustc_hir::def::DefKind;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 
 declare_clippy_lint! {
@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "warns about needless / redundant type annotations."
 }
 
-declare_lint_pass!(RedundantTypeAnnotations => [REDUNDANT_TYPE_ANNOTATIONS]);
+declare_clippy_pass!(RedundantTypeAnnotations => [REDUNDANT_TYPE_ANNOTATIONS]);
 
 fn is_same_type<'tcx>(cx: &LateContext<'tcx>, ty_resolved_path: hir::def::Res, func_return_type: Ty<'tcx>) -> bool {
     // type annotation is primitive

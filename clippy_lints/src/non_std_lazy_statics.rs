@@ -10,7 +10,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{CrateNum, DefId};
 use rustc_hir::{self as hir, BodyId, Expr, ExprKind, HirId, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -44,8 +44,6 @@ declare_clippy_lint! {
     "lazy static that could be replaced by `std::sync::LazyLock`"
 }
 
-impl_lint_pass!(NonStdLazyStatic => [NON_STD_LAZY_STATICS]);
-
 /// A list containing functions with corresponding replacements in `LazyLock`.
 ///
 /// Some functions could be replaced as well if we have replaced `Lazy` to `LazyLock`,
@@ -63,13 +61,13 @@ static FUNCTION_REPLACEMENTS: &[(&str, Option<&str>)] = &[
     // add those functions into the list.
 ];
 
-pub struct NonStdLazyStatic {
+declare_clippy_pass!(NonStdLazyStatic { 
     msrv: Msrv,
     once_cell_crates: Vec<CrateNum>,
     sugg_map: FxIndexMap<DefId, Option<String>>,
     lazy_type_defs: FxIndexMap<DefId, LazyInfo>,
     uses_other_once_cell_types: bool,
-}
+ } => [NON_STD_LAZY_STATICS]);
 
 impl NonStdLazyStatic {
     #[must_use]

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::in_automatically_derived;
 use rustc_hir::{BindingMode, Pat, PatKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -27,7 +27,7 @@ declare_clippy_lint! {
     "use of a ref pattern, e.g. Some(ref value)"
 }
 
-declare_lint_pass!(RefPatterns => [REF_PATTERNS]);
+declare_clippy_pass!(RefPatterns => [REF_PATTERNS]);
 
 impl<'tcx> LateLintPass<'tcx> for RefPatterns {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'tcx>) {

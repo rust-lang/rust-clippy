@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, TyKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "reference to uninhabited type"
 }
 
-declare_lint_pass!(UninhabitedReferences => [UNINHABITED_REFERENCES]);
+declare_clippy_pass!(UninhabitedReferences => [UNINHABITED_REFERENCES]);
 
 impl LateLintPass<'_> for UninhabitedReferences {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {

@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_ast::ast::{Expr, ExprKind, Stmt, StmtKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "instead of using `a = b = c;` use `a = c; b = c;`"
 }
 
-declare_lint_pass!(MultiAssignments => [MULTI_ASSIGNMENTS]);
+declare_clippy_pass!(MultiAssignments => [MULTI_ASSIGNMENTS]);
 
 fn strip_paren_blocks(expr: &Expr) -> &Expr {
     match &expr.kind {

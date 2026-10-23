@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::span_contains_cfg;
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -49,7 +49,7 @@ declare_clippy_lint! {
     "enum with no variants"
 }
 
-declare_lint_pass!(EmptyEnums => [EMPTY_ENUMS]);
+declare_clippy_pass!(EmptyEnums => [EMPTY_ENUMS]);
 
 impl LateLintPass<'_> for EmptyEnums {
     fn check_item(&mut self, cx: &LateContext<'_>, item: &Item<'_>) {

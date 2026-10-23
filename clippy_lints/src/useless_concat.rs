@@ -6,7 +6,7 @@ use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lexer::TokenKind;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -29,7 +29,7 @@ declare_clippy_lint! {
     "checks that the `concat` macro has at least two arguments"
 }
 
-declare_lint_pass!(UselessConcat => [USELESS_CONCAT]);
+declare_clippy_pass!(UselessConcat => [USELESS_CONCAT]);
 
 impl LateLintPass<'_> for UselessConcat {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

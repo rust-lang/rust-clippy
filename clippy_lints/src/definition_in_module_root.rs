@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_ast::ast::{self, Inline, ItemKind, ModKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::{FileName, SourceFile, sym};
 
 declare_clippy_lint! {
@@ -50,15 +50,14 @@ declare_clippy_lint! {
     "definitions in `mod.rs` should be in named files"
 }
 
-impl_lint_pass!(DefinitionInModuleRoot => [DEFINITION_IN_MODULE_ROOT]);
-
-#[derive(Default)]
-pub struct DefinitionInModuleRoot {
+declare_clippy_pass!(
+    #[derive(Default)]
+    DefinitionInModuleRoot { 
     /// Stack tracking whether items at the current nesting level are in a
     /// `mod.rs` file. When the stack is empty, we are at crate root depth
     /// (not linted).
     module_stack: Vec<bool>,
-}
+ } => [DEFINITION_IN_MODULE_ROOT]);
 
 impl EarlyLintPass for DefinitionInModuleRoot {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &ast::Item) {

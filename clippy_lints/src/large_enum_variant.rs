@@ -5,7 +5,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::ty::{AdtVariantInfo, approx_ty_size, is_copy};
 use rustc_errors::Applicability;
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 
@@ -57,11 +57,9 @@ declare_clippy_lint! {
     "large size difference between variants on an enum"
 }
 
-impl_lint_pass!(LargeEnumVariant => [LARGE_ENUM_VARIANT]);
-
-pub struct LargeEnumVariant {
+declare_clippy_pass!(LargeEnumVariant { 
     maximum_size_difference_allowed: u64,
-}
+ } => [LARGE_ENUM_VARIANT]);
 
 impl LargeEnumVariant {
     pub fn new(conf: &'static Conf) -> Self {

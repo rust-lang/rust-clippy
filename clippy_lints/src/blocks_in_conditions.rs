@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_block_with_applicability;
 use clippy_utils::{contains_return, higher, is_from_proc_macro, leaks_droppable_temporary};
 use rustc_errors::Applicability;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, MatchSource, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "useless or complex blocks that can be eliminated in conditions"
 }
 
-declare_lint_pass!(BlocksInConditions => [BLOCKS_IN_CONDITIONS]);
+declare_clippy_pass!(BlocksInConditions => [BLOCKS_IN_CONDITIONS]);
 
 const BRACED_EXPR_MESSAGE: &str = "omit braces around single expression condition";
 

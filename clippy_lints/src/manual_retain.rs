@@ -9,7 +9,7 @@ use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::ExprKind::Assign;
 use rustc_hir::def_id::DefId;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::symbol::Symbol;
 
@@ -44,11 +44,9 @@ declare_clippy_lint! {
     "`retain()` is simpler and the same functionalities"
 }
 
-impl_lint_pass!(ManualRetain => [MANUAL_RETAIN]);
-
-pub struct ManualRetain {
+declare_clippy_pass!(ManualRetain { 
     msrv: Msrv,
-}
+ } => [MANUAL_RETAIN]);
 
 impl ManualRetain {
     pub fn new(conf: &'static Conf) -> Self {

@@ -3,7 +3,7 @@ use std::iter;
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use rustc_ast::ast;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{BytePos, Span};
 
 declare_clippy_lint! {
@@ -57,7 +57,7 @@ declare_clippy_lint! {
     "using tabs in doc comments is not recommended"
 }
 
-declare_lint_pass!(TabsInDocComments => [TABS_IN_DOC_COMMENTS]);
+declare_clippy_pass!(TabsInDocComments => [TABS_IN_DOC_COMMENTS]);
 
 impl TabsInDocComments {
     fn warn_if_tabs_in_doc(cx: &EarlyContext<'_>, attr: &ast::Attribute) {

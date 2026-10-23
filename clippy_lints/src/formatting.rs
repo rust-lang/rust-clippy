@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_note};
 use clippy_utils::is_span_if;
 use clippy_utils::source::snippet_opt;
 use rustc_ast::ast::{BinOpKind, Block, Expr, ExprKind, StmtKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -136,7 +136,7 @@ declare_clippy_lint! {
     "suspicious formatting of unary `-` or `!` on the RHS of a BinOp"
 }
 
-declare_lint_pass!(Formatting => [
+declare_clippy_pass!(Formatting => [
     POSSIBLE_MISSING_COMMA,
     POSSIBLE_MISSING_ELSE,
     SUSPICIOUS_ASSIGNMENT_FORMATTING,

@@ -8,7 +8,7 @@ use core::ops::ControlFlow;
 use rustc_attr_ir::Attribute;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Expr, ExprKind, FnDecl};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -40,11 +40,9 @@ declare_clippy_lint! {
     @eval_always = true
 }
 
-impl_lint_pass!(CognitiveComplexity => [COGNITIVE_COMPLEXITY]);
-
-pub struct CognitiveComplexity {
+declare_clippy_pass!(CognitiveComplexity { 
     limit: LimitStack,
-}
+ } => [COGNITIVE_COMPLEXITY]);
 
 impl CognitiveComplexity {
     pub fn new(conf: &'static Conf) -> Self {

@@ -3,7 +3,7 @@ use clippy_utils::is_from_proc_macro;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Pat, PatKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "using struct pattern to match against unit variant"
 }
 
-declare_lint_pass!(UnneededStructPattern => [UNNEEDED_STRUCT_PATTERN]);
+declare_clippy_pass!(UnneededStructPattern => [UNNEEDED_STRUCT_PATTERN]);
 
 impl LateLintPass<'_> for UnneededStructPattern {
     fn check_pat(&mut self, cx: &LateContext<'_>, pat: &Pat<'_>) {

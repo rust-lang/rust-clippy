@@ -9,7 +9,7 @@ use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Constness, ExprKind, FnDecl, def_id};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::def_id::LocalDefId;
@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "`clone()` of an owned value that is going to be dropped immediately"
 }
 
-declare_lint_pass!(RedundantClone => [REDUNDANT_CLONE]);
+declare_clippy_pass!(RedundantClone => [REDUNDANT_CLONE]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantClone {
     #[expect(clippy::too_many_lines)]

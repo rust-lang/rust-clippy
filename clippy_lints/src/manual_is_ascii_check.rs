@@ -9,7 +9,7 @@ use rustc_ast::LitKind::{Byte, Char};
 use rustc_ast::ast::RangeLimits;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Lit, Node, Param, PatExpr, PatExprKind, PatKind, RangeEnd};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 
@@ -57,11 +57,9 @@ declare_clippy_lint! {
     "use dedicated method to check ascii range"
 }
 
-impl_lint_pass!(ManualIsAsciiCheck => [MANUAL_IS_ASCII_CHECK]);
-
-pub struct ManualIsAsciiCheck {
+declare_clippy_pass!(ManualIsAsciiCheck { 
     msrv: Msrv,
-}
+ } => [MANUAL_IS_ASCII_CHECK]);
 
 impl ManualIsAsciiCheck {
     pub fn new(conf: &'static Conf) -> Self {

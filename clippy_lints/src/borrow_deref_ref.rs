@@ -8,7 +8,7 @@ use clippy_utils::{
 };
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Node, UnOp};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::Mutability;
 use rustc_middle::ty;
 
@@ -47,7 +47,7 @@ declare_clippy_lint! {
     "deref on an immutable reference returns the same type as itself"
 }
 
-declare_lint_pass!(BorrowDerefRef => [BORROW_DEREF_REF]);
+declare_clippy_pass!(BorrowDerefRef => [BORROW_DEREF_REF]);
 
 impl<'tcx> LateLintPass<'tcx> for BorrowDerefRef {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {

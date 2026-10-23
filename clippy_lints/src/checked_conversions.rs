@@ -5,7 +5,7 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::{SpanlessEq, is_in_const_context, is_integer_literal, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath, TyKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::{Symbol, SyntaxContext};
 
 declare_clippy_lint! {
@@ -33,11 +33,9 @@ declare_clippy_lint! {
     "`try_from` could replace manual bounds checking when casting"
 }
 
-impl_lint_pass!(CheckedConversions => [CHECKED_CONVERSIONS]);
-
-pub struct CheckedConversions {
+declare_clippy_pass!(CheckedConversions { 
     msrv: Msrv,
-}
+ } => [CHECKED_CONVERSIONS]);
 
 impl CheckedConversions {
     pub fn new(conf: &'static Conf) -> Self {

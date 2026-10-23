@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_ast::ast::{Item, ItemKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "partial fields of a struct are public"
 }
 
-declare_lint_pass!(PartialPubFields => [PARTIAL_PUB_FIELDS]);
+declare_clippy_pass!(PartialPubFields => [PARTIAL_PUB_FIELDS]);
 
 impl EarlyLintPass for PartialPubFields {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

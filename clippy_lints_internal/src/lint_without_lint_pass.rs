@@ -140,6 +140,8 @@ impl<'tcx> LateLintPass<'tcx> for LintWithoutLintPass {
         } else if let Some(macro_call) = root_macro_call_first_node(cx, item) {
             if !matches!(
                 cx.tcx.item_name(macro_call.def_id).as_str(),
+                "declare_clippy_pass" |
+                // These 2 are deprecated in Clippy, use `declare_clippy_pass` instead.
                 "impl_lint_pass" | "declare_lint_pass"
             ) {
                 return;

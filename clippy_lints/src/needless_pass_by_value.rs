@@ -14,7 +14,7 @@ use rustc_hir::{
     TyKind,
 };
 use rustc_hir_typeck::expr_use_visitor as euv;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty::{self, Ty, TypeVisitableExt as _};
 use rustc_span::def_id::LocalDefId;
@@ -60,7 +60,7 @@ declare_clippy_lint! {
     "functions taking arguments by value, but not consuming them in its body"
 }
 
-declare_lint_pass!(NeedlessPassByValue => [NEEDLESS_PASS_BY_VALUE]);
+declare_clippy_pass!(NeedlessPassByValue => [NEEDLESS_PASS_BY_VALUE]);
 
 macro_rules! need {
     ($e: expr) => {

@@ -10,7 +10,7 @@ use rustc_hir::{
     AmbigArg, Expr, ExprKind, ForeignItem, HirId, ImplItem, ImplItemImplKind, Item, ItemKind, OwnerId, Pat, Path, Stmt,
     TraitItem, Ty,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{ExpnId, MacroKind, Span};
 
@@ -62,9 +62,7 @@ declare_clippy_lint! {
     "use of a disallowed macro"
 }
 
-impl_lint_pass!(DisallowedMacros => [DISALLOWED_MACROS]);
-
-pub struct DisallowedMacros {
+declare_clippy_pass!(DisallowedMacros { 
     disallowed: DefIdMap<(&'static str, &'static DisallowedPath)>,
     seen: FxHashSet<ExpnId>,
     // Track the most recently seen node that can have a `derive` attribute.
@@ -74,7 +72,7 @@ pub struct DisallowedMacros {
     // When a macro is disallowed in an early pass, it's stored
     // and emitted during the late pass. This happens for attributes.
     early_macro_cache: AttrStorage,
-}
+ } => [DISALLOWED_MACROS]);
 
 impl DisallowedMacros {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf, early_macro_cache: AttrStorage) -> Self {

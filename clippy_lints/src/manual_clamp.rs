@@ -12,7 +12,7 @@ use itertools::Itertools as _;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::Res;
 use rustc_hir::{Arm, BinOpKind, Block, Expr, ExprKind, HirId, PatKind, PathSegment, PrimTy, QPath, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 use rustc_span::{Span, SyntaxContext};
 use std::cmp::Ordering;
@@ -88,11 +88,9 @@ declare_clippy_lint! {
     "using a clamp pattern instead of the clamp function"
 }
 
-impl_lint_pass!(ManualClamp => [MANUAL_CLAMP]);
-
-pub struct ManualClamp {
+declare_clippy_pass!(ManualClamp { 
     msrv: Msrv,
-}
+ } => [MANUAL_CLAMP]);
 
 impl ManualClamp {
     pub fn new(conf: &'static Conf) -> Self {

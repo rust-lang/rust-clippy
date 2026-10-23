@@ -3,7 +3,7 @@ use clippy_utils::in_automatically_derived;
 use clippy_utils::source::snippet_with_context;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::{ExpnKind, MacroKind, Span};
 
 declare_clippy_lint! {
@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "add a semicolon if nothing is returned"
 }
 
-declare_lint_pass!(SemicolonIfNothingReturned => [SEMICOLON_IF_NOTHING_RETURNED]);
+declare_clippy_pass!(SemicolonIfNothingReturned => [SEMICOLON_IF_NOTHING_RETURNED]);
 
 impl<'tcx> LateLintPass<'tcx> for SemicolonIfNothingReturned {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx Block<'tcx>) {

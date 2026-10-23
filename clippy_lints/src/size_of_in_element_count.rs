@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::sym;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Symbol;
 
@@ -29,7 +29,7 @@ declare_clippy_lint! {
     "using `size_of::<T>` or `size_of_val::<T>` where a count of elements of `T` is expected"
 }
 
-declare_lint_pass!(SizeOfInElementCount => [SIZE_OF_IN_ELEMENT_COUNT]);
+declare_clippy_pass!(SizeOfInElementCount => [SIZE_OF_IN_ELEMENT_COUNT]);
 
 fn get_size_of_ty<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>, inverted: bool) -> Option<Ty<'tcx>> {
     match expr.kind {

@@ -6,7 +6,7 @@ use clippy_utils::{binop_traits, is_from_proc_macro, span_contains_comment, sym}
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{AssignOpKind, BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::{Span, Symbol};
 
@@ -50,11 +50,9 @@ declare_clippy_lint! {
     "unnecessary `NonZero::get` call"
 }
 
-impl_lint_pass!(NeedlessNonzeroGet => [NEEDLESS_NONZERO_GET]);
-
-pub struct NeedlessNonzeroGet {
+declare_clippy_pass!(NeedlessNonzeroGet { 
     msrv: Msrv,
-}
+ } => [NEEDLESS_NONZERO_GET]);
 
 impl NeedlessNonzeroGet {
     pub fn new(conf: &'static Conf) -> Self {

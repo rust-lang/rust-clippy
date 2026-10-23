@@ -4,7 +4,7 @@ use clippy_utils::source::{indent_of, reindent_multiline};
 use clippy_utils::{higher, is_else_clause, is_parent_stmt, peel_blocks_with_stmt, span_extract_comment, sugg};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -31,7 +31,7 @@ declare_clippy_lint! {
     "`panic!` and only a `panic!` in `if`-then statement"
 }
 
-declare_lint_pass!(ManualAssert => [MANUAL_ASSERT]);
+declare_clippy_pass!(ManualAssert => [MANUAL_ASSERT]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualAssert {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {

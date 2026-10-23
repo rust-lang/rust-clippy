@@ -5,7 +5,7 @@ use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{self as hir, AmbigArg, UseTree};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::edition::Edition;
 use rustc_span::{OrdSpan, Span};
 use std::collections::BTreeMap;
@@ -43,8 +43,6 @@ declare_clippy_lint! {
     "#[macro_use] is no longer needed"
 }
 
-impl_lint_pass!(MacroUseImports => [MACRO_USE_IMPORTS]);
-
 /// `MacroRefData` includes the name of the macro.
 #[derive(Debug, Clone)]
 pub struct MacroRefData {
@@ -57,15 +55,16 @@ impl MacroRefData {
     }
 }
 
-#[derive(Default)]
-pub struct MacroUseImports {
+declare_clippy_pass!(
+    #[derive(Default)]
+    MacroUseImports { 
     /// the actual import path used and the span of the attribute above it. The value is
     /// the location, where the lint should be emitted.
     imports: Vec<(String, Span, hir::HirId)>,
     /// the span of the macro reference, kept to ensure only one reference is used per macro call.
     collected: FxHashSet<Span>,
     mac_refs: Vec<MacroRefData>,
-}
+ } => [MACRO_USE_IMPORTS]);
 
 impl MacroUseImports {
     fn push_unique_macro(&mut self, cx: &LateContext<'_>, span: Span) {

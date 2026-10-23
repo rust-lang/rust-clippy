@@ -5,7 +5,7 @@ use clippy_utils::{fulfill_or_allowed, is_cfg_test, is_in_cfg_test};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def_id::{LocalDefId, LocalModId};
 use rustc_hir::{Item, ItemKind, Node};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{FileName, Span};
 use std::collections::hash_map::Entry;
 
@@ -46,11 +46,9 @@ declare_clippy_lint! {
     "Multiple inherent impl that could be grouped"
 }
 
-impl_lint_pass!(MultipleInherentImpl => [MULTIPLE_INHERENT_IMPL]);
-
-pub struct MultipleInherentImpl {
+declare_clippy_pass!(MultipleInherentImpl { 
     scope: InherentImplLintScope,
-}
+ } => [MULTIPLE_INHERENT_IMPL]);
 
 impl MultipleInherentImpl {
     pub fn new(conf: &'static Conf) -> Self {

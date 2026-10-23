@@ -8,7 +8,7 @@ use clippy_utils::{match_libc_symbol, sym};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, BlockCheckMode, Expr, ExprKind, Node, UnsafeSource};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -37,11 +37,9 @@ declare_clippy_lint! {
     "using `libc::strlen` on a `CString` or `CStr` value, while `count_bytes()` can be used instead"
 }
 
-impl_lint_pass!(StrlenOnCStrings => [STRLEN_ON_C_STRINGS]);
-
-pub struct StrlenOnCStrings {
+declare_clippy_pass!(StrlenOnCStrings { 
     msrv: Msrv,
-}
+ } => [STRLEN_ON_C_STRINGS]);
 
 impl StrlenOnCStrings {
     pub fn new(conf: &Conf) -> Self {

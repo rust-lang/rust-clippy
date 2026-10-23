@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{GenericArg, Item, ItemKind, QPath, Ty, TyKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::GenericParamDefKind;
 
 declare_clippy_lint! {
@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "type parameter positioned inconsistently between type def and impl block"
 }
 
-declare_lint_pass!(TypeParamMismatch => [MISMATCHING_TYPE_PARAM_ORDER]);
+declare_clippy_pass!(TypeParamMismatch => [MISMATCHING_TYPE_PARAM_ORDER]);
 
 impl<'tcx> LateLintPass<'tcx> for TypeParamMismatch {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

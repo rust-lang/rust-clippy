@@ -6,7 +6,7 @@ use clippy_utils::source::snippet_with_context;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -39,11 +39,9 @@ declare_clippy_lint! {
     "manual `mem::take` implementation"
 }
 
-impl_lint_pass!(ManualTake => [MANUAL_TAKE]);
-
-pub struct ManualTake {
+declare_clippy_pass!(ManualTake { 
     msrv: Msrv,
-}
+ } => [MANUAL_TAKE]);
 
 impl ManualTake {
     pub fn new(conf: &'static Conf) -> Self {

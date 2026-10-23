@@ -1,7 +1,7 @@
 use clippy_utils::res::MaybeResPath as _;
 use rustc_hir::def::Res;
 use rustc_hir::{Impl, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 mod derive_ord_xor_partial_ord;
 mod derive_partial_eq_without_eq;
@@ -183,7 +183,7 @@ declare_clippy_lint! {
     "deriving `serde::Deserialize` on a type that has methods using `unsafe`"
 }
 
-declare_lint_pass!(Derive => [
+declare_clippy_pass!(Derive => [
     DERIVED_HASH_WITH_MANUAL_EQ,
     DERIVE_ORD_XOR_PARTIAL_ORD,
     DERIVE_PARTIAL_EQ_WITHOUT_EQ,

@@ -8,7 +8,7 @@ use rustc_hir::intravisit::Visitor;
 use rustc_hir::{
     CaptureBy, ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, ExprKind, intravisit as hir_visit,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::ty;
 use rustc_span::ExpnKind;
@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "throwaway closures called in the expression they are defined"
 }
 
-declare_lint_pass!(RedundantClosureCall => [REDUNDANT_CLOSURE_CALL]);
+declare_clippy_pass!(RedundantClosureCall => [REDUNDANT_CLOSURE_CALL]);
 
 // Used to find `return` statements or equivalents e.g., `?`
 struct ReturnVisitor;

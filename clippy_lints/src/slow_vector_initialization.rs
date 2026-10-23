@@ -6,7 +6,7 @@ use clippy_utils::{SpanlessEq, get_enclosing_block, is_integer_literal, span_con
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_expr, walk_stmt};
 use rustc_hir::{BindingMode, Block, Expr, ExprKind, HirId, PatKind, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::SyntaxContext;
 
 declare_clippy_lint! {
@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "slow vector initialization"
 }
 
-declare_lint_pass!(SlowVectorInit => [SLOW_VECTOR_INITIALIZATION]);
+declare_clippy_pass!(SlowVectorInit => [SLOW_VECTOR_INITIALIZATION]);
 
 /// `VecAllocation` contains data regarding a vector allocated with `with_capacity` and then
 /// assigned to a variable. For example, `let mut vec = Vec::with_capacity(0)` or

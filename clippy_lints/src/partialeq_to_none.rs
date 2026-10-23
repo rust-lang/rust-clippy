@@ -3,7 +3,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::{is_none_expr, peel_hir_expr_refs, peel_ref_operators, sugg};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "Binary comparison to `Option<T>::None` relies on `T: PartialEq`, which is unneeded"
 }
 
-declare_lint_pass!(PartialeqToNone => [PARTIALEQ_TO_NONE]);
+declare_clippy_pass!(PartialeqToNone => [PARTIALEQ_TO_NONE]);
 
 impl<'tcx> LateLintPass<'tcx> for PartialeqToNone {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

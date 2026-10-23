@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::usage::is_todo_unimplemented_stub;
 use clippy_utils::visitors::is_local_used;
 use rustc_hir::{Impl, ImplItem, ImplItemKind, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -35,11 +35,9 @@ declare_clippy_lint! {
     "methods that contain a `self` argument but don't use it"
 }
 
-impl_lint_pass!(UnusedSelf => [UNUSED_SELF]);
-
-pub struct UnusedSelf {
+declare_clippy_pass!(UnusedSelf { 
     avoid_breaking_exported_api: bool,
-}
+ } => [UNUSED_SELF]);
 
 impl UnusedSelf {
     pub fn new(conf: &'static Conf) -> Self {

@@ -3,7 +3,7 @@ use clippy_utils::source::SpanExt as _;
 use rustc_ast::token::LitKind;
 use rustc_ast::{Expr, ExprKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::{BytePos, Pos as _, SpanData};
 
 declare_clippy_lint! {
@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "string escape sequences looking like octal characters"
 }
 
-declare_lint_pass!(OctalEscapes => [OCTAL_ESCAPES]);
+declare_clippy_pass!(OctalEscapes => [OCTAL_ESCAPES]);
 
 impl EarlyLintPass for OctalEscapes {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

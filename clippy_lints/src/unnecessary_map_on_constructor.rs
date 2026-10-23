@@ -3,7 +3,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::snippet_with_applicability;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -31,7 +31,7 @@ declare_clippy_lint! {
     "using `map`/`map_err` on `Option` or `Result` constructors"
 }
 
-declare_lint_pass!(UnnecessaryMapOnConstructor => [
+declare_clippy_pass!(UnnecessaryMapOnConstructor => [
     UNNECESSARY_MAP_ON_CONSTRUCTOR,
 ]);
 

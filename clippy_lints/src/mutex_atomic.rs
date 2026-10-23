@@ -5,7 +5,7 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::ty_from_hir_ty;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::{self as hir, Expr, ExprKind, Item, ItemKind, LetStmt, QPath};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::mir::Mutability;
 use rustc_middle::ty::{self, IntTy, Ty, UintTy};
 use rustc_span::sym;
@@ -90,7 +90,7 @@ declare_clippy_lint! {
     "using a mutex for an integer type"
 }
 
-declare_lint_pass!(Mutex => [MUTEX_ATOMIC, MUTEX_INTEGER]);
+declare_clippy_pass!(Mutex => [MUTEX_ATOMIC, MUTEX_INTEGER]);
 
 // NOTE: we don't use `check_expr` because that would make us lint every _use_ of such mutexes, not
 // just their definitions

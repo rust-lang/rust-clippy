@@ -1,7 +1,7 @@
 use clippy_utils::consts::{Constant, mir_to_const};
 use clippy_utils::diagnostics::span_lint;
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::util::IntTypeExt as _;
 use rustc_middle::ty::{self, IntTy, UintTy};
 
@@ -29,7 +29,7 @@ declare_clippy_lint! {
     "C-like enums that are `repr(isize/usize)` and have values that don't fit into an `i32`"
 }
 
-declare_lint_pass!(UnportableVariant => [ENUM_CLIKE_UNPORTABLE_VARIANT]);
+declare_clippy_pass!(UnportableVariant => [ENUM_CLIKE_UNPORTABLE_VARIANT]);
 
 impl<'tcx> LateLintPass<'tcx> for UnportableVariant {
     #[expect(clippy::cast_possible_wrap)]

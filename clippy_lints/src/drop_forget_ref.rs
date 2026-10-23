@@ -4,7 +4,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::ty::{is_copy, opt_must_use_path};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_hir::{Arm, Expr, ExprKind, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::sym;
 use std::borrow::Cow;
 
@@ -70,7 +70,7 @@ declare_clippy_lint! {
     "`mem::forget` usage on `Drop` types, likely to cause memory leaks"
 }
 
-declare_lint_pass!(DropForgetRef => [DROP_NON_DROP, FORGET_NON_DROP, MEM_FORGET]);
+declare_clippy_pass!(DropForgetRef => [DROP_NON_DROP, FORGET_NON_DROP, MEM_FORGET]);
 
 const DROP_NON_DROP_SUMMARY: &str = "call to `std::mem::drop` with a value that does not implement `Drop`. \
                                  Dropping such a type only extends its contained lifetimes";

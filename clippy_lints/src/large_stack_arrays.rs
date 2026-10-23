@@ -6,7 +6,7 @@ use clippy_utils::macros::macro_backtrace;
 use clippy_utils::source::snippet;
 use clippy_utils::{is_from_proc_macro, sym};
 use rustc_hir::{Expr, ExprKind, Item, ItemKind, Node};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_span::Span;
@@ -28,13 +28,11 @@ declare_clippy_lint! {
     "allocating large arrays on stack may cause stack overflow"
 }
 
-impl_lint_pass!(LargeStackArrays => [LARGE_STACK_ARRAYS]);
-
-pub struct LargeStackArrays {
+declare_clippy_pass!(LargeStackArrays { 
     maximum_allowed_size: u64,
     prev_vec_macro_callsite: Option<Span>,
     const_item_counter: Saturating<u16>,
-}
+ } => [LARGE_STACK_ARRAYS]);
 
 impl LargeStackArrays {
     pub fn new(conf: &'static Conf) -> Self {

@@ -3,7 +3,7 @@ use clippy_utils::source::snippet_with_applicability;
 use rustc_ast::ast::BinOpKind::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 use rustc_ast::ast::{BinOpKind, Expr, ExprKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, Lint, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, Lint};
 use rustc_span::Spanned;
 
 declare_clippy_lint! {
@@ -43,7 +43,7 @@ declare_clippy_lint! {
     "operations mixing bit shifting with bit combining/masking"
 }
 
-declare_lint_pass!(Precedence => [PRECEDENCE, PRECEDENCE_BITS]);
+declare_clippy_pass!(Precedence => [PRECEDENCE, PRECEDENCE_BITS]);
 
 impl EarlyLintPass for Precedence {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

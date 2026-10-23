@@ -7,7 +7,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{
     Block, Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, Expr, ExprKind, QPath,
 };
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -44,7 +44,7 @@ declare_clippy_lint! {
     "async blocks that return a type that can be awaited"
 }
 
-declare_lint_pass!(AsyncYieldsAsync => [ASYNC_YIELDS_ASYNC]);
+declare_clippy_pass!(AsyncYieldsAsync => [ASYNC_YIELDS_ASYNC]);
 
 impl<'tcx> LateLintPass<'tcx> for AsyncYieldsAsync {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

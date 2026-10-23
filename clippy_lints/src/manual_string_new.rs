@@ -3,7 +3,7 @@ use clippy_utils::sym;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability::MachineApplicable;
 use rustc_hir::{Expr, ExprKind, PathSegment, QPath, TyKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::Span;
 
@@ -34,7 +34,7 @@ declare_clippy_lint! {
     "empty String is being created manually"
 }
 
-declare_lint_pass!(ManualStringNew => [MANUAL_STRING_NEW]);
+declare_clippy_pass!(ManualStringNew => [MANUAL_STRING_NEW]);
 
 impl LateLintPass<'_> for ManualStringNew {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

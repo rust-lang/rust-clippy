@@ -4,7 +4,7 @@ use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Block, Body, Expr, ExprKind, MatchSource};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -42,7 +42,7 @@ declare_clippy_lint! {
     "using `Ok(x?)` or `Some(x?)` where `x` would be equivalent"
 }
 
-declare_lint_pass!(NeedlessQuestionMark => [NEEDLESS_QUESTION_MARK]);
+declare_clippy_pass!(NeedlessQuestionMark => [NEEDLESS_QUESTION_MARK]);
 
 impl LateLintPass<'_> for NeedlessQuestionMark {
     /*

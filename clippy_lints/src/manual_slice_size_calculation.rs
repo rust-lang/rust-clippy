@@ -6,7 +6,7 @@ use clippy_utils::ty::peel_and_count_ty_refs;
 use clippy_utils::{expr_or_init, is_in_const_context, std_or_core, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -38,11 +38,9 @@ declare_clippy_lint! {
     "manual slice size calculation"
 }
 
-impl_lint_pass!(ManualSliceSizeCalculation => [MANUAL_SLICE_SIZE_CALCULATION]);
-
-pub struct ManualSliceSizeCalculation {
+declare_clippy_pass!(ManualSliceSizeCalculation { 
     msrv: Msrv,
-}
+ } => [MANUAL_SLICE_SIZE_CALCULATION]);
 
 impl ManualSliceSizeCalculation {
     pub fn new(conf: &Conf) -> Self {

@@ -16,7 +16,7 @@ use rustc_hir::intravisit::{Visitor, walk_expr, walk_path};
 use rustc_hir::{
     Arm, BindingMode, Expr, ExprKind, HirId, MatchSource, Mutability, Node, Pat, PatKind, Path, QPath, UnOp,
 };
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_span::SyntaxContext;
 
@@ -79,7 +79,7 @@ declare_clippy_lint! {
     "reimplementation of Option::map_or"
 }
 
-declare_lint_pass!(OptionIfLetElse => [OPTION_IF_LET_ELSE]);
+declare_clippy_pass!(OptionIfLetElse => [OPTION_IF_LET_ELSE]);
 
 /// A struct containing information about occurrences of construct that this lint detects
 ///

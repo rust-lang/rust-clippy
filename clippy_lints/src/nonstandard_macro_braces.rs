@@ -7,7 +7,7 @@ use rustc_ast::token::{Delimiter, Token, TokenKind};
 use rustc_ast::tokenstream::{TokenStream, TokenTree};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{Span, Symbol};
 
 use crate::rustc_lint::LintContext as _;
@@ -35,13 +35,11 @@ declare_clippy_lint! {
     "check consistent use of braces in macro"
 }
 
-impl_lint_pass!(MacroBraces => [NONSTANDARD_MACRO_BRACES]);
-
-pub struct MacroBraces {
+declare_clippy_pass!(MacroBraces { 
     macro_braces: FxHashMap<Symbol, (char, char)>,
     /// Spans for statement macro calls, they have special behaviour with semicolons
     mac_stmt_spans: Vec<Span>,
-}
+ } => [NONSTANDARD_MACRO_BRACES]);
 
 impl MacroBraces {
     pub fn new(conf: &'static Conf) -> Self {

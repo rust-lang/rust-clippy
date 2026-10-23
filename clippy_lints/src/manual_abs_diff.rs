@@ -8,7 +8,7 @@ use clippy_utils::ty::peel_and_count_ty_refs;
 use clippy_utils::{eq_expr_value, peel_blocks, span_contains_comment, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 
 declare_clippy_lint! {
@@ -40,11 +40,9 @@ declare_clippy_lint! {
     "using an if-else pattern instead of `abs_diff`"
 }
 
-impl_lint_pass!(ManualAbsDiff => [MANUAL_ABS_DIFF]);
-
-pub struct ManualAbsDiff {
+declare_clippy_pass!(ManualAbsDiff { 
     msrv: Msrv,
-}
+ } => [MANUAL_ABS_DIFF]);
 
 impl ManualAbsDiff {
     pub fn new(conf: &'static Conf) -> Self {

@@ -10,7 +10,7 @@ use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BinOpKind, Expr, ExprKind, PatExprKind, PatKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::{Span, Spanned, Symbol};
 
@@ -87,11 +87,9 @@ declare_clippy_lint! {
     "checking `.len() == 0` or `.len() > 0` (or similar) when `.is_empty()` could be used instead"
 }
 
-impl_lint_pass!(LenZero => [COMPARISON_TO_EMPTY, LEN_ZERO]);
-
-pub struct LenZero {
+declare_clippy_pass!(LenZero { 
     msrv: Msrv,
-}
+ } => [COMPARISON_TO_EMPTY, LEN_ZERO]);
 
 impl LenZero {
     pub fn new(conf: &'static Conf) -> Self {

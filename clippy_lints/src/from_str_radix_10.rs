@@ -8,7 +8,7 @@ use clippy_utils::{is_in_const_context, is_integer_literal, sym};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Expr, ExprKind, PrimTy, QPath, TyKind, def};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 
 declare_clippy_lint! {
@@ -45,11 +45,9 @@ declare_clippy_lint! {
     "from_str_radix with radix 10"
 }
 
-impl_lint_pass!(FromStrRadix10 => [FROM_STR_RADIX_10]);
-
-pub struct FromStrRadix10 {
+declare_clippy_pass!(FromStrRadix10 {
     msrv: Msrv,
-}
+}=> [FROM_STR_RADIX_10]);
 
 impl FromStrRadix10 {
     pub fn new(conf: &'static Conf) -> Self {

@@ -3,7 +3,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::sym;
 use rustc_attr_ir::LangItem;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_middle::ty::{self, Ty, TypeVisitableExt as _};
 
@@ -58,7 +58,7 @@ declare_clippy_lint! {
     "warn about volatile read/write applied to composite types"
 }
 
-declare_lint_pass!(VolatileComposites => [VOLATILE_COMPOSITES]);
+declare_clippy_pass!(VolatileComposites => [VOLATILE_COMPOSITES]);
 
 /// Zero-sized types are intrinsically safe to use volatile on since they won't
 /// actually generate *any* loads or stores. But this is also used to skip zero-sized

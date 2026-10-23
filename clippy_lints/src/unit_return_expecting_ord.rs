@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Closure, Expr, ExprKind, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::{ClauseKind, GenericClauses, ProjectionClause, TraitClause};
 use rustc_span::{BytePos, Span, Symbol, sym};
@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "fn arguments of type Fn(...) -> Ord returning the unit type ()."
 }
 
-declare_lint_pass!(UnitReturnExpectingOrd => [UNIT_RETURN_EXPECTING_ORD]);
+declare_clippy_pass!(UnitReturnExpectingOrd => [UNIT_RETURN_EXPECTING_ORD]);
 
 fn get_trait_predicates_for_trait_ids<'tcx>(
     cx: &LateContext<'tcx>,

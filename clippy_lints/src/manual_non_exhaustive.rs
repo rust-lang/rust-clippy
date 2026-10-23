@@ -9,7 +9,7 @@ use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::{Expr, ExprKind, Item, ItemKind, QPath, TyKind, VariantData};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -61,13 +61,11 @@ declare_clippy_lint! {
     "manual implementations of the non-exhaustive pattern can be simplified using #[non_exhaustive]"
 }
 
-impl_lint_pass!(ManualNonExhaustive => [MANUAL_NON_EXHAUSTIVE]);
-
-pub struct ManualNonExhaustive {
+declare_clippy_pass!(ManualNonExhaustive { 
     msrv: Msrv,
     constructed_enum_variants: FxHashSet<LocalDefId>,
     potential_enums: Vec<(LocalDefId, LocalDefId, Span, Span)>,
-}
+ } => [MANUAL_NON_EXHAUSTIVE]);
 
 impl ManualNonExhaustive {
     pub fn new(conf: &'static Conf) -> Self {

@@ -6,7 +6,7 @@ use rustc_hir::{
     Block, Body, Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, Expr, ExprKind, FnDecl,
     FnRetTy, GenericBound, Node, OpaqueTy, TraitRef, Ty, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::middle::resolve_bound_vars::ResolvedArg;
 use rustc_middle::ty;
 use rustc_span::def_id::LocalDefId;
@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "manual implementations of `async` functions can be simplified using the dedicated syntax"
 }
 
-declare_lint_pass!(ManualAsyncFn => [MANUAL_ASYNC_FN]);
+declare_clippy_pass!(ManualAsyncFn => [MANUAL_ASYNC_FN]);
 
 impl<'tcx> LateLintPass<'tcx> for ManualAsyncFn {
     fn check_fn(

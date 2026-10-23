@@ -4,7 +4,7 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::sym;
 use rustc_errors::Applicability;
 use rustc_hir::{ExprKind, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "Use of `.ok()` to silence `Result`'s `#[must_use]` is misleading. Use `let _ =` instead."
 }
 
-declare_lint_pass!(UnusedResultOk => [UNUSED_RESULT_OK]);
+declare_clippy_pass!(UnusedResultOk => [UNUSED_RESULT_OK]);
 
 impl LateLintPass<'_> for UnusedResultOk {
     fn check_stmt(&mut self, cx: &LateContext<'_>, stmt: &Stmt<'_>) {

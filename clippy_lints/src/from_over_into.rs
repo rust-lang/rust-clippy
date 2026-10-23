@@ -12,7 +12,7 @@ use rustc_hir::{
     FnRetTy, GenericArg, GenericArgs, HirId, Impl, ImplItemId, ImplItemKind, Item, ItemKind, PatKind, Path,
     PathSegment, Ty as HirTy, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter::OnlyBodies;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::{kw, sym};
@@ -51,11 +51,9 @@ declare_clippy_lint! {
     "Warns on implementations of `Into<..>` to use `From<..>`"
 }
 
-impl_lint_pass!(FromOverInto => [FROM_OVER_INTO]);
-
-pub struct FromOverInto {
+declare_clippy_pass!(FromOverInto { 
     msrv: Msrv,
-}
+ } => [FROM_OVER_INTO]);
 
 impl FromOverInto {
     pub fn new(conf: &'static Conf) -> Self {

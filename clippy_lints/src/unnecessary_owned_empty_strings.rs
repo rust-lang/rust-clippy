@@ -5,7 +5,7 @@ use rustc_ast::ast::LitKind;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -31,7 +31,7 @@ declare_clippy_lint! {
     "detects cases of references to owned empty strings being passed as an argument to a function expecting `&str`"
 }
 
-declare_lint_pass!(UnnecessaryOwnedEmptyStrings => [
+declare_clippy_pass!(UnnecessaryOwnedEmptyStrings => [
     UNNECESSARY_OWNED_EMPTY_STRINGS,
 ]);
 

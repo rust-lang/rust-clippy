@@ -9,7 +9,7 @@ use rustc_attr_ir::lang_items::LangItem;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Block, Expr, ExprKind, Impl, Item, ItemKind, Node, QPath, TyKind, VariantData};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{Ty, TypeckResults};
 use rustc_span::{Span, Symbol};
 
@@ -77,7 +77,7 @@ declare_clippy_lint! {
     "missing fields in manual `Debug` implementation"
 }
 
-declare_lint_pass!(MissingFieldsInDebug => [MISSING_FIELDS_IN_DEBUG]);
+declare_clippy_pass!(MissingFieldsInDebug => [MISSING_FIELDS_IN_DEBUG]);
 
 fn report_lints(cx: &LateContext<'_>, span: Span, span_notes: Vec<(Span, &'static str)>) {
     span_lint_and_then(

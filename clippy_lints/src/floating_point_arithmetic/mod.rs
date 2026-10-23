@@ -3,7 +3,7 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{is_in_const_context, is_no_std_crate, sym};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 mod custom_abs;
 mod expm1;
@@ -104,11 +104,9 @@ declare_clippy_lint! {
     "usage of sub-optimal floating point operations"
 }
 
-impl_lint_pass!(FloatingPointArithmetic => [IMPRECISE_FLOPS, SUBOPTIMAL_FLOPS]);
-
-pub struct FloatingPointArithmetic {
+declare_clippy_pass!(FloatingPointArithmetic { 
     msrv: Msrv,
-}
+ } => [IMPRECISE_FLOPS, SUBOPTIMAL_FLOPS]);
 
 impl FloatingPointArithmetic {
     pub fn new(conf: &'static Conf) -> Self {

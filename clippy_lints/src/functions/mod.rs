@@ -15,7 +15,7 @@ use clippy_utils::paths::{PathNS, lookup_path_str};
 use rustc_ast::{self as ast, visit};
 use rustc_hir as hir;
 use rustc_hir::intravisit;
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, declare_lint_pass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 use rustc_span::def_id::{DefIdSet, LocalDefId};
@@ -502,8 +502,6 @@ declare_clippy_lint! {
     "functions with too many lines"
 }
 
-declare_lint_pass!(EarlyFunctions => [DUPLICATE_UNDERSCORE_ARGUMENT]);
-
 impl_lint_pass!(Functions => [
     DOUBLE_MUST_USE,
     IMPL_TRAIT_IN_PARAMS,
@@ -519,6 +517,8 @@ impl_lint_pass!(Functions => [
     TOO_MANY_ARGUMENTS,
     TOO_MANY_LINES,
 ]);
+
+declare_clippy_pass!(EarlyFunctions => [DUPLICATE_UNDERSCORE_ARGUMENT]);
 
 impl EarlyLintPass for EarlyFunctions {
     fn check_fn(&mut self, cx: &EarlyContext<'_>, fn_kind: visit::FnKind<'_>, _: Span, _: ast::NodeId) {

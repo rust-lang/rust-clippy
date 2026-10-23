@@ -8,7 +8,7 @@ use rustc_hir::{
     Block, Body, ConstContext, Expr, ExprKind, FnRetTy, HirId, Lit, Pat, PatExpr, PatExprKind, PatKind, Stmt, StmtKind,
     StructTailExpr,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::{self, FloatTy, IntTy, PolyFnSig, Ty};
 use std::iter;
 
@@ -47,7 +47,7 @@ declare_clippy_lint! {
     "usage of unconstrained numeric literals which may cause default numeric fallback."
 }
 
-declare_lint_pass!(DefaultNumericFallback => [DEFAULT_NUMERIC_FALLBACK]);
+declare_clippy_pass!(DefaultNumericFallback => [DEFAULT_NUMERIC_FALLBACK]);
 
 impl<'tcx> LateLintPass<'tcx> for DefaultNumericFallback {
     fn check_body(&mut self, cx: &LateContext<'tcx>, body: &'tcx Body<'tcx>) {

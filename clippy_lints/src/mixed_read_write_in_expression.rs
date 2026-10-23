@@ -4,7 +4,7 @@ use clippy_utils::res::MaybeResPath as _;
 use clippy_utils::{get_parent_expr, sym};
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{BinOpKind, Block, Expr, ExprKind, HirId, LetStmt, Node, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -78,7 +78,7 @@ declare_clippy_lint! {
     "whether a variable read occurs before a write depends on sub-expression evaluation order"
 }
 
-declare_lint_pass!(EvalOrderDependence => [
+declare_clippy_pass!(EvalOrderDependence => [
     DIVERGING_SUB_EXPRESSION,
     MIXED_READ_WRITE_IN_EXPRESSION,
 ]);

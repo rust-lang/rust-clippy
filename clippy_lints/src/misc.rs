@@ -5,7 +5,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{BinOpKind, Expr, ExprKind, HirId, Node, QPath, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::{Span, Symbol};
 
@@ -95,7 +95,7 @@ declare_clippy_lint! {
     "using a item which is prefixed with an underscore"
 }
 
-declare_lint_pass!(LintPass => [
+declare_clippy_pass!(LintPass => [
     SHORT_CIRCUIT_STATEMENT,
     USED_UNDERSCORE_BINDING,
     USED_UNDERSCORE_ITEMS,

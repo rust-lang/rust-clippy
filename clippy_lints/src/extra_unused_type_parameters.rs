@@ -8,7 +8,7 @@ use rustc_hir::{
     AmbigArg, BodyId, ExprKind, GenericBound, GenericParam, GenericParamKind, Generics, ImplItem, ImplItemKind, Item,
     ItemKind, PredicateOrigin, Ty, WherePredicate, WherePredicateKind,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_span::Span;
 use rustc_span::def_id::{DefId, LocalDefId};
@@ -39,11 +39,9 @@ declare_clippy_lint! {
     "unused type parameters in function definitions"
 }
 
-impl_lint_pass!(ExtraUnusedTypeParameters => [EXTRA_UNUSED_TYPE_PARAMETERS]);
-
-pub struct ExtraUnusedTypeParameters {
+declare_clippy_pass!(ExtraUnusedTypeParameters { 
     avoid_breaking_exported_api: bool,
-}
+ } => [EXTRA_UNUSED_TYPE_PARAMETERS]);
 
 impl ExtraUnusedTypeParameters {
     pub fn new(conf: &'static Conf) -> Self {

@@ -6,7 +6,7 @@ use clippy_utils::{peel_hir_expr_refs, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, Mutability, QPath};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -32,11 +32,9 @@ declare_clippy_lint! {
     "`&std::path::MAIN_SEPARATOR.to_string()` can be replaced by `std::path::MAIN_SEPARATOR_STR`"
 }
 
-impl_lint_pass!(ManualMainSeparatorStr => [MANUAL_MAIN_SEPARATOR_STR]);
-
-pub struct ManualMainSeparatorStr {
+declare_clippy_pass!(ManualMainSeparatorStr { 
     msrv: Msrv,
-}
+ } => [MANUAL_MAIN_SEPARATOR_STR]);
 
 impl ManualMainSeparatorStr {
     pub fn new(conf: &'static Conf) -> Self {

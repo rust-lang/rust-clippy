@@ -3,7 +3,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{higher, sym};
 use rustc_hir::{BorrowKind, Closure, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Symbol;
 
 declare_clippy_lint! {
@@ -49,7 +49,7 @@ declare_clippy_lint! {
     "possible infinite iteration"
 }
 
-declare_lint_pass!(InfiniteIter => [INFINITE_ITER, MAYBE_INFINITE_ITER]);
+declare_clippy_pass!(InfiniteIter => [INFINITE_ITER, MAYBE_INFINITE_ITER]);
 
 impl<'tcx> LateLintPass<'tcx> for InfiniteIter {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

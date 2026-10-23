@@ -5,7 +5,7 @@ use core::ops::{Add, AddAssign};
 use rustc_ast::ast::{BinOpKind, Expr, ExprKind, StmtKind};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::symbol::Ident;
 use rustc_span::{Span, Spanned};
 
@@ -62,13 +62,12 @@ declare_clippy_lint! {
     "groupings of binary operations that look suspiciously like typos"
 }
 
-impl_lint_pass!(SuspiciousOperationGroupings => [SUSPICIOUS_OPERATION_GROUPINGS]);
-
-#[derive(Default)]
-pub struct SuspiciousOperationGroupings {
+declare_clippy_pass!(
+    #[derive(Default)]
+    SuspiciousOperationGroupings { 
     // Spans already linted.
     linted_spans: FxHashSet<Span>,
-}
+ } => [SUSPICIOUS_OPERATION_GROUPINGS]);
 
 impl EarlyLintPass for SuspiciousOperationGroupings {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

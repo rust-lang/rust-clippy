@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::def_id::CRATE_MOD_ID;
 
@@ -34,12 +34,11 @@ declare_clippy_lint! {
     "Using `pub(crate)` visibility on items that are not crate visible due to the visibility of the module that contains them."
 }
 
-impl_lint_pass!(RedundantPubCrate => [REDUNDANT_PUB_CRATE]);
-
-#[derive(Default)]
-pub struct RedundantPubCrate {
+declare_clippy_pass!(
+    #[derive(Default)]
+    RedundantPubCrate { 
     is_exported: Vec<bool>,
-}
+ } => [REDUNDANT_PUB_CRATE]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantPubCrate {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

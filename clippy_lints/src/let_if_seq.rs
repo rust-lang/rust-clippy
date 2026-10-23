@@ -5,7 +5,7 @@ use clippy_utils::visitors::is_local_used;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::{BindingMode, Mutability};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "unidiomatic `let mut` declaration followed by initialization in `if`"
 }
 
-declare_lint_pass!(LetIfSeq => [USELESS_LET_IF_SEQ]);
+declare_clippy_pass!(LetIfSeq => [USELESS_LET_IF_SEQ]);
 
 impl<'tcx> LateLintPass<'tcx> for LetIfSeq {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &'tcx hir::Block<'_>) {

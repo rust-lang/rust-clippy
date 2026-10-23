@@ -4,7 +4,7 @@ use clippy_utils::sym;
 use clippy_utils::ty::implements_trait;
 use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Visibility;
 
 declare_clippy_lint! {
@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "exported types named `Error` that implement `Error`"
 }
 
-declare_lint_pass!(ErrorImplError => [ERROR_IMPL_ERROR]);
+declare_clippy_pass!(ErrorImplError => [ERROR_IMPL_ERROR]);
 
 impl<'tcx> LateLintPass<'tcx> for ErrorImplError {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

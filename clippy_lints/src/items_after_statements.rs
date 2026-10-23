@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir;
 use rustc_hir::{Block, ItemKind, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "blocks where an item comes after a statement"
 }
 
-declare_lint_pass!(ItemsAfterStatements => [ITEMS_AFTER_STATEMENTS]);
+declare_clippy_pass!(ItemsAfterStatements => [ITEMS_AFTER_STATEMENTS]);
 
 impl LateLintPass<'_> for ItemsAfterStatements {
     fn check_block(&mut self, cx: &LateContext<'_>, block: &Block<'_>) {

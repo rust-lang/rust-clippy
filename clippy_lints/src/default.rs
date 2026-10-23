@@ -5,7 +5,7 @@ use clippy_utils::{contains_name, get_parent_expr, in_automatically_derived, is_
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, PatKind, QPath, Stmt, StmtKind, StructTailExpr};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::print::with_forced_trimmed_paths;
 use rustc_span::symbol::{Ident, Symbol};
@@ -68,13 +68,12 @@ declare_clippy_lint! {
     "binding initialized with Default should have its fields set in the initializer"
 }
 
-impl_lint_pass!(Default => [DEFAULT_TRAIT_ACCESS, FIELD_REASSIGN_WITH_DEFAULT]);
-
-#[derive(Default)]
-pub struct Default {
+declare_clippy_pass!(
+    #[derive(Default)]
+    Default { 
     // Spans linted by `field_reassign_with_default`.
     reassigned_linted: FxHashSet<Span>,
-}
+ } => [DEFAULT_TRAIT_ACCESS, FIELD_REASSIGN_WITH_DEFAULT]);
 
 impl<'tcx> LateLintPass<'tcx> for Default {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

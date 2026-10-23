@@ -5,7 +5,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::sugg;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "using bit shifts to rotate integers"
 }
 
-declare_lint_pass!(ManualRotate => [MANUAL_ROTATE]);
+declare_clippy_pass!(ManualRotate => [MANUAL_ROTATE]);
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum ShiftDirection {

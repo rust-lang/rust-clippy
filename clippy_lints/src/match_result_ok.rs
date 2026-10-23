@@ -4,7 +4,7 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::{as_some_pattern, higher, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "usage of `ok()` in `let Some(pat)` statements is unnecessary, match on `Ok(pat)` instead"
 }
 
-declare_lint_pass!(MatchResultOk => [MATCH_RESULT_OK]);
+declare_clippy_pass!(MatchResultOk => [MATCH_RESULT_OK]);
 
 impl<'tcx> LateLintPass<'tcx> for MatchResultOk {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

@@ -9,7 +9,7 @@ use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
 use rustc_lexer::TokenKind;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{BytePos, Ident, Span, Symbol};
 
 declare_clippy_lint! {
@@ -80,12 +80,10 @@ declare_clippy_lint! {
     "nested `if`s that can be collapsed (e.g., `if x { if y { ... } }`"
 }
 
-impl_lint_pass!(CollapsibleIf => [COLLAPSIBLE_ELSE_IF, COLLAPSIBLE_IF]);
-
-pub struct CollapsibleIf {
+declare_clippy_pass!(CollapsibleIf { 
     msrv: Msrv,
     lint_commented_code: bool,
-}
+ } => [COLLAPSIBLE_ELSE_IF, COLLAPSIBLE_IF]);
 
 impl CollapsibleIf {
     pub fn new(conf: &'static Conf) -> Self {

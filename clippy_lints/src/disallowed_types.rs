@@ -6,7 +6,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefIdMap;
 use rustc_hir::{AmbigArg, Item, ItemKind, PolyTraitRef, PrimTy, Ty, TyKind, UseKind, UseTree};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 
@@ -56,12 +56,10 @@ declare_clippy_lint! {
     "use of disallowed types"
 }
 
-impl_lint_pass!(DisallowedTypes => [DISALLOWED_TYPES]);
-
-pub struct DisallowedTypes {
+declare_clippy_pass!(DisallowedTypes { 
     def_ids: DefIdMap<(&'static str, &'static DisallowedPath)>,
     prim_tys: FxHashMap<PrimTy, (&'static str, &'static DisallowedPath)>,
-}
+ } => [DISALLOWED_TYPES]);
 
 impl DisallowedTypes {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

@@ -10,7 +10,7 @@ use rustc_hir::def_id::DefId;
 use rustc_hir::{BindingMode, Expr, ExprKind, HirId, MatchSource, Mutability, Node, PatKind};
 use rustc_infer::infer::TyCtxtInferExt as _;
 use rustc_infer::traits::Obligation;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::traits::ObligationCause;
 use rustc_middle::ty::adjustment::{Adjust, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{self, EarlyBinder, GenericArg, GenericArgsRef, Ty, TypeVisitableExt as _};
@@ -41,13 +41,12 @@ declare_clippy_lint! {
     "calls to `Into`, `TryInto`, `From`, `TryFrom`, or `IntoIterator` which perform useless conversions to the same type"
 }
 
-impl_lint_pass!(UselessConversion => [USELESS_CONVERSION]);
-
-#[derive(Default)]
-pub struct UselessConversion {
+declare_clippy_pass!(
+    #[derive(Default)]
+    UselessConversion { 
     try_desugar_arm: Vec<HirId>,
     expn_depth: u32,
-}
+ } => [USELESS_CONVERSION]);
 
 enum MethodOrFunction {
     Method,

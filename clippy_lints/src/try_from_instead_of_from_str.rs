@@ -7,7 +7,7 @@ use clippy_utils::{is_from_proc_macro, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{BodyId, GenericArg, Impl, ImplItemKind, Item, ItemKind, LifetimeKind, TraitRef, Ty};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::symbol::kw;
 
 use core::ops::ControlFlow;
@@ -74,11 +74,9 @@ declare_clippy_lint! {
     "TryFrom<str> instead of FromStr"
 }
 
-impl_lint_pass!(TryFromInsteadOfFromStr => [TRY_FROM_INSTEAD_OF_FROM_STR]);
-
-pub struct TryFromInsteadOfFromStr {
+declare_clippy_pass!(TryFromInsteadOfFromStr { 
     avoid_breaking_exported_api: bool,
-}
+ } => [TRY_FROM_INSTEAD_OF_FROM_STR]);
 
 impl TryFromInsteadOfFromStr {
     pub fn new(conf: &'static Conf) -> Self {

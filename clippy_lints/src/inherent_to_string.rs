@@ -5,7 +5,7 @@ use clippy_utils::{return_ty, trait_ref_of_method};
 use rustc_abi::ExternAbi;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_hir::{GenericParamKind, ImplItem, ImplItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -88,7 +88,7 @@ declare_clippy_lint! {
     "type implements inherent method `to_string()`, which gets shadowed by the implementation of the `Display` trait"
 }
 
-declare_lint_pass!(InherentToString => [
+declare_clippy_pass!(InherentToString => [
     INHERENT_TO_STRING,
     INHERENT_TO_STRING_SHADOW_DISPLAY,
 ]);

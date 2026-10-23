@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_hir;
 use rustc_hir::{Impl, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "re-implementing `PartialEq::ne`"
 }
 
-declare_lint_pass!(PartialEqNeImpl => [PARTIALEQ_NE_IMPL]);
+declare_clippy_pass!(PartialEqNeImpl => [PARTIALEQ_NE_IMPL]);
 
 impl<'tcx> LateLintPass<'tcx> for PartialEqNeImpl {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {

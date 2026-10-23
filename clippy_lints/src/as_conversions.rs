@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::is_from_proc_macro;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -54,7 +54,7 @@ declare_clippy_lint! {
     "using a potentially dangerous silent `as` conversion"
 }
 
-declare_lint_pass!(AsConversions => [AS_CONVERSIONS]);
+declare_clippy_pass!(AsConversions => [AS_CONVERSIONS]);
 
 impl<'tcx> LateLintPass<'tcx> for AsConversions {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {

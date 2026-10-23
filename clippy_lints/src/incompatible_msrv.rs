@@ -5,7 +5,7 @@ use clippy_utils::{is_in_const_context, is_in_test, sym};
 use rustc_attr_ir::{RustcVersion, StabilityLevel, StableSince, find_attr};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::{self as hir, AmbigArg, Expr, ExprKind, HirId};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_span::def_id::{CrateNum, DefId};
 use rustc_span::{ExpnKind, Span};
@@ -71,8 +71,6 @@ declare_clippy_lint! {
     "ensures that all items used in the crate are available for the current MSRV"
 }
 
-impl_lint_pass!(IncompatibleMsrv => [INCOMPATIBLE_MSRV]);
-
 #[derive(Clone, Copy)]
 enum Availability {
     FeatureEnabled,
@@ -104,7 +102,7 @@ impl StdCrates {
     }
 }
 
-pub struct IncompatibleMsrv {
+declare_clippy_pass!(IncompatibleMsrv { 
     msrv: Msrv,
     availability_cache: FxHashMap<(DefId, bool), Availability>,
     check_in_tests: bool,
@@ -113,7 +111,7 @@ pub struct IncompatibleMsrv {
     // The most recently called path. Used to skip checking the path after it's
     // been checked when visiting the call expression.
     called_path: Option<HirId>,
-}
+ } => [INCOMPATIBLE_MSRV]);
 
 impl IncompatibleMsrv {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

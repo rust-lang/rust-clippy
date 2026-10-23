@@ -8,7 +8,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::intravisit::{InferKind, Visitor, walk_ty};
 use rustc_hir::{AmbigArg, Block, Expr, ExprKind, HirId, LetStmt, Node, QPath, Ty, TyKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "Using Box::new(T::default()) instead of Box::default()"
 }
 
-declare_lint_pass!(BoxDefault => [BOX_DEFAULT]);
+declare_clippy_pass!(BoxDefault => [BOX_DEFAULT]);
 
 impl LateLintPass<'_> for BoxDefault {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

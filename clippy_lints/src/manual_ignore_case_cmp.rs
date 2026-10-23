@@ -8,7 +8,7 @@ use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::ExprKind::{Binary, Lit, MethodCall};
 use rustc_hir::{BinOpKind, Expr};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::{Ty, UintTy};
 use rustc_span::Span;
@@ -39,7 +39,7 @@ declare_clippy_lint! {
     "manual case-insensitive ASCII comparison"
 }
 
-declare_lint_pass!(ManualIgnoreCaseCmp => [MANUAL_IGNORE_CASE_CMP]);
+declare_clippy_pass!(ManualIgnoreCaseCmp => [MANUAL_IGNORE_CASE_CMP]);
 
 enum MatchType<'a> {
     ToAscii(bool, Ty<'a>),

@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::ty::implements_trait;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{FnSig, ImplItem, ImplItemKind, Item, ItemKind, Node, TraitItem, TraitItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Unnormalized;
 use rustc_span::{Symbol, sym};
 
@@ -39,7 +39,7 @@ declare_clippy_lint! {
     "methods named `iter` or `iter_mut` that do not return an `Iterator`"
 }
 
-declare_lint_pass!(IterNotReturningIterator => [ITER_NOT_RETURNING_ITERATOR]);
+declare_clippy_pass!(IterNotReturningIterator => [ITER_NOT_RETURNING_ITERATOR]);
 
 impl<'tcx> LateLintPass<'tcx> for IterNotReturningIterator {
     fn check_trait_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx TraitItem<'_>) {

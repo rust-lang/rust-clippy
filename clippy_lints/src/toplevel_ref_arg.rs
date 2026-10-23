@@ -5,7 +5,7 @@ use clippy_utils::{is_lint_allowed, iter_input_pats};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{BindingMode, Body, ByRef, FnDecl, Mutability, PatKind, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "an entire binding declared as `ref`, in a function argument or a `let` statement"
 }
 
-declare_lint_pass!(ToplevelRefArg => [TOPLEVEL_REF_ARG]);
+declare_clippy_pass!(ToplevelRefArg => [TOPLEVEL_REF_ARG]);
 
 impl<'tcx> LateLintPass<'tcx> for ToplevelRefArg {
     fn check_fn(

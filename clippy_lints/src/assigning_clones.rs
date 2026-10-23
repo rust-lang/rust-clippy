@@ -7,7 +7,7 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::{is_in_test, last_path_segment, local_is_initialized, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir;
 use rustc_middle::ty::{self, Instance, Mutability};
 use rustc_span::{Span, SyntaxContext};
@@ -52,11 +52,9 @@ declare_clippy_lint! {
     "assigning the result of cloning may be inefficient"
 }
 
-impl_lint_pass!(AssigningClones => [ASSIGNING_CLONES]);
-
-pub struct AssigningClones {
+declare_clippy_pass!(AssigningClones { 
     msrv: Msrv,
-}
+ } => [ASSIGNING_CLONES]);
 
 impl AssigningClones {
     pub fn new(conf: &'static Conf) -> Self {

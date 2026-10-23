@@ -7,7 +7,7 @@ use clippy_utils::source::snippet;
 use clippy_utils::{fn_has_unsatisfiable_clauses, peel_blocks, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, intravisit};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -41,11 +41,9 @@ declare_clippy_lint! {
     "suggest using `const` in `thread_local!` macro"
 }
 
-impl_lint_pass!(MissingConstForThreadLocal => [MISSING_CONST_FOR_THREAD_LOCAL]);
-
-pub struct MissingConstForThreadLocal {
+declare_clippy_pass!(MissingConstForThreadLocal { 
     msrv: Msrv,
-}
+ } => [MISSING_CONST_FOR_THREAD_LOCAL]);
 
 impl MissingConstForThreadLocal {
     pub fn new(conf: &'static Conf) -> Self {

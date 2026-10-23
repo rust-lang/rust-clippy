@@ -9,7 +9,7 @@ use rustc_ast::LitKind;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::{Applicability, MultiSpan};
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, PatKind, StmtKind, UnsafeSource};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::{BytePos, Span, Symbol};
 use std::fmt;
@@ -57,12 +57,10 @@ declare_clippy_lint! {
     "manual implementation of `pop_if` methods"
 }
 
-impl_lint_pass!(ManualPopIf => [MANUAL_POP_IF]);
-
-pub struct ManualPopIf {
+declare_clippy_pass!(ManualPopIf { 
     msrv: Msrv,
     binary_heap_pop_if_feature_enabled: bool,
-}
+ } => [MANUAL_POP_IF]);
 
 impl ManualPopIf {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

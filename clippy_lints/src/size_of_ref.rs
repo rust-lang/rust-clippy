@@ -3,7 +3,7 @@ use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::sym;
 use clippy_utils::ty::peel_and_count_ty_refs;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -52,7 +52,7 @@ declare_clippy_lint! {
     "Argument to `size_of_val()` is a double-reference, which is almost certainly unintended"
 }
 
-declare_lint_pass!(SizeOfRef => [SIZE_OF_REF]);
+declare_clippy_pass!(SizeOfRef => [SIZE_OF_REF]);
 
 impl LateLintPass<'_> for SizeOfRef {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &'_ Expr<'_>) {

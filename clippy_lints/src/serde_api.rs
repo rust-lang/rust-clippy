@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint;
 use clippy_utils::{paths, sym};
 use rustc_hir::{Impl, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -20,7 +20,7 @@ declare_clippy_lint! {
     "various things that will negatively affect your serde experience"
 }
 
-declare_lint_pass!(SerdeApi => [SERDE_API_MISUSE]);
+declare_clippy_pass!(SerdeApi => [SERDE_API_MISUSE]);
 
 impl<'tcx> LateLintPass<'tcx> for SerdeApi {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {

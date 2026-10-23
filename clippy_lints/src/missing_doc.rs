@@ -4,7 +4,7 @@ use clippy_utils::{is_doc_hidden, is_from_proc_macro};
 use rustc_attr_ir::{AttrArgs, Attribute, AttributeKind};
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{Body, BodyId, FieldDef, HirId, ImplItem, Item, ItemKind, Node, TraitItem, Variant};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::middle::privacy::Level;
 use rustc_middle::ty::Visibility;
 use rustc_span::def_id::CRATE_DEF_ID;
@@ -26,9 +26,7 @@ declare_clippy_lint! {
     "detects missing documentation for private members"
 }
 
-impl_lint_pass!(MissingDoc => [MISSING_DOCS_IN_PRIVATE_ITEMS]);
-
-pub struct MissingDoc {
+declare_clippy_pass!(MissingDoc { 
     /// Whether to **only** check for missing documentation in items visible within the current
     /// crate. For example, `pub(crate)` items.
     crate_items_only: bool,
@@ -49,7 +47,7 @@ pub struct MissingDoc {
     in_body: Option<BodyId>,
     /// The module/crate id an item must be visible at to be linted.
     require_visibility_at: Option<LocalDefId>,
-}
+ } => [MISSING_DOCS_IN_PRIVATE_ITEMS]);
 
 impl MissingDoc {
     pub fn new(conf: &'static Conf) -> Self {

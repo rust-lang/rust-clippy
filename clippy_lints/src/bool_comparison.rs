@@ -4,7 +4,7 @@ use clippy_utils::{is_expn_of, peel_blocks, sym};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, Spanned};
 
 declare_clippy_lint! {
@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "comparing a variable to a boolean, e.g., `if x == true` or `if x != true`"
 }
 
-declare_lint_pass!(BoolComparison => [BOOL_COMPARISON]);
+declare_clippy_pass!(BoolComparison => [BOOL_COMPARISON]);
 
 impl<'tcx> LateLintPass<'tcx> for BoolComparison {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
