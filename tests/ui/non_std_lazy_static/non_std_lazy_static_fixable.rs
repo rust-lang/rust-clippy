@@ -2,7 +2,7 @@
 //@aux-build:lazy_static.rs
 
 #![warn(clippy::non_std_lazy_statics)]
-#![expect(static_mut_refs)]
+#![expect(static_mut_refs, clippy::static_mut_vars)]
 
 use once_cell::sync::Lazy;
 
