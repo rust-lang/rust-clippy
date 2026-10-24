@@ -7387,6 +7387,7 @@ Released 2018-09-13
 [`match_str_case_mismatch`]: https://clippy.rust-lang.org/main/index.html#match_str_case_mismatch
 [`match_wild_err_arm`]: https://clippy.rust-lang.org/main/index.html#match_wild_err_arm
 [`match_wildcard_for_single_variants`]: https://clippy.rust-lang.org/main/index.html#match_wildcard_for_single_variants
+[`matches_with_unrelated_if`]: https://clippy.rust-lang.org/main/index.html#matches_with_unrelated_if
 [`maybe_infinite_iter`]: https://clippy.rust-lang.org/main/index.html#maybe_infinite_iter
 [`maybe_misused_cfg`]: https://clippy.rust-lang.org/main/index.html#maybe_misused_cfg
 [`mem_discriminant_non_enum`]: https://clippy.rust-lang.org/main/index.html#mem_discriminant_non_enum
