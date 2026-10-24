@@ -354,3 +354,88 @@ fn main() {
         }
     }
 }
+
+#[clippy::msrv = "1.53.0"]
+fn issue16538() {
+    fn use_mut<I>(data: I)
+    where
+        I: IntoIterator<Item: AsMut<[i32]>>,
+    {
+        data.into_iter().for_each(|mut s| s.as_mut()[0] *= 10);
+    }
+
+    let mut data = [[10, 20, 30], [40, 50, 60]];
+    use_mut(&mut data);
+
+    let mut data = vec![[10, 20, 30], [40, 50, 60]];
+    use_mut(&mut data);
+
+    let mut data = Some([10, 20, 30]);
+    use_mut(&mut data);
+
+    let mut data = Ok::<_, ()>([10, 20, 30]);
+    use_mut(&mut data);
+}
+
+mod mutating_self_inputs {
+    #[derive(Clone, Copy)]
+    struct Container(i32);
+
+    trait ByValue: Sized {
+        fn mutate(self) {}
+    }
+
+    impl ByValue for Container {}
+
+    impl ByValue for &mut Container {
+        fn mutate(self) {
+            self.0 += 1;
+        }
+    }
+
+    trait AssociatedFn: Sized {
+        fn mutate(_value: Self) {}
+    }
+
+    impl AssociatedFn for Container {}
+
+    impl AssociatedFn for &mut Container {
+        fn mutate(value: Self) {
+            value.0 += 1;
+        }
+    }
+
+    trait Supertrait: ByValue {}
+
+    impl Supertrait for Container {}
+    impl Supertrait for &mut Container {}
+
+    trait Shared {
+        fn inspect(&self) {}
+    }
+
+    impl Shared for Container {}
+    impl Shared for &mut Container {}
+
+    fn check() {
+        fn by_value<T: ByValue>(value: T) {
+            value.mutate();
+        }
+        fn associated_fn<T: AssociatedFn>(value: T) {
+            T::mutate(value);
+        }
+        fn supertrait<T: Supertrait>(value: T) {
+            value.mutate();
+        }
+        fn shared<T: Shared>(value: T) {
+            value.inspect();
+        }
+
+        let mut value = Container(0);
+        by_value(&mut value);
+        associated_fn(&mut value);
+        supertrait(&mut value);
+        shared(&mut value);
+        //~^ needless_borrows_for_generic_args
+    }
+}
