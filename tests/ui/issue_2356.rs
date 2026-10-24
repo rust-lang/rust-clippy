@@ -20,6 +20,6 @@ impl Foo {
 }
 
 fn main() {
-    Foo::foo1(vec![].into_iter());
-    Foo::foo2(vec![].into_iter());
+    Foo::foo1([].into_iter());
+    Foo::foo2([].into_iter());
 }

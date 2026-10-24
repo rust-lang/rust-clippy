@@ -44,7 +44,7 @@ fn long_span() {
         })
         .flatten();
 
-    let _: Vec<_> = vec![5_i8; 6]
+    let _: Vec<_> = [5_i8; 6]
         .into_iter()
         .map(|some_value| {
         //~^ map_flatten
