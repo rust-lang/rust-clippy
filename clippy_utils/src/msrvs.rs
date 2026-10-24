@@ -96,6 +96,7 @@ msrv_aliases! {
     1,13,0 { QUESTION_MARK_OPERATOR }
     1,6,0 { CORE_PTR_SWAP }
     1,3,0 { DURATION_FROM_MILLIS_SECS }
+    1,93,0 { SLICE_AS_MUT_ARRAY }
 }
 
 /// `#[clippy::msrv]` attributes are rarely used outside of Clippy's test suite, as a basic
