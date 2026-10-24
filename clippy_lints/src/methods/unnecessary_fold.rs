@@ -3,10 +3,12 @@ use std::ops::ControlFlow;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _, MaybeTypeckRes as _};
 use clippy_utils::source::snippet_with_context;
+use clippy_utils::sugg::{Sugg, make_assoc};
 use clippy_utils::ty::is_copy;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{DefinedTy, ExprUseNode, get_expr_use_site, peel_blocks, strip_pat_refs};
 use rustc_ast::ast;
+use rustc_ast::util::parser::AssocOp;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::{Applicability, Diag};
 use rustc_hir as hir;
@@ -175,6 +177,76 @@ fn check_fold_with_op(
     false
 }
 
+#[derive(Copy, Clone)]
+struct BoolFoldReplacement {
+    op: hir::BinOpKind,
+    replacement_op: hir::BinOpKind,
+    short_circuiting_method: &'static str,
+}
+
+fn check_fold_with_bool_op(
+    cx: &LateContext<'_>,
+    expr: &hir::Expr<'_>,
+    init: &hir::Expr<'_>,
+    acc: &hir::Expr<'_>,
+    fold_span: Span,
+    replacement: BoolFoldReplacement,
+) -> bool {
+    if let hir::ExprKind::Closure(&hir::Closure { body, .. }) = acc.kind
+        && let closure_body = cx.tcx.hir_body(body)
+        && let closure_expr = peel_blocks(closure_body.value)
+        && let hir::ExprKind::Binary(ref bin_op, left_expr, right_expr) = closure_expr.kind
+        && bin_op.node == replacement.op
+        && let [param_a, param_b] = closure_body.params
+        && let PatKind::Binding(_, first_arg_id, ..) = strip_pat_refs(param_a.pat).kind
+        && let PatKind::Binding(_, second_arg_id, ..) = strip_pat_refs(param_b.pat).kind
+        && get_triggered_expr_span(
+            left_expr,
+            right_expr,
+            first_arg_id,
+            second_arg_id,
+            Replacement {
+                method_name: replacement.short_circuiting_method,
+                has_args: true,
+                has_generic_return: false,
+                is_short_circuiting: true,
+            },
+        )
+        .is_some()
+    {
+        let mut applicability = Applicability::MaybeIncorrect;
+        let ctxt = expr.span.ctxt();
+        let (init_snippet, _) = snippet_with_context(cx, init.span, ctxt, "false", &mut applicability);
+        let (acc_snippet, _) = snippet_with_context(cx, param_a.pat.span, ctxt, "acc", &mut applicability);
+        let (item_snippet, _) = snippet_with_context(cx, param_b.pat.span, ctxt, "x", &mut applicability);
+        let lhs = Sugg::hir_with_context(cx, left_expr, ctxt, "EXPR", &mut applicability);
+        let rhs = Sugg::hir_with_context(cx, right_expr, ctxt, "EXPR", &mut applicability);
+        let folded_expr = make_assoc(AssocOp::Binary(replacement.replacement_op), &lhs, &rhs).into_string();
+        let span = fold_span.with_hi(expr.span.hi());
+
+        span_lint_and_then(
+            cx,
+            UNNECESSARY_FOLD,
+            span,
+            "this `.fold` contains a short-circuiting operator",
+            |diag| {
+                diag.span_suggestion(
+                    span,
+                    "use a non-short-circuiting operator to keep evaluating the whole iterator",
+                    format!("fold({init_snippet}, |{acc_snippet}, {item_snippet}| {folded_expr})"),
+                    applicability,
+                );
+                diag.note(format!(
+                    "use `{}` instead if short-circuiting is intended",
+                    replacement.short_circuiting_method
+                ));
+            },
+        );
+        return true;
+    }
+    false
+}
+
 fn check_fold_with_method(
     cx: &LateContext<'_>,
     expr: &hir::Expr<'_>,
@@ -244,24 +316,30 @@ fn check_standard_fold<'tcx>(
     // Check if the first argument to .fold is a suitable literal
     if let hir::ExprKind::Lit(lit) = init.kind {
         match lit.node {
-            ast::LitKind::Bool(false) => {
-                let replacement = Replacement {
-                    method_name: "any",
-                    has_args: true,
-                    has_generic_return: false,
-                    is_short_circuiting: true,
-                };
-                check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::Or, replacement)
-            },
-            ast::LitKind::Bool(true) => {
-                let replacement = Replacement {
-                    method_name: "all",
-                    has_args: true,
-                    has_generic_return: false,
-                    is_short_circuiting: true,
-                };
-                check_fold_with_op(cx, expr, acc, fold_span, hir::BinOpKind::And, replacement)
-            },
+            ast::LitKind::Bool(false) => check_fold_with_bool_op(
+                cx,
+                expr,
+                init,
+                acc,
+                fold_span,
+                BoolFoldReplacement {
+                    op: hir::BinOpKind::Or,
+                    replacement_op: hir::BinOpKind::BitOr,
+                    short_circuiting_method: "any",
+                },
+            ),
+            ast::LitKind::Bool(true) => check_fold_with_bool_op(
+                cx,
+                expr,
+                init,
+                acc,
+                fold_span,
+                BoolFoldReplacement {
+                    op: hir::BinOpKind::And,
+                    replacement_op: hir::BinOpKind::BitAnd,
+                    short_circuiting_method: "all",
+                },
+            ),
             ast::LitKind::Int(Pu128(0), _) => {
                 let replacement = Replacement {
                     method_name: "sum",
