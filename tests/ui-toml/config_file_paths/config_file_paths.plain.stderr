@@ -1,0 +1,15 @@
+warning: using config file `$DIR/tests/ui-toml/config_file_paths/plain/clippy.toml`, `$DIR/tests/ui-toml/config_file_paths/plain/.cargo/clippy.toml` will be ignored
+
+warning: using config file `$DIR/tests/ui-toml/config_file_paths/plain/clippy.toml`, `$DIR/tests/ui-toml/config_file_paths/plain/.config/clippy.toml` will be ignored
+
+error: use of a disallowed/placeholder name `selected`
+  --> tests/ui-toml/config_file_paths/config_file_paths.rs:17:9
+   |
+LL |     let selected = 0;
+   |         ^^^^^^^^
+   |
+   = note: `-D clippy::disallowed-names` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::disallowed_names)]`
+
+error: aborting due to 1 previous error; 2 warnings emitted
+
