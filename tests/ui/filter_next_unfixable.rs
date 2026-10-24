@@ -16,4 +16,14 @@ pub fn issue10029() {
         let _ = iter.filter(|_| true).next_back();
         //~^ filter_next
     }
+    {
+        let iter = (0..10);
+        let _ = iter.filter(|_| true).map(|x| x + 1).next();
+        //~^ filter_next
+    }
+    {
+        let iter = (0..10);
+        let _ = iter.filter(|_| true).map(|x| x + 1).next_back();
+        //~^ filter_next
+    }
 }
