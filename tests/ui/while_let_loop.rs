@@ -321,3 +321,32 @@ fn issue17590_labeled_loop_false_positive() {
         );
     }
 }
+
+mod issue17839 {
+    enum Error {
+        Foo,
+        // TODO: Add this variant
+        // Bar,
+    }
+
+    fn example(mut f: impl FnMut() -> Result<(), Error>) {
+        // No error
+        loop {
+            match f() {
+                Ok(()) => println!("success!"),
+                Err(Error::Foo) => break,
+            }
+        }
+    }
+
+    fn example2(mut f: impl FnMut() -> Result<(), Error>) {
+        loop {
+            //~^ while_let_loop
+            // since break pattern is a wildcard
+            match f() {
+                Ok(()) => println!("success!"),
+                _ => break,
+            }
+        }
+    }
+}
