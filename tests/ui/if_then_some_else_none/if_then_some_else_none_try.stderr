@@ -1,0 +1,37 @@
+error: this could be simplified with `bool::then_some`
+  --> tests/ui/if_then_some_else_none/if_then_some_else_none_try.rs:24:9
+   |
+LL |         if cond { Some(1) } else { None }
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `cond.then_some(1)`
+   |
+   = note: `-D clippy::if-then-some-else-none` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::if_then_some_else_none)]`
+
+error: this could be simplified with `bool::then`
+  --> tests/ui/if_then_some_else_none/if_then_some_else_none_try.rs:31:9
+   |
+LL | /         if cond {
+LL | |             Some((|| Some(black_box(Some(1))?))())
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^ help: try: `cond.then(|| (|| Some(black_box(Some(1))?))())`
+
+error: this could be simplified with `bool::then`
+  --> tests/ui/if_then_some_else_none/if_then_some_else_none_try.rs:42:9
+   |
+LL |         if cond { Some(try { black_box(Some(1))? }) } else { None }
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `cond.then(|| try { black_box(Some(1))? })`
+
+error: this could be simplified with `bool::then`
+  --> tests/ui/if_then_some_else_none/if_then_some_else_none_try.rs:49:9
+   |
+LL | /         if cond {
+LL | |             Some(try { (try { black_box(Some(1))? })? })
+LL | |         } else {
+LL | |             None
+LL | |         }
+   | |_________^ help: try: `cond.then(|| try { (try { black_box(Some(1))? })? })`
+
+error: aborting due to 4 previous errors
+
