@@ -93,5 +93,73 @@ LL |         let _: Vec<Ty2<U, i32>> = transmute(value::<Vec<Ty2<T, u32>>>());
    |
    = note: two instances of the same generic type (`Vec`) may have different layouts
 
-error: aborting due to 12 previous errors
+error: transmute from `_enums::Data` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:295:22
+   |
+LL |         let _: u64 = transmute(value::<Data>());
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute into `_enums::Data` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:299:23
+   |
+LL |         let _: Data = transmute(value::<u64>());
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute from `_enums::Fieldless` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:303:21
+   |
+LL |         let _: u8 = transmute(value::<Fieldless>());
+   |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute into `_enums::Fieldless` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:307:28
+   |
+LL |         let _: Fieldless = transmute(value::<u8>());
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute from `_enums::Data` to `_enums::Other`, both of which have an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:311:24
+   |
+LL |         let _: Other = transmute(value::<Data>());
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute from `_enums::Data` to `Ty2<u32, u32>`, both of which have an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:315:32
+   |
+LL |         let _: Ty2<u32, u32> = transmute(value::<Data>());
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute from `std::option::Option<u32>` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:319:22
+   |
+LL |         let _: u64 = transmute(value::<Option<u32>>());
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute from `std::option::Option<*const u32>` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:323:23
+   |
+LL |         let _: u128 = transmute(value::<Option<*const u32>>());
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute from `_enums::Generic<u32>` to `_enums::Generic<i32>`, both of which have an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:327:31
+   |
+LL |         let _: Generic<i32> = transmute(value::<Generic<u32>>());
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: two instances of the same generic type (`Generic`) may have different layouts
+
+error: transmute from `std::result::Result<u32, u32>` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:362:22
+   |
+LL |         let _: u64 = transmute(value::<Result<u32, u32>>());
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: transmute from `std::result::Result<&u32, u64>` which has an undefined layout
+  --> tests/ui/transmute_undefined_repr.rs:366:23
+   |
+LL |         let _: u128 = transmute(value::<Result<&u32, u64>>());
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 23 previous errors
 
