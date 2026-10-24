@@ -2,7 +2,7 @@ use super::{TRANSMUTE_BYTES_TO_STR, TRANSMUTE_PTR_TO_PTR};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::{std_or_core, sugg};
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, Mutability};
+use rustc_hir::{Expr, ExprKind, Mutability, Node};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, Ty};
 
@@ -55,11 +55,23 @@ pub(super) fn check<'tcx>(
                     let sugg_paren = arg_sugg()
                         .as_ty(Ty::new_ptr(cx.tcx, ty_from, from_mutbl))
                         .as_ty(Ty::new_ptr(cx.tcx, ty_to, to_mutbl));
-                    let sugg = if to_mutbl == Mutability::Mut {
+                    let mut sugg = if to_mutbl == Mutability::Mut {
                         sugg_paren.mut_addr_deref()
                     } else {
                         sugg_paren.addr_deref()
                     };
+                    // If the expression is a receiver of some kind of a projection, we'll need to wrap the
+                    // replacement in parens
+                    #[rustfmt::skip] // the `let ExprKind ..` line gets wrongly formatted because
+                                     // of an off-by-one error, see https://github.com/rust-lang/rustfmt/issues/6697
+                    if let Node::Expr(parent) = cx.tcx.parent_hir_node(e.hir_id)
+                        && let ExprKind::Index(recv, ..)
+                        | ExprKind::Field(recv, _)
+                        | ExprKind::MethodCall(_, recv, ..) = parent.kind
+                        && recv.hir_id == e.hir_id
+                    {
+                        sugg = sugg.maybe_paren();
+                    }
                     diag.span_suggestion(e.span, "try", sugg, Applicability::Unspecified);
                 },
             );
