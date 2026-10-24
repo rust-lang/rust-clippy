@@ -207,6 +207,23 @@ impl HirEqInterExpr<'_, '_, '_> {
     pub fn eq_item(&mut self, l: ItemId, r: ItemId) -> bool {
         let left = self.inner.cx.tcx.hir_item(l);
         let right = self.inner.cx.tcx.hir_item(r);
+        if self
+            .inner
+            .cx
+            .tcx
+            .hir_attrs(left.hir_id())
+            .iter()
+            .any(|attr| attr.is_doc_comment().is_none())
+            || self
+                .inner
+                .cx
+                .tcx
+                .hir_attrs(right.hir_id())
+                .iter()
+                .any(|attr| attr.is_doc_comment().is_none())
+        {
+            return false;
+        }
         let eq = match (left.kind, right.kind) {
             (
                 ItemKind::Const(l_ident, l_generics, l_ty, ConstItemRhs::Body(l_body)),
