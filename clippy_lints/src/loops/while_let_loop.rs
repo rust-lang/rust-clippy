@@ -4,7 +4,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::{snippet, snippet_indent, snippet_opt};
 use clippy_utils::ty::needs_ordered_drop;
 use clippy_utils::visitors::any_temporaries_need_ordered_drop;
-use clippy_utils::{higher, is_refutable, peel_blocks};
+use clippy_utils::{higher, is_refutable, peel_blocks, sym};
 use rustc_ast::{BindingMode, Label};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, HirId, LetStmt, MatchSource, Pat, PatKind, Path, QPath, StmtKind, Ty};
@@ -74,10 +74,12 @@ fn is_safe_to_convert<'tcx>(cx: &LateContext<'tcx>, break_arm: &'tcx rustc_hir::
         return true;
     }
     let pat_ty = cx.typeck_results().pat_ty(break_arm.pat);
-    matches!(
-        pat_ty.opt_diag_name(&cx.tcx),
-        Some(clippy_utils::sym::Option | clippy_utils::sym::Poll)
-    )
+    matches!(pat_ty.opt_diag_name(&cx.tcx), Some(sym::Option | sym::Poll))
+        && match break_arm.pat.kind {
+            PatKind::Expr(_) => true,
+            PatKind::TupleStruct(_, subpats, _) => subpats.iter().all(|subpat| !is_refutable(cx, subpat)),
+            _ => false,
+        }
 }
 
 /// Checks if `block` contains a single (labeled or unlabeled) `break`
