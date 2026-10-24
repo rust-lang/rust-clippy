@@ -5,11 +5,16 @@
 
 fn main() {
     // Lossy whole-number float literals
-    let _: f16 = 4_097.0;
-    let _: f16 = 4_097.;
-    let _: f16 = 4_097.000;
-    let _ = 4_097f16;
-    let _: f16 = -4_097.0;
+    let _: f16 = 4_096.0;
+    //~^ lossy_float_literal
+    let _: f16 = 4_096.0;
+    //~^ lossy_float_literal
+    let _: f16 = 4_096.0;
+    //~^ lossy_float_literal
+    let _ = 4_096_f16;
+    //~^ lossy_float_literal
+    let _: f16 = -4_096.0;
+    //~^ lossy_float_literal
 
     let _: f32 = 16_777_216.0;
     //~^ lossy_float_literal
