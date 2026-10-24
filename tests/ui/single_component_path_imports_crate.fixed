@@ -1,0 +1,89 @@
+#![warn(clippy::single_component_path_imports)]
+
+// False positive #7168
+use regex;
+use std;
+
+use crate::std::collections::HashMap;
+
+//~^ single_component_path_imports
+
+mod foo {
+    use crate::regex::Regex;
+
+    pub fn bar() -> Regex {
+        Regex::new(".").unwrap()
+    }
+}
+
+mod braced {
+    #[rustfmt::skip]
+    use crate::{regex::Regex};
+
+    pub fn bar() -> Regex {
+        Regex::new(".").unwrap()
+    }
+}
+
+mod child {
+    use super::regex::Regex;
+
+    pub fn bar() -> Regex {
+        Regex::new(".").unwrap()
+    }
+}
+
+mod outer {
+    pub mod inner {
+        use super::super::regex::Regex;
+
+        pub fn bar() -> Regex {
+            Regex::new(".").unwrap()
+        }
+    }
+}
+
+mod expr_path {
+    pub fn bar() {
+        let _ = crate::regex::Regex::new(".").unwrap();
+    }
+}
+
+mod ty_path {
+    pub fn bar() -> crate::regex::Regex {
+        crate::regex::Regex::new(".").unwrap()
+    }
+}
+
+mod mid {
+    use regex;
+
+    mod nested {
+        use super::regex::Regex;
+
+        pub fn bar() -> Regex {
+            Regex::new(".").unwrap()
+        }
+    }
+
+    pub use nested::bar;
+}
+
+// `crate::regex` binds the root import, not this one
+mod unused_here {
+    
+    //~^ single_component_path_imports
+
+    fn bar() {}
+}
+
+fn main() {
+    let _: HashMap<(), ()> = HashMap::new();
+    let _ = foo::bar();
+    let _ = braced::bar();
+    let _ = child::bar();
+    let _ = outer::inner::bar();
+    expr_path::bar();
+    let _ = ty_path::bar();
+    let _ = mid::bar();
+}
