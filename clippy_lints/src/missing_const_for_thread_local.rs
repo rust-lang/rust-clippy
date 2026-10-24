@@ -1,6 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_sugg;
-use clippy_utils::macros::macro_backtrace;
+use clippy_utils::macros::{macro_backtrace, matching_root_macro_call};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::qualify_min_const_fn::is_min_const_fn;
 use clippy_utils::source::snippet;
@@ -122,6 +122,8 @@ impl<'tcx> LateLintPass<'tcx> for MissingConstForThreadLocal {
             && let ExprKind::Block(block, _) = body.value.kind
             && let Some(unpeeled) = block.expr
             && let ret_expr = peel_blocks(unpeeled)
+            && !(matches!(ret_expr.kind, ExprKind::ConstBlock(_))
+                && matching_root_macro_call(cx, ret_expr.span, sym::thread_local_macro).is_some())
             // A common pattern around threadlocal! is to make the value unreachable
             // to force an initialization before usage
             // https://github.com/rust-lang/rust-clippy/issues/12637

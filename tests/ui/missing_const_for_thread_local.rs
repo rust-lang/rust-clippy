@@ -75,3 +75,19 @@ fn f() {
         static TLS: i32 = 1;
     }
 }
+
+fn issue_17566() {
+    thread_local! {
+        static ALREADY_CONST: Cell<Option<u8>> = const { Cell::new(None) };
+    }
+    ALREADY_CONST.with(|cell| cell.get());
+}
+
+fn nested_const_initializers() {
+    thread_local! {
+        static WRAPPED: Cell<u8> = { const { Cell::new(0) } };
+        //~^ missing_const_for_thread_local
+        static PARENTHESIZED: Cell<u8> = (const { Cell::new(0) });
+        //~^ missing_const_for_thread_local
+    }
+}
