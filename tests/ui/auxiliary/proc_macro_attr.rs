@@ -7,6 +7,7 @@ extern crate syn;
 
 use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
+use syn::parse::Parser;
 use syn::spanned::Spanned;
 use syn::token::Star;
 use syn::{
@@ -90,6 +91,20 @@ pub fn add_must_use_to_async(_args: TokenStream, input: TokenStream) -> TokenStr
         _ => {},
     }
 
+    TokenStream::from(quote!(#item))
+}
+
+#[proc_macro_attribute]
+pub fn add_must_use_with_input_span(_args: TokenStream, input: TokenStream) -> TokenStream {
+    // Mimics macros like `#[async_recursion]` (#17831) which inject
+    // `#[must_use]` while reusing an input span, so span-based macro checks alone cannot
+    // detect the attribute as macro-generated. Everything else is echoed back unchanged.
+    let mut item = parse_macro_input!(input as ItemFn);
+    let span = item.sig.ident.span();
+    let mut must_use = Attribute::parse_outer
+        .parse2(quote_spanned!(span => #[must_use]))
+        .unwrap();
+    item.attrs.push(must_use.remove(0));
     TokenStream::from(quote!(#item))
 }
 
