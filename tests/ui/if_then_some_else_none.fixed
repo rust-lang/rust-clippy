@@ -1,6 +1,7 @@
 #![warn(clippy::if_then_some_else_none)]
 #![allow(clippy::manual_filter, clippy::unnecessary_lazy_evaluations)]
 #![expect(clippy::redundant_pattern_matching)]
+#![feature(try_blocks)]
 
 fn main() {
     // Should issue an error.
@@ -115,6 +116,12 @@ fn f(b: bool, v: Option<()>) -> Option<()> {
     } else {
         None
     }
+}
+
+// Should not warn: the `?` targets the `try` block and would no longer compile
+// inside the closure of a `bool::then` call.
+fn issue17596(x: u32) -> Option<Option<u32>> {
+    try { if x > 0 { Some(x.checked_sub(2)?) } else { None } }
 }
 
 fn issue11394(b: bool, v: Result<(), ()>) -> Result<(), ()> {
