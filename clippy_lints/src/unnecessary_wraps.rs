@@ -105,16 +105,17 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryWraps {
         }
 
         // Get the wrapper and inner types, if can't, abort.
-        let (return_type_label, lang_item, inner_type) =
-            if let ty::Adt(adt_def, subst) = return_ty(cx, hir_id.expect_owner()).kind() {
-                match cx.tcx.get_diagnostic_name(adt_def.did()) {
-                    Some(sym::Option) => ("Option", OptionSome, subst.type_at(0)),
-                    Some(sym::Result) => ("Result", ResultOk, subst.type_at(0)),
-                    _ => return,
-                }
-            } else {
-                return;
-            };
+        let (return_type_label, lang_item, inner_type) = if let Some(ret_ty) = return_ty(cx, hir_id.expect_owner())
+            && let ty::Adt(adt_def, subst) = ret_ty.kind()
+        {
+            match cx.tcx.get_diagnostic_name(adt_def.did()) {
+                Some(sym::Option) => ("Option", OptionSome, subst.type_at(0)),
+                Some(sym::Result) => ("Result", ResultOk, subst.type_at(0)),
+                _ => return,
+            }
+        } else {
+            return;
+        };
 
         // Check if all return expression respect the following condition and collect them.
         let mut suggs = Vec::new();
