@@ -7314,6 +7314,7 @@ Released 2018-09-13
 [`manual_contains`]: https://clippy.rust-lang.org/main/index.html#manual_contains
 [`manual_dangling_ptr`]: https://clippy.rust-lang.org/main/index.html#manual_dangling_ptr
 [`manual_div_ceil`]: https://clippy.rust-lang.org/main/index.html#manual_div_ceil
+[`manual_env_var`]: https://clippy.rust-lang.org/main/index.html#manual_env_var
 [`manual_filter`]: https://clippy.rust-lang.org/main/index.html#manual_filter
 [`manual_filter_map`]: https://clippy.rust-lang.org/main/index.html#manual_filter_map
 [`manual_find`]: https://clippy.rust-lang.org/main/index.html#manual_find
