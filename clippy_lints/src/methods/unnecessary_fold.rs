@@ -81,6 +81,15 @@ impl Replacement {
                 "the `{}` method is short circuiting and may change the program semantics if the iterator has side effects",
                 self.method_name
             ));
+
+            let (init, op) = if self.method_name == "any" {
+                ("false", "|")
+            } else {
+                ("true", "&")
+            };
+            diag.help(format!(
+                "if the side effect is wanted, use `.fold({init}, |acc, x| acc {op} x)` instead"
+            ));
         }
     }
 

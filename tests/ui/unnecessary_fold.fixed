@@ -199,6 +199,15 @@ fn wrongly_unmangled_macros() {
     //~^ unnecessary_fold
 }
 
+fn issue17792() {
+    let mut side_effect = 0;
+    let _ = (0..3).inspect(|_| side_effect += 1).any(|x| x > 2);
+    //~^ unnecessary_fold
+
+    let _ = (0..3).inspect(|_| side_effect += 1).all(|x| x > 2);
+    //~^ unnecessary_fold
+}
+
 /// Folding over an `Option`'s iterator is `map_or` in disguise (issue #1658)
 fn option_fold() {
     let opt: Option<i32> = Some(2);
