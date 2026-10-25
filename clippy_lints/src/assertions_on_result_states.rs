@@ -1,3 +1,4 @@
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
@@ -8,12 +9,16 @@ use clippy_utils::usage::local_used_after_expr;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Expr, ExprKind, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::{self, Ty};
 
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for `assert!(r.is_ok())` or `assert!(r.is_err())` calls.
+    ///
+    /// Assertions with a custom message are only linted if
+    /// `allow-assertions-on-result-states-with-message` is set to `false`. The suggested fix
+    /// drops the message, so it is not applied automatically.
     ///
     /// ### Why restrict this?
     /// This form of assertion does not show any of the information present in the `Result`
@@ -44,14 +49,26 @@ declare_clippy_lint! {
     "`assert!(r.is_ok())` or `assert!(r.is_err())` gives worse panic messages than directly calling `r.unwrap()` or `r.unwrap_err()`"
 }
 
-declare_lint_pass!(AssertionsOnResultStates => [ASSERTIONS_ON_RESULT_STATES]);
+impl_lint_pass!(AssertionsOnResultStates => [ASSERTIONS_ON_RESULT_STATES]);
+
+pub struct AssertionsOnResultStates {
+    allow_with_message: bool,
+}
+
+impl AssertionsOnResultStates {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            allow_with_message: conf.allow_assertions_on_result_states_with_message,
+        }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         if let Some(macro_call) = root_macro_call_first_node(cx, e)
             && matches!(cx.tcx.get_diagnostic_name(macro_call.def_id), Some(sym::assert_macro))
             && let Some((condition, panic_expn)) = find_assert_args(cx, e, macro_call.expn)
-            && panic_expn.is_default_message()
+            && (panic_expn.is_default_message() || !self.allow_with_message)
             && let ExprKind::MethodCall(method_segment, recv, [], _) = condition.kind
             && let result_type_with_refs = cx.typeck_results().expr_ty(recv)
             && let result_type = result_type_with_refs.peel_refs()
@@ -77,7 +94,12 @@ impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
                 _ => return,
             };
             span_lint_and_then(cx, ASSERTIONS_ON_RESULT_STATES, macro_call.span, message, |diag| {
-                let mut app = Applicability::MachineApplicable;
+                let mut app = if panic_expn.is_default_message() {
+                    Applicability::MachineApplicable
+                } else {
+                    // `unwrap` drops the custom message
+                    Applicability::MaybeIncorrect
+                };
                 let recv = snippet_with_context(cx, recv.span, condition.span.ctxt(), "..", &mut app).0;
 
                 // `assert!` doesn't return anything, but `Result::unwrap(_err)` does, so we might need to add a

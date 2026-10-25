@@ -1,0 +1,35 @@
+error: called `assert!` with `Result::is_ok`
+  --> tests/ui-toml/assertions_on_result_states_with_message/assertions_on_result_states_with_message.rs:11:5
+   |
+LL |     assert!(r.is_ok());
+   |     ^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap()`
+   |
+   = note: `-D clippy::assertions-on-result-states` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::assertions_on_result_states)]`
+
+error: called `assert!` with `Result::is_ok`
+  --> tests/ui-toml/assertions_on_result_states_with_message/assertions_on_result_states_with_message.rs:15:5
+   |
+LL |     assert!(r.is_ok(), "should be ok");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap()`
+
+error: called `assert!` with `Result::is_err`
+  --> tests/ui-toml/assertions_on_result_states_with_message/assertions_on_result_states_with_message.rs:19:5
+   |
+LL |     assert!(r.is_err(), "should be err");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap_err()`
+
+error: called `assert!` with `Result::is_err`
+  --> tests/ui-toml/assertions_on_result_states_with_message/assertions_on_result_states_with_message.rs:24:5
+   |
+LL |     assert!(r.is_err(), "{sql} should not parse");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap_err()`
+
+error: called `assert!` with `Result::is_ok`
+  --> tests/ui-toml/assertions_on_result_states_with_message/assertions_on_result_states_with_message.rs:28:5
+   |
+LL |     assert!(r.is_ok(), "{}", sql);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `r.unwrap()`
+
+error: aborting due to 5 previous errors
+

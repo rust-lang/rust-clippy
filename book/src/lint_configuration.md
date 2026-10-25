@@ -51,6 +51,16 @@ Whether to accept a safety comment to be placed above the statement containing t
 * [`undocumented_unsafe_blocks`](https://clippy.rust-lang.org/main/index.html#undocumented_unsafe_blocks)
 
 
+## `allow-assertions-on-result-states-with-message`
+Whether `assert!(r.is_ok())` and `assert!(r.is_err())` should be allowed when they have a custom message
+
+**Default Value:** `true`
+
+---
+**Affected lints:**
+* [`assertions_on_result_states`](https://clippy.rust-lang.org/main/index.html#assertions_on_result_states)
+
+
 ## `allow-comparison-to-zero`
 Don't lint when comparing the result of a modulo operation to zero.
 

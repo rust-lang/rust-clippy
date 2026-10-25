@@ -669,7 +669,7 @@ rustc_lint::late_lint_methods!(
         SlowVectorInit: slow_vector_initialization::SlowVectorInit = slow_vector_initialization::SlowVectorInit,
         UnnecessaryWraps: unnecessary_wraps::UnnecessaryWraps = unnecessary_wraps::UnnecessaryWraps::new(conf),
         AssertionsOnConstants: assertions_on_constants::AssertionsOnConstants = assertions_on_constants::AssertionsOnConstants::new(conf),
-        AssertionsOnResultStates: assertions_on_result_states::AssertionsOnResultStates = assertions_on_result_states::AssertionsOnResultStates,
+        AssertionsOnResultStates: assertions_on_result_states::AssertionsOnResultStates = assertions_on_result_states::AssertionsOnResultStates::new(conf),
         InherentToString: inherent_to_string::InherentToString = inherent_to_string::InherentToString,
         TraitBounds: trait_bounds::TraitBounds = trait_bounds::TraitBounds::new(conf),
         ComparisonChain: comparison_chain::ComparisonChain = comparison_chain::ComparisonChain,

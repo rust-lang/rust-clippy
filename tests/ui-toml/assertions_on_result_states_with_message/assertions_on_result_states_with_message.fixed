@@ -1,0 +1,34 @@
+#![warn(clippy::assertions_on_result_states)]
+#![allow(clippy::unnecessary_literal_unwrap)]
+
+#[derive(Debug)]
+struct DebugFoo;
+
+struct Foo;
+
+fn main() {
+    let r: Result<DebugFoo, DebugFoo> = Ok(DebugFoo);
+    r.unwrap();
+    //~^ assertions_on_result_states
+
+    let r: Result<DebugFoo, DebugFoo> = Ok(DebugFoo);
+    r.unwrap();
+    //~^ assertions_on_result_states
+
+    let r: Result<DebugFoo, DebugFoo> = Err(DebugFoo);
+    r.unwrap_err();
+    //~^ assertions_on_result_states
+
+    let sql = "SELECT";
+    let r: Result<DebugFoo, DebugFoo> = Err(DebugFoo);
+    r.unwrap_err();
+    //~^ assertions_on_result_states
+
+    let r: Result<DebugFoo, DebugFoo> = Ok(DebugFoo);
+    r.unwrap();
+    //~^ assertions_on_result_states
+
+    // the unexpected value can't be printed
+    let r: Result<DebugFoo, Foo> = Ok(DebugFoo);
+    assert!(r.is_ok(), "should be ok");
+}

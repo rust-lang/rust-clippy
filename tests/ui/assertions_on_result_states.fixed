@@ -31,6 +31,10 @@ fn main() {
     // test ok with some messages
     let r: Result<Foo, DebugFoo> = Ok(Foo);
     assert!(r.is_ok(), "oops");
+    let r: Result<Foo, DebugFoo> = Ok(Foo);
+    assert!(r.is_ok(), "oops {}", 1);
+    let r: Result<DebugFoo, Foo> = Err(Foo);
+    assert!(r.is_err(), "oops");
 
     // test ok with unit error
     let r: Result<Foo, ()> = Ok(Foo);

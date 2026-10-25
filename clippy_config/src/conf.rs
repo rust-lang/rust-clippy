@@ -246,6 +246,9 @@ define_Conf! {
     /// Whether to accept a safety comment to be placed above the statement containing the `unsafe` block
     #[lints(undocumented_unsafe_blocks)]
     accept_comment_above_statement("accept-comment-above-statement"): bool = true,
+    /// Whether `assert!(r.is_ok())` and `assert!(r.is_err())` should be allowed when they have a custom message
+    #[lints(assertions_on_result_states)]
+    allow_assertions_on_result_states_with_message("allow-assertions-on-result-states-with-message"): bool = true,
     /// Don't lint when comparing the result of a modulo operation to zero.
     #[lints(modulo_arithmetic)]
     allow_comparison_to_zero("allow-comparison-to-zero"): bool = true,

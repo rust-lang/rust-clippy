@@ -9,6 +9,7 @@ LL | foobar = 42
            absolute-paths-max-segments
            accept-comment-above-attributes
            accept-comment-above-statement
+           allow-assertions-on-result-states-with-message
            allow-comparison-to-zero
            allow-dbg-in-tests
            allow-exact-repetitions
