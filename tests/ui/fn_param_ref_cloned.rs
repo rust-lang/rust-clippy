@@ -136,6 +136,28 @@ fn rebind(y: &IsClone) {
     let z = x.clone();
 }
 
+#[derive(Clone)]
+struct A;
+
+#[derive(Debug)]
+struct B;
+
+trait MyClone {
+    fn clone(&self);
+}
+
+impl MyClone for B {
+    fn clone(&self) {
+        println!("self:?");
+    }
+}
+
+fn foo(item: &A) {
+    // <- We save &A as candidate
+    let x: B = B;
+    x.clone(); // <- Technically called "clone"
+}
+
 fn main() {
     let a = IsClone;
     let b = IsClone;
@@ -153,4 +175,7 @@ fn main() {
     create_cell();
     dont_check_if_stmts(&a, 0usize);
     rebind(&a);
+
+    let a = A;
+    foo(&a);
 }
