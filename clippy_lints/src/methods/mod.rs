@@ -2885,7 +2885,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.101.0"]
     pub NO_RETURN_CONVERSION,
     pedantic,
-    "default lint description"
+    "no return conversion"
 }
 
 declare_clippy_lint! {
