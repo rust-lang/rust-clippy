@@ -460,6 +460,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::NEEDLESS_SPLITN_INFO,
     crate::methods::NEW_RET_NO_SELF_INFO,
     crate::methods::NO_EFFECT_REPLACE_INFO,
+    crate::methods::NO_RETURN_CONVERSION_INFO,
     crate::methods::NONSENSICAL_OPEN_OPTIONS_INFO,
     crate::methods::OBFUSCATED_IF_ELSE_INFO,
     crate::methods::OK_EXPECT_INFO,
