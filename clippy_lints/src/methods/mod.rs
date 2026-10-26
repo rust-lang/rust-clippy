@@ -2870,12 +2870,16 @@ declare_clippy_lint! {
     /// Conversion should return with a type according to the [C-CONV](https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv) API guideline.
     /// ### Example
     /// ```no_run
+    /// struct MyStruct;
+    ///
     /// impl MyStruct {
     ///     fn as_bytes(&self) {}
     /// }
     /// ```
     /// Use instead:
     /// ```no_run
+    /// struct MyStruct;
+    ///
     /// impl MyStruct {
     ///     fn as_bytes(&self) -> &[u8] {
     ///         b"conversion should return with something"
