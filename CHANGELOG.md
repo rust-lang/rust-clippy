@@ -7490,6 +7490,7 @@ Released 2018-09-13
 [`no_effect_replace`]: https://clippy.rust-lang.org/main/index.html#no_effect_replace
 [`no_effect_underscore_binding`]: https://clippy.rust-lang.org/main/index.html#no_effect_underscore_binding
 [`no_mangle_with_rust_abi`]: https://clippy.rust-lang.org/main/index.html#no_mangle_with_rust_abi
+[`no_return_conversion`]: https://clippy.rust-lang.org/main/index.html#no_return_conversion
 [`non_ascii_literal`]: https://clippy.rust-lang.org/main/index.html#non_ascii_literal
 [`non_canonical_clone_impl`]: https://clippy.rust-lang.org/main/index.html#non_canonical_clone_impl
 [`non_canonical_partial_ord_impl`]: https://clippy.rust-lang.org/main/index.html#non_canonical_partial_ord_impl

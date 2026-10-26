@@ -90,6 +90,7 @@ mod needless_option_as_deref;
 mod needless_option_take;
 mod new_ret_no_self;
 mod no_effect_replace;
+mod no_return_conversion;
 mod obfuscated_if_else;
 mod ok_expect;
 mod open_options;
@@ -2864,6 +2865,31 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks if conversion (`as_`, `to_` or `into_`) methods don't return with any type.
+    /// ### Why is this bad?
+    /// Conversion should return with a type according to the [C-CONV](https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv) API guideline.
+    /// ### Example
+    /// ```no_run
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) {}
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) -> &[u8] {
+    ///         b"conversion should return with something"
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub NO_RETURN_CONVERSION,
+    pedantic,
+    "default lint description"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for duplicate open options as well as combinations
     /// that make no sense.
     ///
@@ -5174,6 +5200,7 @@ impl_lint_pass!(Methods => [
     NEW_RET_NO_SELF,
     NONSENSICAL_OPEN_OPTIONS,
     NO_EFFECT_REPLACE,
+    NO_RETURN_CONVERSION,
     OBFUSCATED_IF_ELSE,
     OK_EXPECT,
     OPTION_AS_REF_CLONED,
@@ -5399,6 +5426,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
+            no_return_conversion::check(cx, impl_item);
         }
     }
 
