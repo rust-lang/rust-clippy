@@ -119,6 +119,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::disallowed_macros::DISALLOWED_MACROS_INFO,
     crate::disallowed_names::DISALLOWED_NAMES_INFO,
     crate::disallowed_script_idents::DISALLOWED_SCRIPT_IDENTS_INFO,
+    crate::disallowed_trait_usage::DISALLOWED_TRAIT_USAGE_INFO,
     crate::doc::DOC_BROKEN_LINK_INFO,
     crate::doc::DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS_INFO,
     crate::doc::DOC_INCLUDE_WITHOUT_CFG_INFO,
