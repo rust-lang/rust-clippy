@@ -1,6 +1,7 @@
-use clippy_utils::res::MaybeResPath as _;
+use clippy_utils::res::{HasHirId as _, MaybeResPath as _};
 use clippy_utils::ty::{implements_trait, ty_from_hir_ty};
 use clippy_utils::visitors::{Descend, for_each_expr};
+use rustc_attr_ir::LangItem;
 use rustc_hir::PatKind;
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 use rustc_middle::ty::{Ref, Ty};
@@ -125,13 +126,13 @@ impl<'tcx> LateLintPass<'tcx> for FnParamRefCloned {
         }
 
         // Look whether the candidates call the `.clone()` method anywhere
-        _ = for_each_expr(cx.tcx, &fn_body.value, move |expr| match expr.kind {
+        _ = for_each_expr(cx.tcx, fn_body.value, move |expr| match expr.kind {
             rustc_hir::ExprKind::If(_, _, _) | rustc_hir::ExprKind::Match(_, _, _) => {
                 ControlFlow::<(), Descend>::Continue(Descend::No)
             },
-            rustc_hir::ExprKind::MethodCall(method_name, receiver, args, span)
-                if method_name.ident.as_str() == "clone"
-                    && args.is_empty()
+            rustc_hir::ExprKind::MethodCall(_, receiver, _, span)
+                if let Some(method_def_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id())
+                    && cx.tcx.is_lang_item(method_def_id, LangItem::CloneFn)
                     && let rustc_hir::ExprKind::Path(qpath) = receiver.kind
                     && let Some(hir_id) = qpath.res_local_id() =>
             {
