@@ -118,7 +118,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualSplitAt {
                 let reciever = snippet(cx, target1.span, "..");
                 let indexing_expr = snippet(cx, bind_holder.from.span, "..");
 
-                let sugg = format!("let ({var1}, {var2}){type_suggestion} = {reciever}.split_at({indexing_expr});",);
+                let sugg = format!("let ({var1}, {var2}){type_suggestion} = {reciever}.split_at({indexing_expr});");
 
                 span_lint_and_sugg(
                     cx,
