@@ -7354,6 +7354,7 @@ Released 2018-09-13
 [`manual_saturating_arithmetic`]: https://clippy.rust-lang.org/main/index.html#manual_saturating_arithmetic
 [`manual_slice_fill`]: https://clippy.rust-lang.org/main/index.html#manual_slice_fill
 [`manual_slice_size_calculation`]: https://clippy.rust-lang.org/main/index.html#manual_slice_size_calculation
+[`manual_split_at`]: https://clippy.rust-lang.org/main/index.html#manual_split_at
 [`manual_split_once`]: https://clippy.rust-lang.org/main/index.html#manual_split_once
 [`manual_str_repeat`]: https://clippy.rust-lang.org/main/index.html#manual_str_repeat
 [`manual_string_new`]: https://clippy.rust-lang.org/main/index.html#manual_string_new

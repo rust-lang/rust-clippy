@@ -1,0 +1,131 @@
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:95:5
+   |
+LL | /     let left = &v[..k];
+LL | |     let right = &v[k..];
+   | |________________________^ help: use: `let (left, right) = v.split_at(k);`
+   |
+   = note: `-D clippy::manual-split-at` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_split_at)]`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:100:5
+   |
+LL | /     let right = &v[k..];
+LL | |     let left = &v[..k];
+   | |_______________________^ help: use: `let (left, right) = v.split_at(k);`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:104:5
+   |
+LL | /     let left = &v[..strct.field];
+LL | |     let right = &v[strct.field..];
+   | |__________________________________^ help: use: `let (left, right) = v.split_at(strct.field);`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:109:5
+   |
+LL | /     let left: &[i32] = &v[..k];
+LL | |     let right = &v[k..];
+   | |________________________^ help: use: `let (left, right): (&[i32], _) = v.split_at(k);`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:113:5
+   |
+LL | /     let left: &[i32] = &v[..k];
+LL | |     let right: &[i32] = &v[k..];
+   | |________________________________^ help: use: `let (left, right): (&[i32], &[i32]) = v.split_at(k);`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:9:5
+   |
+LL |     let (left, right) = (&v[..k], &v[k..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:13:5
+   |
+LL |     let (left, right) = (&slc[..k], &slc[k..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = slc.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:17:5
+   |
+LL |     let (left, right) = (&arr[..k], &arr[k..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = arr.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:21:5
+   |
+LL |     let (left, right) = (&str_[..k], &str_[k..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = str_.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:25:5
+   |
+LL |     let (left, right) = (&string_[..k], &string_[k..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = string_.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:34:5
+   |
+LL |     let (left, right) = (&v[..strct.field], &v[strct.field..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = v.split_at(strct.field)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:38:5
+   |
+LL |     let (left, right) = (&v[..2], &v[2..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = v.split_at(2)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:42:5
+   |
+LL |     let (right, left) = (&v[k..], &v[..k]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right) = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:45:5
+   |
+LL |     let ([first, ..], right) = (&v[..k], &v[k..]) else {
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let ([first, ..], right) = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:51:5
+   |
+LL |     let (right, left): (&[i32], &[i32]) = (&v[k..], &v[..k]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right):(&[i32], &[i32]) = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:55:5
+   |
+LL |     let (right, left): (&[i32], _) = (&v[k..], &v[..k]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (left, right):(_, &[i32]) = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:59:5
+   |
+LL |     let (_, _) = (&v[k..], &v[..k]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (_, _) = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:63:5
+   |
+LL |     let x = (&v[..k], &v[k..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let x = v.split_at(k)`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:155:5
+   |
+LL | /     let _a = &t[..k];
+LL | |     let _b = &t[k..];
+   | |_____________________^ help: use: `let (_a, _b) = t.split_at(k);`
+
+error: manual implementation of `split_at`
+  --> tests/ui/manual_split_at.rs:151:5
+   |
+LL |     let (_, _) = (&t[..k], &t[k..]);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `let (_, _) = t.split_at(k)`
+
+error: aborting due to 20 previous errors
+
