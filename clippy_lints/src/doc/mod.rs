@@ -1,3 +1,4 @@
+use crate::rustc_ast::attr::AttributeExt;
 use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
