@@ -677,3 +677,14 @@ fn issue16351() {
     take(format!("ouch{dot}").to_string());
     //~^ unnecessary_to_owned
 }
+
+// Issue #17913
+struct TypeWithSplitMethod;
+impl TypeWithSplitMethod {
+    pub fn split(&self, _s: String) {}
+}
+
+fn issue17913() {
+    let x = TypeWithSplitMethod;
+    x.split("example".to_string());
+}

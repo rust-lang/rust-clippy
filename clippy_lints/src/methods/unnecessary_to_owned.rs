@@ -9,7 +9,6 @@ use clippy_utils::visitors::find_all_ret_expressions;
 use clippy_utils::{fn_def_id, get_parent_expr, is_expr_temporary_value, return_ty, sym};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
-use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{BorrowKind, Expr, ExprKind, ItemKind, Node};
 use rustc_infer::infer::TyCtxtInferExt as _;
@@ -309,11 +308,14 @@ fn check_string_from_utf8<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, 
     }
 }
 
-/// Checks whether `expr` is an argument in an `into_iter` call and, if so, determines whether its
+/// Checks whether `expr` is the receiver in a `split` call and, if so, determines whether its
 /// call of a `to_owned`-like function is unnecessary.
 fn check_split_call_arg(cx: &LateContext<'_>, expr: &Expr<'_>, method_name: Symbol, receiver: &Expr<'_>) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr)
-        && let Some((sym::split, argument_expr)) = get_fn_name_and_arg(cx, parent)
+        && let ExprKind::MethodCall(method, parent_receiver, [argument_expr], _) = parent.kind
+        && parent_receiver.hir_id == expr.hir_id
+        && method.ident.name == sym::split
+        && is_str_or_slice_split(cx, parent, parent_receiver)
         && let Some(receiver_snippet) = receiver.span.get_text(cx)
         && let Some(arg_snippet) = argument_expr.span.get_text(cx)
     {
@@ -347,30 +349,18 @@ fn check_split_call_arg(cx: &LateContext<'_>, expr: &Expr<'_>, method_name: Symb
     false
 }
 
-fn get_fn_name_and_arg<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) -> Option<(Symbol, Expr<'tcx>)> {
-    match &expr.kind {
-        ExprKind::MethodCall(path, _, [arg_expr], ..) => Some((path.ident.name, *arg_expr)),
-        ExprKind::Call(
-            Expr {
-                kind: ExprKind::Path(qpath),
-                hir_id: path_hir_id,
-                ..
-            },
-            [arg_expr],
-        ) => {
-            // Only return Fn-like DefIds, not the DefIds of statics/consts/etc that contain or
-            // deref to fn pointers, dyn Fn, impl Fn - #8850
-            if let Res::Def(DefKind::Fn | DefKind::Ctor(..) | DefKind::AssocFn, def_id) =
-                cx.typeck_results().qpath_res(qpath, *path_hir_id)
-                && let Some(fn_name) = cx.tcx.opt_item_name(def_id)
-            {
-                Some((fn_name, *arg_expr))
-            } else {
-                None
-            }
-        },
-        _ => None,
-    }
+fn is_str_or_slice_split(cx: &LateContext<'_>, parent: &Expr<'_>, parent_receiver: &Expr<'_>) -> bool {
+    let recv_ty = cx.typeck_results().expr_ty_adjusted(parent_receiver).peel_refs();
+    (recv_ty.is_slice() || recv_ty.is_str())
+        && cx
+            .typeck_results()
+            .type_dependent_def_id(parent.hir_id)
+            .is_some_and(|method_def_id| {
+                cx.tcx.impl_of_assoc(method_def_id).is_some_and(|impl_did| {
+                    let self_ty = cx.tcx.type_of(impl_did).instantiate_identity().skip_norm_wip();
+                    self_ty.is_slice() || self_ty.is_str()
+                })
+            })
 }
 
 /// Checks whether `expr` is an argument in a function call and, if so, determines whether its call
