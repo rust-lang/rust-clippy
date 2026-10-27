@@ -171,7 +171,6 @@ impl<'tcx> LateLintPass<'tcx> for ManualSplitAt {
                         return;
                     },
                 },
-                // если тип НЕ указан, его можно не проставлять
                 None => format_args!(""),
             };
 
