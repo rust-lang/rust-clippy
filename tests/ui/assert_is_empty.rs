@@ -110,3 +110,68 @@ fn main() {
     let not_debug = vec![NotDebug];
     assert!(not_debug.is_empty());
 }
+
+// Don't lint in const contexts. `assert_eq!` and `assert_ne!` compare through `PartialEq`, which
+// is not stably a const trait, so applying the suggestion fails to compile.
+// See https://github.com/rust-lang/rust/issues/143874.
+const EMPTY: &str = "";
+const NONEMPTY: &str = "string";
+
+#[allow(clippy::assertions_on_constants)]
+const _: () = {
+    assert!(EMPTY.is_empty());
+    assert!(!NONEMPTY.is_empty());
+    debug_assert!(EMPTY.is_empty());
+    debug_assert!(!NONEMPTY.is_empty());
+};
+
+#[allow(clippy::assertions_on_constants)]
+static EMPTY_ASSERT: () = {
+    assert!(EMPTY.is_empty());
+    assert!(!NONEMPTY.is_empty());
+};
+
+struct Holder;
+impl Holder {
+    #[allow(clippy::assertions_on_constants)]
+    const CHECK: () = {
+        assert!(EMPTY.is_empty());
+        assert!(!NONEMPTY.is_empty());
+    };
+}
+
+const fn const_fn_str(value: &str) {
+    assert!(value.is_empty());
+    assert!(!value.is_empty());
+    debug_assert!(value.is_empty());
+    debug_assert!(!value.is_empty());
+}
+
+const fn const_fn_slice(value: &[i32]) {
+    assert!(value.is_empty());
+    assert!(!value.is_empty());
+}
+
+const fn const_fn_array(value: [i32; 1]) {
+    assert!(value.is_empty());
+    assert!(!value.is_empty());
+}
+
+#[allow(clippy::ptr_arg)]
+const fn const_fn_vec(value: &Vec<i32>) {
+    assert!(value.is_empty());
+    assert!(!value.is_empty());
+}
+
+fn const_block() {
+    #[allow(clippy::assertions_on_constants)]
+    const {
+        assert!(EMPTY.is_empty());
+        assert!(!NONEMPTY.is_empty());
+    }
+
+    // The same check still lints outside a const context.
+    let value = "";
+    assert!(value.is_empty());
+    //~^ assert_is_empty
+}

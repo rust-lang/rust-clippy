@@ -3,8 +3,8 @@ use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::walk_span_to_context;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::sym;
 use clippy_utils::ty::implements_trait;
+use clippy_utils::{is_in_const_context, sym};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, UnOp};
@@ -50,6 +50,10 @@ declare_clippy_lint! {
     /// be very large or contain sensitive information. If the assertion failure should not reveal
     /// the value, keep the boolean assertion and allow this lint at that assertion.
     ///
+    /// This lint does not run in const contexts. The suggested comparison macros are not stably
+    /// usable there: `PartialEq` is not yet a const trait
+    /// ([rust#143874](https://github.com/rust-lang/rust/issues/143874)).
+    ///
     /// ### Example
     ///
     /// ```no_run
@@ -82,6 +86,13 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
         // `assert!` and `debug_assert!` expand to `if`; skip other expressions before walking the
         // macro backtrace.
         if !matches!(expr.kind, ExprKind::If(..)) {
+            return;
+        }
+
+        // `assert_eq!` and `assert_ne!` call `PartialEq`, which is not stably const, so the
+        // suggestion does not compile in const contexts.
+        // See https://github.com/rust-lang/rust/issues/143874.
+        if is_in_const_context(cx) {
             return;
         }
 

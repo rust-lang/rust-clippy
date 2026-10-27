@@ -20,13 +20,15 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// assert_eq!("a".is_empty(), false);
-    /// assert_ne!("a".is_empty(), true);
+    /// let ready = false;
+    /// assert_eq!(ready, false);
+    /// assert_ne!(ready, true);
     /// ```
     ///
     /// Use instead:
     /// ```no_run
-    /// assert!(!"a".is_empty());
+    /// let ready = false;
+    /// assert!(!ready);
     /// ```
     #[clippy::version = "1.53.0"]
     pub BOOL_ASSERT_COMPARISON,

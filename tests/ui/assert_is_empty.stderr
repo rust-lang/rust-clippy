@@ -204,5 +204,17 @@ LL -     assert!(!items.is_empty());
 LL +     assert_ne!(items, [] as [&str; 0]);
    |
 
-error: aborting due to 17 previous errors
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:175:5
+   |
+LL |     assert!(value.is_empty());
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -     assert!(value.is_empty());
+LL +     assert_eq!(value, "");
+   |
+
+error: aborting due to 18 previous errors
 
