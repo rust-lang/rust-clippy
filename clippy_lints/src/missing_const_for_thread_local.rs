@@ -122,6 +122,8 @@ impl<'tcx> LateLintPass<'tcx> for MissingConstForThreadLocal {
             && let ExprKind::Block(block, _) = body.value.kind
             && let Some(unpeeled) = block.expr
             && let ret_expr = peel_blocks(unpeeled)
+            // OS TLS uses a non-`const` init function even for `const` initializers.
+            // The expression's macro origin distinguishes explicit `const` initializers from nested blocks.
             && !(matches!(ret_expr.kind, ExprKind::ConstBlock(_))
                 && matching_root_macro_call(cx, ret_expr.span, sym::thread_local_macro).is_some())
             // A common pattern around threadlocal! is to make the value unreachable
