@@ -1,0 +1,67 @@
+error: A key of type `HashMap` must implement `Eq + Hash`
+  --> tests/ui/hash_bad.rs:7:35
+   |
+LL |     let _: HashMap<BadType, ()> = HashMap::default();
+   |                                   ^^^^^^^^^^^^^^^^^^
+   |
+   = help: Although it is possible to use any type as a key for HashMap,
+           it is recommended for it to implement Eq + Hash, otherwise most of methods for the type will be unavailable
+   = note: `-D clippy::hash-bad` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::hash_bad)]`
+
+error: A value of type `HashSet` must implement `Eq + Hash`
+  --> tests/ui/hash_bad.rs:10:31
+   |
+LL |     let _: HashSet<BadType> = HashSet::with_capacity(1);
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: Although it is possible to use any type as a value for HashSet,
+           it is recommended for it to implement Eq + Hash, otherwise most of methods for the type will be unavailable
+
+error: A key of type `BTreeMap` must implement `Ord`
+  --> tests/ui/hash_bad.rs:13:36
+   |
+LL |     let _: BTreeMap<BadType, ()> = Default::default();
+   |                                    ^^^^^^^^^^^^^^^^^^
+   |
+   = help: Although it is possible to use any type as a key for BTreeMap,
+           it is recommended for it to implement Ord, otherwise most of methods for the type will be unavailable
+
+error: A value of type `BTreeSet` must implement `Ord`
+  --> tests/ui/hash_bad.rs:16:32
+   |
+LL |     let _: BTreeSet<BadType> = BTreeSet::new();
+   |                                ^^^^^^^^^^^^^^^
+   |
+   = help: Although it is possible to use any type as a value for BTreeSet,
+           it is recommended for it to implement Ord, otherwise most of methods for the type will be unavailable
+
+error: A value of type `HashSet` must implement `Eq + Hash`
+  --> tests/ui/hash_bad.rs:19:31
+   |
+LL |     let _: HashSet<BadType> = HashSet::new();
+   |                               ^^^^^^^^^^^^^^
+   |
+   = help: Although it is possible to use any type as a value for HashSet,
+           it is recommended for it to implement Eq + Hash, otherwise most of methods for the type will be unavailable
+
+error: A key of type `HashMap` must implement `Eq + Hash`
+  --> tests/ui/hash_bad.rs:22:35
+   |
+LL |     let _: HashMap<BadType, ()> = HashMap::new();
+   |                                   ^^^^^^^^^^^^^^
+   |
+   = help: Although it is possible to use any type as a key for HashMap,
+           it is recommended for it to implement Eq + Hash, otherwise most of methods for the type will be unavailable
+
+error: A key of type `HashMap` must implement `Eq + Hash`
+  --> tests/ui/hash_bad.rs:25:38
+   |
+LL |     let _: HashMap<EqOnlyType, ()> = HashMap::new();
+   |                                      ^^^^^^^^^^^^^^
+   |
+   = help: Although it is possible to use any type as a key for HashMap,
+           it is recommended for it to implement Eq + Hash, otherwise most of methods for the type will be unavailable
+
+error: aborting due to 7 previous errors
+

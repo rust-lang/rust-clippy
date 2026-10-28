@@ -7183,6 +7183,7 @@ Released 2018-09-13
 [`get_first`]: https://clippy.rust-lang.org/main/index.html#get_first
 [`get_last_with_len`]: https://clippy.rust-lang.org/main/index.html#get_last_with_len
 [`get_unwrap`]: https://clippy.rust-lang.org/main/index.html#get_unwrap
+[`hash_bad`]: https://clippy.rust-lang.org/main/index.html#hash_bad
 [`host_endian_bytes`]: https://clippy.rust-lang.org/main/index.html#host_endian_bytes
 [`identity_conversion`]: https://clippy.rust-lang.org/main/index.html#identity_conversion
 [`identity_op`]: https://clippy.rust-lang.org/main/index.html#identity_op
