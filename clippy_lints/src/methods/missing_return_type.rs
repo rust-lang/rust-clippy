@@ -3,7 +3,7 @@ use clippy_utils::return_ty;
 use rustc_hir::{ImplItem, ImplItemKind};
 use rustc_lint::LateContext;
 
-use super::NO_RETURN_CONVERSION;
+use super::MISSING_RETURN_TYPE;
 
 pub(super) fn check(cx: &LateContext<'_>, impl_item: &ImplItem<'_>) {
     let method_name = impl_item.ident.name.as_str();
@@ -13,7 +13,7 @@ pub(super) fn check(cx: &LateContext<'_>, impl_item: &ImplItem<'_>) {
     {
         span_lint_and_help(
             cx,
-            NO_RETURN_CONVERSION,
+            MISSING_RETURN_TYPE,
             sig.decl.output.span(),
             "conversion does not return with any type",
             None,

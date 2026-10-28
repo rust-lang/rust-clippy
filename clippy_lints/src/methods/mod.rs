@@ -82,6 +82,7 @@ mod map_unwrap_or;
 mod map_unwrap_or_default;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
+mod missing_return_type;
 mod mut_mutex_lock;
 mod needless_as_bytes;
 mod needless_character_iteration;
@@ -90,7 +91,6 @@ mod needless_option_as_deref;
 mod needless_option_take;
 mod new_ret_no_self;
 mod no_effect_replace;
-mod no_return_conversion;
 mod obfuscated_if_else;
 mod ok_expect;
 mod open_options;
@@ -2575,6 +2575,35 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks if conversion (`as_`, `to_` or `into_`) methods don't return with any type.
+    /// ### Why is this bad?
+    /// Conversion should return with a type according to the [C-CONV](https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv) API guideline.
+    /// ### Example
+    /// ```no_run
+    /// struct MyStruct;
+    ///
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) {}
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// struct MyStruct;
+    ///
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) -> &[u8] {
+    ///         b"conversion should return with something"
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub MISSING_RETURN_TYPE,
+    style,
+    "no return conversion"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for `&mut Mutex::lock` calls
     ///
     /// ### Why is this bad?
@@ -2861,35 +2890,6 @@ declare_clippy_lint! {
     pub NO_EFFECT_REPLACE,
     suspicious,
     "replace with no effect"
-}
-
-declare_clippy_lint! {
-    /// ### What it does
-    /// Checks if conversion (`as_`, `to_` or `into_`) methods don't return with any type.
-    /// ### Why is this bad?
-    /// Conversion should return with a type according to the [C-CONV](https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv) API guideline.
-    /// ### Example
-    /// ```no_run
-    /// struct MyStruct;
-    ///
-    /// impl MyStruct {
-    ///     fn as_bytes(&self) {}
-    /// }
-    /// ```
-    /// Use instead:
-    /// ```no_run
-    /// struct MyStruct;
-    ///
-    /// impl MyStruct {
-    ///     fn as_bytes(&self) -> &[u8] {
-    ///         b"conversion should return with something"
-    ///     }
-    /// }
-    /// ```
-    #[clippy::version = "1.101.0"]
-    pub NO_RETURN_CONVERSION,
-    pedantic,
-    "no return conversion"
 }
 
 declare_clippy_lint! {
@@ -5193,6 +5193,7 @@ impl_lint_pass!(Methods => [
     MAP_OR_IDENTITY,
     MAP_UNWRAP_OR,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+    MISSING_RETURN_TYPE,
     MUT_MUTEX_LOCK,
     NAIVE_BYTECOUNT,
     NEEDLESS_AS_BYTES,
@@ -5204,7 +5205,6 @@ impl_lint_pass!(Methods => [
     NEW_RET_NO_SELF,
     NONSENSICAL_OPEN_OPTIONS,
     NO_EFFECT_REPLACE,
-    NO_RETURN_CONVERSION,
     OBFUSCATED_IF_ELSE,
     OK_EXPECT,
     OPTION_AS_REF_CLONED,
@@ -5430,7 +5430,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
-            no_return_conversion::check(cx, impl_item);
+            missing_return_type::check(cx, impl_item);
         }
     }
 

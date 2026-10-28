@@ -7413,6 +7413,7 @@ Released 2018-09-13
 [`missing_fields_in_debug`]: https://clippy.rust-lang.org/main/index.html#missing_fields_in_debug
 [`missing_inline_in_public_items`]: https://clippy.rust-lang.org/main/index.html#missing_inline_in_public_items
 [`missing_panics_doc`]: https://clippy.rust-lang.org/main/index.html#missing_panics_doc
+[`missing_return_type`]: https://clippy.rust-lang.org/main/index.html#missing_return_type
 [`missing_safety_doc`]: https://clippy.rust-lang.org/main/index.html#missing_safety_doc
 [`missing_spin_loop`]: https://clippy.rust-lang.org/main/index.html#missing_spin_loop
 [`missing_trait_methods`]: https://clippy.rust-lang.org/main/index.html#missing_trait_methods
@@ -7490,7 +7491,6 @@ Released 2018-09-13
 [`no_effect_replace`]: https://clippy.rust-lang.org/main/index.html#no_effect_replace
 [`no_effect_underscore_binding`]: https://clippy.rust-lang.org/main/index.html#no_effect_underscore_binding
 [`no_mangle_with_rust_abi`]: https://clippy.rust-lang.org/main/index.html#no_mangle_with_rust_abi
-[`no_return_conversion`]: https://clippy.rust-lang.org/main/index.html#no_return_conversion
 [`non_ascii_literal`]: https://clippy.rust-lang.org/main/index.html#non_ascii_literal
 [`non_canonical_clone_impl`]: https://clippy.rust-lang.org/main/index.html#non_canonical_clone_impl
 [`non_canonical_partial_ord_impl`]: https://clippy.rust-lang.org/main/index.html#non_canonical_partial_ord_impl
