@@ -1,0 +1,28 @@
+error: item in documentation is missing backticks
+  --> tests/ui/doc/doc_markdown_hand_written_still_lints.rs:6:10
+   |
+LL | /// Uses foo_bar here.
+   |          ^^^^^^^
+   |
+   = note: `-D clippy::doc-markdown` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::doc_markdown)]`
+help: try
+   |
+LL - /// Uses foo_bar here.
+LL + /// Uses `foo_bar` here.
+   |
+
+error: item in documentation is missing backticks
+  --> tests/ui/doc/doc_markdown_hand_written_still_lints.rs:10:15
+   |
+LL | #[doc = "Uses foo_bar here."]
+   |               ^^^^^^^
+   |
+help: try
+   |
+LL - #[doc = "Uses foo_bar here."]
+LL + #[doc = "Uses `foo_bar` here."]
+   |
+
+error: aborting due to 2 previous errors
+
