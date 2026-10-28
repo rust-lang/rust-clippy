@@ -314,10 +314,15 @@ impl<'tcx> Visitor<'tcx> for StmtsChecker<'_, '_, '_, '_, 'tcx> {
                         if let hir::PatKind::Binding(binding_mode, _, ident, _) = local.pat.kind {
                             apa.last_bind_ident = Some((binding_mode, ident));
                         }
-                        if let Some(local_init) = local.init
-                            && let hir::ExprKind::MethodCall(_, _, _, span) = local_init.kind
-                        {
-                            apa.last_method_span = Some(span);
+                        if let Some(local_init) = local.init {
+                            let mut first_method = local_init;
+                            while let hir::ExprKind::MethodCall(_, receiver, _, span) = first_method.kind {
+                                if receiver.res_local_id() == Some(hir_id) {
+                                    apa.last_method_span = Some(span.with_hi(local_init.span.hi()));
+                                    break;
+                                }
+                                first_method = receiver;
+                            }
                         }
                     },
                     hir::StmtKind::Semi(semi_expr) => {

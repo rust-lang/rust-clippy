@@ -182,3 +182,12 @@ fn issue16343() {
         println!("item {:?}", item);
     }
 }
+
+fn issue_17824_chain_methods() {
+    let mutex = Mutex::new(-5_i32);
+    
+    let data = mutex.lock().unwrap().abs().pow(2);
+    //~^ significant_drop_tightening
+    
+    do_heavy_computation_that_takes_time(data);
+}
