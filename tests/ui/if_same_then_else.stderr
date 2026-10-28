@@ -352,5 +352,27 @@ LL | |             &S
 LL | |         };
    | |_________^
 
-error: aborting due to 25 previous errors
+error: this `if` has identical blocks
+  --> tests/ui/if_same_then_else.rs:365:30
+   |
+LL |           let _ = if condition {
+   |  ______________________________^
+LL | |             #[allow(dead_code)]
+LL | |             static S: u8 = 0;
+LL | |             &S
+LL | |         } else {
+   | |_________^
+   |
+note: same as this
+  --> tests/ui/if_same_then_else.rs:369:16
+   |
+LL |           } else {
+   |  ________________^
+LL | |             #[allow(dead_code)]
+LL | |             static S: u8 = 0;
+LL | |             &S
+LL | |         };
+   | |_________^
+
+error: aborting due to 26 previous errors
 

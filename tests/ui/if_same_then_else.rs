@@ -359,4 +359,28 @@ mod issue16356 {
             &S
         };
     }
+
+    fn with_lint_attributes(condition: bool) {
+        //~v if_same_then_else
+        let _ = if condition {
+            #[allow(dead_code)]
+            static S: u8 = 0;
+            &S
+        } else {
+            #[allow(dead_code)]
+            static S: u8 = 0;
+            &S
+        };
+    }
+
+    fn different_used_attributes(condition: bool) {
+        let _ = if condition {
+            #[used]
+            static S: u8 = 0;
+            &S
+        } else {
+            static S: u8 = 0;
+            &S
+        };
+    }
 }

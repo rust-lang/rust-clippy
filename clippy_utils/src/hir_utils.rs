@@ -5,6 +5,7 @@ use crate::{sym, tokenize_with_text};
 use core::mem;
 use rustc_ast::ast;
 use rustc_ast::ast::InlineAsmTemplatePiece;
+use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_data_structures::fx::{FxHasher, FxIndexMap};
 use rustc_hir::MatchSource::TryDesugar;
 use rustc_hir::def::{DefKind, Res};
@@ -207,21 +208,7 @@ impl HirEqInterExpr<'_, '_, '_> {
     pub fn eq_item(&mut self, l: ItemId, r: ItemId) -> bool {
         let left = self.inner.cx.tcx.hir_item(l);
         let right = self.inner.cx.tcx.hir_item(r);
-        if self
-            .inner
-            .cx
-            .tcx
-            .hir_attrs(left.hir_id())
-            .iter()
-            .any(|attr| attr.is_doc_comment().is_none())
-            || self
-                .inner
-                .cx
-                .tcx
-                .hir_attrs(right.hir_id())
-                .iter()
-                .any(|attr| attr.is_doc_comment().is_none())
-        {
+        if self.has_item_affecting_attrs(left) || self.has_item_affecting_attrs(right) {
             return false;
         }
         let eq = match (left.kind, right.kind) {
@@ -284,6 +271,38 @@ impl HirEqInterExpr<'_, '_, '_> {
                 },
                 _ => false,
             }
+    }
+
+    /// Returns whether this item has an attribute that can affect linkage, generated code,
+    /// test registration, or name resolution. `eq_item` treats such items as unequal because
+    /// its HIR comparison does not account for those effects.
+    fn has_item_affecting_attrs(&self, item: &rustc_hir::Item<'_>) -> bool {
+        self.inner.cx.tcx.hir_attrs(item.hir_id()).iter().any(|attr| {
+            // Parsed attributes have no name, including `#[unsafe(export_name = ...)]`.
+            matches!(
+                attr,
+                Attribute::Parsed(
+                    AttributeKind::ExportName { .. }
+                        | AttributeKind::LinkSection { .. }
+                        | AttributeKind::NoMangle(..)
+                        | AttributeKind::Used { .. }
+                        | AttributeKind::Cold
+                        | AttributeKind::Inline(..)
+                        | AttributeKind::InstructionSet(..)
+                        | AttributeKind::Naked(..)
+                        | AttributeKind::TargetFeature { .. }
+                        | AttributeKind::TrackCaller(..)
+                        | AttributeKind::Ignore { .. }
+                        | AttributeKind::ShouldPanic { .. }
+                        | AttributeKind::Path(..)
+                        | AttributeKind::NoImplicitPrelude
+                        | AttributeKind::MacroUse { .. }
+                )
+            ) || matches!(
+                attr.name(),
+                Some(sym::global_allocator | sym::panic_handler | sym::test)
+            )
+        })
     }
 
     fn eq_fn_sig(&mut self, left: &FnSig<'_>, right: &FnSig<'_>) -> bool {
