@@ -1,15 +1,15 @@
 error: conversion does not return with any type
-  --> tests/ui/no_return_conversion.rs:8:22
+  --> tests/ui/missing_return_type.rs:8:22
    |
 LL |     fn as_type(&self) {}
    |                      ^
    |
    = help: rename the method or return a type
-   = note: `-D clippy::no-return-conversion` implied by `-D warnings`
-   = help: to override `-D warnings` add `#[allow(clippy::no_return_conversion)]`
+   = note: `-D clippy::missing-return-type` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_return_type)]`
 
 error: conversion does not return with any type
-  --> tests/ui/no_return_conversion.rs:11:22
+  --> tests/ui/missing_return_type.rs:11:22
    |
 LL |     fn to_type(&self) {}
    |                      ^
@@ -17,7 +17,7 @@ LL |     fn to_type(&self) {}
    = help: rename the method or return a type
 
 error: conversion does not return with any type
-  --> tests/ui/no_return_conversion.rs:14:23
+  --> tests/ui/missing_return_type.rs:14:23
    |
 LL |     fn into_type(self) {}
    |                       ^

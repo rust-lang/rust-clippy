@@ -1,4 +1,4 @@
-#![warn(clippy::no_return_conversion)]
+#![warn(clippy::missing_return_type)]
 
 fn main() {}
 
@@ -6,11 +6,11 @@ struct Converter;
 
 impl Converter {
     fn as_type(&self) {}
-    //~^ no_return_conversion
+    //~^ missing_return_type
 
     fn to_type(&self) {}
-    //~^ no_return_conversion
+    //~^ missing_return_type
 
     fn into_type(self) {}
-    //~^ no_return_conversion
+    //~^ missing_return_type
 }
