@@ -17,7 +17,7 @@ declare_clippy_lint! {
     ///
     /// Checks assertions that only test whether a supported value is empty.
     ///
-    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, and `Vec`.
+    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`, and `BTreeMap`.
     ///
     /// ### Why is this bad?
     ///
@@ -216,6 +216,18 @@ fn suggestion_for_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'
         ty::Array(..) => Some((".as_slice()", "[]".to_string())),
         ty::Ref(_, inner, _) if matches!(inner.kind(), ty::Array(..)) => Some((".as_slice()", "[]".to_string())),
         ty::Ref(_, inner, _) if inner.is_diag_item(cx, sym::Vec) => Some((".as_slice()", "[]".to_string())),
+        ty::Ref(_, inner, _) if inner.peel_refs().is_diag_item(cx, sym::BTreeMap) => {
+            let mut prefix = String::new();
+            let mut curr = ty;
+            while let ty::Ref(_, inner, mutability) = *curr.kind() {
+                prefix.push_str(match mutability {
+                    rustc_ast::Mutability::Not => "&",
+                    rustc_ast::Mutability::Mut => "&mut ",
+                });
+                curr = inner;
+            }
+            Some(("", format!("{prefix}BTreeMap::new()")))
+        },
         _ => suggestion_for_peeled_type(cx, ty.peel_refs()),
     }
 }
@@ -223,50 +235,45 @@ fn suggestion_for_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'
 /// Returns the empty value for receivers that compare directly after peeling references.
 ///
 /// `String` and `str` compare against `""`. Slices compare against `[]`. `Vec<T>` compares
-/// against `[] as [T; 0]` so the empty value carries the element type. Returns `None` for other
-/// receiver types.
+/// against `[] as [T; 0]` so the empty value carries the element type. `BTreeMap` compares
+/// against `BTreeMap::new()`. Returns `None` for other receiver types.
 fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'static str, String)> {
     if ty.is_str() || ty.is_lang_item(cx, LangItem::String) {
         Some(("", "\"\"".to_string()))
     } else if matches!(ty.kind(), ty::Slice(..)) {
         Some(("", "[]".to_string()))
-    } else if ty.is_diag_item(cx, sym::Vec) {
-        Some(("", format!("[] as [{}; 0]", element_type(cx, ty)?)))
     } else {
-        None
+        let diag_name = ty.opt_diag_name(cx)?;
+        match diag_name {
+            sym::Vec if let ty::Adt(_, args) = ty.kind() => Some(("", format!("[] as [{}; 0]", args.types().next()?))),
+            sym::BTreeMap => Some(("", "BTreeMap::new()".to_string())),
+            _ => None,
+        }
     }
 }
 
 /// Returns whether the replacement assertion has useful failure output.
 ///
 /// Suggestions are limited to cases where the replacement assertion can both compare the value and
-/// print it on failure. Strings satisfy this directly; sequence-like values require printable,
-/// self-comparable elements. Returns `false` when either trait bound is missing.
+/// print it on failure. Strings satisfy this directly; sequence-like and map values require
+/// printable, self-comparable elements. Returns `false` when either trait bound is missing.
 fn type_is_printable_and_comparable<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     if ty.is_str() || ty.is_lang_item(cx, LangItem::String) {
         return true;
     }
 
-    if let Some(element_ty) = element_type(cx, ty)
-        && let Some(debug_trait) = cx.tcx.get_diagnostic_item(sym::Debug)
+    let check_ty = match ty.kind() {
+        ty::Array(elem_ty, _) | ty::Slice(elem_ty) => *elem_ty,
+        _ => ty,
+    };
+
+    if let Some(debug_trait) = cx.tcx.get_diagnostic_item(sym::Debug)
         && let Some(partial_eq_trait) = cx.tcx.get_diagnostic_item(sym::PartialEq)
     {
-        implements_trait(cx, element_ty, debug_trait, &[])
-            && implements_trait(cx, element_ty, partial_eq_trait, &[element_ty.into()])
+        implements_trait(cx, check_ty, debug_trait, &[])
+            && implements_trait(cx, check_ty, partial_eq_trait, &[check_ty.into()])
     } else {
         false
-    }
-}
-
-/// Extracts the element type from supported sequence-like values.
-///
-/// The element type is used both for trait checks and for the typed empty-array suggestion required
-/// by `Vec<T>` suggestions. Returns `None` for non-sequence receiver types.
-fn element_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
-    match ty.kind() {
-        ty::Array(ty, _) | ty::Slice(ty) => Some(*ty),
-        ty::Adt(_, args) if ty.is_diag_item(cx, sym::Vec) => args.types().next(),
-        _ => None,
     }
 }
 
