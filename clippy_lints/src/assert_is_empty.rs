@@ -17,7 +17,7 @@ declare_clippy_lint! {
     ///
     /// Checks assertions that only test whether a supported value is empty.
     ///
-    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, and `Vec`.
+    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`, and `VecDeque`.
     ///
     /// ### Why is this bad?
     ///
@@ -208,8 +208,8 @@ fn assertion_suggestion<'tcx>(cx: &LateContext<'tcx>, receiver: &'tcx Expr<'tcx>
 
 /// Returns the receiver suffix and empty value for this receiver type.
 ///
-/// Arrays and borrowed vectors are compared through slices because direct comparison with `[]` does
-/// not compile for those receiver types. Returns `None` when the receiver has no compact
+/// Arrays and borrowed vectors are compared through slices because direct comparison with `[]`
+/// does not compile for those receiver types. Returns `None` when the receiver has no compact
 /// empty-literal comparison.
 fn suggestion_for_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'static str, String)> {
     match ty.kind() {
@@ -223,15 +223,19 @@ fn suggestion_for_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'
 /// Returns the empty value for receivers that compare directly after peeling references.
 ///
 /// `String` and `str` compare against `""`. Slices compare against `[]`. `Vec<T>` compares
-/// against `[] as [T; 0]` so the empty value carries the element type. Returns `None` for other
-/// receiver types.
+/// against `[] as [T; 0]` so the empty value carries the element type. `VecDeque<T>` compares
+/// against `VecDeque::new()`. Returns `None` for other receiver types.
 fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'static str, String)> {
     if ty.is_str() || ty.is_lang_item(cx, LangItem::String) {
         Some(("", "\"\"".to_string()))
     } else if matches!(ty.kind(), ty::Slice(..)) {
         Some(("", "[]".to_string()))
-    } else if ty.is_diag_item(cx, sym::Vec) {
-        Some(("", format!("[] as [{}; 0]", element_type(cx, ty)?)))
+    } else if let Some(sym) = ty.opt_diag_name(cx) {
+        match sym {
+            sym::Vec => Some(("", format!("[] as [{}; 0]", element_type(cx, ty)?))),
+            sym::VecDeque => Some(("", "VecDeque::new()".to_string())),
+            _ => None,
+        }
     } else {
         None
     }
@@ -261,11 +265,12 @@ fn type_is_printable_and_comparable<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) 
 /// Extracts the element type from supported sequence-like values.
 ///
 /// The element type is used both for trait checks and for the typed empty-array suggestion required
-/// by `Vec<T>` suggestions. Returns `None` for non-sequence receiver types.
+/// by `Vec<T>` and `VecDeque<T>` suggestions. Returns `None` for non-sequence receiver types.
 fn element_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<Ty<'tcx>> {
     match ty.kind() {
         ty::Array(ty, _) | ty::Slice(ty) => Some(*ty),
         ty::Adt(_, args) if ty.is_diag_item(cx, sym::Vec) => args.types().next(),
+        ty::Adt(_, args) if ty.is_diag_item(cx, sym::VecDeque) => args.types().next(),
         _ => None,
     }
 }
