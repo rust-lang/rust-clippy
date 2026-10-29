@@ -266,23 +266,55 @@ LL |     let _ = (0..3).fold(false, |acc: bool, x| acc || test_expr!(x));
 error: this `.fold` can be written more succinctly using another method
   --> tests/ui/unnecessary_fold.rs:205:20
    |
-LL |     let _ = (0..3).fold(false, |acc, item| acc || { hits += 1; item > 2 });
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `any(|item| { hits += 1; item > 2 })`
+LL |       let _ = (0..3).fold(false, |acc, item| {
+   |  ____________________^
+LL | |
+LL | |         acc || {
+LL | |             hits += 1;
+...  |
+LL | |     });
+   | |______^
    |
    = note: the `any` method is short circuiting and may change the program semantics if the iterator has side effects
-   = help: if the side effect is wanted, use `.fold(false, |acc, item| acc | { hits += 1; item > 2 })` instead
+   = help: if the side effect is wanted, use `.fold(false, |acc, item| acc | {
+                       hits += 1;
+                       item > 2
+                   })` instead
+help: try
+   |
+LL ~     let _ = (0..3).any(|item| {
+LL +             hits += 1;
+LL +             item > 2
+LL ~         });
+   |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:207:20
+  --> tests/ui/unnecessary_fold.rs:212:20
    |
-LL |     let _ = (0..3).fold(true, |acc, item| acc && { hits += 1; item > 2 });
-   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `all(|item| { hits += 1; item > 2 })`
+LL |       let _ = (0..3).fold(true, |acc, item| {
+   |  ____________________^
+LL | |
+LL | |         acc && {
+LL | |             hits += 1;
+...  |
+LL | |     });
+   | |______^
    |
    = note: the `all` method is short circuiting and may change the program semantics if the iterator has side effects
-   = help: if the side effect is wanted, use `.fold(true, |acc, item| acc & { hits += 1; item > 2 })` instead
+   = help: if the side effect is wanted, use `.fold(true, |acc, item| acc & {
+                       hits += 1;
+                       item > 2
+                   })` instead
+help: try
+   |
+LL ~     let _ = (0..3).all(|item| {
+LL +             hits += 1;
+LL +             item > 2
+LL ~         });
+   |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:209:20
+  --> tests/ui/unnecessary_fold.rs:219:20
    |
 LL |     let _ = (0..3).fold(false, |flag, value| { hits += 1; value > 2 } || flag);
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `any(|value| { hits += 1; value > 2 })`
@@ -291,7 +323,7 @@ LL |     let _ = (0..3).fold(false, |flag, value| { hits += 1; value > 2 } || fl
    = help: if the side effect is wanted, use `.fold(false, |flag, value| { hits += 1; value > 2 } | flag)` instead
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:212:20
+  --> tests/ui/unnecessary_fold.rs:222:20
    |
 LL |     let _ = (0..3).fold(false, |acc, x| acc || x > 2);
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `any(|x| x > 2)`
@@ -299,7 +331,7 @@ LL |     let _ = (0..3).fold(false, |acc, x| acc || x > 2);
    = note: the `any` method is short circuiting and may change the program semantics if the iterator has side effects
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:221:24
+  --> tests/ui/unnecessary_fold.rs:231:24
    |
 LL |     let _ = opt.iter().fold(10, |acc, x| acc + x);
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -311,7 +343,7 @@ LL +     let _ = opt.as_ref().map_or(10, |x| 10 + x);
    |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:225:29
+  --> tests/ui/unnecessary_fold.rs:235:29
    |
 LL |     let _ = opt.into_iter().fold(10, |acc, x| acc * x);
    |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -323,7 +355,7 @@ LL +     let _ = opt.map_or(10, |x| 10 * x);
    |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:230:32
+  --> tests/ui/unnecessary_fold.rs:240:32
    |
 LL |     let _ = opt_mut.iter_mut().fold(10, |acc, x| acc + *x);
    |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -335,7 +367,7 @@ LL +     let _ = opt_mut.as_mut().map_or(10, |x| 10 + *x);
    |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:234:24
+  --> tests/ui/unnecessary_fold.rs:244:24
    |
 LL |     let _ = opt.iter().fold(10, |_, x| *x);
    |                        ^^^^^^^^^^^^^^^^^^^
@@ -347,7 +379,7 @@ LL +     let _ = opt.as_ref().map_or(10, |x| *x);
    |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:238:24
+  --> tests/ui/unnecessary_fold.rs:248:24
    |
 LL |     let _ = opt.iter().fold(2, |acc, x| acc * acc + x);
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -359,7 +391,7 @@ LL +     let _ = opt.as_ref().map_or(2, |x| 2 * 2 + x);
    |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:243:24
+  --> tests/ui/unnecessary_fold.rs:253:24
    |
 LL |     let _ = opt.iter().fold(init, |acc, x| acc + x);
    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -371,7 +403,7 @@ LL +     let _ = opt.as_ref().map_or(init, |x| init + x);
    |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:247:33
+  --> tests/ui/unnecessary_fold.rs:257:33
    |
 LL |     let _ = Some(1).into_iter().fold(5, |acc, x| acc - x);
    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -383,7 +415,7 @@ LL +     let _ = Some(1).map_or(5, |x| 5 - x);
    |
 
 error: this `.fold` can be written more succinctly using another method
-  --> tests/ui/unnecessary_fold.rs:256:48
+  --> tests/ui/unnecessary_fold.rs:266:48
    |
 LL |     let _ = (0..3).fold(0, |acc, x| opt.iter().fold(1, |a, b| a + b) + x);
    |                                                ^^^^^^^^^^^^^^^^^^^^^
