@@ -202,9 +202,19 @@ fn wrongly_unmangled_macros() {
 fn issue17792() {
     let mut hits = 0;
 
-    let _ = (0..3).fold(false, |acc, item| acc || { hits += 1; item > 2 });
+    let _ = (0..3).fold(false, |acc, item| {
+        acc || {
+            hits += 1;
+            item > 2
+        }
+    });
     //~^ unnecessary_fold
-    let _ = (0..3).fold(true, |acc, item| acc && { hits += 1; item > 2 });
+    let _ = (0..3).fold(true, |acc, item| {
+        acc && {
+            hits += 1;
+            item > 2
+        }
+    });
     //~^ unnecessary_fold
     let _ = (0..3).fold(false, |flag, value| { hits += 1; value > 2 } || flag);
     //~^ unnecessary_fold
