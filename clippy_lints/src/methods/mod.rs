@@ -2575,7 +2575,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Checks if conversion (`as_`, `to_` or `into_`) methods don't return with any type.
+    /// Checks for methods named `as_*`, `to_*` or `into_*` that return `()`.
     /// ### Why is this bad?
     /// Conversion should return with a type according to the [C-CONV](https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv) API guideline.
     /// ### Example
@@ -2599,7 +2599,7 @@ declare_clippy_lint! {
     #[clippy::version = "1.101.0"]
     pub MISSING_RETURN_TYPE,
     style,
-    "no return conversion"
+    "conversion-named method that returns `()`"
 }
 
 declare_clippy_lint! {
