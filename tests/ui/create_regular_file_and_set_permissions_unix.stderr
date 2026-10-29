@@ -1,16 +1,16 @@
 error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
-  --> tests/ui/create_regular_file_and_set_permissions.rs:22:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:24:9
    |
 LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:21:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:23:9
    |
 LL |         File::create("bar").unwrap();
    |         ^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:22:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:24:9
    |
 LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -19,90 +19,90 @@ LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
    = help: to override `-D warnings` add `#[allow(clippy::create_regular_file_and_set_permissions)]`
 
 error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
-  --> tests/ui/create_regular_file_and_set_permissions.rs:24:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:26:9
    |
 LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:21:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:23:9
    |
 LL |         File::create("bar").unwrap();
    |         ^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:24:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:26:9
    |
 LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
 
 error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
-  --> tests/ui/create_regular_file_and_set_permissions.rs:30:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:32:9
    |
 LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:29:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:31:9
    |
 LL |         File::create_new("bar").unwrap();
    |         ^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:30:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:32:9
    |
 LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
 
 error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
-  --> tests/ui/create_regular_file_and_set_permissions.rs:32:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:34:9
    |
 LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:29:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:31:9
    |
 LL |         File::create_new("bar").unwrap();
    |         ^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:32:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:34:9
    |
 LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
 
 error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
-  --> tests/ui/create_regular_file_and_set_permissions.rs:38:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:40:9
    |
 LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:37:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:39:9
    |
 LL |         File::create_buffered("bar").unwrap();
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:38:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:40:9
    |
 LL |         std::fs::set_permissions("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    = help: consider using `File::options` alongside `OpenOptionsExt` to create a file with certain permissions in advance
 
 error: creating a regular file and setting its permissions in two separate steps leaves a brief window where the regular file is exposed with world-readable permissions. Another process could replace this file with a different file and cause privilege escalation on the new file
-  --> tests/ui/create_regular_file_and_set_permissions.rs:40:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:42:9
    |
 LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: create file operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:37:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:39:9
    |
 LL |         File::create_buffered("bar").unwrap();
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 note: the set permission operation occurred here
-  --> tests/ui/create_regular_file_and_set_permissions.rs:40:9
+  --> tests/ui/create_regular_file_and_set_permissions_unix.rs:42:9
    |
 LL |         std::fs::set_permissions_nofollow("bar", Permissions::from_mode(0o700));
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
