@@ -1,15 +1,15 @@
 //@ check-pass
 
 #![warn(clippy::useless_asref)]
-#![expect(clippy::needless_lifetimes)]
+#![expect(clippy::missing_return_type, clippy::needless_lifetimes)]
 
 trait Trait {
-    fn as_ptr(&self) -> *const u8;
+    fn as_ptr(&self);
 }
 
 impl<'a> Trait for &'a [u8] {
-    fn as_ptr(&self) -> *const u8 {
-        self.as_ref().as_ptr()
+    fn as_ptr(&self) {
+        self.as_ref().as_ptr();
     }
 }
 

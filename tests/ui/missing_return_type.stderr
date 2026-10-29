@@ -24,5 +24,13 @@ LL |     fn into_type(self) {}
    |
    = help: rename the method or return a type
 
-error: aborting due to 3 previous errors
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:18:35
+   |
+LL |     fn as_explicit_unit(&self) -> () {}
+   |                                   ^^
+   |
+   = help: rename the method or return a type
+
+error: aborting due to 4 previous errors
 
