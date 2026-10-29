@@ -191,7 +191,7 @@ impl ParsedLints<'_> {
 impl LintPass<'_> {
     pub fn gen_mac(&self, dst: &mut String) {
         let mut line_start = dst.len();
-        dst.extend([self.mac.name(), "!("]);
+        dst.extend(["declare_clippy_pass", "!("]);
         let has_docs = write_comment_lines(self.docs, "\n    ", dst);
         let (list_indent, list_multi_end, end) = if has_docs {
             dst.push_str("\n    ");

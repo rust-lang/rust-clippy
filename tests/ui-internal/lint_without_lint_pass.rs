@@ -7,6 +7,7 @@
 extern crate rustc_middle;
 #[macro_use]
 extern crate rustc_lint;
+
 use rustc_lint::{LintPass, LintVec};
 
 declare_tool_lint! {
@@ -44,6 +45,6 @@ impl LintPass for Pass {
 declare_lint_pass!(Pass2 => [TEST_LINT_REGISTERED]);
 
 pub struct Pass3;
-impl_lint_pass!(Pass3 => [TEST_LINT_REGISTERED_ONLY_IMPL]);
+declare_lint_pass!(Pass3 => [TEST_LINT_REGISTERED_ONLY_IMPL]);
 
 fn main() {}
