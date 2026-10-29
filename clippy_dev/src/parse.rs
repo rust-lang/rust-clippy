@@ -7,6 +7,7 @@ use core::fmt::{self, Display};
 use core::range::Range;
 use rustc_arena::{DroplessArena, TypedArena};
 use rustc_data_structures::fx::FxHashMap;
+use rustc_lexer::TokenKind;
 use std::collections::hash_map::{Entry, VacantEntry};
 use std::{fs, path};
 
@@ -104,27 +105,12 @@ pub struct Lint<'cx> {
     pub data: LintData<'cx>,
 }
 
-#[derive(Clone, Copy)]
-pub enum LintPassMac {
-    Declare,
-    Impl,
-}
-impl LintPassMac {
-    pub fn name(self) -> &'static str {
-        match self {
-            Self::Declare => "declare_lint_pass",
-            Self::Impl => "impl_lint_pass",
-        }
-    }
-}
-
 pub struct LintPass<'cx> {
     /// The raw text of the documentation comments. May include leading/trailing
     /// whitespace and empty lines.
     pub docs: &'cx str,
     pub name: &'cx str,
     pub lt: Option<&'cx str>,
-    pub mac: LintPassMac,
     pub decl_sp: Span<'cx>,
     pub lints: &'cx mut [&'cx str],
 }
@@ -280,15 +266,30 @@ impl<'cx> ParseCxImpl<'cx> {
                         });
                     }
                 },
-                mac @ ("declare_lint_pass" | "impl_lint_pass") => {
+                "declare_clippy_pass" => {
                     let mut has_lt = false;
                     let mut lints: &mut [_] = &mut [];
                     if let Err(expected) = cursor
-                        .match_all(&[OpenParen, CaptureDocLines, CaptureIdent], &mut captures)
+                        .match_all(&[OpenParen, CaptureDocLines], &mut captures)
+                        .and_then(|()| {
+                            match cursor.match_all(&[CaptureIdent], &mut captures[1..]) {
+                                Ok(s) => Ok(s),
+                                Err(_) => { cursor.discard_up_to(TokenKind::CloseBracket).unwrap(); cursor.match_all(&[CaptureIdent], &mut captures[1..])}
+                            }
+                        })
                         .and_then(|()| cursor.opt_match_all(&[Lt, CaptureLifetime, Gt], &mut captures[2..]))
                         .and_then(|res| {
                             has_lt = res;
-                            cursor.match_all(&[FatArrow, OpenBracket], &mut [])
+                            match cursor.match_all(&[FatArrow, OpenBracket], &mut []) {
+                                Ok(no_config) => Ok(no_config),
+                                Err(_) => match cursor.match_all(&[OpenBrace], &mut []) {
+                                    Ok(_) => {
+                                        cursor.discard_up_to(TokenKind::CloseBrace).unwrap();
+                                        cursor.match_all(&[FatArrow, OpenBracket], &mut [])
+                                    },
+                                    Err(err) => Err(err),
+                                },
+                            }
                         })
                         .and_then(|()| {
                             cursor.capture_list(&mut self.str_list_buf, self.arena, |cursor| {
@@ -306,11 +307,6 @@ impl<'cx> ParseCxImpl<'cx> {
                             docs: cursor.get_text(captures[0]),
                             name: cursor.get_text(captures[1]),
                             lt: has_lt.then(|| cursor.get_text(captures[2])),
-                            mac: if matches!(mac, "declare_lint_pass") {
-                                LintPassMac::Declare
-                            } else {
-                                LintPassMac::Impl
-                            },
                             decl_sp: Span::new(file, mac_name.pos..cursor.pos()),
                             lints,
                         });

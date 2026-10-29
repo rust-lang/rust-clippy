@@ -120,7 +120,7 @@ impl Capture {
 
 /// A unidirectional cursor over a token stream that is lexed on demand.
 pub struct Cursor<'txt> {
-    next_token: Token,
+    pub next_token: Token,
     pos: u32,
     inner: lex::Cursor<'txt>,
     text: &'txt str,
@@ -321,6 +321,19 @@ impl<'txt> Cursor<'txt> {
                     };
                     self.step();
                     return Some(res);
+                },
+                _ => self.step(),
+            }
+        }
+    }
+
+    pub fn discard_up_to(&mut self, token: TokenKind) -> Result<(), &'static str> {
+        loop {
+            match self.next_token.kind {
+                TokenKind::Eof => return Err("could not find token"),
+                t if t == token => {
+                    self.step();
+                    return Ok(());
                 },
                 _ => self.step(),
             }

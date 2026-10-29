@@ -22,7 +22,7 @@ struct Pass {
     msrv: MsrvStack,
 }
 
-impl_lint_pass!(Pass => [TEST_LINT]);
+declare_lint_pass!(Pass => [TEST_LINT]);
 
 impl EarlyLintPass for Pass {
     extract_msrv_attr!();

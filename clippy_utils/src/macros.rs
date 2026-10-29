@@ -613,6 +613,20 @@ impl HirNode for hir::Item<'_> {
 #[macro_export]
 macro_rules! declare_clippy_pass {
     (
+        $(#[$m:meta])* $name:ident<$generics:tt> {
+            $($(#[$field_attr:meta])* $v:vis $field:ident: $ty:ty),* $(,)?
+        } => [$($lint:expr),* $(,)?]
+    ) => {
+        $(#[$m])* pub struct $name<$generics> {
+            $(
+                $(#[$field_attr])*
+                $v $field: $ty,
+            )*
+        }
+        rustc_lint::impl_lint_pass!($name<'_> => [$($lint),*]);
+    };
+
+    (
         $(#[$m:meta])* $name:ident {
             $($(#[$field_attr:meta])* $v:vis $field:ident: $ty:ty),* $(,)?
         } => [$($lint:expr),* $(,)?]
