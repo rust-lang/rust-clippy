@@ -88,7 +88,7 @@ impl Replacement {
                 ("true", "&")
             };
             diag.help(format!(
-                "if the side effect is wanted, use `.fold({init}, |acc, x| acc {op} x)` instead"
+                "if the side effect is wanted, use `.fold({init}, |acc, x| acc | x)` instead to avoid short-circuiting"
             ));
         }
     }
