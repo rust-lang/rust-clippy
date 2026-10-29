@@ -3,6 +3,7 @@ use std::ops::ControlFlow;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _, MaybeTypeckRes as _};
 use clippy_utils::source::snippet_with_context;
+use clippy_utils::sugg::{Sugg, make_binop};
 use clippy_utils::ty::is_copy;
 use clippy_utils::visitors::for_each_expr;
 use clippy_utils::{DefinedTy, ExprUseNode, get_expr_use_site, peel_blocks, strip_pat_refs};
@@ -81,15 +82,6 @@ impl Replacement {
                 "the `{}` method is short circuiting and may change the program semantics if the iterator has side effects",
                 self.method_name
             ));
-
-            let (init, op) = if self.method_name == "any" {
-                ("false", "|")
-            } else {
-                ("true", "&")
-            };
-            diag.help(format!(
-                "if the side effect is wanted, use `.fold({init}, |acc, x| acc | x)` instead to avoid short-circuiting"
-            ));
         }
     }
 
@@ -102,23 +94,23 @@ impl Replacement {
     }
 }
 
-fn get_triggered_expr_span(
-    left_expr: &hir::Expr<'_>,
-    right_expr: &hir::Expr<'_>,
+fn get_triggered_expr<'a>(
+    left_expr: &'a hir::Expr<'a>,
+    right_expr: &'a hir::Expr<'a>,
     first_arg_id: hir::HirId,
     second_arg_id: hir::HirId,
     replacement: Replacement,
-) -> Option<Span> {
+) -> Option<&'a hir::Expr<'a>> {
     if left_expr.res_local_id() == Some(first_arg_id)
         && (replacement.has_args || right_expr.res_local_id() == Some(second_arg_id))
     {
-        right_expr.span.into()
+        Some(right_expr)
     }
     // https://github.com/rust-lang/rust-clippy/issues/16581
     else if right_expr.res_local_id() == Some(first_arg_id)
         && (replacement.has_args || left_expr.res_local_id() == Some(second_arg_id))
     {
-        left_expr.span.into()
+        Some(left_expr)
     } else {
         None
     }
@@ -143,10 +135,10 @@ fn check_fold_with_op(
 
         // Extract the names of the two arguments to the closure
         && let [param_a, param_b] = closure_body.params
-        && let PatKind::Binding(_, first_arg_id, ..) = strip_pat_refs(param_a.pat).kind
+        && let PatKind::Binding(_, first_arg_id, first_arg_ident, _) = strip_pat_refs(param_a.pat).kind
         && let PatKind::Binding(_, second_arg_id, second_arg_ident, _) = strip_pat_refs(param_b.pat).kind
 
-        && let Some(triggered_expr_span) = get_triggered_expr_span(
+        && let Some(triggered_expr) = get_triggered_expr(
             left_expr,
             right_expr,
             first_arg_id,
@@ -165,7 +157,7 @@ fn check_fold_with_op(
                 let turbofish =
                     replacement.maybe_turbofish(cx.typeck_results().expr_ty_adjusted(right_expr).peel_refs());
                 let (r_snippet, _) =
-                    snippet_with_context(cx, triggered_expr_span, expr.span.ctxt(), "EXPR", &mut applicability);
+                    snippet_with_context(cx, triggered_expr.span, expr.span.ctxt(), "EXPR", &mut applicability);
                 let sugg = if replacement.has_args {
                     format!(
                         "{method}{turbofish}(|{second_arg_ident}| {r_snippet})",
@@ -177,6 +169,24 @@ fn check_fold_with_op(
 
                 diag.span_suggestion(span, "try", sugg, applicability);
                 replacement.maybe_add_note(diag);
+
+                if replacement.is_short_circuiting
+                    && triggered_expr.can_have_side_effects()
+                    && let Some((init, op)) = match replacement.method_name {
+                        "any" => Some(("false", ast::BinOpKind::BitOr)),
+                        "all" => Some(("true", ast::BinOpKind::BitAnd)),
+                        _ => None,
+                    }
+                {
+                    let mut help_applicability = Applicability::Unspecified;
+                    let lhs = Sugg::hir_with_context(cx, left_expr, expr.span.ctxt(), "..", &mut help_applicability);
+                    let rhs = Sugg::hir_with_context(cx, right_expr, expr.span.ctxt(), "..", &mut help_applicability);
+                    let body = make_binop(op, &lhs, &rhs);
+                    diag.help(format!(
+                        "if the side effect is wanted, use \
+                         `.fold({init}, |{first_arg_ident}, {second_arg_ident}| {body})` instead"
+                    ));
+                }
             },
         );
         return true;

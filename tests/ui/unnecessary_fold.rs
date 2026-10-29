@@ -200,11 +200,16 @@ fn wrongly_unmangled_macros() {
 }
 
 fn issue17792() {
-    let mut side_effect = 0;
-    let _ = (0..3).inspect(|_| side_effect += 1).fold(false, |acc, x| acc || x > 2);
+    let mut hits = 0;
+
+    let _ = (0..3).fold(false, |acc, item| acc || { hits += 1; item > 2 });
+    //~^ unnecessary_fold
+    let _ = (0..3).fold(true, |acc, item| acc && { hits += 1; item > 2 });
+    //~^ unnecessary_fold
+    let _ = (0..3).fold(false, |flag, value| { hits += 1; value > 2 } || flag);
     //~^ unnecessary_fold
 
-    let _ = (0..3).inspect(|_| side_effect += 1).fold(true, |acc, x| acc && x > 2);
+    let _ = (0..3).fold(false, |acc, x| acc || x > 2);
     //~^ unnecessary_fold
 }
 
