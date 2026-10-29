@@ -327,13 +327,19 @@ impl<'txt> Cursor<'txt> {
         }
     }
 
-    pub fn discard_up_to(&mut self, token: TokenKind) -> Result<(), &'static str> {
+    pub fn capture_up_to(&mut self, token: TokenKind) -> Result<Capture, &'static str> {
+        let starting_pos = self.pos;
+        
         loop {
             match self.next_token.kind {
                 TokenKind::Eof => return Err("could not find token"),
                 t if t == token => {
+                    let res = Capture {
+                        pos: self.pos,
+                        len: self.pos - starting_pos,
+                    };
                     self.step();
-                    return Ok(());
+                    return Ok(res);
                 },
                 _ => self.step(),
             }

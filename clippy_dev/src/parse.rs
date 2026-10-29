@@ -271,11 +271,12 @@ impl<'cx> ParseCxImpl<'cx> {
                     let mut lints: &mut [_] = &mut [];
                     if let Err(expected) = cursor
                         .match_all(&[OpenParen, CaptureDocLines], &mut captures)
-                        .and_then(|()| {
-                            match cursor.match_all(&[CaptureIdent], &mut captures[1..]) {
-                                Ok(s) => Ok(s),
-                                Err(_) => { cursor.discard_up_to(TokenKind::CloseBracket).unwrap(); cursor.match_all(&[CaptureIdent], &mut captures[1..])}
-                            }
+                        .and_then(|()| match cursor.match_all(&[CaptureIdent], &mut captures[1..]) {
+                            Ok(s) => Ok(s),
+                            Err(_) => {
+                                cursor.capture_up_to(TokenKind::CloseBracket).unwrap();
+                                cursor.match_all(&[CaptureIdent], &mut captures[1..])
+                            },
                         })
                         .and_then(|()| cursor.opt_match_all(&[Lt, CaptureLifetime, Gt], &mut captures[2..]))
                         .and_then(|res| {
@@ -284,7 +285,7 @@ impl<'cx> ParseCxImpl<'cx> {
                                 Ok(no_config) => Ok(no_config),
                                 Err(_) => match cursor.match_all(&[OpenBrace], &mut []) {
                                     Ok(_) => {
-                                        cursor.discard_up_to(TokenKind::CloseBrace).unwrap();
+                                        cursor.capture_up_to(TokenKind::CloseBrace).unwrap();
                                         cursor.match_all(&[FatArrow, OpenBracket], &mut [])
                                     },
                                     Err(err) => Err(err),
