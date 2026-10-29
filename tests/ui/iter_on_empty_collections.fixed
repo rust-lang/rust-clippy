@@ -1,5 +1,6 @@
 #![warn(clippy::iter_on_empty_collections)]
 #![allow(clippy::iter_next_slice)]
+#![expect(clippy::missing_return_type)]
 
 fn array() {
     assert_eq!(std::iter::empty().next(), Option::<i32>::None);
@@ -72,9 +73,7 @@ mod custom_option {
     impl CustomOption {
         fn iter(&self) {}
         fn iter_mut(&mut self) {}
-        fn into_iter(self) -> u8 {
-            42
-        }
+        fn into_iter(self) {}
     }
     use CustomOption::*;
 
