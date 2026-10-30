@@ -394,14 +394,13 @@ arithmetic-side-effects-allowed-unary = ["SomeType", "AnotherType"]
 
 
 ## `array-size-threshold`
-The maximum allowed size for arrays on the stack
+The maximum allowed size for const arrays
 
 **Default Value:** `16384`
 
 ---
 **Affected lints:**
 * [`large_const_arrays`](https://clippy.rust-lang.org/main/index.html#large_const_arrays)
-* [`large_stack_arrays`](https://clippy.rust-lang.org/main/index.html#large_stack_arrays)
 
 
 ## `avoid-breaking-exported-api`
@@ -1092,6 +1091,16 @@ Which kind of elements should be ordered internally, possible values being `enum
 ---
 **Affected lints:**
 * [`arbitrary_source_item_ordering`](https://clippy.rust-lang.org/main/index.html#arbitrary_source_item_ordering)
+
+
+## `stack-array-size-threshold`
+The maximum allowed size for arrays on the stack
+
+**Default Value:** `16384`
+
+---
+**Affected lints:**
+* [`large_stack_arrays`](https://clippy.rust-lang.org/main/index.html#large_stack_arrays)
 
 
 ## `stack-size-threshold`
