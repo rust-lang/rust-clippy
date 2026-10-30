@@ -2,7 +2,7 @@ use super::{Attribute, DEPRECATED_CFG_ATTR, DEPRECATED_CLIPPY_CFG_ATTR, unnecess
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::msrvs::{self, MsrvStack};
 use clippy_utils::sym;
-use rustc_ast::AttrStyle;
+use rustc_ast::{AttrStyle, MetaItemInner};
 use rustc_errors::Applicability;
 use rustc_lint::EarlyContext;
 
@@ -53,7 +53,7 @@ pub(super) fn check_clippy(cx: &EarlyContext<'_>, attr: &Attribute) {
     if attr.has_name(sym::cfg)
         && let Some(list) = attr.meta_item_list()
     {
-        for item in list.iter().filter_map(|item| item.meta_item()) {
+        for item in list.iter().filter_map(MetaItemInner::meta_item) {
             check_deprecated_cfg_recursively(cx, item);
         }
     }
@@ -63,7 +63,7 @@ fn check_deprecated_cfg_recursively(cx: &EarlyContext<'_>, attr: &rustc_ast::Met
     if let Some(ident) = attr.ident() {
         if matches!(ident.name, sym::any | sym::all | sym::not) {
             let Some(list) = attr.meta_item_list() else { return };
-            for item in list.iter().filter_map(|item| item.meta_item()) {
+            for item in list.iter().filter_map(MetaItemInner::meta_item) {
                 check_deprecated_cfg_recursively(cx, item);
             }
         } else {
