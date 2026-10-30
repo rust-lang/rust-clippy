@@ -1,5 +1,4 @@
 #![warn(clippy::match_str_case_mismatch)]
-#![allow(dead_code)]
 
 // Valid
 
@@ -185,6 +184,17 @@ fn alternating_chain_mismatch() {
         "FOO" => {},
         "bAR" => {},
         //~^ match_str_case_mismatch
+        _ => {},
+    }
+}
+
+fn or_pattern_mismatch() {
+    let var = "BAR";
+
+    match var.to_ascii_lowercase().as_str() {
+        "Foo" | "f" => {},
+        //~^ match_str_case_mismatch
+        "bar" => {},
         _ => {},
     }
 }

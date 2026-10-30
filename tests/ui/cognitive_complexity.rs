@@ -1,5 +1,5 @@
 #![warn(clippy::cognitive_complexity)]
-#![allow(
+#![expect(
     clippy::eq_op,
     clippy::needless_borrows_for_generic_args,
     clippy::needless_return,
@@ -190,8 +190,6 @@ fn bar() {
 /// Tests are usually complex but simple at the same time. `clippy::cognitive_complexity` used to
 /// give lots of false-positives in tests.
 fn dont_warn_on_tests() {
-    //~^ cognitive_complexity
-
     match 99 {
         0 => println!("hi"),
         _ => println!("bye"),

@@ -5,7 +5,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty;
-use rustc_span::source_map::Spanned;
+use rustc_span::Spanned;
 
 use super::GET_LAST_WITH_LEN;
 
@@ -27,7 +27,7 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, recv: &Expr<'_>, arg:
         && is_integer_literal(rhs, 1)
 
         // check that recv == lhs_recv `recv.get(lhs_recv.len() - 1)`
-        && SpanlessEq::new(cx).eq_expr(recv, lhs_recv)
+        && SpanlessEq::new(cx).eq_expr(expr.span.ctxt(), recv, lhs_recv)
         && !recv.can_have_side_effects()
     {
         let method = match cx.typeck_results().expr_ty_adjusted(recv).peel_refs().kind() {

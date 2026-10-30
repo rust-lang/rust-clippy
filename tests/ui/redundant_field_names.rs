@@ -1,6 +1,6 @@
 //@aux-build:proc_macros.rs
 #![warn(clippy::redundant_field_names)]
-#![allow(clippy::extra_unused_type_parameters, clippy::no_effect, dead_code, unused_variables)]
+#![expect(clippy::no_effect)]
 
 #[macro_use]
 extern crate proc_macros;
@@ -105,4 +105,11 @@ fn msrv_1_17() {
     let start = 0;
     let _ = RangeFrom { start: start };
     //~^ redundant_field_names
+}
+
+fn issue_17525() {
+    let v = 1;
+    external! {
+        let _ = S { $v: $v };
+    }
 }

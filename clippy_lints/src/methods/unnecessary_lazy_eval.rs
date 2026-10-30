@@ -1,12 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::res::MaybeDef;
-use clippy_utils::source::snippet;
+use clippy_utils::res::MaybeDef as _;
+use clippy_utils::source::{snippet, snippet_with_applicability};
 use clippy_utils::{eager_or_lazy, is_from_proc_macro, usage};
 use hir::FnRetTy;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_lint::LateContext;
-use rustc_span::sym;
+use rustc_span::{Span, sym};
 
 use super::UNNECESSARY_LAZY_EVALUATIONS;
 
@@ -18,6 +18,7 @@ pub(super) fn check<'tcx>(
     recv: &'tcx hir::Expr<'_>,
     arg: &'tcx hir::Expr<'_>,
     simplify_using: &str,
+    use_turbofish: bool,
 ) -> bool {
     let is_option = cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::Option);
     let is_result = cx.typeck_results().expr_ty(recv).is_diag_item(cx, sym::Result);
@@ -46,23 +47,43 @@ pub(super) fn check<'tcx>(
             } else {
                 "unnecessary closure used with `bool::then`"
             };
-            let applicability = if body
+
+            let mut applicability = Applicability::MachineApplicable;
+            if body
                 .params
                 .iter()
                 // bindings are checked to be unused above
-                .all(|param| matches!(param.pat.kind, hir::PatKind::Binding(..) | hir::PatKind::Wild))
-                && matches!(
-                    fn_decl.output,
-                    FnRetTy::DefaultReturn(_)
-                        | FnRetTy::Return(hir::Ty {
-                            kind: hir::TyKind::Infer(()),
-                            ..
-                        })
-                ) {
-                Applicability::MachineApplicable
-            } else {
-                // replacing the lambda may break type inference
-                Applicability::MaybeIncorrect
+                .any(|param| !matches!(param.pat.kind, hir::PatKind::Binding(..) | hir::PatKind::Wild))
+            {
+                // If the closure parameters have a pattern,
+                // it might be required for type inferrence.
+                applicability = Applicability::MaybeIncorrect;
+            }
+            let (ascription, turbofish) = match fn_decl.output {
+                FnRetTy::DefaultReturn(_)
+                | FnRetTy::Return(hir::Ty {
+                    kind: hir::TyKind::Infer(()),
+                    ..
+                }) => {
+                    // if the closure has no explicit return type,
+                    // then there's nothing to preserve
+                    (String::new(), String::new())
+                },
+                FnRetTy::Return(ty) => {
+                    // explicit return type was given on the closure
+                    //
+                    // we can preserve this information using `as`, but `as` is
+                    // a somewhat dangerous feature, because it can be used to
+                    // truncate integers
+                    //
+                    // if possible, use turbofish to preserve the type information
+                    let ty = snippet_with_applicability(cx, ty.span, "_", &mut applicability);
+                    if use_turbofish {
+                        (String::new(), format!("::<{ty}>"))
+                    } else {
+                        (format!(" as {ty}"), String::new())
+                    }
+                },
             };
 
             // This is a duplicate of what's happening in clippy_lints::methods::method_call,
@@ -73,7 +94,10 @@ pub(super) fn check<'tcx>(
                     diag.span_suggestion_verbose(
                         span,
                         format!("use `{simplify_using}` instead"),
-                        format!("{simplify_using}({})", snippet(cx, body_expr.span, "..")),
+                        format!(
+                            "{simplify_using}{turbofish}({}{ascription})",
+                            snippet(cx, body_expr.span, "..")
+                        ),
                         applicability,
                     );
                 });
@@ -82,4 +106,71 @@ pub(super) fn check<'tcx>(
         }
     }
     false
+}
+
+/// lint use of `_.map_or_else(|| value, f)` for `Option`s and `Result`s that can be
+/// replaced with `_.map_or(value, f)`
+pub(super) fn check_map_or_else<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &'tcx hir::Expr<'_>,
+    recv: &'tcx hir::Expr<'_>,
+    def_arg: &'tcx hir::Expr<'_>,
+    map_arg: &'tcx hir::Expr<'_>,
+    call_span: Span,
+) {
+    let msg = match cx.typeck_results().expr_ty(recv).peel_refs().opt_diag_name(cx) {
+        Some(sym::Option) => "unnecessary closure used to substitute value for `Option::None`",
+        Some(sym::Result) => "unnecessary closure used to substitute value for `Result::Err`",
+        _ => return,
+    };
+
+    if let hir::ExprKind::Closure(&hir::Closure {
+        body,
+        fn_decl,
+        kind: hir::ClosureKind::Closure,
+        ..
+    }) = def_arg.kind
+        && let body = cx.tcx.hir_body(body)
+        && let body_expr = body.value
+        && !usage::BindingUsageFinder::are_params_used(cx, body)
+        && eager_or_lazy::switch_to_eager_eval(cx, body_expr)
+        && !is_from_proc_macro(cx, expr)
+        && !is_from_proc_macro(cx, map_arg)
+        && !is_from_proc_macro(cx, body_expr)
+    {
+        let mut applicability = if body
+            .params
+            .iter()
+            .all(|param| matches!(param.pat.kind, hir::PatKind::Binding(..) | hir::PatKind::Wild))
+            && matches!(
+                fn_decl.output,
+                FnRetTy::DefaultReturn(_)
+                    | FnRetTy::Return(hir::Ty {
+                        kind: hir::TyKind::Infer(()),
+                        ..
+                    })
+            )
+            && fn_decl
+                .inputs
+                .iter()
+                .all(|ty| matches!(ty.kind, hir::TyKind::Infer(())))
+        {
+            Applicability::MachineApplicable
+        } else {
+            Applicability::MaybeIncorrect
+        };
+
+        span_lint_and_then(cx, UNNECESSARY_LAZY_EVALUATIONS, expr.span, msg, |diag| {
+            diag.span_suggestion_verbose(
+                call_span,
+                "use `map_or` instead",
+                format!(
+                    "map_or({}, {})",
+                    snippet_with_applicability(cx, body_expr.span, "..", &mut applicability),
+                    snippet_with_applicability(cx, map_arg.span, "..", &mut applicability),
+                ),
+                applicability,
+            );
+        });
+    }
 }

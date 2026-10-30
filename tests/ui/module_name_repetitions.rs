@@ -1,7 +1,6 @@
 //@compile-flags: --test
 
 #![warn(clippy::module_name_repetitions)]
-#![allow(dead_code)]
 
 pub mod foo {
     pub fn foo() {}
@@ -72,4 +71,35 @@ pub mod issue14095 {
             };
         }
     }
+}
+
+pub mod space {
+    mod happening {
+        pub struct SpaceTime {}
+        pub struct SpaceWedgie {}
+        pub struct NegativeSpaceWedgie {}
+    }
+
+    pub use happening::SpaceTime;
+    //~^ module_name_repetitions
+    pub use happening::{NegativeSpaceWedgie, SpaceWedgie};
+    //~^ module_name_repetitions
+}
+
+pub mod nest {
+    mod source {
+        pub struct NestA;
+        pub struct Other;
+        pub mod deeper {
+            pub struct NestB;
+            pub struct Plain;
+        }
+    }
+    pub use source::{
+        NestA,
+        //~^ module_name_repetitions
+        Other,
+        deeper::{NestB, Plain},
+        //~^ module_name_repetitions
+    };
 }

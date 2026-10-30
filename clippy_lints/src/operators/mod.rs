@@ -16,11 +16,13 @@ mod integer_division_remainder_used;
 mod invalid_upcast_comparisons;
 mod manual_div_ceil;
 mod manual_is_multiple_of;
+mod manual_isolate_lowest_one;
 mod manual_midpoint;
 mod misrefactored_assign_op;
 mod modulo_arithmetic;
 mod modulo_one;
 mod needless_bitwise_bool;
+mod new_instead_of_clear;
 mod numeric_arithmetic;
 mod op_ref;
 mod self_assignment;
@@ -31,8 +33,7 @@ pub(crate) mod arithmetic_side_effects;
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
 use rustc_hir::{Body, Expr, ExprKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_session::impl_lint_pass;
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -724,21 +725,54 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for manual implementations of isolating the lowest set bit.
+    ///
+    /// ### Why is this bad?
+    /// The manual bit-twiddling forms are harder to read than the standard library method.
+    /// Using `-x` can also overflow for signed minimum values.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let x: u32 = 5;
+    /// let lsb = x & x.wrapping_neg();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let x: u32 = 5;
+    /// let lsb = x.isolate_lowest_one();
+    /// ```
+    #[clippy::version = "1.98.0"]
+    pub MANUAL_ISOLATE_LOWEST_ONE,
+    complexity,
+    "manual implementation of `isolate_lowest_one`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Checks for manual implementation of `midpoint`.
     ///
     /// ### Why is this bad?
-    /// Using `(x + y) / 2` might cause an overflow on the intermediate
-    /// addition result.
+    /// Using `(x + y) / 2` or `(x + y) >> 1` on integer types might cause an overflow on the
+    /// intermediate addition result. The latter will only warn for unsigned integer types.
+    /// Similar for floating-point `(x + y) / 2.0` and `(x + y) * 0.5`.
     ///
     /// ### Example
     /// ```no_run
     /// # let a: u32 = 0;
     /// let c = (a + 10) / 2;
+    /// let d = (a + 10) >> 1;
+    /// let b: f32 = 0.0;
+    /// let e = (b + 10.0) / 2.0;
+    /// let f = (b + 10.0) * 0.5;
     /// ```
     /// Use instead:
     /// ```no_run
     /// # let a: u32 = 0;
     /// let c = u32::midpoint(a, 10);
+    /// let d = u32::midpoint(a, 10);
+    /// let b: f32 = 0.0;
+    /// let e = f32::midpoint(b, 10.0);
+    /// let f = f32::midpoint(b, 10.0);
     /// ```
     #[clippy::version = "1.87.0"]
     pub MANUAL_MIDPOINT,
@@ -846,6 +880,38 @@ declare_clippy_lint! {
     pub NEEDLESS_BITWISE_BOOL,
     pedantic,
     "Boolean expressions that use bitwise rather than lazy operators"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for assignments of `Collection::new()` or `vec![]` to a collection
+    /// variable that was already initialized.
+    ///
+    /// ### Why is this bad?
+    /// The existing allocation is thrown away. `.clear()` empties the collection
+    /// without freeing the memory, so the next push/insert won't need to allocate.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # fn f(v: &Vec<i32>) {}
+    /// let mut v = Vec::new();
+    /// v.push(1);
+    /// f(&v);
+    /// v = Vec::new();
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// # fn f(v: &Vec<i32>) {}
+    /// let mut v = Vec::new();
+    /// v.push(1);
+    /// f(&v);
+    /// v.clear();
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub NEW_INSTEAD_OF_CLEAR,
+    perf,
+    "creating a new collection instead of calling `.clear()`"
 }
 
 declare_clippy_lint! {
@@ -980,12 +1046,14 @@ impl_lint_pass!(Operators => [
     INTEGER_DIVISION_REMAINDER_USED,
     INVALID_UPCAST_COMPARISONS,
     MANUAL_DIV_CEIL,
+    MANUAL_ISOLATE_LOWEST_ONE,
     MANUAL_IS_MULTIPLE_OF,
     MANUAL_MIDPOINT,
     MISREFACTORED_ASSIGN_OP,
     MODULO_ARITHMETIC,
     MODULO_ONE,
     NEEDLESS_BITWISE_BOOL,
+    NEW_INSTEAD_OF_CLEAR,
     OP_REF,
     REDUNDANT_COMPARISONS,
     SELF_ASSIGNMENT,
@@ -1005,7 +1073,7 @@ impl Operators {
             arithmetic_context: numeric_arithmetic::Context::default(),
             verbose_bit_mask_threshold: conf.verbose_bit_mask_threshold,
             modulo_arithmetic_allow_comparison_to_zero: conf.allow_comparison_to_zero,
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
         }
     }
 }
@@ -1013,6 +1081,7 @@ impl Operators {
 impl<'tcx> LateLintPass<'tcx> for Operators {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {
         eq_op::check_assert(cx, e);
+        float_cmp::check_assert(cx, e);
         match e.kind {
             ExprKind::Binary(op, lhs, rhs) => {
                 if !e.span.from_expansion() {
@@ -1027,6 +1096,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                     needless_bitwise_bool::check(cx, e, op.node, lhs, rhs);
                     manual_midpoint::check(cx, e, op.node, lhs, rhs, self.msrv);
                     manual_is_multiple_of::check(cx, e, op.node, lhs, rhs, self.msrv);
+                    manual_isolate_lowest_one::check(cx, e, op.node, lhs, rhs, self.msrv);
                     decimal_bitwise_operands::check(cx, op.node, lhs, rhs);
                 }
                 self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
@@ -1059,14 +1129,15 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 self.arithmetic_context.check_binary(cx, e, bin_op, lhs, rhs);
                 misrefactored_assign_op::check(cx, e, bin_op, lhs, rhs);
                 modulo_arithmetic::check(cx, e, bin_op, lhs, rhs, false);
+                integer_division_remainder_used::check(cx, bin_op, lhs, rhs, e.span);
             },
             ExprKind::Assign(lhs, rhs, _) => {
                 assign_op_pattern::check(cx, e, lhs, rhs, self.msrv);
                 self_assignment::check(cx, e, lhs, rhs);
+                new_instead_of_clear::check(cx, e, lhs, rhs);
             },
-            ExprKind::Unary(op, arg) =>
-            {
-                #[expect(clippy::collapsible_match)]
+            #[expect(clippy::collapsible_match)]
+            ExprKind::Unary(op, arg) => {
                 if op == UnOp::Neg {
                     self.arithmetic_context.check_negate(cx, e, arg);
                 }

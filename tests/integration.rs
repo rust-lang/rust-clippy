@@ -14,11 +14,6 @@ use std::env;
 use std::ffi::OsStr;
 use std::process::Command;
 
-#[cfg(not(windows))]
-const CARGO_CLIPPY: &str = "cargo-clippy";
-#[cfg(windows)]
-const CARGO_CLIPPY: &str = "cargo-clippy.exe";
-
 #[cfg_attr(feature = "integration", test)]
 fn integration_test() {
     let repo_name = env::var("INTEGRATION").expect("`INTEGRATION` var not set");
@@ -44,14 +39,9 @@ fn integration_test() {
         .expect("unable to run git");
     assert!(st.success());
 
-    let root_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let target_dir = std::path::Path::new(&root_dir).join("target");
-    let clippy_binary = target_dir.join(env!("PROFILE")).join(CARGO_CLIPPY);
-
-    let output = Command::new(clippy_binary)
+    let output = Command::new(env!("CARGO_BIN_EXE_cargo-clippy"))
         .current_dir(repo_dir)
         .env("RUST_BACKTRACE", "full")
-        .env("CARGO_TARGET_DIR", target_dir)
         .args([
             "clippy",
             "--all-targets",
@@ -70,26 +60,6 @@ fn integration_test() {
 
     // debug:
     eprintln!("{stderr}");
-
-    // this is an internal test to make sure we would correctly panic on a span_delayed_bug
-    if repo_name == "matthiaskrgr/clippy_ci_panic_test" {
-        // we need to kind of switch around our logic here:
-        // if we find a panic, everything is fine, if we don't panic, SOMETHING is broken about our testing
-
-        // the repo basically just contains a span_delayed_bug that forces rustc/clippy to panic:
-        /*
-           #![feature(rustc_attrs)]
-           #[rustc_error(delayed_bug_from_inside_query)]
-           fn main() {}
-        */
-
-        if stderr.find("error: internal compiler error").is_some() {
-            eprintln!("we saw that we intentionally panicked, yay");
-            return;
-        }
-
-        panic!("panic caused by span_delayed_bug was NOT detected! Something is broken!");
-    }
 
     if let Some(backtrace_start) = stderr.find("error: internal compiler error") {
         static BACKTRACE_END_MSG: &str = "end of query stack";
@@ -112,12 +82,12 @@ fn integration_test() {
         panic!("incompatible crate versions");
     } else if stderr.contains("failed to run `rustc` to learn about target-specific information") {
         panic!("couldn't find librustc_driver, consider setting `LD_LIBRARY_PATH`");
-    } else {
-        assert!(
-            !stderr.contains("toolchain") || !stderr.contains("is not installed"),
-            "missing required toolchain"
-        );
     }
+
+    assert!(
+        !stderr.contains("toolchain") || !stderr.contains("is not installed"),
+        "missing required toolchain"
+    );
 
     match output.status.code() {
         Some(0) => println!("Compilation successful"),

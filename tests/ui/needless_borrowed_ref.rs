@@ -1,10 +1,9 @@
 #![warn(clippy::needless_borrowed_reference)]
-#![allow(
-    unused,
+#![expect(
     irrefutable_let_patterns,
     non_shorthand_field_patterns,
     clippy::needless_borrow,
-    clippy::needless_ifs
+    clippy::unneeded_wildcard_pattern
 )]
 
 fn main() {}
@@ -121,6 +120,50 @@ fn should_not_lint(
         // here, v is borrowed as immutable.
         // can't do that:
         //*v = 15;
+    }
+}
+
+fn should_lint_mut_ref(x: Option<&mut i32>) {
+    if let Some(&mut ref mut x) = x {
+        //~^ needless_borrowed_reference
+        *x = 0;
+    }
+}
+
+fn should_not_lint_mut_ref_nested(x: Option<&mut &mut i32>) {
+    if let Some(&mut &mut ref mut x) = x {
+        *x = 0;
+    }
+}
+
+fn should_not_lint_mut_ref_used_after(x: Option<&mut i32>) -> Option<&mut i32> {
+    if let Some(&mut ref mut x) = x {
+        *x = 0;
+    }
+    x
+}
+
+struct WithDrop<'a>(Option<&'a mut i32>);
+impl Drop for WithDrop<'_> {
+    fn drop(&mut self) {}
+}
+
+fn should_not_lint_mut_ref_drop(x: WithDrop<'_>) {
+    if let Some(&mut ref mut x) = x.0 {
+        *x = 0;
+    }
+}
+
+fn identity<T>(value: T) -> T {
+    value
+}
+
+fn inferred_scrutinee(reference: &mut i32) {
+    let val = identity(Some(reference));
+
+    if let Some(&mut ref mut x) = val {
+        //~^ needless_borrowed_reference
+        *x = 0;
     }
 }
 

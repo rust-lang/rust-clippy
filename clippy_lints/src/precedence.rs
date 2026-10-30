@@ -3,9 +3,8 @@ use clippy_utils::source::snippet_with_applicability;
 use rustc_ast::ast::BinOpKind::{Add, BitAnd, BitOr, BitXor, Div, Mul, Rem, Shl, Shr, Sub};
 use rustc_ast::ast::{BinOpKind, Expr, ExprKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, Lint};
-use rustc_session::declare_lint_pass;
-use rustc_span::source_map::Spanned;
+use rustc_lint::{EarlyContext, EarlyLintPass, Lint, declare_lint_pass};
+use rustc_span::Spanned;
 
 declare_clippy_lint! {
     /// ### What it does

@@ -1,3 +1,5 @@
+use std::cmp::max_by_key;
+
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use rustc_errors::{Applicability, SuggestionStyle};
@@ -7,9 +9,8 @@ use rustc_hir::{
     TyKind, WherePredicateKind,
 };
 use rustc_hir_analysis::lower_ty;
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 use rustc_middle::ty::{self, AssocItem, ClauseKind, Generics, Ty, TyCtxt};
-use rustc_session::declare_lint_pass;
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -97,7 +98,9 @@ fn emit_lint(
                 // `<>` needs to be added if there aren't yet any generic arguments or constraints
                 let needs_angle_brackets = bound.args.is_empty() && bound.constraints.is_empty();
                 let insert_span = match (bound.args, bound.constraints) {
-                    ([.., arg], [.., constraint]) => arg.span().max(constraint.span).shrink_to_hi(),
+                    ([.., arg], [.., constraint]) => {
+                        max_by_key(arg.span(), constraint.span, |span| span.lo_hi()).shrink_to_hi()
+                    },
                     ([.., arg], []) => arg.span().shrink_to_hi(),
                     ([], [.., constraint]) => constraint.span.shrink_to_hi(),
                     ([], []) => bound.span.shrink_to_hi(),
@@ -216,9 +219,9 @@ fn is_same_generics<'tcx>(
 struct ImplTraitBound<'tcx> {
     /// The span of the bound in the `impl Trait` type
     span: Span,
-    /// The predicates defined in the trait referenced by this bound. This also contains the actual
+    /// The clauses defined in the trait referenced by this bound. This also contains the actual
     /// supertrait bounds
-    predicates: &'tcx [(ty::Clause<'tcx>, Span)],
+    clauses: &'tcx [(ty::Clause<'tcx>, Span)],
     /// The `DefId` of the trait being referenced by this bound
     trait_def_id: DefId,
     /// The generic arguments on the `impl Trait` bound
@@ -241,13 +244,13 @@ fn collect_supertrait_bounds<'tcx>(cx: &LateContext<'tcx>, bounds: GenericBounds
                 && let [.., path] = poly_trait.trait_ref.path.segments
                 && poly_trait.bound_generic_params.is_empty()
                 && let Some(trait_def_id) = path.res.opt_def_id()
-                && let predicates = cx.tcx.explicit_super_predicates_of(trait_def_id).skip_binder()
+                && let clauses = cx.tcx.explicit_super_clauses_of(trait_def_id).skip_binder()
                 // If the trait has no supertrait, there is no need to collect anything from that bound
-                && !predicates.is_empty()
+                && !clauses.is_empty()
             {
                 Some(ImplTraitBound {
                     span: bound.span(),
-                    predicates,
+                    clauses,
                     trait_def_id,
                     args: path.args.map_or([].as_slice(), |p| p.args),
                     constraints: path.args.map_or([].as_slice(), |p| p.constraints),
@@ -268,7 +271,7 @@ fn find_bound_in_supertraits<'a, 'tcx>(
     bounds: &'a [ImplTraitBound<'tcx>],
 ) -> Option<&'a ImplTraitBound<'tcx>> {
     bounds.iter().find(|bound| {
-        bound.predicates.iter().any(|(clause, _)| {
+        bound.clauses.iter().any(|(clause, _)| {
             if let ClauseKind::Trait(tr) = clause.kind().skip_binder()
                 && tr.def_id() == trait_def_id
             {

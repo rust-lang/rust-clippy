@@ -1,5 +1,3 @@
-#![allow(clippy::needless_ifs)]
-
 fn main() {
     let x = 1;
     let y = 2;
@@ -51,4 +49,10 @@ fn main() {
         //~^ double_comparisons
         // do something
     }
+}
+
+#[allow(clippy::neg_cmp_op_on_partial_ord)]
+fn issue17900(left: f32, right: f32) -> bool {
+    !(left < right || left == right)
+    //~^ double_comparisons
 }

@@ -1,9 +1,11 @@
 //@aux-build:proc_macro_attr.rs
 
-#![allow(unused)]
 #![warn(clippy::empty_docs)]
-#![allow(clippy::mixed_attributes_style)]
+#![expect(clippy::mixed_attributes_style)]
 #![feature(extern_types)]
+
+extern crate proc_macros;
+use proc_macros::external;
 
 mod outer {
     //!
@@ -92,4 +94,12 @@ mod issue_12377 {
     struct Foo {
         a: u8,
     }
+}
+
+external! {
+    #[doc = $("")]
+    //~^ empty_docs
+    $(
+        fn issue_16382() {}
+    )
 }

@@ -3,15 +3,15 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::source::indent_of;
 use clippy_utils::{is_default_equivalent, peel_blocks};
+use rustc_ast::attr::AttributeExt as _;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
 use rustc_hir::{
     self as hir, Body, Expr, ExprKind, GenericArg, Impl, ImplItemKind, Item, ItemKind, Node, PathSegment, QPath, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_middle::ty::{self, AdtDef, GenericArgsRef, Ty, TypeckResults, VariantDef};
-use rustc_session::impl_lint_pass;
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -64,7 +64,7 @@ pub struct DerivableImpls {
 
 impl DerivableImpls {
     pub fn new(conf: &'static Conf) -> Self {
-        DerivableImpls { msrv: conf.msrv }
+        DerivableImpls { msrv: conf.msrv.into() }
     }
 }
 
@@ -105,7 +105,7 @@ fn check_struct<'tcx>(
     if let TyKind::Path(QPath::Resolved(_, p)) = self_ty.kind
         && let Some(PathSegment { args, .. }) = p.segments.last()
     {
-        let args = args.map(|a| a.args).unwrap_or_default();
+        let args = args.map_or_default(|a| a.args);
 
         // ty_args contains the generic parameters of the type declaration, while args contains the
         // arguments used at instantiation time. If both len are not equal, it means that some
@@ -243,12 +243,17 @@ impl<'tcx> LateLintPass<'tcx> for DerivableImpls {
             && let Node::ImplItem(impl_item) = cx.tcx.hir_node(impl_item_hir)
             && let ImplItemKind::Fn(_, b) = &impl_item.kind
             && let Body { value: func_expr, .. } = cx.tcx.hir_body(*b)
-            && let &ty::Adt(adt_def, args) = cx.tcx.type_of(item.owner_id).instantiate_identity().kind()
+            && let &ty::Adt(adt_def, args) = cx
+                .tcx
+                .type_of(item.owner_id)
+                .instantiate_identity()
+                .skip_norm_wip()
+                .kind()
             && let attrs = cx.tcx.hir_attrs(item.hir_id())
             && !attrs.iter().any(|attr| attr.doc_str().is_some())
             && cx.tcx.hir_attrs(impl_item_hir).is_empty()
         {
-            let is_const = constness == hir::Constness::Const;
+            let is_const = matches!(constness, hir::Constness::Const { always: false });
             if adt_def.is_struct() {
                 check_struct(
                     cx,

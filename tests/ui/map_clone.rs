@@ -1,13 +1,11 @@
 #![warn(clippy::map_clone)]
-#![allow(
+#![allow(clippy::iter_cloned_collect)]
+#![expect(
     clippy::clone_on_copy,
-    clippy::iter_cloned_collect,
-    clippy::many_single_char_names,
-    clippy::redundant_clone,
+    clippy::empty_loop,
     clippy::redundant_closure,
     clippy::useless_asref,
-    clippy::useless_vec,
-    clippy::empty_loop
+    clippy::useless_vec
 )]
 
 fn main() {
@@ -68,6 +66,14 @@ fn main() {
         use std::cell::RefCell;
 
         let _ = Some(RefCell::new(String::new()).borrow()).map(|s| s.clone());
+    }
+
+    // Issue #17550
+    {
+        let string = String::new();
+        let input = [&string];
+        let _: Vec<String> = input.iter().map(|s: &&String| String::clone(s)).collect();
+        let _: Vec<String> = input.iter().map(|s: &&String| <String as Clone>::clone(s)).collect();
     }
 
     let x = Some(String::new());

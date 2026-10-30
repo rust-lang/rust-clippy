@@ -1,5 +1,5 @@
 #![warn(clippy::manual_filter)]
-#![allow(unused_variables, dead_code, clippy::useless_vec)]
+#![expect(clippy::useless_vec)]
 
 fn main() {
     match Some(0) {
@@ -292,4 +292,78 @@ fn main() {
 
 fn maybe_some() -> Option<u32> {
     Some(0)
+}
+
+fn issue14440(opt: Option<i32>) {
+    opt.and_then(|x| if x == 0 { None } else { Some(x) });
+    //~^ manual_filter
+
+    let y = 1i32;
+    opt.and_then(move |x| if x == y { Some(x) } else { None });
+    //~^ manual_filter
+
+    let opt1 = Some("123".to_string());
+    opt1.and_then(|s| if s.len() > 2 { Some(s) } else { None });
+    //~^ manual_filter
+
+    unsafe fn f(x: u32) -> bool {
+        true
+    }
+    opt.and_then(|x| if unsafe { f(x as u32) } { Some(x) } else { None });
+    //~^ manual_filter
+    opt.and_then(|x| unsafe { if f(x as u32) { Some(x) } else { None } });
+    //~^ manual_filter
+}
+
+fn issue_17804() {
+    struct Inner(u8);
+    impl Inner {
+        fn check(&mut self) -> bool {
+            self.0 += 1;
+            true
+        }
+        fn peek(&self) -> bool {
+            self.0 > 0
+        }
+    }
+
+    struct Wrapper(Inner);
+    impl Wrapper {
+        fn inner_mut(&mut self) -> &mut Inner {
+            &mut self.0
+        }
+    }
+
+    // `Option::filter` only provides `&T`, so these can't be rewritten.
+    Some(Wrapper(Inner(0))).and_then(|mut wrapper| {
+        if wrapper.inner_mut().check() && wrapper.inner_mut().check() {
+            Some(wrapper)
+        } else {
+            None
+        }
+    });
+    let mut inner = Inner(0);
+    Some(&mut inner).and_then(|x| if x.check() { Some(x) } else { None });
+    match Some(Inner(0)) {
+        Some(mut x) => {
+            if x.check() {
+                Some(x)
+            } else {
+                None
+            }
+        },
+        None => None,
+    };
+    if let Some(mut x) = Some(Inner(0)) {
+        if x.check() { Some(x) } else { None }
+    } else {
+        None
+    };
+
+    // A read-only condition can still use `filter`.
+    Some(Inner(0)).and_then(|x| if x.peek() { Some(x) } else { None });
+    //~^ manual_filter
+    let mut inner = Inner(0);
+    Some(&mut inner).and_then(|x| if x.peek() { Some(x) } else { None });
+    //~^ manual_filter
 }

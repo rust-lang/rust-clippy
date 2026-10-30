@@ -8,7 +8,7 @@ something. We appreciate any sort of contributions, and don't want a wall of rul
 
 Clippy welcomes contributions from everyone. There are many ways to contribute to Clippy and the following document
 explains how you can contribute and how to get started.  If you have any questions about contributing or need help with
-anything, feel free to ask questions on issues or visit the `#clippy` on [Zulip].
+anything, feel free to ask questions on issues or visit the `#t-clippy` on [Zulip].
 
 All contributors are expected to follow the [Rust Code of Conduct].
 
@@ -24,7 +24,7 @@ All contributors are expected to follow the [Rust Code of Conduct].
   - [Contributions](#contributions)
   - [License](#license)
 
-[Zulip]: https://rust-lang.zulipchat.com/#narrow/stream/clippy
+[Zulip]: https://rust-lang.zulipchat.com/#narrow/stream/t-clippy
 [Rust Code of Conduct]: https://www.rust-lang.org/policies/code-of-conduct
 
 ## The Clippy book
@@ -49,7 +49,7 @@ a [developer guide] and is a good place to start your journey.
 All issues on Clippy are mentored, if you want help simply ask someone from the
 Clippy team directly by mentioning them in the issue or over on [Zulip]. All
 currently active team members can be found
-[here](https://github.com/rust-lang/rust-clippy/blob/master/triagebot.toml#L18)
+[here](https://github.com/rust-lang/rust-clippy/blob/HEAD/triagebot.toml#L18)
 
 Some issues are easier than others. The [`good first issue`] label can be used to find the easy
 issues. You can use `@rustbot claim` to assign the issue to yourself.
@@ -93,20 +93,9 @@ an AST expression).
 ## Getting code-completion for rustc internals to work
 
 ### RustRover
-Unfortunately, [`RustRover`][RustRover_homepage] does not (yet?) understand how Clippy uses compiler-internals
-using `extern crate` and it also needs to be able to read the source files of the rustc-compiler which are not
-available via a `rustup` component at the time of writing.
-To work around this, you need to have a copy of the [rustc-repo][rustc_repo] available which can be obtained via
-`git clone https://github.com/rust-lang/rust/`.
-Then you can run a `cargo dev` command to automatically make Clippy use the rustc-repo via path-dependencies
-which `RustRover` will be able to understand.
-Run `cargo dev setup intellij --repo-path <repo-path>` where `<repo-path>` is a path to the rustc repo
-you just cloned.
-The command will add path-dependencies pointing towards rustc-crates inside the rustc repo to
-Clippy's `Cargo.toml`s and should allow `RustRover` to understand most of the types that Clippy uses.
-Just make sure to remove the dependencies again before finally making a pull request!
+Since [`RustRover`][RustRover_homepage] 2026.1, no additional setup is required.
+Just open the project in RustRover as usual.
 
-[rustc_repo]: https://github.com/rust-lang/rust/
 [RustRover_homepage]: https://www.jetbrains.com/rust/
 
 ### Rust Analyzer
@@ -119,7 +108,7 @@ For [`rust-analyzer`][ra_homepage] to work correctly make sure that in the `rust
 You should be able to see information on things like `Expr` or `EarlyContext` now if you hover them, also
 a lot more type hints.
 
-To have `rust-analyzer` also work in the `clippy_dev` and `lintcheck` crates, add the following configuration
+To have `rust-analyzer` also work in the `clippy-dev` and `lintcheck` crates, add the following configuration
 
 ```json
 {
@@ -135,8 +124,11 @@ To have `rust-analyzer` also work in the `clippy_dev` and `lintcheck` crates, ad
 
 ## How Clippy works
 
-[`clippy_lints/src/lib.rs`][lint_crate_entry] imports all the different lint modules and registers in the [`LintStore`].
-For example, the [`else_if_without_else`][else_if_without_else] lint is registered like this:
+[`clippy_lints/src/lib.rs`][lint_crate_entry] imports all the different lint modules and registers them in the
+[`LintStore`]. All early passes are folded into a single `CombinedEarlyLintPass`, and all late passes into a single
+`CombinedLateLintPass`, each registered once with the store. A pass is added to one of these by listing it in the
+`early_lint_methods!` or `late_lint_methods!` macro invocation. For example, the
+[`else_if_without_else`][else_if_without_else] lint is added like this:
 
 ```rust
 // ./clippy_lints/src/lib.rs
@@ -145,18 +137,21 @@ For example, the [`else_if_without_else`][else_if_without_else] lint is register
 pub mod else_if_without_else;
 // ...
 
-pub fn register_lints(store: &mut rustc_lint::LintStore, conf: &'static Conf) {
-    // ...
-    store.register_early_pass(|| Box::new(else_if_without_else::ElseIfWithoutElse));
-    // ...
-}
+rustc_lint::early_lint_methods!(
+    crate::combined_early_lint_pass,
+    [CombinedEarlyLintPass, (/* ... */), [
+        // ...
+        ElseIfWithoutElse: else_if_without_else::ElseIfWithoutElse = else_if_without_else::ElseIfWithoutElse,
+        // ...
+    ]]
+);
 ```
 
-The [`rustc_lint::LintStore`][`LintStore`] provides two methods to register lints:
-[register_early_pass][reg_early_pass] and [register_late_pass][reg_late_pass]. Both take an object
-that implements an [`EarlyLintPass`][early_lint_pass] or [`LateLintPass`][late_lint_pass] respectively. This is done in
-every single lint. It's worth noting that the majority of `clippy_lints/src/lib.rs` is autogenerated by `cargo dev
-update_lints`. When you are writing your own lint, you can use that script to save you some time.
+Each entry has the form `Field: Type = constructor`, where the constructor builds the pass (passing `conf` when the pass
+needs the user configuration). The combined passes implement [`EarlyLintPass`][early_lint_pass] and
+[`LateLintPass`][late_lint_pass] respectively, so each listed pass must also implement the matching trait. It's worth
+noting that the majority of `clippy_lints/src/lib.rs` is autogenerated by `cargo dev update_lints`. When you are
+writing your own lint, you can use that script to save you some time.
 
 ```rust
 // ./clippy_lints/src/else_if_without_else.rs
@@ -178,14 +173,12 @@ The difference between `EarlyLintPass` and `LateLintPass` is that the methods of
 AST information. The methods of the `LateLintPass` trait are executed after type checking and contain type information
 via the `LateContext` parameter.
 
-That's why the `else_if_without_else` example uses the `register_early_pass` function. Because the
+That's why the `else_if_without_else` example is listed in `early_lint_methods!`. Because the
 [actual lint logic][else_if_without_else] does not depend on any type information.
 
-[lint_crate_entry]: https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/lib.rs
+[lint_crate_entry]: https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/lib.rs
 [else_if_without_else]: https://github.com/rust-lang/rust-clippy/blob/4253aa7137cb7378acc96133c787e49a345c2b3c/clippy_lints/src/else_if_without_else.rs
 [`LintStore`]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/struct.LintStore.html
-[reg_early_pass]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/struct.LintStore.html#method.register_early_pass
-[reg_late_pass]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/struct.LintStore.html#method.register_late_pass
 [early_lint_pass]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/trait.EarlyLintPass.html
 [late_lint_pass]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/trait.LateLintPass.html
 
@@ -234,6 +227,22 @@ Contributions to Clippy should be made in the form of GitHub pull requests. Each
 be reviewed by a core contributor (someone with permission to land patches) and either landed in the
 main tree or given feedback for changes that would be required.
 
+We also encourage community contributors to help review pull requests.
+When someone opens a PR, `@rustbot` prompts them to review another contributor’s PR.
+This process distributes the review workload across more people and
+gives contributors an opportunity to become more familiar with Clippy’s internals.
+PRs with less than two community reviews are [labeled with `S-waiting-on-community-reviews`].
+
+Like the rust compiler, we follow the [`git rebase` workflow].
+This means that a PR is merged as-is via a merge commit rather than being squashed into a single commit.
+Because of this, you may be asked to clean up your commit history before merge.
+This can mean e.g. [squashing] "fix review comments" commits into the commit they belong to, or
+splitting unrelated changes into their own commits.
+Keeping each commit a self-contained, logical change allows us to use [`git bisect`] effectively and
+revert just the commit that broke something, instead of the entire PR.
+Don't worry, this does not make reviews harder.
+A [range-diff] is attached to every review comment, so everyone can see exactly what changed since the last review.
+
 All PRs should include a `changelog` entry with a short comment explaining the change. The rule of thumb is basically,
 "what do you believe is important from an outsider's perspective?" Often, PRs are only related to a single property of a
 lint, and then it's good to mention that one. Otherwise, it's better to include too much detail than too little.
@@ -262,7 +271,19 @@ changelog: Something 2
 changelog: Something 3
 ```
 
+[labeled with `S-waiting-on-community-reviews`]: https://github.com/rust-lang/rust-clippy/issues?q=state%3Aopen%20label%3AS-waiting-on-community-reviews%20label%3AS-waiting-on-review
+[`git rebase` workflow]: https://rustc-dev-guide.rust-lang.org/git.html#no-merge-policy
+[`git bisect`]: https://git-scm.com/docs/git-bisect
+[range-diff]: https://rustc-dev-guide.rust-lang.org/git.html#git-range-diff
+[squashing]: https://rustc-dev-guide.rust-lang.org/git.html#squash-your-commits
 [changelog]: CHANGELOG.md
+
+## LLM policy
+
+Clippy adopts the same [LLM usage policy] as `rust-lang/rust`.
+You can consult the [LLM usage chapter] in the Clippy book to see
+what that means, how it applies.
+
 
 ## License
 
@@ -272,3 +293,5 @@ All code in this repository is under the [Apache-2.0] or the [MIT] license.
 
 [Apache-2.0]: https://www.apache.org/licenses/LICENSE-2.0
 [MIT]: https://opensource.org/licenses/MIT
+[LLM usage policy]: https://forge.rust-lang.org/policies/llm-usage.html
+[LLM usage chapter]: https://doc.rust-lang.org/nightly/clippy/development/llm_usage.html

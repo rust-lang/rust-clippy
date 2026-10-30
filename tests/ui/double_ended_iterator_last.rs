@@ -2,7 +2,7 @@
 
 // Typical case
 pub fn last_arg(s: &str) -> Option<&str> {
-    s.split(' ').last() //~ ERROR: called `Iterator::last` on a `DoubleEndedIterator`
+    s.split(' ').last() //~ double_ended_iterator_last
 }
 
 fn main() {
@@ -19,7 +19,7 @@ fn main() {
             Some(())
         }
     }
-    let _ = DeIterator.last(); //~ ERROR: called `Iterator::last` on a `DoubleEndedIterator`
+    let _ = DeIterator.last(); //~ double_ended_iterator_last
     // Should not apply to other methods of Iterator
     let _ = DeIterator.count();
 
@@ -131,4 +131,24 @@ fn issue_14444() {
             Some(x * x)
         })
         .last();
+}
+
+// FIXME: suggestions on `move` closures will change the behavior of the iterator (rust-lang/rust-clippy#17646).
+// FIXME: this problem is documented in "Known issues" section (rust-lang/rust-clippy#17829).
+#[expect(clippy::double_ended_iterator_last)]
+fn issue_17646<'a>(a: &'a [usize], b: &[i32]) -> Option<(usize, &'a usize)> {
+    use std::cmp::Ordering;
+    let mut best_val = 0;
+    a.iter()
+        .enumerate()
+        .rev()
+        .filter(move |&(i, &val)| match b[val].cmp(&best_val) {
+            Ordering::Less => false,
+            Ordering::Equal if i < val => false,
+            Ordering::Equal | Ordering::Greater => {
+                best_val = b[val];
+                true
+            },
+        })
+        .last()
 }

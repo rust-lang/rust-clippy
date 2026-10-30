@@ -144,7 +144,8 @@ should pass on its own. When we commit our lint, we need to commit the generated
  `.stderr` and if applicable `.fixed` files, too. In general, you should only
  commit files changed by `cargo bless` for the specific lint you are creating/editing.
 
-> _Note:_ you can run multiple test files by specifying a comma separated list:
+> [!NOTE]
+> you can run multiple test files by specifying a comma separated list:
 > `TESTNAME=foo_functions,test2,test3`.
 
 ### Cargo lints
@@ -272,7 +273,7 @@ impl EarlyLintPass for FooFunctions {}
 ```
 
 [declare_clippy_lint]: https://github.com/rust-lang/rust-clippy/blob/557f6848bd5b7183f55c1e1522a326e9e1df6030/clippy_lints/src/lib.rs#L60
-[example_lint_page]: https://rust-lang.github.io/rust-clippy/master/index.html#redundant_closure
+[example_lint_page]: https://rust-lang.github.io/rust-clippy/main/index.html#redundant_closure
 [lint_naming]: https://rust-lang.github.io/rfcs/0344-conventions-galore.html#lints
 [category_level_mapping]: ../index.html
 
@@ -282,21 +283,22 @@ When using `cargo dev new_lint`, the lint is automatically registered and
 nothing more has to be done.
 
 When declaring a new lint by hand and `cargo dev update_lints` is used, the lint
-pass may have to be registered manually in the `register_lints` function in
-`clippy_lints/src/lib.rs`:
+pass may have to be registered manually by adding an entry to the
+`early_lint_methods!` macro invocation in `clippy_lints/src/lib.rs`, at the
+`// add early passes here` marker:
 
 ```rust,ignore
-store.register_early_pass(|| Box::new(foo_functions::FooFunctions));
+FooFunctions: foo_functions::FooFunctions = foo_functions::FooFunctions,
 ```
 
-As one may expect, there is a corresponding `register_late_pass` method
-available as well. Without a call to one of `register_early_pass` or
-`register_late_pass`, the lint pass in question will not be run.
+As one may expect, there is a corresponding `late_lint_methods!` macro available
+as well. Without an entry in one of `early_lint_methods!` or `late_lint_methods!`,
+the lint pass in question will not be run.
 
 One reason that `cargo dev update_lints` does not automate this step is that
 multiple lints can use the same lint pass, so registering the lint pass may
 already be done when adding a new lint. Another reason that this step is not
-automated is that the order that the passes are registered determines the order
+automated is that the order that the passes are listed determines the order
 the passes actually run, which in turn affects the order that any emitted lints
 are output in.
 
@@ -374,7 +376,7 @@ an identifier must appear in a message or label, it should be surrounded with
 single grave accents \`.
 
 [check_fn]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint/trait.EarlyLintPass.html#method.check_fn
-[diagnostics]: https://github.com/rust-lang/rust-clippy/blob/master/clippy_utils/src/diagnostics.rs
+[diagnostics]: https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_utils/src/diagnostics.rs
 [the rustc-dev-guide]: https://rustc-dev-guide.rust-lang.org/diagnostics.html
 
 ## Adding the lint logic
@@ -446,8 +448,8 @@ Sometimes a lint makes suggestions that require a certain version of Rust. For
 example, the `manual_strip` lint suggests using `str::strip_prefix` and
 `str::strip_suffix` which is only available after Rust 1.45. In such cases, you
 need to ensure that the MSRV configured for the project is >= the MSRV of the
-required Rust feature. If multiple features are required, just use the one with
-a lower MSRV.
+required Rust feature. If multiple features are used in a suggestion, choose a
+MSRV that supports them all.
 
 First, add an MSRV alias for the required feature in [`clippy_utils::msrvs`].
 This can be accessed later as `msrvs::STR_STRIP_PREFIX`, for example.
@@ -470,7 +472,7 @@ pub struct ManualStrip {
 
 impl ManualStrip {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv }
+        Self { msrv: conf.msrv.into() }
     }
 }
 ```
@@ -483,6 +485,11 @@ if !self.msrv.meets(cx, msrvs::STR_STRIP_PREFIX) {
     return;
 }
 ```
+
+An important consideration is that `Msrv::meets` is relatively expensive to
+call if the crate has a `clippy::msrv` attribute, so you should typically
+match the MSRV at the end of an if let chain, after other short-circuiting
+checks.
 
 Early lint passes should instead use `MsrvStack` coupled with
 `extract_msrv_attr!()`
@@ -525,9 +532,19 @@ define_Conf! {
 }
 ```
 
-[`clippy_utils::msrvs`]: https://doc.rust-lang.org/nightly/nightly-rustc/clippy_config/msrvs/index.html
+[`clippy_utils::msrvs`]: https://doc.rust-lang.org/nightly/nightly-rustc/clippy_utils/msrvs/index.html
 
 Afterwards update the documentation for the book as described in [Adding configuration to a lint](#adding-configuration-to-a-lint).
+
+> [!TIP]
+> Please be aware that items in the standard library usually have two stability dates.
+> One for regular and one for const contexts.
+> For example `str::split_at` became stable in Rust 1.4 and const stable in 1.86.
+>
+> To fix this, use `clippy_utils::is_in_const_context(cx)` together with MSRV checks.
+> `clippy_utils::std_or_core(cx)` can also be necessary
+> if the suggestions MSRV differs between `std` and `core`.
+> To test the suggestions, annotate a `const` function with `#[clippy::msrv]` before and after the MSRV.
 
 ## Author lint
 
@@ -602,7 +619,7 @@ necessarily “bad” but are more of a style choice, then replace the
 Once your lint is merged, this documentation will show up in the [lint
 list][lint_list].
 
-[lint_list]: https://rust-lang.github.io/rust-clippy/master/index.html
+[lint_list]: https://rust-lang.github.io/rust-clippy/main/index.html
 
 ## Running rustfmt
 
@@ -749,10 +766,10 @@ for some users. Adding a configuration is done in the following steps:
 
    Run `cargo bless --test config-metadata` to generate documentation changes for the book.
 
-[`clippy_config::conf`]: https://github.com/rust-lang/rust-clippy/blob/master/clippy_config/src/conf.rs
-[`clippy_lints` lib file]: https://github.com/rust-lang/rust-clippy/blob/master/clippy_lints/src/lib.rs
-[`tests/ui`]: https://github.com/rust-lang/rust-clippy/blob/master/tests/ui
-[`tests/ui-toml`]: https://github.com/rust-lang/rust-clippy/blob/master/tests/ui-toml
+[`clippy_config::conf`]: https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_config/src/conf.rs
+[`clippy_lints` lib file]: https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/lib.rs
+[`tests/ui`]: https://github.com/rust-lang/rust-clippy/blob/HEAD/tests/ui
+[`tests/ui-toml`]: https://github.com/rust-lang/rust-clippy/blob/HEAD/tests/ui-toml
 
 ## Cheat Sheet
 
@@ -800,4 +817,4 @@ don't hesitate to ask on [Zulip] or in the issue/PR.
 [nightly_docs]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/
 [ast]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_ast/ast/index.html
 [ty]: https://doc.rust-lang.org/nightly/nightly-rustc/rustc_middle/ty/sty/index.html
-[Zulip]: https://rust-lang.zulipchat.com/#narrow/stream/clippy
+[Zulip]: https://rust-lang.zulipchat.com/#narrow/stream/t-clippy

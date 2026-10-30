@@ -1,15 +1,16 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::msrvs::Msrv;
-use clippy_utils::source::{HasSession, IntoSpan as _, SpanRangeExt, snippet, snippet_block_with_applicability};
-use clippy_utils::{can_use_if_let_chains, span_contains_non_whitespace, sym, tokenize_with_text};
-use rustc_ast::{BinOpKind, MetaItemInner};
+use clippy_utils::source::{IntoSpan as _, SpanExt as _, snippet, snippet_block_with_applicability};
+use clippy_utils::{can_use_if_let_chains, span_contains_cfg, span_contains_non_whitespace, sym, tokenize_with_text};
+use rustc_ast::BinOpKind;
+use rustc_attr_ir::lint::{LintCheck, LintCheckKind};
+use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
 use rustc_lexer::TokenKind;
-use rustc_lint::{LateContext, LateLintPass, Level};
-use rustc_session::impl_lint_pass;
-use rustc_span::{BytePos, Span, Symbol};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_span::{BytePos, Ident, Span, Symbol};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -89,7 +90,7 @@ pub struct CollapsibleIf {
 impl CollapsibleIf {
     pub fn new(conf: &'static Conf) -> Self {
         Self {
-            msrv: conf.msrv,
+            msrv: conf.msrv.into(),
             lint_commented_code: conf.lint_commented_code,
         }
     }
@@ -140,6 +141,8 @@ impl CollapsibleIf {
 
                     // Prevent "elseif"
                     // Check that the "else" is followed by whitespace
+                    // Note: We intentionally use char::is_whitespace instead of rustc_lexer::is_whitespace here to
+                    // avoid visual issues with zero-width spaces. See ui tests.
                     let requires_space = snippet(cx, up_to_else, "..").ends_with(|c: char| !c.is_whitespace());
                     let mut applicability = Applicability::MachineApplicable;
                     diag.span_suggestion(
@@ -167,8 +170,13 @@ impl CollapsibleIf {
         if let Some(inner) = expr_block(then)
             && let ExprKind::If(check_inner, _, None) = &inner.kind
             && self.eligible_condition(cx, check_inner)
-            && expr.span.eq_ctxt(inner.span)
+            && expr.span.ctxt() == inner.span.ctxt()
             && self.check_significant_tokens_and_expect_attrs(cx, then, inner, sym::collapsible_if)
+            && let then_closing_bracket = {
+                let end = then.span.shrink_to_hi();
+                end.with_lo(end.lo() - BytePos(1))
+            }
+            && !span_contains_cfg(cx, inner.span.between(then_closing_bracket))
         {
             span_lint_hir_and_then(
                 cx,
@@ -178,12 +186,7 @@ impl CollapsibleIf {
                 "this `if` statement can be collapsed",
                 |diag| {
                     let then_open_bracket = then.span.split_at(1).0.with_leading_whitespace(cx).into_span();
-                    let then_closing_bracket = {
-                        let end = then.span.shrink_to_hi();
-                        end.with_lo(end.lo() - BytePos(1))
-                            .with_leading_whitespace(cx)
-                            .into_span()
-                    };
+                    let then_closing_bracket = then_closing_bracket.with_leading_whitespace(cx).into_span();
                     let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner.span);
                     let inner_if = inner_if_span.split_at(2).0;
                     let mut sugg = vec![
@@ -237,17 +240,25 @@ impl CollapsibleIf {
                 !span_contains_non_whitespace(cx, span, self.lint_commented_code)
             },
 
-            [attr]
-                if matches!(Level::from_attr(attr), Some((Level::Expect, _)))
-                    && let Some(metas) = attr.meta_item_list()
-                    && let Some(MetaItemInner::MetaItem(meta_item)) = metas.first()
-                    && let [tool, lint_name] = meta_item.path.segments.as_slice()
-                    && tool.ident.name == sym::clippy
-                    && [expected_lint_name, sym::style, sym::all].contains(&lint_name.ident.name) =>
+            [Attribute::Parsed(AttributeKind::LintCheck(lints))]
+                if lints
+                    .iter()
+                    .filter(|lint| {
+                        matches!(
+                            lint,
+                            LintCheck {
+                                tool: Some(Ident { name: sym::clippy, .. }),
+                                kind: LintCheckKind::Expect,
+                                ..
+                            }
+                        )
+                    })
+                    .any(|lint| [expected_lint_name, sym::style, sym::all].contains(&lint.lint_name)) =>
             {
+                let attr_span = lints.first().unwrap().attr_span.to(lints.last().unwrap().attr_span);
                 // There is an `expect` attribute -- check that there is no _other_ significant text
-                let span_before_attr = inner_if.span.split_at(1).1.until(attr.span());
-                let span_after_attr = attr.span().between(inner_if_expr.span);
+                let span_before_attr = inner_if.span.split_at(1).1.until(attr_span);
+                let span_after_attr = attr_span.between(inner_if_expr.span);
                 !span_contains_non_whitespace(cx, span_before_attr, self.lint_commented_code)
                     && !span_contains_non_whitespace(cx, span_after_attr, self.lint_commented_code)
             },
@@ -317,7 +328,7 @@ pub(super) fn parens_around(expr: &Expr<'_>) -> Vec<(Span, String)> {
     }
 }
 
-fn span_extract_keyword(cx: &impl HasSession, span: Span, keyword: &str) -> Option<Span> {
+fn span_extract_keyword(cx: &LateContext<'_>, span: Span, keyword: &str) -> Option<Span> {
     span.with_source_text(cx, |snippet| {
         tokenize_with_text(snippet)
             .filter(|(t, s, _)| matches!(t, TokenKind::Ident if *s == keyword))
@@ -333,8 +344,8 @@ fn span_extract_keyword(cx: &impl HasSession, span: Span, keyword: &str) -> Opti
 }
 
 /// Peel the parentheses from an `if` expression, e.g. `((if true {} else {}))`.
-pub(super) fn peel_parens(cx: &impl HasSession, mut span: Span) -> (Span, Span, Span) {
-    use crate::rustc_span::Pos;
+pub(super) fn peel_parens(cx: &LateContext<'_>, mut span: Span) -> (Span, Span, Span) {
+    use crate::rustc_span::Pos as _;
 
     let start = span.shrink_to_lo();
     let end = span.shrink_to_hi();
