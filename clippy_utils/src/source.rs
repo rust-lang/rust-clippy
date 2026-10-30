@@ -2,6 +2,8 @@
 
 #![expect(clippy::module_name_repetitions)]
 
+pub mod v2;
+
 use std::sync::Arc;
 
 use rustc_ast::{LitKind, StrStyle};
@@ -297,6 +299,7 @@ fn map_range(
     }
 }
 
+/// Checks if the last token of the string is either a line comment or an incomplete token.
 fn ends_with_line_comment_or_broken(text: &str) -> bool {
     let Some(last) = tokenize(text, FrontmatterAllowed::No).last() else {
         return false;
