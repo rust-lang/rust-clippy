@@ -1,4 +1,5 @@
 #![warn(clippy::redundant_test_prefix)]
+#![expect(clippy::test_without_assertions)]
 
 fn main() {
     // Normal function, no redundant prefix.
