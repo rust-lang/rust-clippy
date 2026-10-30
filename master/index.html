@@ -9580,6 +9580,11 @@ pub unsafe fn start_apocalypse(u: &amp;mut Universe) {
     unimplemented!();
 }
 </code></pre>
+<h3>Notes</h3>
+<ul>
+<li>This lint doesn’t trigger for functions attributed with <code>#[target_feature(enable = "...")]</code>,
+even if your MSRV is lower than 1.86, where these functions would be unconditionally unsafe.</li>
+</ul>
 <h3>Configuration</h3>
 <ul>
 <li>
@@ -10625,7 +10630,7 @@ fn needless_main() {
     unimplemented!();
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.40.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_doctest_main">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L534">View Source</a></div></div></article><article id="needless_else"><input id="label-needless_else" type="checkbox"><label for="label-needless_else"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_else">needless_else
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.40.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+needless_doctest_main">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L539">View Source</a></div></div></article><article id="needless_else"><input id="label-needless_else" type="checkbox"><label for="label-needless_else"><h2 class="lint-title"><div class="panel-title-name" id="lint-needless_else">needless_else
 <a href="#needless_else" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-style">style</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for empty <code>else</code> branches.</p>
 <h3>Why is this bad?</h3>
@@ -15440,7 +15445,7 @@ is not valid at that position.</p>
     pub fn dummy() {}
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.70.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+suspicious_doc_comments">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L563">View Source</a></div></div></article><article id="suspicious_else_formatting"><input id="label-suspicious_else_formatting" type="checkbox"><label for="label-suspicious_else_formatting"><h2 class="lint-title"><div class="panel-title-name" id="lint-suspicious_else_formatting">suspicious_else_formatting
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MaybeIncorrect</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.70.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+suspicious_doc_comments">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L568">View Source</a></div></div></article><article id="suspicious_else_formatting"><input id="label-suspicious_else_formatting" type="checkbox"><label for="label-suspicious_else_formatting"><h2 class="lint-title"><div class="panel-title-name" id="lint-suspicious_else_formatting">suspicious_else_formatting
 <a href="#suspicious_else_formatting" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-suspicious">suspicious</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for formatting of <code>else</code>. It lints if the <code>else</code>
 is followed immediately by a newline or the <code>else</code> seems to be missing.</p>
@@ -15766,7 +15771,7 @@ fn test_attr_in_doctest() {
     unimplemented!();
 }
 </code></pre>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.76.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+test_attr_in_doctest">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L610">View Source</a></div></div></article><article id="tests_outside_test_module"><input id="label-tests_outside_test_module" type="checkbox"><label for="label-tests_outside_test_module"><h2 class="lint-title"><div class="panel-title-name" id="lint-tests_outside_test_module">tests_outside_test_module
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.76.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+test_attr_in_doctest">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L615">View Source</a></div></div></article><article id="tests_outside_test_module"><input id="label-tests_outside_test_module" type="checkbox"><label for="label-tests_outside_test_module"><h2 class="lint-title"><div class="panel-title-name" id="lint-tests_outside_test_module">tests_outside_test_module
 <a href="#tests_outside_test_module" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Triggers when a testing function (marked with the <code>#[test]</code> attribute) isn’t inside a testing module
 (marked with <code>#[cfg(test)]</code>).</p>
@@ -15898,7 +15903,7 @@ struct Foo {}
 <p>(default: <code>false</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.82.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+too_long_first_doc_paragraph">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L643">View Source</a></div></div></article><article id="too_many_arguments"><input id="label-too_many_arguments" type="checkbox"><label for="label-too_many_arguments"><h2 class="lint-title"><div class="panel-title-name" id="lint-too_many_arguments">too_many_arguments
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">MachineApplicable</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.82.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+too_long_first_doc_paragraph">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L648">View Source</a></div></div></article><article id="too_many_arguments"><input id="label-too_many_arguments" type="checkbox"><label for="label-too_many_arguments"><h2 class="lint-title"><div class="panel-title-name" id="lint-too_many_arguments">too_many_arguments
 <a href="#too_many_arguments" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for functions with too many parameters.</p>
 <h3>Why is this bad?</h3>
@@ -17333,7 +17338,7 @@ pub fn start_apocalypse(u: &amp;mut Universe) {
 <p>(default: <code>false</code>)</p>
 </li>
 </ul>
-</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.67.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_safety_doc">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L674">View Source</a></div></div></article><article id="unnecessary_self_imports"><input id="label-unnecessary_self_imports" type="checkbox"><label for="label-unnecessary_self_imports"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_self_imports">unnecessary_self_imports
+</div><div class="lint-additional-info"><div>Applicability: <span class="label applicability">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.67.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+unnecessary_safety_doc">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/doc/mod.rs#L679">View Source</a></div></div></article><article id="unnecessary_self_imports"><input id="label-unnecessary_self_imports" type="checkbox"><label for="label-unnecessary_self_imports"><h2 class="lint-title"><div class="panel-title-name" id="lint-unnecessary_self_imports">unnecessary_self_imports
 <a href="#unnecessary_self_imports" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-restriction">restriction</span> <span class="label lint-level level-allow">allow</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
 <p>Checks for imports ending in <code>::{self}</code>.</p>
 <h3>Why restrict this?</h3>
