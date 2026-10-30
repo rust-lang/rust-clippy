@@ -1,0 +1,137 @@
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:6:13
+   |
+LL |     let _ = if x_u32 == 0 { None } else { Some(x_u32.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_u32.lowest_one()`
+   |
+   = note: `-D clippy::manual-lowest-one` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_lowest_one)]`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:9:13
+   |
+LL |     let _ = if 0 == x_u32 { None } else { Some(x_u32.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_u32.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:12:13
+   |
+LL |     let _ = if x_u32 != 0 { Some(x_u32.trailing_zeros()) } else { None };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_u32.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:15:13
+   |
+LL |     let _ = if 0 != x_u32 { Some(x_u32.trailing_zeros()) } else { None };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_u32.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:19:13
+   |
+LL |     let _ = if x_i32 == 0 { None } else { Some(x_i32.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_i32.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:23:13
+   |
+LL |     let _ = if x_u64 != 0 { Some(x_u64.trailing_zeros()) } else { None };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_u64.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:27:13
+   |
+LL |     let _ = if x_i64 == 0 { None } else { Some(x_i64.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_i64.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:31:13
+   |
+LL |     let _ = if x_u16 == 0 { None } else { Some(x_u16.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_u16.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:35:13
+   |
+LL |     let _ = if x_i16 == 0 { None } else { Some(x_i16.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_i16.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:39:13
+   |
+LL |     let _ = if x_u8 == 0 { None } else { Some(x_u8.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_u8.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:43:13
+   |
+LL |     let _ = if x_i8 == 0 { None } else { Some(x_i8.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x_i8.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:47:13
+   |
+LL |       let _ = if x_usize == 0 {
+   |  _____________^
+LL | |
+LL | |         None
+LL | |     } else {
+LL | |         Some(x_usize.trailing_zeros())
+LL | |     };
+   | |_____^ help: try: `x_usize.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:55:13
+   |
+LL |       let _ = if x_isize == 0 {
+   |  _____________^
+LL | |
+LL | |         None
+LL | |     } else {
+LL | |         Some(x_isize.trailing_zeros())
+LL | |     };
+   | |_____^ help: try: `x_isize.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:63:13
+   |
+LL |       let _ = if x_u128 == 0 {
+   |  _____________^
+LL | |
+LL | |         None
+LL | |     } else {
+LL | |         Some(x_u128.trailing_zeros())
+LL | |     };
+   | |_____^ help: try: `x_u128.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:71:13
+   |
+LL |       let _ = if x_i128 == 0 {
+   |  _____________^
+LL | |
+LL | |         None
+LL | |     } else {
+LL | |         Some(x_i128.trailing_zeros())
+LL | |     };
+   | |_____^ help: try: `x_i128.lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:80:13
+   |
+LL |       let _ = if (a + b) == 0 {
+   |  _____________^
+LL | |
+LL | |         None
+LL | |     } else {
+LL | |         Some((a + b).trailing_zeros())
+LL | |     };
+   | |_____^ help: try: `(a + b).lowest_one()`
+
+error: manual implementation of `lowest_one`
+  --> tests/ui/manual_lowest_one.rs:160:13
+   |
+LL |     let _ = if x == 0 { None } else { Some(x.trailing_zeros()) };
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x.lowest_one()`
+
+error: aborting due to 17 previous errors
+

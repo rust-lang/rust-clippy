@@ -631,6 +631,7 @@ generate! {
     to_string_method,
     to_uppercase,
     tokio,
+    trailing_zeros,
     trim,
     trim_end,
     trim_end_matches,
