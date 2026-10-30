@@ -718,12 +718,50 @@ fn is_default_equivalent_from(cx: &LateContext<'_>, from_func: &Expr<'_>, arg: &
     false
 }
 
+fn is_track_caller(cx: &LateContext<'_>, def_id: DefId) -> bool {
+    if find_attr!(cx.tcx, def_id, TrackCaller(..)) {
+        return true;
+    }
+
+    // Trait method implementations also inherit `#[track_caller]` from the trait item.
+    cx.tcx
+        .opt_associated_item(def_id)
+        .and_then(|item| item.trait_item_def_id())
+        .is_some_and(|trait_item| find_attr!(cx.tcx, trait_item, TrackCaller(..)))
+}
+
+/// Returns whether moving `expr` into a closure would change the caller location
+/// propagated to a `#[track_caller]` function.
+///
+/// For example, wrapping the call to `bar` in a closure would make `bar` observe
+/// the closure's call site instead of the caller of `foo`:
+///
+/// ```
+/// #[track_caller]
+/// fn foo() {
+///     bar();
+/// }
+///
+/// #[track_caller]
+/// fn bar() {
+///     let _ = std::panic::Location::caller();
+/// }
+/// ```
+fn would_change_caller_location(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let Some(callee) = fn_def_id(cx, expr) else {
+        return false;
+    };
+    let enclosing_body = cx.tcx.hir_enclosing_body_owner(expr.hir_id);
+    is_track_caller(cx, enclosing_body.to_def_id()) && is_track_caller(cx, callee)
+}
+
 /// Checks if the top level expression can be moved into a closure as is.
 /// Currently checks for:
 /// * Break/Continue outside the given loop HIR ids.
 /// * Yield/Return statements.
 /// * Inline assembly.
 /// * Usages of a field of a local where the type of the local can be partially moved.
+/// * Calls which would stop propagation from an enclosing `#[track_caller]` function.
 ///
 /// For example, given the following function:
 ///
@@ -755,6 +793,10 @@ pub fn can_move_expr_to_closure_no_visit<'tcx>(
     loop_ids: &[HirId],
     ignore_locals: &HirIdSet,
 ) -> bool {
+    if would_change_caller_location(cx, expr) {
+        return false;
+    }
+
     match expr.kind {
         ExprKind::Break(Destination { target_id: Ok(id), .. }, _)
         | ExprKind::Continue(Destination { target_id: Ok(id), .. })
