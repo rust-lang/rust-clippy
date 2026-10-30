@@ -2,6 +2,44 @@
 #![expect(clippy::needless_ifs, clippy::useless_vec)]
 #![allow(clippy::const_is_empty)]
 
+mod issue17933 {
+    use std::collections::BTreeMap;
+    use std::fmt::Debug;
+
+    trait ElementExists {
+        const ELEMENT: Self;
+    }
+
+    // T: Ord is implied by the requirements of BTreeMap
+    fn btreemap_normal<T: ElementExists + Ord, U: ElementExists>() {
+        let mut btreemap = BTreeMap::new();
+        drop(btreemap.insert(T::ELEMENT, U::ELEMENT));
+        assert!(btreemap.is_empty());
+        assert!(!btreemap.is_empty());
+    }
+
+    fn btreemap_eq<
+        T: ElementExists + Ord + Debug,       // T now needs Debug
+        U: ElementExists + PartialEq + Debug, // U now needs PartialEq and Debug
+    >() {
+        let mut btreemap = BTreeMap::new();
+        drop(btreemap.insert(T::ELEMENT, U::ELEMENT));
+        assert!(btreemap.is_empty());
+        //~^ assert_is_empty
+        assert!(!btreemap.is_empty());
+        //~^ assert_is_empty
+
+        let mut btm: BTreeMap<u8, u8> = BTreeMap::new();
+        let b = &&btm;
+        assert!(b.is_empty());
+        //~^ assert_is_empty
+
+        let b_mut = &&mut btm;
+        assert!(b_mut.is_empty());
+        //~^ assert_is_empty
+    }
+}
+
 fn main() {
     let vec = vec![1, 2, 3];
     assert!(vec.is_empty());
