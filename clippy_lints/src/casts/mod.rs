@@ -372,10 +372,19 @@ declare_clippy_lint! {
     /// Dereferencing the resulting pointer may be undefined behavior.
     ///
     /// ### Known problems
-    /// Using [`std::ptr::read_unaligned`](https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html) and [`std::ptr::write_unaligned`](https://doc.rust-lang.org/std/ptr/fn.write_unaligned.html) or
-    /// similar on the resulting pointer is fine. Is over-zealous: casts with
-    /// manual alignment checks or casts like `u64` -> `u8` -> `u16` can be
-    /// fine. Miri is able to do a more in-depth analysis.
+    /// A cast to a more-strictly-aligned pointer can still be fine:
+    ///
+    /// - Reading or writing through it with [`read_unaligned`](https://doc.rust-lang.org/std/ptr/fn.read_unaligned.html)
+    ///   or [`write_unaligned`](https://doc.rust-lang.org/std/ptr/fn.write_unaligned.html) or similar.
+    /// - A diverging [`is_aligned`](https://doc.rust-lang.org/std/primitive.pointer.html#method.is_aligned)
+    ///   guard in the same block as the cast, as long as the pointer is not used before the check
+    ///   or inside the guard's branch.
+    ///   Other alignment checks, such as checks in an `else` branch, a stored result, address arithmetic, or
+    ///   [`is_aligned_to`](https://doc.rust-lang.org/std/primitive.pointer.html#method.is_aligned_to),
+    ///   are not recognized.
+    /// - Cast chains like `u64` -> `u8` -> `u16`.
+    ///
+    /// Use Miri for a more in-depth analysis if in doubt.
     ///
     /// ### Example
     /// ```no_run
