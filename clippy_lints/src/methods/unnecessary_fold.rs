@@ -178,9 +178,9 @@ fn check_fold_with_op(
                         _ => None,
                     }
                 {
-                    let mut help_applicability = Applicability::Unspecified;
-                    let lhs = Sugg::hir_with_context(cx, left_expr, expr.span.ctxt(), "..", &mut help_applicability);
-                    let rhs = Sugg::hir_with_context(cx, right_expr, expr.span.ctxt(), "..", &mut help_applicability);
+                    applicability = Applicability::Unspecified;
+                    let lhs = Sugg::hir_with_context(cx, left_expr, expr.span.ctxt(), "..", &mut applicability);
+                    let rhs = Sugg::hir_with_context(cx, right_expr, expr.span.ctxt(), "..", &mut applicability);
                     let body = make_binop(op, &lhs, &rhs);
                     diag.help(format!(
                         "if the side effect is wanted, use \
