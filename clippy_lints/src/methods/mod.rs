@@ -5430,7 +5430,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
-            missing_return_type::check(cx, impl_item);
+            missing_return_type::check_impl_item(cx, impl_item, implements_trait);
         }
     }
 
@@ -5462,6 +5462,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_trait_item(cx, item);
+            missing_return_type::check_trait_item(cx, item);
         }
     }
 }
