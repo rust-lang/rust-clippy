@@ -4,7 +4,7 @@
 
 pub fn test_f() {
     unsafe { f() };
-    //~ call_missing_target_feature
+    //~^ call_missing_target_feature
 }
 
 pub(crate) fn test_g() {
@@ -22,11 +22,10 @@ unsafe fn test_h_unsafe() {
     //~^ ERROR: this call requires target features
 }
 
-// check if avx2 is available
+// calls behind a runtime feature check are conditional and should not lint
 fn test_runtime_guarded() {
     if is_x86_feature_detected!("avx2") {
         unsafe { f() };
-        //~^ ERROR: this call requires target features
     }
 }
 
