@@ -71,13 +71,12 @@ pub struct DisallowedMacros {
     // Needed to use the correct lint level.
     derive_src: Option<OwnerId>,
 
-    // When a macro is disallowed in an early pass, it's stored
-    // and emitted during the late pass. This happens for attributes.
-    early_macro_cache: AttrStorage,
+    // Spans of all attributes, collected in an early pass and checked in `check_crate_post`.
+    attr_spans: AttrStorage,
 }
 
 impl DisallowedMacros {
-    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf, early_macro_cache: AttrStorage) -> Self {
+    pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf, attr_spans: AttrStorage) -> Self {
         let (disallowed, _) = create_disallowed_map(
             tcx,
             &conf.disallowed_macros,
@@ -90,7 +89,7 @@ impl DisallowedMacros {
             disallowed,
             seen: FxHashSet::default(),
             derive_src: None,
-            early_macro_cache,
+            attr_spans,
         }
     }
 
@@ -127,10 +126,11 @@ impl DisallowedMacros {
 }
 
 impl LateLintPass<'_> for DisallowedMacros {
-    fn check_crate(&mut self, cx: &LateContext<'_>) {
-        // once we check a crate in the late pass we can emit the early pass lints
-        if let Some(attr_spans) = self.early_macro_cache.clone().0.get() {
-            for span in attr_spans {
+    fn check_crate_post(&mut self, cx: &LateContext<'_>) {
+        // Attributes are checked last, so that a macro whose expansion also contains other nodes is
+        // linted at those nodes, using their lint level. Only attribute-only expansions are linted here.
+        if let Some(spans) = self.attr_spans.clone().0.get() {
+            for span in spans {
                 self.check(cx, *span, None);
             }
         }
