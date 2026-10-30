@@ -7678,6 +7678,7 @@ Released 2018-09-13
 [`std_instead_of_alloc`]: https://clippy.rust-lang.org/main/index.html#std_instead_of_alloc
 [`std_instead_of_core`]: https://clippy.rust-lang.org/main/index.html#std_instead_of_core
 [`str_split_at_newline`]: https://clippy.rust-lang.org/main/index.html#str_split_at_newline
+[`str_split_whitespace`]: https://clippy.rust-lang.org/main/index.html#str_split_whitespace
 [`str_to_string`]: https://clippy.rust-lang.org/main/index.html#str_to_string
 [`string_add`]: https://clippy.rust-lang.org/main/index.html#string_add
 [`string_add_assign`]: https://clippy.rust-lang.org/main/index.html#string_add_assign
