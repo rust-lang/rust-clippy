@@ -2,6 +2,41 @@
 #![expect(clippy::needless_ifs, clippy::useless_vec)]
 #![allow(clippy::const_is_empty)]
 
+mod issue17934 {
+    use std::collections::BTreeSet;
+    use std::fmt::Debug;
+
+    trait ElementExists {
+        const ELEMENT: Self;
+    }
+
+    // T: Ord is implied by the requirements of BTreeSet
+    fn btreeset_normal<T: ElementExists + Ord>() {
+        let mut btreeset = BTreeSet::new();
+        let _: bool = btreeset.insert(T::ELEMENT);
+        assert!(btreeset.is_empty());
+        assert!(!btreeset.is_empty());
+    }
+
+    fn btreeset_eq<T: ElementExists + Ord + Debug>() {
+        let mut btreeset = BTreeSet::new();
+        let _: bool = btreeset.insert(T::ELEMENT);
+        assert!(btreeset.is_empty());
+        //~^ assert_is_empty
+        assert!(!btreeset.is_empty());
+        //~^ assert_is_empty
+
+        let mut bts: BTreeSet<u8> = BTreeSet::new();
+        let b = &&bts;
+        assert!(b.is_empty());
+        //~^ assert_is_empty
+
+        let b_mut = &&mut bts;
+        assert!(b_mut.is_empty());
+        //~^ assert_is_empty
+    }
+}
+
 fn main() {
     let vec = vec![1, 2, 3];
     assert!(vec.is_empty());
