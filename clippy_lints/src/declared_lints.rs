@@ -322,6 +322,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::manual_is_ascii_check::MANUAL_IS_ASCII_CHECK_INFO,
     crate::manual_is_power_of_two::MANUAL_IS_POWER_OF_TWO_INFO,
     crate::manual_let_else::MANUAL_LET_ELSE_INFO,
+    crate::manual_lowest_one::MANUAL_LOWEST_ONE_INFO,
     crate::manual_main_separator_str::MANUAL_MAIN_SEPARATOR_STR_INFO,
     crate::manual_non_exhaustive::MANUAL_NON_EXHAUSTIVE_INFO,
     crate::manual_noop_waker::MANUAL_NOOP_WAKER_INFO,

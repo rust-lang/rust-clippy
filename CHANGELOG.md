@@ -7332,6 +7332,7 @@ Released 2018-09-13
 [`manual_is_variant_and`]: https://clippy.rust-lang.org/main/index.html#manual_is_variant_and
 [`manual_isolate_lowest_one`]: https://clippy.rust-lang.org/main/index.html#manual_isolate_lowest_one
 [`manual_let_else`]: https://clippy.rust-lang.org/main/index.html#manual_let_else
+[`manual_lowest_one`]: https://clippy.rust-lang.org/main/index.html#manual_lowest_one
 [`manual_main_separator_str`]: https://clippy.rust-lang.org/main/index.html#manual_main_separator_str
 [`manual_map`]: https://clippy.rust-lang.org/main/index.html#manual_map
 [`manual_memcpy`]: https://clippy.rust-lang.org/main/index.html#manual_memcpy
