@@ -1,4 +1,4 @@
-error: useless use of `vec!`
+error: use of `vec!` when an allocation is not necessary
   --> tests/ui-toml/too_large_for_stack/useless_vec.rs:4:13
    |
 LL |     let x = vec![0u8; 500];

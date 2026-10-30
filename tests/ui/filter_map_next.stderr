@@ -15,7 +15,7 @@ LL +     let element: Option<i32> = a.iter().find_map(|s| s.parse().ok());
 error: called `filter_map(..).next()` on an `Iterator`
   --> tests/ui/filter_map_next.rs:11:26
    |
-LL |       let _: Option<u32> = vec![1, 2, 3, 4, 5, 6]
+LL |       let _: Option<u32> = [1, 2, 3, 4, 5, 6]
    |  __________________________^
 ...  |
 LL | |         })
@@ -24,7 +24,7 @@ LL | |         .next();
    |
 help: use `.find_map(..)` instead
    |
-LL ~     let _: Option<u32> = vec![1, 2, 3, 4, 5, 6]
+LL ~     let _: Option<u32> = [1, 2, 3, 4, 5, 6]
 LL +
 LL + 
 LL + 

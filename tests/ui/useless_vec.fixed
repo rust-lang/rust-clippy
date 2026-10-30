@@ -170,6 +170,8 @@ fn issue11075() {
     for _ in from_macro_repeat!() {}
 }
 
+// above() and below() test cases where the lint must be conditional on MSRV.
+// 1.53 is when arrays started implementing `IntoIterator`.
 #[clippy::msrv = "1.53"]
 fn above() {
     for a in [1, 2, 3] {
@@ -181,6 +183,16 @@ fn above() {
         //~^ useless_vec
         let _: String = a;
     }
+
+    [1, 2, 3]
+        //~^ useless_vec
+        .into_iter()
+        .for_each(|_| {});
+
+    <()>::from_iter(
+        [(), ()],
+        //~^ useless_vec
+    );
 }
 
 #[clippy::msrv = "1.52"]
@@ -192,6 +204,10 @@ fn below() {
     for a in vec![String::new(), String::new()] {
         let _: String = a;
     }
+
+    vec![1, 2, 3].into_iter().for_each(|_| {});
+
+    <()>::from_iter(vec![(), ()]);
 }
 
 fn func_needing_vec(_bar: usize, _baz: Vec<usize>) {}

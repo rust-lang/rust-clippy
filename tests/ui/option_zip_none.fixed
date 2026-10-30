@@ -41,7 +41,7 @@ fn main() {
 
     let _ = opt.zip(Some(42));
 
-    let iter = vec![1, 2, 3].into_iter();
+    let iter = [1, 2, 3].into_iter();
     let _ = iter.zip(std::iter::empty::<i32>());
 
     let standard_opt = Some(1);
