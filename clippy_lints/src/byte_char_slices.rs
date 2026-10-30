@@ -62,6 +62,11 @@ impl<'tcx> LateLintPass<'tcx> for ByteCharSlice {
                     });
                     if !has_ref && !cx.typeck_results().expr_ty_adjusted(expr).is_array_slice() {
                         sugg = sugg.deref();
+                        if is_mut_borrowed(cx, expr) {
+                            // A byte string literal is immutable, so a mutable borrow has to
+                            // point at a copy of it: `&mut { *b"ab" }`.
+                            sugg = sugg.blockify();
+                        }
                     }
 
                     diag.span_suggestion(expr.span, "try", sugg, app);
@@ -69,6 +74,12 @@ impl<'tcx> LateLintPass<'tcx> for ByteCharSlice {
             );
         }
     }
+}
+
+/// Checks whether `expr` is the operand of a mutable borrow.
+fn is_mut_borrowed<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) -> bool {
+    get_parent_expr(cx, expr)
+        .is_some_and(|parent| matches!(parent.kind, ExprKind::AddrOf(BorrowKind::Ref, Mutability::Mut, _)))
 }
 
 /// Checks whether the slice is that of byte chars, and if so, builds a byte-string out of it
