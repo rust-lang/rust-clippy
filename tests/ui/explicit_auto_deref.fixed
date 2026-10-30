@@ -428,3 +428,13 @@ mod issue_9841 {
         todo!()
     }
 }
+
+mod issue_17713 {
+    fn ref_never(input: &!) -> &u32 {
+        *input
+    }
+
+    fn mut_ref_never(input: &mut !) -> &mut u32 {
+        *input
+    }
+}
