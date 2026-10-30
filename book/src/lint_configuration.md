@@ -972,6 +972,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`manual_is_variant_and`](https://clippy.rust-lang.org/main/index.html#manual_is_variant_and)
 * [`manual_isolate_lowest_one`](https://clippy.rust-lang.org/main/index.html#manual_isolate_lowest_one)
 * [`manual_let_else`](https://clippy.rust-lang.org/main/index.html#manual_let_else)
+* [`manual_lowest_one`](https://clippy.rust-lang.org/main/index.html#manual_lowest_one)
 * [`manual_midpoint`](https://clippy.rust-lang.org/main/index.html#manual_midpoint)
 * [`manual_non_exhaustive`](https://clippy.rust-lang.org/main/index.html#manual_non_exhaustive)
 * [`manual_noop_waker`](https://clippy.rust-lang.org/main/index.html#manual_noop_waker)

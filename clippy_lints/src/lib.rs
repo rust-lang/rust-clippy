@@ -213,6 +213,7 @@ mod manual_ilog2;
 mod manual_is_ascii_check;
 mod manual_is_power_of_two;
 mod manual_let_else;
+mod manual_lowest_one;
 mod manual_main_separator_str;
 mod manual_non_exhaustive;
 mod manual_noop_waker;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
+        ManualLowestOne: manual_lowest_one::ManualLowestOne = manual_lowest_one::ManualLowestOne::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

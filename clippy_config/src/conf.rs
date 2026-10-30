@@ -697,6 +697,7 @@ define_Conf! {
         manual_is_variant_and,
         manual_isolate_lowest_one,
         manual_let_else,
+        manual_lowest_one,
         manual_midpoint,
         manual_non_exhaustive,
         manual_noop_waker,

@@ -1,0 +1,141 @@
+#![warn(clippy::manual_lowest_one)]
+#![allow(clippy::if_same_then_else)]
+
+fn main() {
+    let x_u32: u32 = 5;
+    let _ = x_u32.lowest_one();
+    //~^ manual_lowest_one
+
+    let _ = x_u32.lowest_one();
+    //~^ manual_lowest_one
+
+    let _ = x_u32.lowest_one();
+    //~^ manual_lowest_one
+
+    let _ = x_u32.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_i32: i32 = 5;
+    let _ = x_i32.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_u64: u64 = 5;
+    let _ = x_u64.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_i64: i64 = 5;
+    let _ = x_i64.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_u16: u16 = 5;
+    let _ = x_u16.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_i16: i16 = 5;
+    let _ = x_i16.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_u8: u8 = 5;
+    let _ = x_u8.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_i8: i8 = 5;
+    let _ = x_i8.lowest_one();
+    //~^ manual_lowest_one
+
+    let x_usize: usize = 5;
+    let _ = x_usize.lowest_one();
+
+    let x_isize: isize = 5;
+    let _ = x_isize.lowest_one();
+
+    let x_u128: u128 = 5;
+    let _ = x_u128.lowest_one();
+
+    let x_i128: i128 = 5;
+    let _ = x_i128.lowest_one();
+
+    let a: u32 = 2;
+    let b: u32 = 3;
+    let _ = (a + b).lowest_one();
+
+    // Negative tests:
+
+    // Method-call receiver should not trigger (exercises deny_side_effects)
+    struct S;
+    impl S {
+        fn get(&self) -> u32 {
+            5
+        }
+    }
+    let s = S;
+    let _ = if s.get() == 0 {
+        None
+    } else {
+        Some(s.get().trailing_zeros())
+    };
+
+    // Wrong branch order should not trigger
+    let _ = if x_u32 == 0 { Some(x_u32.trailing_zeros()) } else { None };
+
+    // Different method should not trigger
+    let _ = if x_u32 == 0 { None } else { Some(x_u32.leading_zeros()) };
+
+    // Relational condition should not trigger
+    let _ = if x_u32 > 0 { Some(x_u32.trailing_zeros()) } else { None };
+
+    // Different variables should not trigger
+    let y_u32: u32 = 6;
+    let _ = if x_u32 == 0 { None } else { Some(y_u32.trailing_zeros()) };
+
+    // Side effects should not trigger
+    let _ = if next_u32() == 0 {
+        None
+    } else {
+        Some(next_u32().trailing_zeros())
+    };
+
+    // Constant non-zero check should not trigger
+    let _ = if x_u32 == 1 { None } else { Some(x_u32.trailing_zeros()) };
+
+    // Multiple statements in branch should not trigger
+    let _ = if x_u32 == 0 {
+        None
+    } else {
+        println!("not zero");
+        Some(x_u32.trailing_zeros())
+    };
+
+    // Chained else if branches require block restructuring
+    let cond = true;
+    let _ = if cond {
+        None
+    } else if x_u32 == 0 {
+        None
+    } else {
+        Some(x_u32.trailing_zeros())
+    };
+
+    // Do not lint expansions originating from macros
+    macro_rules! manual_lowest_one_from_macro {
+        ($v:expr) => {
+            if $v == 0 { None } else { Some($v.trailing_zeros()) }
+        };
+    }
+    let _ = manual_lowest_one_from_macro!(x_u32);
+}
+
+#[clippy::msrv = "1.96"]
+fn older_msrv(x: u32) {
+    let _ = if x == 0 { None } else { Some(x.trailing_zeros()) };
+}
+
+#[clippy::msrv = "1.97"]
+fn meets_msrv(x: u32) {
+    let _ = x.lowest_one();
+    //~^ manual_lowest_one
+}
+
+fn next_u32() -> u32 {
+    5
+}
