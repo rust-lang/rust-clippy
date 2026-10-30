@@ -32,5 +32,29 @@ LL |     fn as_explicit_unit(&self) -> () {}
    |
    = help: rename the method or return a type
 
-error: aborting due to 4 previous errors
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:35:23
+   |
+LL |     fn as_trait(&self) {}
+   |                       ^
+   |
+   = help: rename the method or return a type
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:38:23
+   |
+LL |     fn to_trait(&self) {}
+   |                       ^
+   |
+   = help: rename the method or return a type
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:41:24
+   |
+LL |     fn into_trait(self) {}
+   |                        ^
+   |
+   = help: rename the method or return a type
+
+error: aborting due to 7 previous errors
 

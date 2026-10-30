@@ -30,3 +30,24 @@ impl Converter {
         Self
     }
 }
+
+trait ConverterTrait: Sized {
+    fn as_trait(&self) {}
+    //~^ missing_return_type
+
+    fn to_trait(&self) {}
+    //~^ missing_return_type
+
+    fn into_trait(self) {}
+    //~^ missing_return_type
+}
+
+struct ConverterImpl;
+
+impl ConverterTrait for ConverterImpl {
+    fn as_trait(&self) {}
+
+    fn to_trait(&self) {}
+
+    fn into_trait(self) {}
+}
