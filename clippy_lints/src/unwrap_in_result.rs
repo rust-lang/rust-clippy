@@ -86,9 +86,11 @@ pub struct UnwrapInResult {
 impl UnwrapInResult {
     fn enter_item(&mut self, cx: &LateContext<'_>, fn_def_id: OwnerId, sig: &FnSig<'_>) {
         self.fn_stack.push(self.current_fn.take());
-        self.current_fn = is_option_or_result(cx, return_ty(cx, fn_def_id)).map(|kind| OptionOrResultFn {
-            kind,
-            return_ty_span: Some(sig.decl.output.span()),
+        self.current_fn = return_ty(cx, fn_def_id).and_then(|ret_ty| {
+            is_option_or_result(cx, ret_ty).map(|kind| OptionOrResultFn {
+                kind,
+                return_ty_span: Some(sig.decl.output.span()),
+            })
         });
     }
 
