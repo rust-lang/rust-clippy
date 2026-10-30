@@ -7413,6 +7413,7 @@ Released 2018-09-13
 [`missing_fields_in_debug`]: https://clippy.rust-lang.org/main/index.html#missing_fields_in_debug
 [`missing_inline_in_public_items`]: https://clippy.rust-lang.org/main/index.html#missing_inline_in_public_items
 [`missing_panics_doc`]: https://clippy.rust-lang.org/main/index.html#missing_panics_doc
+[`missing_return_type`]: https://clippy.rust-lang.org/main/index.html#missing_return_type
 [`missing_safety_doc`]: https://clippy.rust-lang.org/main/index.html#missing_safety_doc
 [`missing_spin_loop`]: https://clippy.rust-lang.org/main/index.html#missing_spin_loop
 [`missing_trait_methods`]: https://clippy.rust-lang.org/main/index.html#missing_trait_methods

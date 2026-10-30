@@ -1,0 +1,60 @@
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:8:22
+   |
+LL |     fn as_type(&self) {}
+   |                      ^
+   |
+   = help: rename the method or return a type
+   = note: `-D clippy::missing-return-type` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_return_type)]`
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:11:22
+   |
+LL |     fn to_type(&self) {}
+   |                      ^
+   |
+   = help: rename the method or return a type
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:14:23
+   |
+LL |     fn into_type(self) {}
+   |                       ^
+   |
+   = help: rename the method or return a type
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:18:35
+   |
+LL |     fn as_explicit_unit(&self) -> () {}
+   |                                   ^^
+   |
+   = help: rename the method or return a type
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:35:23
+   |
+LL |     fn as_trait(&self) {}
+   |                       ^
+   |
+   = help: rename the method or return a type
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:38:23
+   |
+LL |     fn to_trait(&self) {}
+   |                       ^
+   |
+   = help: rename the method or return a type
+
+error: conversion does not return with any type
+  --> tests/ui/missing_return_type.rs:41:24
+   |
+LL |     fn into_trait(self) {}
+   |                        ^
+   |
+   = help: rename the method or return a type
+
+error: aborting due to 7 previous errors
+
