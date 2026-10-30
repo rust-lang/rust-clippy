@@ -2,16 +2,19 @@ use super::implicit_clone::is_clone_like;
 use super::unnecessary_iter_cloned::{self, is_into_iter};
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::msrvs::{self, Msrv};
-use clippy_utils::res::MaybeDef as _;
+use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::{SpanExt as _, snippet, snippet_with_context};
 use clippy_utils::ty::{get_iterator_item_ty, implements_trait, is_copy, peel_and_count_ty_refs};
-use clippy_utils::visitors::find_all_ret_expressions;
-use clippy_utils::{fn_def_id, get_parent_expr, is_expr_temporary_value, return_ty, sym};
+use clippy_utils::visitors::{find_all_ret_expressions, for_each_expr};
+use clippy_utils::{
+    find_binding_init, fn_def_id, get_parent_expr, is_expr_temporary_value, path_to_local_with_projections, return_ty,
+    sym,
+};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
-use rustc_hir::{BorrowKind, Expr, ExprKind, ItemKind, Node};
+use rustc_hir::{BorrowKind, Expr, ExprKind, HirId, ItemKind, Node};
 use rustc_infer::infer::TyCtxtInferExt as _;
 use rustc_lint::LateContext;
 use rustc_middle::mir::Mutability;
@@ -22,6 +25,7 @@ use rustc_middle::ty::{
 use rustc_span::Symbol;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
 use rustc_trait_selection::traits::{Obligation, ObligationCause};
+use std::ops::ControlFlow;
 
 use super::UNNECESSARY_TO_OWNED;
 
@@ -65,12 +69,12 @@ pub fn check<'tcx>(
 /// Checks whether `expr` is a referent in an `AddrOf` expression and, if so, determines whether its
 /// call of a `to_owned`-like function is unnecessary.
 #[expect(clippy::too_many_lines)]
-fn check_addr_of_expr(
-    cx: &LateContext<'_>,
+fn check_addr_of_expr<'tcx>(
+    cx: &LateContext<'tcx>,
     expr: &Expr<'_>,
     method_name: Symbol,
     method_parent_id: DefId,
-    receiver: &Expr<'_>,
+    receiver: &'tcx Expr<'tcx>,
 ) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr)
         && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, _) = parent.kind
@@ -134,6 +138,13 @@ fn check_addr_of_expr(
             || is_cow_into_owned(cx, method_name, method_parent_id))
     {
         let mut applicability = Applicability::MachineApplicable;
+
+        if has_lifetime(cx.typeck_results().expr_ty(receiver))
+            && get_parent_expr(cx, parent).is_some_and(|call| borrow_conflicts_with_mut_arg(cx, call, receiver))
+        {
+            applicability = Applicability::MaybeIncorrect;
+        }
+
         let (receiver_snippet, _) = snippet_with_context(cx, receiver.span, expr.span.ctxt(), "..", &mut applicability);
 
         if receiver_ty == target_ty && n_target_refs >= n_receiver_refs {
@@ -444,6 +455,50 @@ fn skip_addr_of_ancestors<'tcx>(
         }
     }
     None
+}
+
+/// Checks if `call` has a `&mut` argument that borrows a local which `receiver` is derived from.
+/// Removing `to_owned` there keeps the borrow alive and can cause a borrow error.
+fn borrow_conflicts_with_mut_arg<'tcx>(
+    cx: &LateContext<'tcx>,
+    call: &'tcx Expr<'tcx>,
+    receiver: &'tcx Expr<'tcx>,
+) -> bool {
+    let Some((_, _, recv, args)) = get_callee_generic_args_and_args(cx, call) else {
+        return false;
+    };
+
+    recv.into_iter().chain(args).any(|arg| {
+        matches!(
+            cx.typeck_results().expr_ty_adjusted(arg).kind(),
+            ty::Ref(_, _, Mutability::Mut)
+        ) && {
+            let place = if let ExprKind::AddrOf(_, Mutability::Mut, inner) = arg.kind {
+                inner
+            } else {
+                arg
+            };
+            path_to_local_with_projections(place).is_none_or(|local| derives_from_local(cx, receiver, local))
+        }
+    })
+}
+
+/// Checks if `expr` is derived from the `local`, directly or by following the initializers of the
+/// locals it uses (e.g. `let a = s.as_str(); let b = a;`).
+fn derives_from_local<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, local: HirId) -> bool {
+    for_each_expr(cx.tcx, expr, |e| match e.res_local_id() {
+        Some(id) if id == local => ControlFlow::Break(()),
+        Some(id) => match find_binding_init(cx, id) {
+            Some(init) if derives_from_local(cx, init, local) => ControlFlow::Break(()),
+            Some(_) => ControlFlow::Continue(()),
+
+            // Parameters cannot borrow from body locals and unknown binding count as a conflict
+            None if matches!(cx.tcx.parent_hir_node(id), Node::Param(_)) => ControlFlow::Continue(()),
+            None => ControlFlow::Break(()),
+        },
+        None => ControlFlow::Continue(()),
+    })
+    .is_some()
 }
 
 /// Checks whether an expression is a function or method call and, if so, returns its `DefId`,
