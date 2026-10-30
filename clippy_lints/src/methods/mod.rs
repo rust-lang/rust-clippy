@@ -54,6 +54,7 @@ mod iter_out_of_bounds;
 mod iter_overeager_cloned;
 mod iter_skip_next;
 mod iter_skip_zero;
+mod iter_unzip;
 mod iter_with_drain;
 mod iterator_step_by_zero;
 mod join_absolute_paths;
@@ -1687,6 +1688,33 @@ declare_clippy_lint! {
     pub ITER_SKIP_ZERO,
     correctness,
     "disallows `.skip(0)`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for usage of `Iterator::unzip`, as these can be replaced with `collect`.
+    ///
+    /// ### Why is this bad?
+    /// Since 1.79 `collect` has been able to perform the same transformation as `unzip`
+    /// while supporting even more types, such as collecting into tuples with more
+    /// than 2 elements.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// let (odds, evens) = vec![(1, 2), (3, 4)]
+    ///     .into_iter()
+    ///     .unzip::<_, _, Vec<_>, Vec<_>>();
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let (odds, evens) = vec![(1, 2), (3, 4)]
+    ///     .into_iter()
+    ///     .collect::<(Vec<_>, Vec<_>)>();
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub ITER_UNZIP,
+    nursery,
+    "Check for usage of `Iterator::unzip`"
 }
 
 declare_clippy_lint! {
@@ -5136,6 +5164,7 @@ impl_lint_pass!(Methods => [
     ITER_OVEREAGER_CLONED,
     ITER_SKIP_NEXT,
     ITER_SKIP_ZERO,
+    ITER_UNZIP,
     ITER_WITH_DRAIN,
     JOIN_ABSOLUTE_PATHS,
     LINES_FILTER_MAP_OK,
@@ -6085,6 +6114,9 @@ impl Methods {
                     {
                         range_zip_with_len::check(cx, expr, iter_recv, arg);
                     }
+                },
+                (sym::unzip, []) => {
+                    iter_unzip::check(cx, self.msrv, expr, span);
                 },
                 _ => {},
             }
