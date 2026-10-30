@@ -93,7 +93,7 @@ impl LateLintPass<'_> for DbgMacro {
                             ExprKind::Match(val, ..) => (
                                 macro_call.span,
                                 snippet_with_applicability(cx, val.span.source_callsite(), "..", &mut applicability)
-                                    .to_string(),
+                                    .into_owned(),
                             ),
                             // dbg!(2, 3)
                             ExprKind::Tup(
