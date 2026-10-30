@@ -21,4 +21,12 @@ impl Converter {
     fn as_dont_fire(&self) -> Self {
         Self
     }
+
+    fn to_dont_fire(&self) -> Self {
+        Self
+    }
+
+    fn into_dont_fire(self) -> Self {
+        Self
+    }
 }
