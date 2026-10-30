@@ -85,6 +85,7 @@ mod borrow_deref_ref;
 mod box_default;
 mod bufreader_stdin;
 mod byte_char_slices;
+mod call_missing_target_feature;
 mod cargo;
 mod casts;
 mod cfg_not_test;
@@ -696,6 +697,7 @@ rustc_lint::late_lint_methods!(
         FloatingPointArithmetic: floating_point_arithmetic::FloatingPointArithmetic = floating_point_arithmetic::FloatingPointArithmetic::new(conf),
         AsConversions: as_conversions::AsConversions = as_conversions::AsConversions,
         LetUnderscore: let_underscore::LetUnderscore = let_underscore::LetUnderscore,
+        CallMissingTargetFeature: call_missing_target_feature::CallMissingTargetFeature = call_missing_target_feature::CallMissingTargetFeature,
         ExcessiveBools: excessive_bools::ExcessiveBools = excessive_bools::ExcessiveBools::new(conf),
         WildcardImports: wildcard_imports::WildcardImports = wildcard_imports::WildcardImports::new(conf),
         RedundantPubCrate: redundant_pub_crate::RedundantPubCrate = <redundant_pub_crate::RedundantPubCrate>::default(),
