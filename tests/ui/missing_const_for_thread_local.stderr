@@ -37,5 +37,17 @@ error: initializer for `thread_local` value can be made `const`
 LL |         static PEEL_ME_MANY: i32 = { let x = 1; x * x };
    |                                    ^^^^^^^^^^^^^^^^^^^^ help: replace with: `const { { let x = 1; x * x } }`
 
-error: aborting due to 6 previous errors
+error: initializer for `thread_local` value can be made `const`
+  --> tests/ui/missing_const_for_thread_local.rs:81:36
+   |
+LL |         static WRAPPED: Cell<u8> = { const { Cell::new(0) } };
+   |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `const { const { Cell::new(0) } }`
+
+error: initializer for `thread_local` value can be made `const`
+  --> tests/ui/missing_const_for_thread_local.rs:83:42
+   |
+LL |         static PARENTHESIZED: Cell<u8> = (const { Cell::new(0) });
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `const { (const { Cell::new(0) }) }`
+
+error: aborting due to 8 previous errors
 
