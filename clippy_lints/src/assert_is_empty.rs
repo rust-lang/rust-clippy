@@ -222,19 +222,33 @@ fn suggestion_for_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'
 
 /// Returns the empty value for receivers that compare directly after peeling references.
 ///
-/// `String` and `str` compare against `""`. Slices compare against `[]`. `Vec<T>` compares
-/// against `[] as [T; 0]` so the empty value carries the element type. Returns `None` for other
-/// receiver types.
+/// `String` and `str` compare against `""`. Slices and `Vec<T>` with primitive element
+/// types compare against `[]`. For non-primitive element types, `[] as [T; 0]` is used
+/// so the empty value carries explicit type information to avoid type inference issues.
+/// Returns `None` for other receiver types.
 fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'static str, String)> {
     if ty.is_str() || ty.is_lang_item(cx, LangItem::String) {
-        Some(("", "\"\"".to_string()))
-    } else if matches!(ty.kind(), ty::Slice(..)) {
-        Some(("", "[]".to_string()))
-    } else if ty.is_diag_item(cx, sym::Vec) {
-        Some(("", format!("[] as [{}; 0]", element_type(cx, ty)?)))
-    } else {
-        None
+        return Some(("", "\"\"".to_string()));
     }
+
+    let elem_ty = match ty.kind() {
+        ty::Slice(elem_ty) => *elem_ty,
+        _ if ty.is_diag_item(cx, sym::Vec) => element_type(cx, ty)?,
+        _ => return None,
+    };
+
+    let is_primitive = matches!(
+        elem_ty.kind(),
+        ty::Int(_) | ty::Uint(_) | ty::Float(_) | ty::Bool | ty::Char
+    );
+
+    let expr = if is_primitive {
+        "[]".to_string()
+    } else {
+        format!("[] as [{elem_ty}; 0]")
+    };
+
+    Some(("", expr))
 }
 
 /// Returns whether the replacement assertion has useful failure output.
