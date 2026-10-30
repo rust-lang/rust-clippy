@@ -206,6 +206,7 @@ mod manual_async_fn;
 mod manual_bits;
 mod manual_checked_ops;
 mod manual_clamp;
+mod manual_env_var;
 mod manual_float_methods;
 mod manual_hash_one;
 mod manual_ignore_case_cmp;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
+        ManualEnvVar: manual_env_var::ManualEnvVar = manual_env_var::ManualEnvVar::default(),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
