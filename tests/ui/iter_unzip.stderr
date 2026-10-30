@@ -1,0 +1,29 @@
+error: use of `Iterator::unzip`
+  --> tests/ui/iter_unzip.rs:10:80
+   |
+LL |     let (odds, evens): (Vec<i32>, Vec<i32>) = vec![(1, 2), (3, 4)].into_iter().unzip();
+   |                                                                                ^^^^^ help: try: `collect`
+   |
+   = note: `-D clippy::iter-unzip` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::iter_unzip)]`
+
+error: use of `Iterator::unzip`
+  --> tests/ui/iter_unzip.rs:13:58
+   |
+LL |     let (odds, evens) = vec![(1, 2), (3, 4)].into_iter().unzip::<_, _, Vec<i32>, Vec<i32>>();
+   |                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `collect::<(Vec<i32>, Vec<i32>)>`
+
+error: use of `Iterator::unzip`
+  --> tests/ui/iter_unzip.rs:16:58
+   |
+LL |     let (odds, evens) = vec![(1, 2), (3, 4)].into_iter().unzip::<i32, i32, Vec<_>, Vec<_>>();
+   |                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `collect::<(Vec<_>, Vec<_>)>`
+
+error: use of `Iterator::unzip`
+  --> tests/ui/iter_unzip.rs:19:80
+   |
+LL |     let (odds, evens): (Vec<i32>, Vec<i32>) = vec![(1, 2), (3, 4)].into_iter().unzip::<_, _, _, _>();
+   |                                                                                ^^^^^^^^^^^^^^^^^^^ help: try: `collect::<(_, _)>`
+
+error: aborting due to 4 previous errors
+
