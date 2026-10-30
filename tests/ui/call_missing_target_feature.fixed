@@ -5,7 +5,7 @@
 #[target_feature(enable = "avx2")]
 pub unsafe fn test_f() {
     unsafe { f() };
-    //~^ ERROR: this call requires target features
+    //~^ call_missing_target_feature
 }
 
 #[target_feature(enable = "avx2,pclmulqdq")]
@@ -26,12 +26,10 @@ unsafe fn test_h_unsafe() {
     //~^ ERROR: this call requires target features
 }
 
-// check if avx2 is available
-#[target_feature(enable = "avx2")]
-unsafe fn test_runtime_guarded() {
+// calls behind a runtime feature check are conditional and should not lint
+fn test_runtime_guarded() {
     if is_x86_feature_detected!("avx2") {
         unsafe { f() };
-        //~^ ERROR: this call requires target features
     }
 }
 
