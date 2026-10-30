@@ -48,17 +48,5 @@ LL + #[target_feature(enable = "avx2,pclmulqdq")]
 LL | unsafe fn test_h_unsafe() {
    |
 
-error: this call requires target features that the surrounding function does not enable
-  --> tests/ui/call_missing_target_feature.rs:28:18
-   |
-LL |         unsafe { f() };
-   |                  ^^^ this function call requires target features to be enabled
-   |
-help: add the missing target features to the surrounding function
-   |
-LL + #[target_feature(enable = "avx2")]
-LL ~ unsafe fn test_runtime_guarded() {
-   |
-
-error: aborting due to 5 previous errors
+error: aborting due to 4 previous errors
 
