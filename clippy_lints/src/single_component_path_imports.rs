@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::{span_lint_and_help, span_lint_and_sugg};
 use rustc_ast::node_id::{NodeId, NodeMap};
-use rustc_ast::visit::{Visitor, walk_expr};
-use rustc_ast::{Crate, Expr, ExprKind, Item, ItemKind, MacroDef, ModKind, Ty, TyKind, UseTreeKind};
+use rustc_ast::visit::{Visitor, walk_item, walk_path, walk_use_tree};
+use rustc_ast::{Crate, Item, ItemKind, MacroDef, ModKind, Path, UseTree, UseTreeKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
 use rustc_span::edition::Edition;
@@ -57,7 +57,7 @@ impl EarlyLintPass for SingleComponentPathImports {
             return;
         }
 
-        self.check_mod(&krate.items);
+        self.check_mod(&krate.items, true);
     }
 
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
@@ -86,10 +86,10 @@ impl EarlyLintPass for SingleComponentPathImports {
     }
 }
 
-#[derive(Default)]
 struct ImportUsageVisitor {
-    // keep track of imports reused with `self` keyword, such as `self::std` in the example below.
-    // Removing the `use std;` would make this a compile error (#10549)
+    // keep track of imports reused with `self`/`crate`/`super`, such as `self::std`
+    // or `crate::log` in nested modules. Removing the `use` would be a compile error
+    // (#10549, #7168)
     // ```
     // use std;
     //
@@ -98,31 +98,99 @@ struct ImportUsageVisitor {
     // }
     // ```
     imports_referenced_with_self: Vec<Symbol>,
+    // how deep we are under the module currently being checked
+    nested_depth: usize,
+    is_crate_root: bool,
+}
+
+fn is_path_root_keyword(name: Symbol) -> bool {
+    name == kw::SelfLower || name == kw::Crate || name == kw::Super
+}
+
+fn leading_root_keyword_count(segments: &[rustc_ast::PathSegment]) -> usize {
+    segments
+        .iter()
+        .take_while(|seg| is_path_root_keyword(seg.ident.name))
+        .count()
+}
+
+impl ImportUsageVisitor {
+    fn new(is_crate_root: bool) -> Self {
+        Self {
+            imports_referenced_with_self: Vec::new(),
+            nested_depth: 0,
+            is_crate_root,
+        }
+    }
+
+    // does this path refer to an import in the module we're checking?
+    fn refers_to_checked_module(&self, segments: &[rustc_ast::PathSegment]) -> bool {
+        if segments.is_empty() || !is_path_root_keyword(segments[0].ident.name) {
+            return false;
+        }
+
+        let kw_count = leading_root_keyword_count(segments);
+        let first = segments[0].ident.name;
+
+        if first == kw::Crate {
+            self.is_crate_root
+        } else if first == kw::SelfLower {
+            self.nested_depth == 0 && kw_count == 1
+        } else {
+            // `super::` repeated `nested_depth` times points at the checked module
+            first == kw::Super && kw_count == self.nested_depth && self.nested_depth > 0
+        }
+    }
+
+    fn record_from_path(&mut self, path: &Path) {
+        let segments = &path.segments;
+        if !self.refers_to_checked_module(segments) {
+            return;
+        }
+        let kw_count = leading_root_keyword_count(segments);
+        if let Some(seg) = segments.get(kw_count) {
+            self.imports_referenced_with_self.push(seg.ident.name);
+        }
+    }
 }
 
 impl Visitor<'_> for ImportUsageVisitor {
-    fn visit_expr(&mut self, expr: &Expr) {
-        if let ExprKind::Path(_, path) = &expr.kind
-            && path.segments.len() > 1
-            && path.segments[0].ident.name == kw::SelfLower
-        {
-            self.imports_referenced_with_self.push(path.segments[1].ident.name);
+    fn visit_item(&mut self, item: &Item) {
+        if matches!(item.kind, ItemKind::Mod(_, _, ModKind::Loaded(..))) {
+            self.nested_depth += 1;
+            walk_item(self, item);
+            self.nested_depth -= 1;
+        } else {
+            walk_item(self, item);
         }
-        walk_expr(self, expr);
     }
 
-    fn visit_ty(&mut self, ty: &Ty) {
-        if let TyKind::Path(_, path) = &ty.kind
-            && path.segments.len() > 1
-            && path.segments[0].ident.name == kw::SelfLower
+    fn visit_path(&mut self, path: &Path) {
+        self.record_from_path(path);
+        walk_path(self, path);
+    }
+
+    fn visit_use_tree(&mut self, use_tree: &UseTree) {
+        // `use crate::{foo::bar, ...}`: name is in the nested tree, not the prefix
+        let segments = &use_tree.prefix.segments;
+        let kw_count = leading_root_keyword_count(segments);
+        if kw_count > 0
+            && segments.len() == kw_count
+            && self.refers_to_checked_module(segments)
+            && let UseTreeKind::Nested { items, .. } = &use_tree.kind
         {
-            self.imports_referenced_with_self.push(path.segments[1].ident.name);
+            for tree in items {
+                if let Some(seg) = tree.inner.prefix.segments.first() {
+                    self.imports_referenced_with_self.push(seg.ident.name);
+                }
+            }
         }
+        walk_use_tree(self, use_tree);
     }
 }
 
 impl SingleComponentPathImports {
-    fn check_mod(&mut self, items: &[Box<Item>]) {
+    fn check_mod(&mut self, items: &[Box<Item>], is_crate_root: bool) {
         // keep track of imports reused with `self` keyword, such as `self::crypto_hash` in the example
         // below. Removing the `use crypto_hash;` would make this a compile error
         // ```
@@ -156,7 +224,7 @@ impl SingleComponentPathImports {
             return;
         }
 
-        let mut import_usage_visitor = ImportUsageVisitor::default();
+        let mut import_usage_visitor = ImportUsageVisitor::new(is_crate_root);
         for item in items {
             import_usage_visitor.visit_item(item);
         }
@@ -181,7 +249,7 @@ impl SingleComponentPathImports {
 
         match &item.kind {
             ItemKind::Mod(_, _, ModKind::Loaded(items, ..)) => {
-                self.check_mod(items);
+                self.check_mod(items, false);
             },
             ItemKind::MacroDef(ident, MacroDef { macro_rules: true, .. }) => {
                 macros.push(ident.name);
@@ -227,6 +295,7 @@ impl SingleComponentPathImports {
                     }
                 }
                 // keep track of `use self::some_module` usages
+                // (`crate::` / `super::` in nested mods are handled by ImportUsageVisitor)
                 else if segments[0].ident.name == kw::SelfLower {
                     // simple case such as `use self::module::SomeStruct`
                     if segments.len() > 1 {
