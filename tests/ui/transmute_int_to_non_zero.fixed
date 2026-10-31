@@ -15,34 +15,34 @@ fn main() {
     let int_i64: i64 = 1;
     let int_i128: i128 = 1;
 
-    let _: NonZero<u8> = unsafe { NonZero::new_unchecked(int_u8) };
+    let _: NonZero<u8> = unsafe { NonZero::<u8>::new_unchecked(int_u8) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<u16> = unsafe { NonZero::new_unchecked(int_u16) };
+    let _: NonZero<u16> = unsafe { NonZero::<u16>::new_unchecked(int_u16) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<u32> = unsafe { NonZero::new_unchecked(int_u32) };
+    let _: NonZero<u32> = unsafe { NonZero::<u32>::new_unchecked(int_u32) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<u64> = unsafe { NonZero::new_unchecked(int_u64) };
+    let _: NonZero<u64> = unsafe { NonZero::<u64>::new_unchecked(int_u64) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<u128> = unsafe { NonZero::new_unchecked(int_u128) };
+    let _: NonZero<u128> = unsafe { NonZero::<u128>::new_unchecked(int_u128) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<i8> = unsafe { NonZero::new_unchecked(int_i8) };
+    let _: NonZero<i8> = unsafe { NonZero::<i8>::new_unchecked(int_i8) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<i16> = unsafe { NonZero::new_unchecked(int_i16) };
+    let _: NonZero<i16> = unsafe { NonZero::<i16>::new_unchecked(int_i16) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<i32> = unsafe { NonZero::new_unchecked(int_i32) };
+    let _: NonZero<i32> = unsafe { NonZero::<i32>::new_unchecked(int_i32) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<i64> = unsafe { NonZero::new_unchecked(int_i64) };
+    let _: NonZero<i64> = unsafe { NonZero::<i64>::new_unchecked(int_i64) };
     //~^ transmute_int_to_non_zero
 
-    let _: NonZero<i128> = unsafe { NonZero::new_unchecked(int_i128) };
+    let _: NonZero<i128> = unsafe { NonZero::<i128>::new_unchecked(int_i128) };
     //~^ transmute_int_to_non_zero
 
     let _: NonZero<u8> = unsafe { NonZero::new_unchecked(int_u8) };

@@ -22,44 +22,15 @@ pub(super) fn check<'tcx>(
         && let int_ty = substs.type_at(0)
         && from_ty == int_ty
     {
-        // Map the integer type to its concrete NonZero alias.
-        // Without this, the suggestion would be `NonZero::new_unchecked`,
-        // which leads to type‑inference failures and non‑const `.into()`
-        // calls in const contexts.
-        let coercible_types = [
-            ("NonZeroU8", cx.tcx.types.u8),
-            ("NonZeroU16", cx.tcx.types.u16),
-            ("NonZeroU32", cx.tcx.types.u32),
-            ("NonZeroU64", cx.tcx.types.u64),
-            ("NonZeroU128", cx.tcx.types.u128),
-            ("NonZeroUsize", cx.tcx.types.usize),
-            ("NonZeroI8", cx.tcx.types.i8),
-            ("NonZeroI16", cx.tcx.types.i16),
-            ("NonZeroI32", cx.tcx.types.i32),
-            ("NonZeroI64", cx.tcx.types.i64),
-            ("NonZeroI128", cx.tcx.types.i128),
-            ("NonZeroIsize", cx.tcx.types.isize),
-        ];
-
-        let Some(nonzero_alias) = coercible_types.iter().find_map(|(alias, ty)| {
-            if *ty == int_ty && *ty == from_ty {
-                Some(*alias)
-            } else {
-                None
-            }
-        }) else {
-            return false;
-        };
-
         let arg = Sugg::hir(cx, arg, "..");
         span_lint_and_sugg(
             cx,
             TRANSMUTE_INT_TO_NON_ZERO,
             e.span,
-            format!("transmute from a `{from_ty}` to a `{nonzero_alias}`"),
+            format!("transmute from a `{from_ty}` to a `NonZero<{int_ty}>`"),
             "consider using",
-            format!("{nonzero_alias}::new_unchecked({arg})"),
-            Applicability::Unspecified,
+            format!("NonZero::<{int_ty}>::new_unchecked({arg})"),
+            Applicability::MachineApplicable,
         );
         true
     } else {

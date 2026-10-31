@@ -1,0 +1,17 @@
+error: transmute from a `u8` to a `NonZero<u8>`
+  --> tests/ui/transmute_int_to_non_zero_const.rs:6:43
+   |
+LL | const NON_NULL_U8: NonZero<u8> = unsafe { std::mem::transmute(1u8) };
+   |                                           ^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `NonZero::<u8>::new_unchecked(1u8)`
+   |
+   = note: `-D clippy::transmute-int-to-non-zero` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::transmute_int_to_non_zero)]`
+
+error: transmute from a `usize` to a `NonZero<usize>`
+  --> tests/ui/transmute_int_to_non_zero_const.rs:9:49
+   |
+LL | const NON_NULL_USIZE: NonZero<usize> = unsafe { std::mem::transmute(1usize) };
+   |                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using: `NonZero::<usize>::new_unchecked(1usize)`
+
+error: aborting due to 2 previous errors
+
