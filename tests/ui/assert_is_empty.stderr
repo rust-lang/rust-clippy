@@ -204,5 +204,125 @@ LL -     assert!(!items.is_empty());
 LL +     assert_ne!(items, [] as [&str; 0]);
    |
 
-error: aborting due to 17 previous errors
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:121:9
+   |
+LL |         assert!(heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(heap.is_empty());
+LL +         assert_eq!(heap.as_slice(), [] as [i32; 0]);
+   |
+
+error: used `assert!` to check that a value is not empty
+  --> tests/ui/assert_is_empty.rs:123:9
+   |
+LL |         assert!(!heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_ne!` to show the value on failure
+   |
+LL -         assert!(!heap.is_empty());
+LL +         assert_ne!(heap.as_slice(), [] as [i32; 0]);
+   |
+
+error: used `debug_assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:125:9
+   |
+LL |         debug_assert!(heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `debug_assert_eq!` to show the value on failure
+   |
+LL -         debug_assert!(heap.is_empty());
+LL +         debug_assert_eq!(heap.as_slice(), [] as [i32; 0]);
+   |
+
+error: used `debug_assert!` to check that a value is not empty
+  --> tests/ui/assert_is_empty.rs:127:9
+   |
+LL |         debug_assert!(!heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `debug_assert_ne!` to show the value on failure
+   |
+LL -         debug_assert!(!heap.is_empty());
+LL +         debug_assert_ne!(heap.as_slice(), [] as [i32; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:131:9
+   |
+LL |         assert!(heap_ref.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(heap_ref.is_empty());
+LL +         assert_eq!(heap_ref.as_slice(), [] as [i32; 0]);
+   |
+
+error: used `assert!` to check that a value is not empty
+  --> tests/ui/assert_is_empty.rs:135:9
+   |
+LL |         assert!(!heap_ref_ref.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_ne!` to show the value on failure
+   |
+LL -         assert!(!heap_ref_ref.is_empty());
+LL +         assert_ne!(heap_ref_ref.as_slice(), [] as [i32; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:159:9
+   |
+LL |         assert!(heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(heap.is_empty());
+LL +         assert_eq!(heap.as_slice(), [] as [T; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:164:9
+   |
+LL |         assert!(heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(heap.is_empty());
+LL +         assert_eq!(heap.as_slice(), [] as [T; 0]);
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:177:9
+   |
+LL |         assert!(heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(heap.is_empty());
+LL +         assert_eq!(heap.as_slice(), [] as [i32; 0]);
+   |
+
+error: used `assert!` to check that a value is not empty
+  --> tests/ui/assert_is_empty.rs:180:9
+   |
+LL |         assert!(!heap.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_ne!` to show the value on failure
+   |
+LL -         assert!(!heap.is_empty());
+LL +         assert_ne!(heap.as_slice(), [] as [i32; 0]);
+   |
+
+error: aborting due to 27 previous errors
 
