@@ -1,0 +1,50 @@
+diff --git a/clippy_lints/src/doc/mod.rs b/clippy_lints/src/doc/mod.rs
+index c5393d7f1..fab9e9073 100644
+--- a/clippy_lints/src/doc/mod.rs
++++ b/clippy_lints/src/doc/mod.rs
+@@ -2,6 +2,7 @@ use clippy_config::Conf;
+ use clippy_utils::attrs::is_doc_hidden;
+ use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
+ use clippy_utils::macros::root_macro_call;
++use clippy_utils::source::SpanExt as _;
+ use clippy_utils::{is_entrypoint_fn, is_trait_impl_item, sym};
+ use rustc_ast::token::DocFragmentKind;
+ use rustc_attr_ir::Attribute;
+@@ -894,7 +895,16 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
+ 
+         // we can handle docs that aren't produced by macros except `include_str!` which could track
+         // errors from other files
+-        if !doc_str_span.in_external_macro(cx.sess().source_map()) || from_include_str_macro {
++        if from_include_str_macro {
++            continue;
++        }
++
++        // The doc text was written by the user if its span is not from an external macro and, for
++        // a raw `#[doc = ".."]`, the source at that span is where doc text is written. A proc macro
++        // can build the text itself and reuse the span of some other user token (e.g. an
++        // identifier); the user can't edit that text, and the span can't be used to point into it.
++        let in_user_code = !doc_str_span.in_external_macro(cx.sess().source_map());
++        if in_user_code && (!is_raw || is_doc_text_source(cx, doc_str_span)) {
+             continue;
+         }
+ 
+@@ -981,6 +991,19 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
+     ))
+ }
+ 
++/// Whether the source text at `span` is somewhere doc text is written: a string literal (`".."`,
++/// `r".."`, `r#".."#`) or a doc comment (`///`, `//!`, `/** */`, `/*! */`).
++///
++/// Doc comments have to be accepted too: when they pass through a proc macro they are turned into
++/// `#[doc = ".."]` attributes whose literal keeps the span of the original comment.
++///
++/// Returns `false` if the source text is unavailable, so that doc lints stay silent when the
++/// origin of the text can't be established.
++fn is_doc_text_source(cx: &LateContext<'_>, span: Span) -> bool {
++    const OPENERS: [&str; 7] = ["\"", "r\"", "r#", "///", "//!", "/**", "/*!"];
++    span.check_text(cx, |src| OPENERS.iter().any(|&opener| src.starts_with(opener)))
++}
++
+ fn originated_from_include_str_macro(cx: &LateContext<'_>, span: Span) -> bool {
+     root_macro_call(span).is_some_and(|macro_call| cx.tcx.is_diagnostic_item(sym::include_str_macro, macro_call.def_id))
+ }
