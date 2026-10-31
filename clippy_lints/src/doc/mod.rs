@@ -995,7 +995,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
     ))
 }
 
-/// Wehther the source at `span` can hold doc text: a string literal or a doc comment
+/// Whether the source at `span` can hold doc text: a string literal or a doc comment
 /// (proc macros turn the latter into `#[doc = ".."]` keeping its span).
 /// Returns `false` if the source is unavailable.
 fn is_doc_text_source(cx: &LateContext<'_>, span: Span) -> bool {
@@ -1003,7 +1003,9 @@ fn is_doc_text_source(cx: &LateContext<'_>, span: Span) -> bool {
     span.check_text(cx, |src| {
         // r#foo is a raw identifier
         OPENERS.iter().any(|&opener| src.starts_with(opener))
-            || (src.starts_with('r') && src[1..].trim_start_matches('#').starts_with('"'))
+            || src
+                .strip_prefix('r')
+                .is_some_and(|rest| rest.trim_start_matches('#').starts_with('"'))
     })
 }
 

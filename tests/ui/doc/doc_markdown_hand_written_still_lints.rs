@@ -11,3 +11,6 @@ pub fn sugared_doc_comment() {}
 pub fn raw_doc_attribute() {}
 
 fn main() {}
+
+#[doc = r#"Uses foo_bar here."#] //~ doc_markdown
+pub fn raw_string_doc_attribute() {}

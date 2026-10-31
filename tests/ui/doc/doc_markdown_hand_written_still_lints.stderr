@@ -24,5 +24,17 @@ LL - #[doc = "Uses foo_bar here."]
 LL + #[doc = "Uses `foo_bar` here."]
    |
 
-error: aborting due to 2 previous errors
+error: item in documentation is missing backticks
+  --> tests/ui/doc/doc_markdown_hand_written_still_lints.rs:15:17
+   |
+LL | #[doc = r#"Uses foo_bar here."#]
+   |                 ^^^^^^^
+   |
+help: try
+   |
+LL - #[doc = r#"Uses foo_bar here."#]
+LL + #[doc = r#"Uses `foo_bar` here."#]
+   |
+
+error: aborting due to 3 previous errors
 
