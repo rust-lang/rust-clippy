@@ -905,8 +905,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
             continue;
         }
 
-        // Not user-written if from an external macro or if the span doesn't contain the text
-        // (proc macros can reuse a user token's span).
+         // Proc macros can reuse a user token's span for generated doc attributes.
         let in_user_code = !doc_str_span.in_external_macro(cx.sess().source_map());
         if in_user_code && (!is_raw || is_doc_text_source(cx, doc_str_span)) {
             continue;
@@ -995,13 +994,11 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
     ))
 }
 
-/// Whether the source at `span` can hold doc text: a string literal or a doc comment
-/// (proc macros turn the latter into `#[doc = ".."]` keeping its span).
-/// Returns `false` if the source is unavailable.
+/// Checks whether `span` originates from a string literal or doc comment
+/// (proc macros desugar doc comments into `#[doc = ".."]` while preserving the span).
 fn is_doc_text_source(cx: &LateContext<'_>, span: Span) -> bool {
     const OPENERS: [&str; 5] = ["\"", "///", "//!", "/**", "/*!"];
     span.check_text(cx, |src| {
-        // r#foo is a raw identifier
         OPENERS.iter().any(|&opener| src.starts_with(opener))
             || src
                 .strip_prefix('r')
