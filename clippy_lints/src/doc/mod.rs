@@ -905,7 +905,7 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
             continue;
         }
 
-         // Proc macros can reuse a user token's span for generated doc attributes.
+        // Proc macros can reuse a user token's span for generated doc attributes.
         let in_user_code = !doc_str_span.in_external_macro(cx.sess().source_map());
         if in_user_code && (!is_raw || is_doc_text_source(cx, doc_str_span)) {
             continue;
