@@ -9,7 +9,7 @@ use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, UnOp};
 use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
-use rustc_middle::ty::{self, IsSuggestable, Ty};
+use rustc_middle::ty::{self, IsSuggestable as _, Ty};
 use rustc_span::Span;
 
 declare_clippy_lint! {
