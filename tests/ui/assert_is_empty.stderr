@@ -204,5 +204,77 @@ LL -     assert!(!items.is_empty());
 LL +     assert_ne!(items, [] as [&str; 0]);
    |
 
-error: aborting due to 17 previous errors
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:139:9
+   |
+LL |         assert!(hashset.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(hashset.is_empty());
+LL +         assert_eq!(hashset, HashSet::default());
+   |
+
+error: used `assert!` to check that a value is not empty
+  --> tests/ui/assert_is_empty.rs:141:9
+   |
+LL |         assert!(!hashset.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_ne!` to show the value on failure
+   |
+LL -         assert!(!hashset.is_empty());
+LL +         assert_ne!(hashset, HashSet::default());
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:146:9
+   |
+LL |         assert!(s.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(s.is_empty());
+LL +         assert_eq!(s, &&HashSet::default());
+   |
+
+error: used `assert!` to check that a value is not empty
+  --> tests/ui/assert_is_empty.rs:148:9
+   |
+LL |         assert!(!s.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_ne!` to show the value on failure
+   |
+LL -         assert!(!s.is_empty());
+LL +         assert_ne!(s, &&HashSet::default());
+   |
+
+error: used `assert!` to check that a value is empty
+  --> tests/ui/assert_is_empty.rs:152:9
+   |
+LL |         assert!(s_mut.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_eq!` to show the value on failure
+   |
+LL -         assert!(s_mut.is_empty());
+LL +         assert_eq!(s_mut, &&mut HashSet::default());
+   |
+
+error: used `assert!` to check that a value is not empty
+  --> tests/ui/assert_is_empty.rs:154:9
+   |
+LL |         assert!(!s_mut.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use `assert_ne!` to show the value on failure
+   |
+LL -         assert!(!s_mut.is_empty());
+LL +         assert_ne!(s_mut, &&mut HashSet::default());
+   |
+
+error: aborting due to 23 previous errors
 
