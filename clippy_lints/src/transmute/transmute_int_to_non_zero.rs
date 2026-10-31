@@ -27,10 +27,10 @@ pub(super) fn check<'tcx>(
             cx,
             TRANSMUTE_INT_TO_NON_ZERO,
             e.span,
-            format!("transmute from a `{from_ty}` to a `{}<{int_ty}>`", sym::NonZero),
+            format!("transmute from a `{from_ty}` to a `NonZero<{int_ty}>`"),
             "consider using",
-            format!("{}::{}({arg})", sym::NonZero, sym::new_unchecked),
-            Applicability::Unspecified,
+            format!("NonZero::<{int_ty}>::new_unchecked({arg})"),
+            Applicability::MachineApplicable,
         );
         true
     } else {
