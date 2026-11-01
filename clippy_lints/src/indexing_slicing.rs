@@ -152,7 +152,7 @@ impl IndexingSlicing {
 }
 
 impl<'tcx> LateLintPass<'tcx> for IndexingSlicing {
-    #[allow(clippy::too_many_lines)]
+    #[expect(clippy::too_many_lines)]
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         if let ExprKind::Index(array, index, _) = expr.kind {
             // We don't worry if we're on a match with the scrutinee checking an index's length,
