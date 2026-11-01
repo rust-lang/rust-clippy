@@ -110,3 +110,15 @@ fn main() {
     let not_debug = vec![NotDebug];
     assert!(not_debug.is_empty());
 }
+
+fn issue17523() {
+    // assert_is_empty shouldn't be triggered by byte slices
+    let bytes: &[u8] = &[1, 2, 3];
+    debug_assert!(bytes.is_empty());
+    assert!(!bytes.is_empty());
+
+    // ignore mutable byte slice
+    let bytes_mut: &mut [u8] = &mut [1, 2, 3];
+    debug_assert!(bytes_mut.is_empty());
+    assert!(!bytes_mut.is_empty());
+}

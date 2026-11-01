@@ -228,8 +228,12 @@ fn suggestion_for_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'
 fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'static str, String)> {
     if ty.is_str() || ty.is_lang_item(cx, LangItem::String) {
         Some(("", "\"\"".to_string()))
-    } else if matches!(ty.kind(), ty::Slice(..)) {
-        Some(("", "[]".to_string()))
+    } else if let ty::Slice(element_ty) = ty.kind() {
+        if matches!(element_ty.kind(), ty::Uint(ty::UintTy::U8)) {
+            None
+        } else {
+            Some(("", "[]".to_string()))
+        }
     } else if ty.is_diag_item(cx, sym::Vec) {
         Some(("", format!("[] as [{}; 0]", element_type(cx, ty)?)))
     } else {
