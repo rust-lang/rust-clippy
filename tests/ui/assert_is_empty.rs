@@ -110,3 +110,10 @@ fn main() {
     let not_debug = vec![NotDebug];
     assert!(not_debug.is_empty());
 }
+
+pub fn issue17676(v: &[&str]) {
+    assert!(v.is_empty());
+    //~^ assert_is_empty
+    assert!(!v.is_empty());
+    //~^ assert_is_empty
+}
