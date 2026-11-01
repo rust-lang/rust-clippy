@@ -28,7 +28,7 @@ fn check(cx: &LateContext<'_>, ident: Ident, ret_ty: Ty<'_>, sig: FnSig<'_>) {
             cx,
             MISSING_RETURN_TYPE,
             sig.decl.output.span(),
-            "conversion does not return with any type",
+            "conversion method is expected to return a value, but returns `()`",
             None,
             "rename the method or return a type",
         );
