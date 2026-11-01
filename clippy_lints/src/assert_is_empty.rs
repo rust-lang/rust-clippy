@@ -17,7 +17,8 @@ declare_clippy_lint! {
     ///
     /// Checks assertions that only test whether a supported value is empty.
     ///
-    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, and `Vec`.
+    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`,
+    /// and `HashSet`.
     ///
     /// ### Why is this bad?
     ///
@@ -199,7 +200,7 @@ impl AssertionKind {
 fn assertion_suggestion<'tcx>(cx: &LateContext<'tcx>, receiver: &'tcx Expr<'tcx>) -> Option<(&'static str, String)> {
     let receiver_ty = cx.typeck_results().expr_ty(receiver);
     let suggestion = suggestion_for_type(cx, receiver_ty)?;
-    if type_is_printable_and_comparable(cx, receiver_ty.peel_refs()) {
+    if implements_required_traits(cx, receiver_ty.peel_refs()) {
         Some(suggestion)
     } else {
         None
@@ -216,6 +217,18 @@ fn suggestion_for_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<(&'
         ty::Array(..) => Some((".as_slice()", "[]".to_string())),
         ty::Ref(_, inner, _) if matches!(inner.kind(), ty::Array(..)) => Some((".as_slice()", "[]".to_string())),
         ty::Ref(_, inner, _) if inner.is_diag_item(cx, sym::Vec) => Some((".as_slice()", "[]".to_string())),
+        ty::Ref(_, inner, _) if inner.peel_refs().is_diag_item(cx, sym::HashSet) => {
+            let mut prefix = String::new();
+            let mut curr = ty;
+            while let ty::Ref(_, inner, mutability) = *curr.kind() {
+                prefix.push_str(match mutability {
+                    rustc_ast::Mutability::Not => "&",
+                    rustc_ast::Mutability::Mut => "&mut ",
+                });
+                curr = inner;
+            }
+            Some(("", format!("{prefix}HashSet::default()")))
+        },
         _ => suggestion_for_peeled_type(cx, ty.peel_refs()),
     }
 }
@@ -230,10 +243,40 @@ fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Opt
         Some(("", "\"\"".to_string()))
     } else if matches!(ty.kind(), ty::Slice(..)) {
         Some(("", "[]".to_string()))
-    } else if ty.is_diag_item(cx, sym::Vec) {
-        Some(("", format!("[] as [{}; 0]", element_type(cx, ty)?)))
     } else {
-        None
+        match ty.opt_diag_name(cx) {
+            Some(sym::Vec) => Some(("", format!("[] as [{}; 0]", element_type(cx, ty)?))),
+            Some(sym::HashSet) => Some(("", "HashSet::default()".to_string())),
+            _ => None,
+        }
+    }
+}
+
+/// Returns whether the receiver type implements the traits required for the replacement assertion.
+fn implements_required_traits<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    match ty.opt_diag_name(cx) {
+        Some(sym::HashSet) => {
+            let ty::Adt(_, args) = ty.kind() else {
+                return false;
+            };
+
+            let s_ty = args.get(1).and_then(|a| a.as_type());
+            let Some(hasher_ty) = s_ty else {
+                return false;
+            };
+
+            if let Some(debug_trait) = cx.tcx.get_diagnostic_item(sym::Debug)
+                && let Some(partial_eq_trait) = cx.tcx.get_diagnostic_item(sym::PartialEq)
+                && let Some(default_trait) = cx.tcx.get_diagnostic_item(sym::Default)
+            {
+                implements_trait(cx, ty, debug_trait, &[])
+                    && implements_trait(cx, ty, partial_eq_trait, &[ty.into()])
+                    && implements_trait(cx, hasher_ty, default_trait, &[])
+            } else {
+                false
+            }
+        },
+        _ => type_is_printable_and_comparable(cx, ty),
     }
 }
 

@@ -110,3 +110,75 @@ fn main() {
     let not_debug = vec![NotDebug];
     assert!(not_debug.is_empty());
 }
+
+mod issue17937 {
+    use std::collections::HashSet;
+    use std::fmt::Debug;
+    use std::hash::{BuildHasher, Hash, Hasher};
+
+    trait ElementExists {
+        const ELEMENT: Self;
+    }
+
+    // T: Eq + Hash is implied by the requirements of HashSet
+    fn hashset_normal<T: ElementExists + Eq + Hash>() {
+        let mut hashset = HashSet::new();
+        let _: bool = hashset.insert(T::ELEMENT);
+        assert!(hashset.is_empty());
+        assert!(!hashset.is_empty());
+    }
+
+    // T now needs Debug and S now needs Default
+    fn hashset_eq<T, S>()
+    where
+        T: ElementExists + Eq + Hash + Debug,
+        S: BuildHasher + Default,
+    {
+        let mut hashset: HashSet<T, S> = HashSet::default();
+        let _: bool = hashset.insert(T::ELEMENT);
+        assert_eq!(hashset, HashSet::default());
+        //~^ assert_is_empty
+        assert_ne!(hashset, HashSet::default());
+        //~^ assert_is_empty
+
+        let mut hs: HashSet<T> = HashSet::new();
+        let s = &&hs;
+        assert_eq!(s, &&HashSet::default());
+        //~^ assert_is_empty
+        assert_ne!(s, &&HashSet::default());
+        //~^ assert_is_empty
+
+        let s_mut = &&mut hs;
+        assert_eq!(s_mut, &&mut HashSet::default());
+        //~^ assert_is_empty
+        assert_ne!(s_mut, &&mut HashSet::default());
+        //~^ assert_is_empty
+    }
+
+    struct CustomHasher;
+
+    impl Hasher for CustomHasher {
+        fn finish(&self) -> u64 {
+            0
+        }
+        fn write(&mut self, _bytes: &[u8]) {}
+    }
+
+    impl BuildHasher for CustomHasher {
+        type Hasher = CustomHasher;
+        fn build_hasher(&self) -> Self::Hasher {
+            CustomHasher
+        }
+    }
+
+    // Don't lint: S does not implement Default
+    fn hashset_with_custom_hasher<T>()
+    where
+        T: ElementExists + Eq + Hash + Debug,
+    {
+        let mut s: HashSet<T, CustomHasher> = HashSet::with_hasher(CustomHasher);
+        let _: bool = s.insert(T::ELEMENT);
+        assert!(s.is_empty());
+        assert!(!s.is_empty());
+    }
+}
