@@ -111,5 +111,13 @@ LL |         v = Vec::new();
    |
    = note: `.clear()` retains the allocated memory for reuse
 
-error: aborting due to 14 previous errors
+error: assigning a new empty collection
+  --> tests/ui/new_instead_of_clear.rs:187:5
+   |
+LL |     v = Vec::new();
+   |     ^^^^^^^^^^^^^^ help: consider using `.clear()` instead: `v.clear()`
+   |
+   = note: `.clear()` retains the allocated memory for reuse
+
+error: aborting due to 15 previous errors
 

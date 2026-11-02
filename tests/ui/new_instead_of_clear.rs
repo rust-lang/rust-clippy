@@ -160,3 +160,31 @@ fn no_lint() {
     e = Vec::new();
     e.push(1u8);
 }
+
+fn issue17966() {
+    // the collection was moved out of, so the assignment re-initializes it
+    let mut words: Vec<String> = Vec::new();
+    let mut buffer = String::new();
+    buffer.push('a');
+    words.push(buffer);
+    buffer = String::new();
+    words.push(buffer);
+
+    // moved later in the loop body, so the next iteration reaches the assignment after the move
+    let mut buffer = String::new();
+    buffer.push('a');
+    use_string(&buffer);
+    for c in "ab".chars() {
+        buffer = String::new();
+        buffer.push(c);
+        words.push(buffer);
+    }
+
+    // moved only after the assignment: `.clear()` still works
+    let mut v = Vec::new();
+    v.push(1);
+    use_vec(&v);
+    v = Vec::new();
+    //~^ new_instead_of_clear
+    drop(v);
+}
