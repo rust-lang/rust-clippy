@@ -1,8 +1,8 @@
 #![allow(clippy::similar_names)]
-use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::fn_has_unsatisfiable_clauses;
 use rustc_hir as hir;
-use rustc_hir::def_id::LocalDefId;
+use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_hir::intravisit::FnKind;
 use rustc_index::bit_set::DenseBitSet;
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
@@ -69,73 +69,15 @@ impl<'tcx> LateLintPass<'tcx> for CallMissingTargetFeature {
                 && let TerminatorKind::Call { func, .. } | TerminatorKind::TailCall { func, .. } = &bb.terminator().kind
                 && let Some((callee, _)) = func.const_fn_def()
             {
-                // Check target features
-                let callee_features = &cx.tcx.codegen_fn_attrs(callee).target_features;
-                let caller_features = &cx.tcx.body_codegen_attrs(caller_def_id).target_features;
+                let source_info = bb.terminator().source_info;
 
-                // callee must be a subset of caller for this to be safe
-                let is_safe = cx.tcx.is_target_feature_call_safe(callee_features, caller_features);
-                if !is_safe {
-                    let missing: Vec<_> = callee_features
-                        .iter()
-                        .filter(|feature| {
-                            feature.kind != TargetFeatureKind::Implied
-                                && !caller_features.iter().any(|tf| tf.name == feature.name)
-                        })
-                        .map(|feature| feature.name.as_str())
-                        .collect();
+                let hir_id = body.source_scopes[source_info.scope]
+                    .local_data
+                    .as_ref()
+                    .unwrap_crate_local()
+                    .lint_root;
 
-                    if !missing.is_empty() {
-                        let span = bb.terminator().source_info.span;
-                        let attr = format!("#[target_feature(enable = \"{}\")]", missing.join(","));
-
-                        span_lint_and_then(
-                            cx,
-                            CALL_MISSING_TARGET_FEATURE,
-                            span,
-                            "this call requires target features that the surrounding function does not enable",
-                            |diag| {
-                                diag.span_label(span, "this function call requires target features to be enabled");
-
-                                let fn_sig = cx.tcx.fn_sig(caller_def_id).skip_binder();
-
-                                let mut suggestions = Vec::with_capacity(2);
-
-                                let hir::Node::Item(caller_item) = cx.tcx.hir_node_by_def_id(local_def_id) else {
-                                    return;
-                                };
-
-                                let Some(indent) = clippy_utils::source::snippet_indent(cx, caller_item.span) else {
-                                    return;
-                                };
-
-                                let lo_span = caller_item.span.shrink_to_lo();
-
-                                match fn_sig.safety() {
-                                    hir::Safety::Safe => {
-                                        // the `target_feature` attribute can only be applied to unsafe functions
-                                        if caller_item.vis_span.is_empty() {
-                                            suggestions.push((lo_span, format!("{attr}\n{indent}unsafe ")));
-                                        } else {
-                                            suggestions.push((lo_span, format!("{attr}\n{indent}")));
-                                            suggestions
-                                                .push((caller_item.vis_span.shrink_to_hi(), " unsafe".to_string()));
-                                        }
-                                    },
-                                    hir::Safety::Unsafe => {
-                                        suggestions.push((lo_span, format!("{attr}\n{indent}")));
-                                    },
-                                }
-
-                                diag.multipart_suggestion(
-                                    "add the missing target features to the surrounding function",
-                                    suggestions,
-                                    rustc_errors::Applicability::MaybeIncorrect,
-                                );
-                            },
-                        );
-                    }
-                }
+                check_target_feature_call(cx, caller_def_id, local_def_id, callee, source_info.span, hir_id);
             }
             match &bb.terminator().kind {
                 // Logically these add an outstanding block we never encounter
@@ -153,5 +95,76 @@ impl<'tcx> LateLintPass<'tcx> for CallMissingTargetFeature {
                 },
             }
         }
+    }
+}
+
+fn check_target_feature_call(
+    cx: &LateContext<'_>,
+    caller_def_id: DefId,
+    local_def_id: LocalDefId,
+    callee: DefId,
+    span: Span,
+    hir_id: hir::HirId,
+) {
+    // Check target features
+    let callee_features = &cx.tcx.codegen_fn_attrs(callee).target_features;
+    let caller_features = &cx.tcx.body_codegen_attrs(caller_def_id).target_features;
+
+    let missing: Vec<_> = callee_features
+        .iter()
+        .filter(|feature| {
+            feature.kind != TargetFeatureKind::Implied && !caller_features.iter().any(|tf| tf.name == feature.name)
+        })
+        .map(|feature| feature.name.as_str())
+        .collect();
+
+    if !missing.is_empty() {
+        let attr = format!("#[target_feature(enable = \"{}\")]", missing.join(","));
+
+        span_lint_hir_and_then(
+            cx,
+            CALL_MISSING_TARGET_FEATURE,
+            hir_id,
+            span,
+            "this call requires target features that the surrounding function does not enable",
+            |diag| {
+                diag.span_label(span, "this function call requires target features to be enabled");
+
+                let fn_sig = cx.tcx.fn_sig(caller_def_id).skip_binder();
+
+                let mut suggestions = Vec::with_capacity(2);
+
+                let hir::Node::Item(caller_item) = cx.tcx.hir_node_by_def_id(local_def_id) else {
+                    return;
+                };
+
+                let Some(indent) = clippy_utils::source::snippet_indent(cx, caller_item.span) else {
+                    return;
+                };
+
+                let lo_span = caller_item.span.shrink_to_lo();
+
+                match fn_sig.safety() {
+                    hir::Safety::Safe => {
+                        // the `target_feature` attribute can only be applied to unsafe functions
+                        if caller_item.vis_span.is_empty() {
+                            suggestions.push((lo_span, format!("{attr}\n{indent}unsafe ")));
+                        } else {
+                            suggestions.push((lo_span, format!("{attr}\n{indent}")));
+                            suggestions.push((caller_item.vis_span.shrink_to_hi(), " unsafe".to_string()));
+                        }
+                    },
+                    hir::Safety::Unsafe => {
+                        suggestions.push((lo_span, format!("{attr}\n{indent}")));
+                    },
+                }
+
+                diag.multipart_suggestion(
+                    "add the missing target features to the surrounding function",
+                    suggestions,
+                    rustc_errors::Applicability::MaybeIncorrect,
+                );
+            },
+        );
     }
 }
