@@ -7,7 +7,7 @@ use rustc_hir::def::DefKind;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn};
 use rustc_hir::{
     Body, Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, Defaultness, Expr, ExprKind, FnDecl, HirId,
-    ImplItem, ImplItemKind, IsAsync, Node, TraitItem, YieldSource,
+    ImplItem, ImplItemImplKind, ImplItemKind, IsAsync, Node, TraitItem, YieldSource,
 };
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::hir::nested_filter;
@@ -264,6 +264,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
 
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'_>) {
         if let ImplItemKind::Fn(ref sig, body_id) = impl_item.kind
+            && let ImplItemImplKind::Trait { .. } = impl_item.impl_kind
             && let IsAsync::Async(async_span) = sig.header.asyncness
             && let body = cx.tcx.hir_body(body_id)
             && !async_fn_contains_todo_unimplemented_macro(cx, body)
