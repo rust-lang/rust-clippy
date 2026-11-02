@@ -1,0 +1,124 @@
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:3:1
+   |
+LL | pub struct PublicFields(u8);
+   | ^
+   |
+   = note: `-D clippy::missing-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_must_use)]`
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PublicFields(u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:6:1
+   |
+LL | struct PrivateFields(u8);
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | struct PrivateFields(u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:9:1
+   |
+LL | pub(crate) struct CrateFields(u8);
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub(crate) struct CrateFields(u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:40:1
+   |
+LL | pub enum PublicSingleFields {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PublicSingleFields {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:45:1
+   |
+LL | enum PrivateSingleFields {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | enum PrivateSingleFields {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:50:1
+   |
+LL | pub enum PublicMultipleUnits {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PublicMultipleUnits {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:56:1
+   |
+LL | enum PrivateMultipleUnits {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | enum PrivateMultipleUnits {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:62:1
+   |
+LL | pub union PublicUnion {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub union PublicUnion {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:67:1
+   |
+LL | union PrivateUnion {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | union PrivateUnion {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui-toml/missing_must_use_private/missing_must_use.rs:73:5
+   |
+LL |     pub struct Fields(u8);
+   |     ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL ~     #[must_use]
+LL ~     pub struct Fields(u8);
+   |
+
+error: aborting due to 10 previous errors
+

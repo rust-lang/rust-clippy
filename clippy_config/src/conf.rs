@@ -488,6 +488,7 @@ define_Conf! {
     /// Whether to also run the listed lints on private items.
     #[lints(
         missing_errors_doc,
+        missing_must_use,
         missing_panics_doc,
         missing_safety_doc,
         too_long_first_doc_paragraph,
@@ -648,6 +649,10 @@ define_Conf! {
     /// crate. For example, `pub(crate)` items.
     #[lints(missing_docs_in_private_items)]
     missing_docs_in_crate_items("missing-docs-in-crate-items"): bool = false,
+    /// Whether to also require `#[must_use]` on structs with no fields and enums with exactly
+    /// one variant and no fields. Enums with no variants are always ignored.
+    #[lints(missing_must_use)]
+    missing_must_use_on_empty("missing-must-use-on-empty"): bool = false,
     /// The named groupings of different source item kinds within modules.
     #[lints(arbitrary_source_item_ordering)]
     module_item_order_groupings("module-item-order-groupings"): SourceItemOrderingModuleItemGroupings,

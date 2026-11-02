@@ -244,6 +244,7 @@ mod missing_doc;
 mod missing_enforced_import_rename;
 mod missing_fields_in_debug;
 mod missing_inline;
+mod missing_must_use;
 mod missing_trait_methods;
 mod mixed_read_write_in_expression;
 mod module_style;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
+        MissingMustUse: missing_must_use::MissingMustUse = missing_must_use::MissingMustUse::new(conf),
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

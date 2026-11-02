@@ -7412,6 +7412,7 @@ Released 2018-09-13
 [`missing_errors_doc`]: https://clippy.rust-lang.org/main/index.html#missing_errors_doc
 [`missing_fields_in_debug`]: https://clippy.rust-lang.org/main/index.html#missing_fields_in_debug
 [`missing_inline_in_public_items`]: https://clippy.rust-lang.org/main/index.html#missing_inline_in_public_items
+[`missing_must_use`]: https://clippy.rust-lang.org/main/index.html#missing_must_use
 [`missing_panics_doc`]: https://clippy.rust-lang.org/main/index.html#missing_panics_doc
 [`missing_safety_doc`]: https://clippy.rust-lang.org/main/index.html#missing_safety_doc
 [`missing_spin_loop`]: https://clippy.rust-lang.org/main/index.html#missing_spin_loop
@@ -7947,6 +7948,7 @@ Released 2018-09-13
 [`min-ident-chars-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#min-ident-chars-threshold
 [`missing-docs-allow-unused`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-docs-allow-unused
 [`missing-docs-in-crate-items`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-docs-in-crate-items
+[`missing-must-use-on-empty`]: https://doc.rust-lang.org/clippy/lint_configuration.html#missing-must-use-on-empty
 [`module-item-order-groupings`]: https://doc.rust-lang.org/clippy/lint_configuration.html#module-item-order-groupings
 [`module-items-ordered-within-groupings`]: https://doc.rust-lang.org/clippy/lint_configuration.html#module-items-ordered-within-groupings
 [`msrv`]: https://doc.rust-lang.org/clippy/lint_configuration.html#msrv

@@ -1,0 +1,136 @@
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:11:1
+   |
+LL | pub struct PubTupleStructNoMustUse(u8);
+   | ^
+   |
+   = note: `-D clippy::missing-must-use` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::missing_must_use)]`
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubTupleStructNoMustUse(u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:15:1
+   |
+LL | pub struct PubStructNoMustUse {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubStructNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:39:1
+   |
+LL | pub enum PubEnumSingleTupleNoMustUse {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PubEnumSingleTupleNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:43:1
+   |
+LL | pub enum PubEnumSingleStructNoMustUse {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PubEnumSingleStructNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:47:1
+   |
+LL | pub enum PubEnumFieldlessNoMustUse {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PubEnumFieldlessNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:54:1
+   |
+LL | pub struct PubStructZeroSizedField(());
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub struct PubStructZeroSizedField(());
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:56:1
+   |
+LL | pub enum PubEnumZeroSizedField {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PubEnumZeroSizedField {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:61:1
+   |
+LL | pub enum PubEnumNoMustUse {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub enum PubEnumNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:73:1
+   |
+LL | pub union PubUnionNoMustUse {
+   | ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL + #[must_use]
+LL | pub union PubUnionNoMustUse {
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:90:5
+   |
+LL |     pub struct Reexported(pub u8);
+   |     ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL ~     #[must_use]
+LL ~     pub struct Reexported(pub u8);
+   |
+
+error: missing `#[must_use]` attribute on this type
+  --> tests/ui/missing_must_use.rs:111:5
+   |
+LL |     pub struct LocalMacro(u8);
+   |     ^
+   |
+help: add `#[must_use]` to this type definition
+   |
+LL ~     #[must_use]
+LL ~     pub struct LocalMacro(u8);
+   |
+
+error: aborting due to 11 previous errors
+
