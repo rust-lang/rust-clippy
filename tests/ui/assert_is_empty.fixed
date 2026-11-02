@@ -127,30 +127,12 @@ mod issue17935 {
         debug_assert_ne!(heap.as_slice(), [] as [i32; 0]);
         //~^ assert_is_empty
 
-        let heap_ref = &heap;
-        assert_eq!(heap_ref.as_slice(), [] as [i32; 0]);
-        //~^ assert_is_empty
-
-        let heap_ref_ref = &heap_ref;
-        assert_ne!(heap_ref_ref.as_slice(), [] as [i32; 0]);
-        //~^ assert_is_empty
-
-        #[derive(Eq, Ord, PartialEq, PartialOrd)]
-        struct NotDebug;
-
-        let mut not_debug = BinaryHeap::new();
-        not_debug.push(NotDebug);
-        assert!(not_debug.is_empty());
+        // Don't lint: has assert message.
+        assert!(heap.is_empty(), "expected an empty heap");
     }
 
     trait ElementExists {
         const ELEMENT: Self;
-    }
-
-    fn binaryheap_normal<T: ElementExists + Ord>() {
-        let mut heap = BinaryHeap::new();
-        heap.push(T::ELEMENT);
-        assert!(heap.is_empty());
     }
 
     fn binaryheap_eq<T: ElementExists + Ord + std::fmt::Debug>() {
@@ -165,21 +147,45 @@ mod issue17935 {
         //~^ assert_is_empty
     }
 
+    fn references(heap: &mut BinaryHeap<i32>) {
+        assert_eq!(heap.as_slice(), [] as [i32; 0]);
+        //~^ assert_is_empty
+
+        let heap_ref = &*heap;
+        assert_eq!(heap_ref.as_slice(), [] as [i32; 0]);
+        //~^ assert_is_empty
+
+        let heap_ref_ref = &heap_ref;
+        assert_ne!(heap_ref_ref.as_slice(), [] as [i32; 0]);
+        //~^ assert_is_empty
+
+        let heap = &&heap;
+        assert_ne!(heap.as_slice(), [] as [i32; 0]);
+        //~^ assert_is_empty
+    }
+
+    // Don't lint: these element types do not support the suggestion.
+    fn not_debug() {
+        #[derive(Eq, Ord, PartialEq, PartialOrd)]
+        struct NotDebug;
+
+        let mut not_debug = BinaryHeap::new();
+        not_debug.push(NotDebug);
+        assert!(not_debug.is_empty());
+    }
+
+    fn binaryheap_normal<T: ElementExists + Ord>() {
+        let mut heap = BinaryHeap::new();
+        heap.push(T::ELEMENT);
+        assert!(heap.is_empty());
+    }
+
     fn opaque(heap: BinaryHeap<impl Ord + std::fmt::Debug>) {
         assert!(heap.is_empty());
     }
 
     fn not_comparable<T: std::fmt::Debug>(heap: BinaryHeap<T>) {
         assert!(heap.is_empty());
-    }
-
-    fn references(heap: &mut BinaryHeap<i32>) {
-        assert_eq!(heap.as_slice(), [] as [i32; 0]);
-        //~^ assert_is_empty
-        let heap = &&heap;
-        assert_ne!(heap.as_slice(), [] as [i32; 0]);
-        //~^ assert_is_empty
-        assert!(heap.is_empty(), "expected an empty heap");
     }
 
     const fn const_heap(heap: &BinaryHeap<i32>) {
