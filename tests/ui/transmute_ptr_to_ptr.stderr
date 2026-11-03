@@ -210,5 +210,29 @@ LL -         let _: *const u8 = transmute(mut_ptr);
 LL +         let _: *const u8 = mut_ptr.cast_const();
    |
 
-error: aborting due to 20 previous errors
+error: transmute from a reference to a reference
+  --> tests/ui/transmute_ptr_to_ptr.rs:144:9
+   |
+LL |         transmute::<&mut [u8], &mut [i8]>(bs)[4] = 42;
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&mut *(bs as *mut [u8] as *mut [i8]))`
+
+error: transmute from a reference to a reference
+  --> tests/ui/transmute_ptr_to_ptr.rs:146:17
+   |
+LL |         let _ = transmute::<&mut [u8], &[u8]>(bs).len();
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&*(bs as *mut [u8] as *const [u8]))`
+
+error: transmute from a reference to a reference
+  --> tests/ui/transmute_ptr_to_ptr.rs:149:17
+   |
+LL |         let _ = transmute::<&mut [u8], &mut (u8, [u8])>(bs).0;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `(&mut *(bs as *mut [u8] as *mut (u8, [u8])))`
+
+error: transmute from a reference to a reference
+  --> tests/ui/transmute_ptr_to_ptr.rs:157:15
+   |
+LL |         S.foo(transmute::<&mut [u8], &mut [i8]>(bs));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `&mut *(bs as *mut [u8] as *mut [i8])`
+
+error: aborting due to 24 previous errors
 
