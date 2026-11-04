@@ -149,6 +149,7 @@ mod from_raw_with_void_ptr;
 mod from_str_radix_10;
 mod functions;
 mod future_not_send;
+mod hash_bad;
 mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
+        HashBad: hash_bad::HashBad = hash_bad::HashBad,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
