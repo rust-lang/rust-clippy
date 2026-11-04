@@ -114,6 +114,7 @@ mod disallowed_names;
 mod disallowed_script_idents;
 mod doc;
 mod double_parens;
+mod drop_for_static;
 mod drop_forget_ref;
 mod duplicate_mod;
 mod duration_suboptimal_units;
@@ -872,6 +873,7 @@ rustc_lint::late_lint_methods!(
         UnnecessaryBoxPin: unnecessary_box_pin::UnnecessaryBoxPin = unnecessary_box_pin::UnnecessaryBoxPin::new(conf),
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
+        DropForStatic: drop_for_static::DropForStatic = drop_for_static::DropForStatic,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
