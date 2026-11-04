@@ -213,20 +213,27 @@ impl FileType {
             },
         }
     }
-}
 
-impl Display for FileType {
-    /// Displays the lint message that describes why the following code
-    /// is bad.
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    /// Describes in detail why the following code is bad
+    fn detailed_error_msg(&self) -> String {
         let file_type = self.file_type_as_str();
-        write!(
-            f,
+        format!(
             "creating a {file_type} and setting its permissions in two \
             separate steps leaves a brief window where the {file_type} is \
             exposed with world-readable permissions. Another process could \
             replace this file with a different file and cause privilege \
             escalation on the new file"
+        )
+    }
+}
+
+impl Display for FileType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let file_type = self.file_type_as_str();
+        write!(
+            f,
+            "{file_type} can be replaced between when created and set \
+            with permissions in separate calls"
         )
     }
 }
@@ -244,9 +251,10 @@ fn check_expr_is_set_perm<'tcx>(
             Some(sym::fs_set_permissions | sym::fs_set_permissions_nofollow)
         )
     {
-        return Some((func, path));
+        Some((func, path))
+    } else {
+        None
     }
-    None
 }
 
 /// Checks if the expression is `std::fs::create_dir` or `std::fs::create_dir_all`
@@ -259,9 +267,10 @@ fn check_expr_is_create_dir<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -
             Some(sym::fs_create_dir | sym::fs_create_dir_all)
         )
     {
-        return Some((path, FileType::Directory));
+        Some((path, FileType::Directory))
+    } else {
+        None
     }
-    None
 }
 
 /// Checks if the expression is `File::create*`
@@ -274,9 +283,10 @@ fn check_expr_is_file_create<'tcx>(
         && ty.basic_res().is_diag_item(&cx.tcx(), sym::File)
         && matches!(segment.ident.name, sym::create | sym::create_new | sym::create_buffered)
     {
-        return Some((path, FileType::RegularFile));
+        Some((path, FileType::RegularFile))
+    } else {
+        None
     }
-    None
 }
 
 /// Checks if the expression is `symlink*`.
@@ -289,9 +299,10 @@ fn check_expr_is_symlink<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) -> O
             Some(sym::fs_symlink | sym::fs_symlink_dir | sym::fs_symlink_file | sym::fs_symlink_path)
         )
     {
-        return Some((link, FileType::Symlink));
+        Some((link, FileType::Symlink))
+    } else {
+        None
     }
-    None
 }
 
 /// Finds the earliest `std::fs::create_dir*`, `File::create*`, `symlink*`
@@ -311,15 +322,16 @@ fn check_file_was_created_earlier<'tcx>(
             && eq_expr_value(cx, e.span.ctxt(), func, set_perm_func)
             && eq_expr_value(cx, e.span.ctxt(), path, set_perm_path)
         {
-            return ControlFlow::Break(None);
+            ControlFlow::Break(None)
         } else if let Some((path, filetype)) = check_expr_is_create_dir(cx, e)
             .or(check_expr_is_file_create(cx, e))
             .or(check_expr_is_symlink(cx, e))
             && eq_expr_value(cx, e.span.ctxt(), path, set_perm_path)
         {
-            return ControlFlow::Break(Some((e, filetype)));
+            ControlFlow::Break(Some((e, filetype)))
+        } else {
+            ControlFlow::Continue(())
         }
-        ControlFlow::Continue(())
     })
     .unwrap_or(None)
 }
@@ -329,12 +341,12 @@ impl<'tcx> LateLintPass<'tcx> for FileCreationAndSetPermissions {
         if let Some((func, path)) = check_expr_is_set_perm(cx, expr)
             && let Some((create_file_expr, filetype)) = check_file_was_created_earlier(cx, expr, func, path)
         {
-            let (warning_msg, consider_msg) = (format!("{filetype}"), filetype.consider_message());
-
+            let warning_msg = format!("{filetype}");
             span_lint_and_then(cx, filetype.lint_type(), expr.span, warning_msg, |diag| {
                 diag.span_note(create_file_expr.span, "create file operation occurred here");
                 diag.span_note(expr.span, "the set permission operation occurred here");
-                diag.help(consider_msg);
+                diag.note(filetype.detailed_error_msg());
+                diag.help(filetype.consider_message());
             });
         }
     }
