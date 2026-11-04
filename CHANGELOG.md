@@ -7711,6 +7711,7 @@ Released 2018-09-13
 [`temporary_assignment`]: https://clippy.rust-lang.org/main/index.html#temporary_assignment
 [`temporary_cstring_as_ptr`]: https://clippy.rust-lang.org/main/index.html#temporary_cstring_as_ptr
 [`test_attr_in_doctest`]: https://clippy.rust-lang.org/main/index.html#test_attr_in_doctest
+[`test_without_assertions`]: https://clippy.rust-lang.org/main/index.html#test_without_assertions
 [`tests_outside_test_module`]: https://clippy.rust-lang.org/main/index.html#tests_outside_test_module
 [`thread_local_initializer_can_be_made_const`]: https://clippy.rust-lang.org/main/index.html#thread_local_initializer_can_be_made_const
 [`to_digit_is_some`]: https://clippy.rust-lang.org/main/index.html#to_digit_is_some

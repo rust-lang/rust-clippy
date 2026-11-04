@@ -8,5 +8,6 @@ proc_macros::with_span! {
     mod tests {}
 }
 
+#[expect(clippy::test_without_assertions)]
 #[test]
 fn f() {}
