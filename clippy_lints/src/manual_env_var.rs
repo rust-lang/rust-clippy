@@ -20,19 +20,13 @@ declare_clippy_lint! {
     /// ### Example
     /// ```no_run
     /// use std::collections::HashMap;
-    /// # fn foo() -> Option<()> {
-    /// let (_, value) = std::env::vars().find(|(k, _)| k == "FOO")?;
-    /// let value = std::env::vars().find_map(|(k, v)| if k == "FOO" { Some(v) } else { None })?;
-    /// let value = std::env::vars().collect::<HashMap<_, _>>().get("FOO")?;
-    /// # Some(())
-    /// # }
+    /// let rx: Option<(String, String)>  = std::env::vars().find(|(k, _)| k == "FOO");
+    /// let value: Option<String> = std::env::vars().find_map(|(k, v)| if k == "FOO" { Some(v) } else { None });
+    /// let value: Option<String> = std::env::vars().collect::<HashMap<_, _>>().get("FOO").cloned();
     /// ```
     /// Use instead:
     /// ```no_run
-    /// # fn foo() -> Option<()> {
-    /// let value = std::env::var_os("FOO")?;
-    /// # Some(())
-    /// # }
+    /// let value: Result<String, _> = std::env::var("FOO");
     /// ```
     #[clippy::version = "1.101.0"]
     pub MANUAL_ENV_VAR,
