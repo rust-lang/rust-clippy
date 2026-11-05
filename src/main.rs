@@ -11,6 +11,8 @@ use std::io::Write as _;
 use std::path::PathBuf;
 use std::process::{self, Command, exit};
 
+const CLIPPY_FIX_ARGS_MARKER: &str = "__CLIPPY_FIX__";
+
 fn show_help() {
     if writeln!(&mut anstream::stdout().lock(), "{}", help_message()).is_err() {
         exit(rustc_driver::EXIT_FAILURE);
@@ -113,6 +115,8 @@ impl ClippyCmd {
         let clippy_args: String = self
             .clippy_args
             .iter()
+            .map(String::as_str)
+            .chain((self.cargo_subcommand == "fix").then_some(CLIPPY_FIX_ARGS_MARKER))
             .fold(String::new(), |s, arg| s + arg + "__CLIPPY_HACKERY__");
 
         cmd.env("RUSTC_WORKSPACE_WRAPPER", Self::path())
