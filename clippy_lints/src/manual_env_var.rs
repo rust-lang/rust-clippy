@@ -1,7 +1,8 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::eager_or_lazy::switch_to_eager_eval;
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::snippet;
-use clippy_utils::{as_some_expr, is_no_std_crate, is_none_expr, peel_blocks, sym};
+use clippy_utils::{as_some_expr, is_none_expr, peel_blocks, sym};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_hir::def::Res;
 use rustc_hir::{self as hir, HirId};
@@ -159,6 +160,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                 match name.ident.name {
                     sym::find => {
                         if let Some(query_expr) = get_key_query(cx, body.value, key_hir_id)
+                            && switch_to_eager_eval(cx, query_expr)
                             && let hir::Node::Expr(grandparent) = cx.tcx.parent_hir_node(parent.hir_id)
                             && check_map_to_value_expr(cx, grandparent)
                         {
@@ -171,6 +173,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                         if let hir::PatKind::Binding(_, value_hir_id, _, _) = value_pat.kind
                             && let hir::ExprKind::If(cond, then, Some(else_)) = body.value.kind
                             && let Some(query_expr) = get_key_query(cx, cond, key_hir_id)
+                            && switch_to_eager_eval(cx, query_expr)
                             && let Some(then_inner) = as_some_expr(cx, peel_blocks(then))
                             && is_none_expr(cx, peel_blocks(else_))
                             && let hir::ExprKind::Path(then_inner_qpath) = then_inner.kind
@@ -182,9 +185,9 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                             None
                         }
                     },
-                    sym::any => {
-                        get_key_query(cx, body.value, key_hir_id).map(|query_expr| (query_expr, true, parent.span))
-                    },
+                    sym::any => get_key_query(cx, body.value, key_hir_id)
+                        .filter(|query_expr| switch_to_eager_eval(cx, query_expr))
+                        .map(|query_expr| (query_expr, true, parent.span)),
                     _ => None,
                 }
             } else if let [hir::Param { pat: var_pat, .. }] = body.params
@@ -194,6 +197,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                 match name.ident.name {
                     sym::find => {
                         if let Some(query_expr) = get_key_query_tuple(cx, body.value, var_hir_id)
+                            && switch_to_eager_eval(cx, query_expr)
                             && let hir::Node::Expr(grandparent) = cx.tcx.parent_hir_node(parent.hir_id)
                             && check_map_to_value_expr(cx, grandparent)
                         {
@@ -206,6 +210,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                         #[allow(clippy::symbol_as_str, reason = "how to handle digits?")]
                         if let hir::ExprKind::If(cond, then, Some(else_)) = body.value.kind
                             && let Some(query_expr) = get_key_query_tuple(cx, cond, var_hir_id)
+                            && switch_to_eager_eval(cx, query_expr)
                             && let Some(then_inner) = as_some_expr(cx, peel_blocks(then))
                             && is_none_expr(cx, peel_blocks(else_))
                             && let hir::ExprKind::Field(tup, field) = then_inner.kind
@@ -220,6 +225,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                         }
                     },
                     sym::any => get_key_query_tuple(cx, body.value, var_hir_id)
+                        .filter(|query_expr| switch_to_eager_eval(cx, query_expr))
                         .map(|query_expr| (query_expr, true, parent.span)),
                     _ => None,
                 }

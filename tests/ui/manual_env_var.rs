@@ -4,7 +4,18 @@ use std::collections::HashMap;
 use std::env;
 use std::ffi::{OsStr, OsString};
 
+fn might_have_side_effects() -> &'static str {
+    "FOO"
+}
+
 fn main() {
+    let _: Option<String> = env::vars().find(|(k, v)| k == "FOO").map(|(k, v)| v);
+    //~^ manual_env_var
+    let _: Option<String> = env::vars().find(|(k, v)| k == "FOO").map(|e| e.1);
+    //~^ manual_env_var
+    let _: Option<String> = env::vars().find(|(k, v)| k == "FOO").map(|(k, _)| k);
+    let _: Option<String> = env::vars().find(|(k, v)| k == "FOO").map(|e| e.0);
+
     let _: Option<String> = env::vars().find(|(k, v)| k == "FOO").map(|(k, v)| v);
     //~^ manual_env_var
     let _: Option<String> = env::vars().find(|(k, v)| k == "FOO").map(|e| e.1);
@@ -39,10 +50,36 @@ fn main() {
     let _: bool = env::vars().any(|(k, v)| v == "FOO");
     let _: bool = env::vars().any(|e| e.1 == "FOO");
 
+    // closure can't be switched from lazy to eager implicitly
+    let _: Option<String> = env::vars()
+        .find(|(k, v)| k == might_have_side_effects())
+        .map(|(k, v)| v);
+    let _: Option<String> = env::vars().find(|(k, v)| k == might_have_side_effects()).map(|e| e.1);
+    let _: Option<String> = env::vars().find(|e| e.0 == might_have_side_effects()).map(|e| e.1);
+    let _: Option<String> = env::vars().find_map(|(k, v)| if k == might_have_side_effects() { Some(v) } else { None });
+    let _: Option<String> = env::vars().find_map(|(k, v)| if k == might_have_side_effects() { Some(v) } else { None });
+    let _: Option<String> = env::vars().find_map(|e| {
+        if e.0 == might_have_side_effects() {
+            Some(e.1)
+        } else {
+            None
+        }
+    });
+    let _: bool = env::vars().any(|(k, v)| k == might_have_side_effects());
+    let _: bool = env::vars().any(|(k, v)| might_have_side_effects() == k);
+    let _: bool = env::vars().any(|e| e.0 == might_have_side_effects());
+    let _: bool = env::vars().any(|e| might_have_side_effects() == e.0);
+
     let kv1: HashMap<String, String> = env::vars().collect();
     let _: Option<String> = kv1.get("FOO").cloned();
     //~^ manual_env_var
     let _: bool = kv1.contains_key("FOO");
+    //~^ manual_env_var
+
+    let _: Option<String> = kv1.get(might_have_side_effects()).cloned();
+    //~^ manual_env_var
+
+    let _: bool = kv1.contains_key(might_have_side_effects());
     //~^ manual_env_var
 
     let mut kv2: HashMap<String, String> = env::vars().collect();
@@ -54,6 +91,12 @@ fn main() {
     //~^ manual_env_var
     let _: bool = env::vars().collect::<HashMap<String, String>>().contains_key("FOO");
     //~^ manual_env_var
+
+    let _: Option<String> = env::vars()
+        //~^ manual_env_var
+        .collect::<HashMap<String, String>>()
+        .get(might_have_side_effects())
+        .cloned();
 
     let _: Option<OsString> = env::vars_os().find(|(k, v)| k == "FOO").map(|(k, v)| v);
     //~^ manual_env_var
