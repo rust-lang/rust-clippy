@@ -1,10 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::eager_or_lazy::switch_to_eager_eval;
-use clippy_utils::res::MaybeDef as _;
+use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet;
 use clippy_utils::{as_some_expr, is_none_expr, peel_blocks, sym};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_hir::def::Res;
 use rustc_hir::{self as hir, HirId};
 use rustc_lint::{Applicability, LateContext, LateLintPass, impl_lint_pass};
 use rustc_span::Span;
@@ -111,9 +110,7 @@ impl<'tcx> LateLintPass<'tcx> for ManualEnvVar {
                     None,
                     applicability,
                 );
-            } else if let hir::ExprKind::Path(recv_qpath) = recv.kind
-                && let recv_res = cx.typeck_results().qpath_res(&recv_qpath, recv.hir_id)
-                && let Res::Local(recv_hir_id) = recv_res
+            } else if let Some(recv_hir_id) = recv.res_local_id()
                 && let Some((let_span, is_os_str)) = self.env_containers.get(&recv_hir_id)
             {
                 emit_lint(
@@ -159,7 +156,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                 // `parent` deconstructs with pattern matching
                 match name.ident.name {
                     sym::find => {
-                        if let Some(query_expr) = get_key_query(cx, body.value, key_hir_id)
+                        if let Some(query_expr) = get_key_query(body.value, key_hir_id)
                             && switch_to_eager_eval(cx, query_expr)
                             && let hir::Node::Expr(grandparent) = cx.tcx.parent_hir_node(parent.hir_id)
                             && check_map_to_value_expr(cx, grandparent)
@@ -172,20 +169,18 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                     sym::find_map => {
                         if let hir::PatKind::Binding(_, value_hir_id, _, _) = value_pat.kind
                             && let hir::ExprKind::If(cond, then, Some(else_)) = body.value.kind
-                            && let Some(query_expr) = get_key_query(cx, cond, key_hir_id)
+                            && let Some(query_expr) = get_key_query(cond, key_hir_id)
                             && switch_to_eager_eval(cx, query_expr)
                             && let Some(then_inner) = as_some_expr(cx, peel_blocks(then))
                             && is_none_expr(cx, peel_blocks(else_))
-                            && let hir::ExprKind::Path(then_inner_qpath) = then_inner.kind
-                            && let then_inner_res = cx.typeck_results().qpath_res(&then_inner_qpath, then_inner.hir_id)
-                            && then_inner_res == Res::Local(value_hir_id)
+                            && Some(value_hir_id) == then_inner.res_local_id()
                         {
                             Some((query_expr, false, parent.span))
                         } else {
                             None
                         }
                     },
-                    sym::any => get_key_query(cx, body.value, key_hir_id)
+                    sym::any => get_key_query(body.value, key_hir_id)
                         .filter(|query_expr| switch_to_eager_eval(cx, query_expr))
                         .map(|query_expr| (query_expr, true, parent.span)),
                     _ => None,
@@ -196,7 +191,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                 // parent does not deconstruct, but just directly accepts a tuple arg
                 match name.ident.name {
                     sym::find => {
-                        if let Some(query_expr) = get_key_query_tuple(cx, body.value, var_hir_id)
+                        if let Some(query_expr) = get_key_query_tuple(body.value, var_hir_id)
                             && switch_to_eager_eval(cx, query_expr)
                             && let hir::Node::Expr(grandparent) = cx.tcx.parent_hir_node(parent.hir_id)
                             && check_map_to_value_expr(cx, grandparent)
@@ -207,24 +202,21 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                         }
                     },
                     sym::find_map => {
-                        #[allow(clippy::symbol_as_str, reason = "how to handle digits?")]
                         if let hir::ExprKind::If(cond, then, Some(else_)) = body.value.kind
-                            && let Some(query_expr) = get_key_query_tuple(cx, cond, var_hir_id)
+                            && let Some(query_expr) = get_key_query_tuple(cond, var_hir_id)
                             && switch_to_eager_eval(cx, query_expr)
                             && let Some(then_inner) = as_some_expr(cx, peel_blocks(then))
                             && is_none_expr(cx, peel_blocks(else_))
                             && let hir::ExprKind::Field(tup, field) = then_inner.kind
-                            && field.as_str() == "1"
-                            && let hir::ExprKind::Path(then_inner_qpath) = tup.kind
-                            && let then_inner_res = cx.typeck_results().qpath_res(&then_inner_qpath, tup.hir_id)
-                            && then_inner_res == Res::Local(var_hir_id)
+                            && field.name == sym::integer(1)
+                            && Some(var_hir_id) == tup.res_local_id()
                         {
                             Some((query_expr, false, parent.span))
                         } else {
                             None
                         }
                     },
-                    sym::any => get_key_query_tuple(cx, body.value, var_hir_id)
+                    sym::any => get_key_query_tuple(body.value, var_hir_id)
                         .filter(|query_expr| switch_to_eager_eval(cx, query_expr))
                         .map(|query_expr| (query_expr, true, parent.span)),
                     _ => None,
@@ -259,24 +251,14 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
 ///   || key_hir_id
 ///   | comparison_expr
 /// ```
-fn get_key_query<'tcx>(
-    cx: &LateContext<'tcx>,
-    comparison_expr: &'tcx hir::Expr<'tcx>,
-    key_hir_id: HirId,
-) -> Option<&'tcx hir::Expr<'tcx>> {
+fn get_key_query<'tcx>(comparison_expr: &'tcx hir::Expr<'tcx>, key_hir_id: HirId) -> Option<&'tcx hir::Expr<'tcx>> {
     if let hir::ExprKind::Binary(binop, lhs, rhs) = comparison_expr.kind
         && binop.node == hir::BinOpKind::Eq
     {
-        if let hir::ExprKind::Path(lhs_qpath) = lhs.kind
-            && let lhs_res = cx.typeck_results().qpath_res(&lhs_qpath, lhs.hir_id)
-            && lhs_res == Res::Local(key_hir_id)
-        {
+        if lhs.res_local_id() == Some(key_hir_id) {
             // env::vars().find(|(key, _)| key == WHATEVER)
             Some(rhs)
-        } else if let hir::ExprKind::Path(rhs_qpath) = rhs.kind
-            && let rhs_res = cx.typeck_results().qpath_res(&rhs_qpath, rhs.hir_id)
-            && rhs_res == Res::Local(key_hir_id)
-        {
+        } else if rhs.res_local_id() == Some(key_hir_id) {
             // env::vars().find(|(key, _)| WHATEVER == key)
             Some(lhs)
         } else {
@@ -298,27 +280,21 @@ fn get_key_query<'tcx>(
 ///   | comparison_expr
 /// ```
 fn get_key_query_tuple<'tcx>(
-    cx: &LateContext<'tcx>,
     comparison_expr: &'tcx hir::Expr<'tcx>,
     var_hir_id: HirId,
 ) -> Option<&'tcx hir::Expr<'tcx>> {
-    #[allow(clippy::symbol_as_str, reason = "how to handle digits?")]
     if let hir::ExprKind::Binary(binop, lhs, rhs) = comparison_expr.kind
         && binop.node == hir::BinOpKind::Eq
     {
         if let hir::ExprKind::Field(tup, field) = lhs.kind
-            && field.name.as_str() == "0"
-            && let hir::ExprKind::Path(lhs_qpath) = tup.kind
-            && let lhs_res = cx.typeck_results().qpath_res(&lhs_qpath, lhs.hir_id)
-            && lhs_res == Res::Local(var_hir_id)
+            && field.name == sym::integer(0)
+            && tup.res_local_id() == Some(var_hir_id)
         {
             // env::vars().find(|entry| entry.0 == WHATEVER)
             Some(rhs)
         } else if let hir::ExprKind::Field(tup, field) = rhs.kind
-            && field.name.as_str() == "0"
-            && let hir::ExprKind::Path(rhs_qpath) = tup.kind
-            && let rhs_res = cx.typeck_results().qpath_res(&rhs_qpath, rhs.hir_id)
-            && rhs_res == Res::Local(var_hir_id)
+            && field.name == sym::integer(0)
+            && tup.res_local_id() == Some(var_hir_id)
         {
             // env::vars().find(|entry| WHATEVER == entry.0)
             Some(lhs)
@@ -333,7 +309,6 @@ fn get_key_query_tuple<'tcx>(
 /// Check if `grandparent` is a `map` method call that converts
 /// a tuple into its second item.
 fn check_map_to_value_expr<'tcx>(cx: &LateContext<'tcx>, grandparent: &hir::Expr<'tcx>) -> bool {
-    #[allow(clippy::symbol_as_str, reason = "how to handle digits?")]
     if let hir::ExprKind::MethodCall(name, _, [arg], _) = grandparent.kind
         && name.ident.name == sym::map
         && let hir::ExprKind::Closure(closure) = arg.kind
@@ -342,17 +317,13 @@ fn check_map_to_value_expr<'tcx>(cx: &LateContext<'tcx>, grandparent: &hir::Expr
     {
         if let hir::PatKind::Tuple(&[_, value_pat], _dotdot) = var_pat.kind
             && let hir::PatKind::Binding(_, value_hir_id, _, _) = value_pat.kind
-            && let hir::ExprKind::Path(body_value_qpath) = body.value.kind
-            && let body_value_res = cx.typeck_results().qpath_res(&body_value_qpath, body.value.hir_id)
         {
-            body_value_res == Res::Local(value_hir_id)
+            body.value.res_local_id() == Some(value_hir_id)
         } else if let hir::PatKind::Binding(_, var_hir_id, _, _) = var_pat.kind
             && let hir::ExprKind::Field(tup, field) = body.value.kind
-            && field.name.as_str() == "1"
-            && let hir::ExprKind::Path(body_qpath) = tup.kind
+            && field.name == sym::integer(1)
         {
-            let rhs_res = cx.typeck_results().qpath_res(&body_qpath, tup.hir_id);
-            rhs_res == Res::Local(var_hir_id)
+            tup.res_local_id() == Some(var_hir_id)
         } else {
             false
         }
