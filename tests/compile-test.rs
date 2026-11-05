@@ -554,6 +554,8 @@ impl DiagnosticCollector {
                 }
             }
 
+            fs::write("util/gh-pages/clippy.schema.json", clippy_config::Conf::schema_json()).unwrap();
+
             let configs = clippy_config::Conf::get_metadata();
             let mut metadata: Vec<LintMetadata> = LINTS
                 .iter()

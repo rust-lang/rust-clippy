@@ -35,6 +35,7 @@ out
 /lintcheck-logs
 
 # gh pages docs
+util/gh-pages/clippy.schema.json
 util/gh-pages/lints.json
 util/gh-pages/index.html
 

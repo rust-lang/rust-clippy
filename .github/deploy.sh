@@ -12,12 +12,16 @@ cp util/gh-pages/index.html out/master
 cp util/gh-pages/theme.js out/master
 cp util/gh-pages/script.js out/master
 cp util/gh-pages/style.css out/master
+if [[ -f util/gh-pages/clippy.schema.json ]]; then
+  cp util/gh-pages/clippy.schema.json out/master
+fi
 
 echo "Copying the docs into the main directory"
 cp -Tr out/master/ out/main/
 
 if [[ -n $TAG_NAME ]]; then
   echo "Save the doc for the current tag ($TAG_NAME) and point stable/ to it"
+  rm -f "out/$TAG_NAME/clippy.schema.json"
   cp -Tr out/master "out/$TAG_NAME"
   rm -f out/stable
   ln -s "$TAG_NAME" out/stable
@@ -25,6 +29,7 @@ fi
 
 if [[ $BETA = "true" ]]; then
   echo "Update documentation for the beta release"
+  rm -f out/beta/clippy.schema.json
   cp -r out/master/* out/beta
 fi
 
