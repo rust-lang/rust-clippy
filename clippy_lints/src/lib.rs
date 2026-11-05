@@ -353,6 +353,7 @@ mod string_patterns;
 mod strings;
 mod strlen_on_c_strings;
 mod suspicious_operation_groupings;
+mod suspicious_sealed_trait;
 mod suspicious_trait_impl;
 mod suspicious_xor_used_as_pow;
 mod swap;
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        SuspiciousSealedTrait: suspicious_sealed_trait::SuspiciousSealedTrait = suspicious_sealed_trait::SuspiciousSealedTrait,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

@@ -1,0 +1,14 @@
+error: sealed generic trait `Suspicious` uses non-generic sealing supertrait
+  --> tests/ui/suspicious_sealed_trait.rs:12:26
+   |
+LL | pub trait Suspicious<T>: sealed::Sealed {}
+   |                          ^^^^^^^^^^^^^^
+   |
+   = note: without depending on `T`, this bound fails to fully seal the trait, which potentially allows downstream implementations
+   = help: make `sealed::Sealed` generic over `T`
+   = note: fixing this is technically a breaking change
+   = note: `-D clippy::suspicious-sealed-trait` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::suspicious_sealed_trait)]`
+
+error: aborting due to 1 previous error
+
