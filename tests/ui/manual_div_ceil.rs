@@ -155,3 +155,46 @@ fn side_effects() {
     let _ = 33_u32.next_multiple_of(black_box(4)) / black_box(4);
     let _ = u32::next_multiple_of(33, black_box(4)) / black_box(4);
 }
+
+fn right_shift(x: u32, small: u8, wide: u128, pointer: usize) {
+    let _ = (x + 1) >> 1;
+    //~^ manual_div_ceil
+    let _ = (x + 7) >> 3;
+    //~^ manual_div_ceil
+    let _ = (7 + x) >> 3;
+    //~^ manual_div_ceil
+    let _ = (x + 7) >> 3_i8;
+    //~^ manual_div_ceil
+    let _: u32 = (33 + 7) >> 3_u8;
+    //~^ manual_div_ceil
+    let _ = (small + 127) >> 7;
+    //~^ manual_div_ceil
+    let _ = (wide + 0x7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff) >> 127;
+    //~^ manual_div_ceil
+    let _ = (pointer + 7) >> 3;
+    //~^ manual_div_ceil
+
+    // No lint: incorrect offset, nonliteral shift, or signed dividend without `int_roundings`.
+    let _ = (x + 6) >> 3;
+    let _ = (x + 7) >> 2;
+    let _ = (x + 7) >> small;
+    let _ = (33_i32 + 7) >> 3;
+}
+
+#[allow(arithmetic_overflow)]
+fn invalid_shift(x: u8, wide: u128) {
+    let _ = (x + 255) >> 8;
+    let _ = (wide + 0xffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff) >> 128;
+    let _ = (wide + 7) >> 0x1_0000_0003_u64;
+}
+
+#[clippy::msrv = "1.72"]
+fn right_shift_old_msrv(x: u32) {
+    let _ = (x + 7) >> 3;
+}
+
+#[clippy::msrv = "1.73"]
+fn right_shift_msrv(x: u32) {
+    let _ = (x + 7) >> 3;
+    //~^ manual_div_ceil
+}
