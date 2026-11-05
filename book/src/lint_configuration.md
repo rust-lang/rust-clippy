@@ -1027,7 +1027,6 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`unchecked_time_subtraction`](https://clippy.rust-lang.org/main/index.html#unchecked_time_subtraction)
 * [`uninlined_format_args`](https://clippy.rust-lang.org/main/index.html#uninlined_format_args)
 * [`unnecessary_box_pin`](https://clippy.rust-lang.org/main/index.html#unnecessary_box_pin)
-* [`unnecessary_box_pin`](https://rust-lang.github.io/rust-clippy/main/index.html#unnecessary_box_pin)
 * [`unnecessary_lazy_evaluations`](https://clippy.rust-lang.org/main/index.html#unnecessary_lazy_evaluations)
 * [`unnecessary_unwrap`](https://clippy.rust-lang.org/main/index.html#unnecessary_unwrap)
 * [`unnested_or_patterns`](https://clippy.rust-lang.org/main/index.html#unnested_or_patterns)

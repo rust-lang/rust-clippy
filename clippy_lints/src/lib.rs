@@ -223,6 +223,7 @@ mod manual_rem_euclid;
 mod manual_retain;
 mod manual_rotate;
 mod manual_slice_size_calculation;
+mod manual_split;
 mod manual_string_new;
 mod manual_strip;
 mod manual_take;
