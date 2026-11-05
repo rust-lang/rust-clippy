@@ -249,6 +249,16 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
     }
 }
 
+/// Finds the expression that should become the query,
+/// when `key_hir_id` is decomposed.
+///
+/// ```text
+/// if key == "FOO" { ... }
+///   -^------^^^^^-
+///   ||      | key_query
+///   || key_hir_id
+///   | comparison_expr
+/// ```
 fn get_key_query<'tcx>(
     cx: &LateContext<'tcx>,
     comparison_expr: &'tcx hir::Expr<'tcx>,
@@ -277,6 +287,16 @@ fn get_key_query<'tcx>(
     }
 }
 
+/// Finds the expression that should become the query,
+/// when `var_hir_id` is a `(key, value)` tuple.
+///
+/// ```text
+/// if var.0 == "FOO" { ... }
+///   -^^^------^^^^^-
+///   ||        | key_query
+///   || var_hir_id
+///   | comparison_expr
+/// ```
 fn get_key_query_tuple<'tcx>(
     cx: &LateContext<'tcx>,
     comparison_expr: &'tcx hir::Expr<'tcx>,
@@ -310,6 +330,8 @@ fn get_key_query_tuple<'tcx>(
     }
 }
 
+/// Check if `grandparent` is a `map` method call that converts
+/// a tuple into its second item.
 fn check_map_to_value_expr<'tcx>(cx: &LateContext<'tcx>, grandparent: &hir::Expr<'tcx>) -> bool {
     #[allow(clippy::symbol_as_str, reason = "how to handle digits?")]
     if let hir::ExprKind::MethodCall(name, _, [arg], _) = grandparent.kind
@@ -339,6 +361,10 @@ fn check_map_to_value_expr<'tcx>(cx: &LateContext<'tcx>, grandparent: &hir::Expr
     }
 }
 
+/// Check if, and which type, `collect_expr` is collecting the environment into a map.
+///
+/// Returns `Some(true)` if it's `env::vars_os()`, returns `Some(false)` if it's `env::vars()`,
+/// and `None` if it isn't collecting the environment into a map.
 fn maybe_env_collection<'tcx>(cx: &LateContext<'tcx>, collect_expr: &hir::Expr<'tcx>) -> Option<bool> {
     if let hir::ExprKind::MethodCall(collect_name, collect_recv, [], _) = collect_expr.kind
         && collect_name.ident.name == sym::collect
