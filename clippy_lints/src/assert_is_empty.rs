@@ -1,5 +1,7 @@
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
+use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::walk_span_to_context;
 use clippy_utils::sugg::Sugg;
@@ -8,7 +10,7 @@ use clippy_utils::{is_in_const_context, sym};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_middle::ty::{self, IsSuggestable as _, Ty};
 use rustc_span::Span;
 
@@ -72,7 +74,17 @@ declare_clippy_lint! {
     "asserting on emptiness without showing the asserted value on failure"
 }
 
-declare_lint_pass!(AssertIsEmpty => [ASSERT_IS_EMPTY]);
+impl_lint_pass!(AssertIsEmpty => [ASSERT_IS_EMPTY]);
+
+pub struct AssertIsEmpty {
+    msrv: Msrv,
+}
+
+impl AssertIsEmpty {
+    pub fn new(conf: &Conf) -> Self {
+        Self { msrv: conf.msrv.into() }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
     /// Finds assertion conditions that only test emptiness.
@@ -86,7 +98,7 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
             && !is_in_const_context(cx)
             && let Some((macro_name, condition, assert_span)) = assert_call(cx, expr)
             && let Some((assertion_kind, receiver)) = emptiness_assertion(condition)
-            && let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver)
+            && let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver, self.msrv)
         {
             emit_assertion_suggestion(
                 cx,
@@ -190,8 +202,15 @@ impl AssertionKind {
 /// The replacement assertion must compile, compare the same value, and print useful failure
 /// output. Returns `None` for unsupported collection types and for element types that cannot be
 /// printed and compared by the replacement assertion.
-fn assertion_suggestion<'tcx>(cx: &LateContext<'tcx>, receiver: &'tcx Expr<'tcx>) -> Option<(&'static str, String)> {
+fn assertion_suggestion<'tcx>(
+    cx: &LateContext<'tcx>,
+    receiver: &'tcx Expr<'tcx>,
+    msrv: Msrv,
+) -> Option<(&'static str, String)> {
     let receiver_ty = cx.typeck_results().expr_ty(receiver);
+    if receiver_ty.peel_refs().is_diag_item(cx, sym::BinaryHeap) && !msrv.meets(cx, msrvs::BINARY_HEAP_AS_SLICE) {
+        return None;
+    }
     let suggestion = suggestion_for_type(cx, receiver_ty)?;
     if type_is_printable_and_comparable(cx, receiver_ty.peel_refs()) {
         Some(suggestion)
