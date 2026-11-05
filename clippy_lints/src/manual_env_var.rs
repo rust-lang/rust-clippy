@@ -157,7 +157,6 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                 match name.ident.name {
                     sym::find => {
                         if let Some(query_expr) = get_key_query(body.value, key_hir_id)
-                            && switch_to_eager_eval(cx, query_expr)
                             && let hir::Node::Expr(grandparent) = cx.tcx.parent_hir_node(parent.hir_id)
                             && check_map_to_value_expr(cx, grandparent)
                         {
@@ -170,7 +169,6 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                         if let hir::PatKind::Binding(_, value_hir_id, _, _) = value_pat.kind
                             && let hir::ExprKind::If(cond, then, Some(else_)) = body.value.kind
                             && let Some(query_expr) = get_key_query(cond, key_hir_id)
-                            && switch_to_eager_eval(cx, query_expr)
                             && let Some(then_inner) = as_some_expr(cx, peel_blocks(then))
                             && is_none_expr(cx, peel_blocks(else_))
                             && Some(value_hir_id) == then_inner.res_local_id()
@@ -180,9 +178,7 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                             None
                         }
                     },
-                    sym::any => get_key_query(body.value, key_hir_id)
-                        .filter(|query_expr| switch_to_eager_eval(cx, query_expr))
-                        .map(|query_expr| (query_expr, true, parent.span)),
+                    sym::any => get_key_query(body.value, key_hir_id).map(|query_expr| (query_expr, true, parent.span)),
                     _ => None,
                 }
             } else if let [hir::Param { pat: var_pat, .. }] = body.params
@@ -192,7 +188,6 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                 match name.ident.name {
                     sym::find => {
                         if let Some(query_expr) = get_key_query_tuple(body.value, var_hir_id)
-                            && switch_to_eager_eval(cx, query_expr)
                             && let hir::Node::Expr(grandparent) = cx.tcx.parent_hir_node(parent.hir_id)
                             && check_map_to_value_expr(cx, grandparent)
                         {
@@ -204,7 +199,6 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                     sym::find_map => {
                         if let hir::ExprKind::If(cond, then, Some(else_)) = body.value.kind
                             && let Some(query_expr) = get_key_query_tuple(cond, var_hir_id)
-                            && switch_to_eager_eval(cx, query_expr)
                             && let Some(then_inner) = as_some_expr(cx, peel_blocks(then))
                             && is_none_expr(cx, peel_blocks(else_))
                             && let hir::ExprKind::Field(tup, field) = then_inner.kind
@@ -216,9 +210,9 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                             None
                         }
                     },
-                    sym::any => get_key_query_tuple(body.value, var_hir_id)
-                        .filter(|query_expr| switch_to_eager_eval(cx, query_expr))
-                        .map(|query_expr| (query_expr, true, parent.span)),
+                    sym::any => {
+                        get_key_query_tuple(body.value, var_hir_id).map(|query_expr| (query_expr, true, parent.span))
+                    },
                     _ => None,
                 }
             } else {
@@ -235,7 +229,11 @@ fn check<'tcx>(cx: &LateContext<'tcx>, vars_expr: &'tcx hir::Expr<'tcx>, is_os_s
                 is_existance_check,
                 span_sugg,
                 None,
-                Applicability::MachineApplicable,
+                if switch_to_eager_eval(cx, query_expr) {
+                    Applicability::MachineApplicable
+                } else {
+                    Applicability::MaybeIncorrect
+                },
             );
         }
     }
