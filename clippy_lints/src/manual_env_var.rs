@@ -55,7 +55,6 @@ fn emit_lint<'tcx>(
     } else {
         "avoid using `env::vars()` to find individual values"
     };
-    let core_or_std = if is_no_std_crate(cx) { "core" } else { "std" };
     let var = if is_os_str { "var_os" } else { "var" };
     let query = snippet(cx, query_expr.span, "VARNAME");
     let trailing_sugg = match (is_existance_check, is_os_str) {
@@ -68,7 +67,7 @@ fn emit_lint<'tcx>(
         diag.span_suggestion(
             span_sugg,
             "replace with",
-            format!("{core_or_std}::env::{var}({query}){trailing_sugg}"),
+            format!("std::env::{var}({query}){trailing_sugg}"),
             applicability,
         );
         if let Some(span_let) = span_let {
