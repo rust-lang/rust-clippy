@@ -113,8 +113,8 @@ macro_rules! define_Conf {
             $(#[doc = $doc:literal])*
             $(#[default_text = $default_text:literal])?
             $(#[rename = $new_name:ident])?
-            $(#[lints($($for_lints:ident),* $(,)?)])?
             $(#[schema_type = $schema_ty:literal])?
+            $(#[lints($($for_lints:ident),* $(,)?)])?
             // The type must exist for regular fields and must not exist for deprecated ones.
             $name:ident($name_str:literal) $(: $ty:ty $(= $default:expr)?)?,
         )*
@@ -284,8 +284,8 @@ macro_rules! define_Conf {
 
 define_Conf! {
     /// Which crates to allow absolute paths from
-    #[lints(absolute_paths)]
     #[schema_type = "Vec<String>"]
+    #[lints(absolute_paths)]
     absolute_paths_allowed_crates("absolute-paths-allowed-crates"): FxHashSet<Symbol>,
     /// The maximum number of segments a path can have before being linted, anything above this will
     /// be linted.
@@ -370,14 +370,14 @@ define_Conf! {
     #[lints(path_ends_with_ext)]
     allowed_dotfiles("allowed-dotfiles"): Vec<String>,
     /// A list of crate names to allow duplicates of
-    #[lints(multiple_crate_versions)]
     #[schema_type = "Vec<String>"]
+    #[lints(multiple_crate_versions)]
     allowed_duplicate_crates("allowed-duplicate-crates"): FxHashSet<String>,
     /// Allowed names below the minimum allowed characters. The value `".."` can be used as part of
     /// the list to indicate that the configured values should be appended to the default
     /// configuration of Clippy. By default, any configuration will replace the default value.
-    #[lints(min_ident_chars)]
     #[schema_type = "Vec<String>"]
+    #[lints(min_ident_chars)]
     allowed_idents_below_min_chars("allowed-idents-below-min-chars"): FxHashSet<String> = DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS,
     /// List of prefixes to allow when determining whether an item's name ends with the module's name.
     /// If the rest of an item's name is an allowed prefix (e.g. item `ToFoo` or `to_foo` in module `foo`),
@@ -414,8 +414,8 @@ define_Conf! {
     /// 1. This configuration has no effects if used with `warn_on_all_wildcard_imports = true`.
     /// 2. Paths with any segment that containing the word 'prelude'
     /// are already allowed by default.
-    #[lints(wildcard_imports)]
     #[schema_type = "Vec<String>"]
+    #[lints(wildcard_imports)]
     allowed_wildcard_imports("allowed-wildcard-imports"): FxHashSet<String>,
     /// Suppress checking of the passed type names in all types of operations.
     ///
@@ -485,8 +485,8 @@ define_Conf! {
     )]
     avoid_breaking_exported_api("avoid-breaking-exported-api"): bool = true,
     /// The list of types which may not be held across an await point.
-    #[lints(await_holding_invalid_type)]
     #[schema_type = "Vec<crate::schema::DisallowedPathWithoutReplacement>"]
+    #[lints(await_holding_invalid_type)]
     await_holding_invalid_types("await-holding-invalid-types"): Vec<DisallowedPathWithoutReplacement>,
     #[rename = disallowed_names]
     blacklisted_names("blacklisted-names"),
@@ -565,8 +565,8 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative method
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
-    #[lints(disallowed_fields)]
     #[schema_type = "Vec<crate::schema::DisallowedPath>"]
+    #[lints(disallowed_fields)]
     disallowed_fields("disallowed-fields"): Vec<DisallowedPath>,
     /// The list of disallowed macros, written as fully qualified paths.
     ///
@@ -576,8 +576,8 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative macro
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
-    #[lints(disallowed_macros)]
     #[schema_type = "Vec<crate::schema::DisallowedPath>"]
+    #[lints(disallowed_macros)]
     disallowed_macros("disallowed-macros"): Vec<DisallowedPath>,
     /// The list of disallowed methods, written as fully qualified paths.
     ///
@@ -587,8 +587,8 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative method
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
-    #[lints(disallowed_methods)]
     #[schema_type = "Vec<crate::schema::DisallowedPath>"]
+    #[lints(disallowed_methods)]
     disallowed_methods("disallowed-methods"): Vec<DisallowedPath>,
     /// The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
     /// `".."` can be used as part of the list to indicate that the configured values should be appended to the
@@ -603,16 +603,16 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative type
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
-    #[lints(disallowed_types)]
     #[schema_type = "Vec<crate::schema::DisallowedPath>"]
+    #[lints(disallowed_types)]
     disallowed_types("disallowed-types"): Vec<DisallowedPath>,
     /// The list of words this lint should not consider as identifiers needing ticks. The value
     /// `".."` can be used as part of the list to indicate that the configured values should be appended to the
     /// default configuration of Clippy. By default, any configuration will replace the default value. For example:
     /// * `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
     /// * `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
-    #[lints(doc_markdown)]
     #[schema_type = "Vec<String>"]
+    #[lints(doc_markdown)]
     doc_valid_idents("doc-valid-idents"): FxHashSet<String> = DEFAULT_DOC_VALID_IDENTS,
     /// Whether to apply the raw pointer heuristic to determine if a type is `Send`.
     #[lints(non_send_fields_in_send_ty)]
@@ -637,8 +637,8 @@ define_Conf! {
     #[lints(explicit_iter_loop)]
     enforce_iter_loop_reborrow("enforce-iter-loop-reborrow"): bool = false,
     /// The list of imports to always rename, a fully qualified path followed by the rename.
-    #[lints(missing_enforced_import_renames)]
     #[schema_type = "Vec<crate::schema::Rename>"]
+    #[lints(missing_enforced_import_renames)]
     enforced_import_renames("enforced-import-renames"): Vec<Rename>,
     /// The minimum number of enum variants for the lints about variant names to trigger
     #[lints(enum_variant_names)]
@@ -714,18 +714,19 @@ define_Conf! {
     #[lints(missing_docs_in_private_items)]
     missing_docs_in_crate_items("missing-docs-in-crate-items"): bool = false,
     /// The named groupings of different source item kinds within modules.
-    #[lints(arbitrary_source_item_ordering)]
     #[schema_type = "Vec<(String, Vec<crate::types::SourceItemOrderingModuleItemKind>)>"]
+    #[lints(arbitrary_source_item_ordering)]
     module_item_order_groupings("module-item-order-groupings"): SourceItemOrderingModuleItemGroupings,
     /// Whether the items within module groups should be ordered alphabetically or not.
     ///
     /// This option can be configured to "all", "none", or a list of specific grouping names that should be checked
     /// (e.g. only "enums").
-    #[lints(arbitrary_source_item_ordering)]
     #[schema_type = "crate::schema::WithinGroupings"]
+    #[lints(arbitrary_source_item_ordering)]
     module_items_ordered_within_groupings("module-items-ordered-within-groupings"): SourceItemOrderingWithinModuleItemGroupings,
     /// The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
     #[default_text = "current version"]
+    #[schema_type = "String"]
     #[lints(
         allow_attributes,
         allow_attributes_without_reason,
@@ -814,7 +815,6 @@ define_Conf! {
         use_self,
         zero_ptr,
     )]
-    #[schema_type = "String"]
     msrv("msrv"): Option<RustcVersion>,
     /// The minimum size (in bytes) to consider a type for passing by reference instead of by value.
     #[lints(large_types_passed_by_value)]
@@ -836,8 +836,8 @@ define_Conf! {
     #[lints(many_single_char_names)]
     single_char_binding_names_threshold("single-char-binding-names-threshold"): u64 = 4,
     /// Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.
-    #[lints(arbitrary_source_item_ordering)]
     #[schema_type = "Vec<crate::types::SourceItemOrderingCategory>"]
+    #[lints(arbitrary_source_item_ordering)]
     source_item_ordering("source-item-ordering"): SourceItemOrdering,
     /// The maximum allowed stack size for functions in bytes
     #[lints(large_stack_frames)]
@@ -847,8 +847,8 @@ define_Conf! {
     /// A `MacroMatcher` can be added like so `{ name = "macro_name", brace = "(" }`. If the macro
     /// could be used with a full path two `MacroMatcher`s have to be added one with the full path
     /// `crate_name::macro_name` and one with just the macro name.
-    #[lints(nonstandard_macro_braces)]
     #[schema_type = "Vec<crate::schema::MacroMatcher>"]
+    #[lints(nonstandard_macro_braces)]
     standard_macro_braces("standard-macro-braces"): Vec<MacroMatcher>,
     /// The minimum number of struct fields for the lints about field names to trigger
     #[lints(struct_field_names)]
@@ -870,8 +870,8 @@ define_Conf! {
     #[lints(too_many_lines)]
     too_many_lines_threshold("too-many-lines-threshold"): u64 = 100,
     /// The order of associated items in traits.
-    #[lints(arbitrary_source_item_ordering)]
     #[schema_type = "Vec<crate::types::SourceItemOrderingTraitAssocItemKind>"]
+    #[lints(arbitrary_source_item_ordering)]
     trait_assoc_item_kinds_order("trait-assoc-item-kinds-order"): SourceItemOrderingTraitAssocItemKinds,
     /// The required ordering of associated items in trait impls: purely alphabetical,
     /// following the trait definition order, or accepting either.
@@ -893,8 +893,8 @@ define_Conf! {
     /// The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by
     /// reference.
     #[default_text = "target_pointer_width"]
-    #[lints(trivially_copy_pass_by_ref)]
     #[schema_type = "u64"]
+    #[lints(trivially_copy_pass_by_ref)]
     trivial_copy_size_limit("trivial-copy-size-limit"): Option<u64>,
     /// The maximum complexity a type can have
     #[lints(type_complexity)]
