@@ -58,6 +58,7 @@ if [[ -n $TAG_NAME ]]; then
   git add index.html
   git commit -m "Add documentation for ${TAG_NAME} release: ${SHA}"
 elif [[ $BETA = "true" ]]; then
+  git add --intent-to-add beta
   if git diff --exit-code --quiet -- beta/; then
     echo "No changes to the output on this push; exiting."
     exit 0
@@ -65,6 +66,7 @@ elif [[ $BETA = "true" ]]; then
   git add beta
   git commit -m "Automatic deploy to GitHub Pages (beta): ${SHA}"
 else
+  git add --intent-to-add .
   if git diff --exit-code --quiet; then
     echo "No changes to the output on this push; exiting."
     exit 0
