@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use crate::ConfMetadata;
 use schemars::generate::SchemaSettings;
 use schemars::{JsonSchema, Schema};
@@ -42,6 +40,7 @@ pub(crate) fn schema_json<T: JsonSchema>(metadata: Vec<ConfMetadata>) -> String 
 
 #[derive(JsonSchema)]
 #[schemars(untagged)]
+#[allow(dead_code)]
 pub(crate) enum DisallowedPath {
     Path(String),
     Table(DisallowedPathTable),
@@ -49,6 +48,7 @@ pub(crate) enum DisallowedPath {
 
 #[derive(JsonSchema)]
 #[schemars(untagged)]
+#[allow(dead_code)]
 pub(crate) enum DisallowedPathWithoutReplacement {
     Path(String),
     Table(DisallowedPathTableWithoutReplacement),
@@ -56,6 +56,7 @@ pub(crate) enum DisallowedPathWithoutReplacement {
 
 #[derive(JsonSchema)]
 #[schemars(deny_unknown_fields, transform = require_path)]
+#[allow(dead_code)]
 pub(crate) struct DisallowedPathTable {
     path: String,
     reason: String,
@@ -66,6 +67,7 @@ pub(crate) struct DisallowedPathTable {
 
 #[derive(JsonSchema)]
 #[schemars(deny_unknown_fields, transform = require_path)]
+#[allow(dead_code)]
 pub(crate) struct DisallowedPathTableWithoutReplacement {
     path: String,
     reason: String,
@@ -82,6 +84,7 @@ fn require_path(schema: &mut Schema) {
 
 #[derive(JsonSchema)]
 #[schemars(deny_unknown_fields)]
+#[allow(dead_code)]
 pub(crate) struct Rename {
     path: String,
     rename: String,
@@ -89,6 +92,7 @@ pub(crate) struct Rename {
 
 #[derive(JsonSchema)]
 #[schemars(deny_unknown_fields)]
+#[allow(dead_code)]
 pub(crate) struct MacroMatcher {
     name: String,
     #[schemars(schema_with = "brace_schema")]
@@ -101,6 +105,7 @@ fn brace_schema(_: &mut schemars::SchemaGenerator) -> Schema {
 
 #[derive(JsonSchema)]
 #[schemars(untagged)]
+#[allow(dead_code)]
 pub(crate) enum WithinGroupings {
     Selection(GroupingSelection),
     Groups(Vec<String>),
@@ -108,6 +113,7 @@ pub(crate) enum WithinGroupings {
 
 #[derive(JsonSchema)]
 #[schemars(rename_all = "lowercase")]
+#[allow(dead_code)]
 pub(crate) enum GroupingSelection {
     All,
     None,
