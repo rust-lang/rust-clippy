@@ -677,3 +677,21 @@ fn issue16351() {
     take(format!("ouch{dot}").to_string());
     //~^ unnecessary_to_owned
 }
+
+mod issue17842 {
+    fn receiver(_a: &str, _b: &mut String) {}
+
+    fn no_overlap() {
+        // `a` does not borrow from `s`, so removing `to_owned` is fine.
+        let mut s = String::from("str");
+        let a: &str = "lit";
+        receiver(&a.to_owned(), &mut s);
+        //~^ unnecessary_to_owned
+    }
+
+    fn param_receiver(a: &str) {
+        let mut s = String::from("str");
+        receiver(&a.to_owned(), &mut s);
+        //~^ unnecessary_to_owned
+    }
+}
