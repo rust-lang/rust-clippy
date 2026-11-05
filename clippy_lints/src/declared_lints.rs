@@ -737,6 +737,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::strings::STRING_SLICE_INFO,
     crate::strlen_on_c_strings::STRLEN_ON_C_STRINGS_INFO,
     crate::suspicious_operation_groupings::SUSPICIOUS_OPERATION_GROUPINGS_INFO,
+    crate::suspicious_sealed_trait::SUSPICIOUS_SEALED_TRAIT_INFO,
     crate::suspicious_trait_impl::SUSPICIOUS_ARITHMETIC_IMPL_INFO,
     crate::suspicious_trait_impl::SUSPICIOUS_OP_ASSIGN_IMPL_INFO,
     crate::suspicious_xor_used_as_pow::SUSPICIOUS_XOR_USED_AS_POW_INFO,
