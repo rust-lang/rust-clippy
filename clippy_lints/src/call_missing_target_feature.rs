@@ -80,8 +80,8 @@ impl<'tcx> LateLintPass<'tcx> for CallMissingTargetFeature {
                 check_target_feature_call(cx, caller_def_id, local_def_id, callee, source_info.span, hir_id);
             }
             match &bb.terminator().kind {
-                // Logically these add an outstanding block we never encounter
-                // This means all remaining blocks are treated as conditional blocks
+                // Logically these add an outstanding block we never encounter, meaning all remaining blocks are treated
+                // as conditional blocks
                 TerminatorKind::Return
                 | TerminatorKind::TailCall { .. }
                 | TerminatorKind::Call { target: None, .. } => break,
