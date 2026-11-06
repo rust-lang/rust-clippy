@@ -125,4 +125,12 @@ fn unary() {
     //~^ arithmetic_side_effects
 }
 
+fn pow_is_a_multiplication_of_the_receiver_by_itself(allowed: u32, not_allowed: u64, exp: u32) {
+    // is explicitly on the list
+    let _ = allowed.pow(exp);
+    // not on the list
+    let _ = not_allowed.pow(exp);
+    //~^ arithmetic_side_effects
+}
+
 fn main() {}

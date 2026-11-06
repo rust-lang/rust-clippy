@@ -55,5 +55,11 @@ error: arithmetic operation that can potentially result in unexpected side-effec
 LL |     let _ = -Baz;
    |             ^^^^
 
-error: aborting due to 9 previous errors
+error: arithmetic operation that can potentially result in unexpected side-effects
+  --> tests/ui-toml/arithmetic_side_effects_allowed/arithmetic_side_effects_allowed.rs:132:13
+   |
+LL |     let _ = not_allowed.pow(exp);
+   |             ^^^^^^^^^^^^^^^^^^^^
+
+error: aborting due to 10 previous errors
 

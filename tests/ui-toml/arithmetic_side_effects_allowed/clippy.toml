@@ -7,5 +7,6 @@ arithmetic-side-effects-allowed-binary = [
     ["i32", "Foo"],
     ["Bar", "*"],
     ["*", "Bar"],
+    ["u32", "u32"],
 ]
 arithmetic-side-effects-allowed-unary = ["Foo"]
