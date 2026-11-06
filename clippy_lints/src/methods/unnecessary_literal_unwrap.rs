@@ -1,6 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::{MaybeDef as _, MaybeQPath as _};
-use clippy_utils::{is_none_expr, last_path_segment, sym};
+use clippy_utils::{get_parent_expr, is_none_expr, last_path_segment, sym};
+use rustc_ast::util::parser::ExprPrecedence;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, AmbigArg};
 use rustc_lint::LateContext;
@@ -20,6 +21,35 @@ fn get_ty_from_args<'a>(args: Option<&'a [hir::GenericArg<'a>]>, index: usize) -
     match args[index] {
         hir::GenericArg::Type(ty) => Some(ty),
         _ => None,
+    }
+}
+
+/// Whether replacing `Some(value).unwrap()` (etc.) with `value` needs parentheses
+/// so operator/method precedence is preserved (see rust-lang/rust-clippy#17989).
+fn value_needs_parens(cx: &LateContext<'_>, lit_unwrap: &hir::Expr<'_>, value: &hir::Expr<'_>) -> bool {
+    let Some(parent) = get_parent_expr(cx, lit_unwrap) else {
+        return false;
+    };
+    if parent.span.ctxt() != lit_unwrap.span.ctxt() {
+        return false;
+    }
+    match parent.kind {
+        hir::ExprKind::MethodCall(_, recv, ..) | hir::ExprKind::Call(recv, _) | hir::ExprKind::Field(recv, _)
+            if recv.hir_id == lit_unwrap.hir_id =>
+        {
+            cx.precedence(value) < ExprPrecedence::Unambiguous
+        },
+        hir::ExprKind::Unary(_, operand) if operand.hir_id == lit_unwrap.hir_id => {
+            cx.precedence(value) < ExprPrecedence::Prefix
+        },
+        hir::ExprKind::Cast(operand, _) if operand.hir_id == lit_unwrap.hir_id => {
+            cx.precedence(value) < ExprPrecedence::Cast
+        },
+        hir::ExprKind::Binary(..) | hir::ExprKind::AssignOp(..) => {
+            // Keep the same precedence as the original `Some(...).unwrap()` call (Unambiguous).
+            cx.precedence(value) < ExprPrecedence::Unambiguous
+        },
+        _ => false,
     }
 }
 
@@ -74,9 +104,16 @@ pub(super) fn check(
                 (expr.span.with_lo(args[0].span.hi()), ")".to_string()),
             ]),
             (sym::Some | sym::Ok, sym::unwrap_unchecked, _) | (sym::Err, sym::unwrap_err_unchecked, _) => {
+                let needs_parens = value_needs_parens(cx, expr, &call_args[0]);
                 let mut suggs = vec![
-                    (recv.span.with_hi(call_args[0].span.lo()), String::new()),
-                    (expr.span.with_lo(call_args[0].span.hi()), String::new()),
+                    (
+                        recv.span.with_hi(call_args[0].span.lo()),
+                        if needs_parens { "(".to_string() } else { String::new() },
+                    ),
+                    (
+                        expr.span.with_lo(call_args[0].span.hi()),
+                        if needs_parens { ")".to_string() } else { String::new() },
+                    ),
                 ];
                 // try to also remove the unsafe block if present
                 if let hir::Node::Block(block) = cx.tcx.parent_hir_node(expr.hir_id)
@@ -125,10 +162,19 @@ pub(super) fn check(
                 ),
                 (call_args[0].span.with_lo(args[0].span.lo()), ", ".to_string()),
             ]),
-            (_, _, None) => Some(vec![
-                (recv.span.with_hi(call_args[0].span.lo()), String::new()),
-                (expr.span.with_lo(call_args[0].span.hi()), String::new()),
-            ]),
+            (_, _, None) => {
+                let needs_parens = value_needs_parens(cx, expr, &call_args[0]);
+                Some(vec![
+                    (
+                        recv.span.with_hi(call_args[0].span.lo()),
+                        if needs_parens { "(".to_string() } else { String::new() },
+                    ),
+                    (
+                        expr.span.with_lo(call_args[0].span.hi()),
+                        if needs_parens { ")".to_string() } else { String::new() },
+                    ),
+                ])
+            },
         };
 
         match (init.span == recv.span, suggestions) {
