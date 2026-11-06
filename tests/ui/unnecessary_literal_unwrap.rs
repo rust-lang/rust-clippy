@@ -152,3 +152,12 @@ fn unwrap_unchecked() {
 }
 
 fn main() {}
+
+fn precedence_needs_parens() {
+    let _a = Some(-2i32).unwrap().pow(2);
+    //~^ unnecessary_literal_unwrap
+    let _b = Some(1 + 2).unwrap() * 3;
+    //~^ unnecessary_literal_unwrap
+    let _c = unsafe { Some(-2i32).unwrap_unchecked().pow(2) };
+    //~^ unnecessary_literal_unwrap
+}

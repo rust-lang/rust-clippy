@@ -636,5 +636,41 @@ LL -     let _ = unsafe { Err::<(), i32>(123).unwrap_err_unchecked() };
 LL +     let _ = 123;
    |
 
-error: aborting due to 53 previous errors
+error: used `unwrap()` on `Some` value
+  --> tests/ui/unnecessary_literal_unwrap.rs:157:14
+   |
+LL |     let _a = Some(-2i32).unwrap().pow(2);
+   |              ^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the `Some` and `unwrap()`
+   |
+LL -     let _a = Some(-2i32).unwrap().pow(2);
+LL +     let _a = (-2i32).pow(2);
+   |
+
+error: used `unwrap()` on `Some` value
+  --> tests/ui/unnecessary_literal_unwrap.rs:159:14
+   |
+LL |     let _b = Some(1 + 2).unwrap() * 3;
+   |              ^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the `Some` and `unwrap()`
+   |
+LL -     let _b = Some(1 + 2).unwrap() * 3;
+LL +     let _b = (1 + 2) * 3;
+   |
+
+error: used `unwrap_unchecked()` on `Some` value
+  --> tests/ui/unnecessary_literal_unwrap.rs:161:23
+   |
+LL |     let _c = unsafe { Some(-2i32).unwrap_unchecked().pow(2) };
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: remove the `Some` and `unwrap_unchecked()`
+   |
+LL -     let _c = unsafe { Some(-2i32).unwrap_unchecked().pow(2) };
+LL +     let _c = unsafe { (-2i32).pow(2) };
+   |
+
+error: aborting due to 56 previous errors
 
