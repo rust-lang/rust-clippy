@@ -1,9 +1,8 @@
 use crate::internal_paths;
-use clippy_utils::diagnostics::{span_lint, span_lint_and_help};
+use clippy_utils::diagnostics::span_lint;
 use clippy_utils::macros::root_macro_call_first_node;
 use clippy_utils::{is_lint_allowed, sym};
 use rustc_ast::ast::LitKind;
-use rustc_attr_ir::AttrArgs;
 use rustc_data_structures::fx::{FxIndexMap, FxIndexSet};
 use rustc_hir as hir;
 use rustc_hir::def::{DefKind, Res};
@@ -68,19 +67,6 @@ declare_tool_lint! {
 
 declare_tool_lint! {
     /// ### What it does
-    /// Checks for invalid `clippy::version` attributes.
-    ///
-    /// Valid values are:
-    /// * "pre 1.29.0"
-    /// * any valid semantic version
-    pub clippy::INVALID_CLIPPY_VERSION_ATTRIBUTE,
-    Warn,
-    "found an invalid `clippy::version` attribute",
-    report_in_external_macro: true
-}
-
-declare_tool_lint! {
-    /// ### What it does
     /// Checks for declared clippy lints without the `clippy::version` attribute.
     pub clippy::MISSING_CLIPPY_VERSION_ATTRIBUTE,
     Warn,
@@ -97,7 +83,6 @@ pub struct LintWithoutLintPass {
 impl_lint_pass!(LintWithoutLintPass => [
     DEFAULT_LINT,
     LINT_WITHOUT_LINT_PASS,
-    INVALID_CLIPPY_VERSION_ATTRIBUTE,
     MISSING_CLIPPY_VERSION_ATTRIBUTE,
 ]);
 
@@ -105,8 +90,6 @@ impl<'tcx> LateLintPass<'tcx> for LintWithoutLintPass {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {
         if let hir::ItemKind::Static(Mutability::Not, ident, ty, body_id) = item.kind {
             if is_lint_ref_type(cx, ty) {
-                check_invalid_clippy_version_attribute(cx, item);
-
                 let expr = &cx.tcx.hir_body(body_id).value;
                 let fields = if let ExprKind::AddrOf(_, _, inner_exp) = expr.kind
                     && let ExprKind::Struct(_, struct_fields, _) = inner_exp.kind
@@ -204,47 +187,6 @@ pub(super) fn is_lint_ref_type(cx: &LateContext<'_>, ty: &hir::Ty<'_>) -> bool {
     } else {
         false
     }
-}
-
-fn check_invalid_clippy_version_attribute(cx: &LateContext<'_>, item: &'_ Item<'_>) {
-    if let Some(value) = extract_clippy_version_value(cx, item) {
-        if value.as_str() == "pre 1.29.0" {
-            return;
-        }
-
-        if rustc_attr_parsing::parse_version(value).is_none() {
-            span_lint_and_help(
-                cx,
-                INVALID_CLIPPY_VERSION_ATTRIBUTE,
-                item.span,
-                "this item has an invalid `clippy::version` attribute",
-                None,
-                "please use a valid semantic version, see `doc/adding_lints.md`",
-            );
-        }
-    } else {
-        span_lint_and_help(
-            cx,
-            MISSING_CLIPPY_VERSION_ATTRIBUTE,
-            item.span,
-            "this lint is missing the `clippy::version` attribute or version value",
-            None,
-            "please use a `clippy::version` attribute, see `doc/adding_lints.md`",
-        );
-    }
-}
-
-/// This function extracts the version value of a `clippy::version` attribute if the given value has
-/// one
-pub(super) fn extract_clippy_version_value(cx: &LateContext<'_>, item: &'_ Item<'_>) -> Option<Symbol> {
-    let attr = cx
-        .tcx
-        .hir_tool_attrs(item.hir_id(), &[sym::clippy, sym::version])
-        .next()?;
-    let AttrArgs::Eq { expr, .. } = &attr.args else {
-        return None;
-    };
-    expr.value_as_str()
 }
 
 struct LintCollector<'a, 'tcx> {

@@ -630,6 +630,15 @@ struct LintMetadata {
 }
 
 impl LintMetadata {
+    // n.b. we can't use the actual string since it would be replaced.
+    const VERSION_PLACEHOLDER: &str = concat!("CURRENT_", "RUSTC_VERSION");
+    const VERSION_REPLACEMENT: &str = concat!(
+        env!("CARGO_PKG_VERSION_MINOR"),
+        ".",
+        env!("CARGO_PKG_VERSION_PATCH"),
+        ".0"
+    );
+
     fn new(lint: &LintInfo, applicabilities: &HashMap<String, Applicability>, configs: &[ConfMetadata]) -> Self {
         let name = lint.name_lower();
         let applicability = applicabilities
@@ -664,7 +673,11 @@ impl LintMetadata {
             group: lint.category.name(),
             level: lint.lint.default_level.as_str(),
             docs,
-            version: lint.version,
+            version: if lint.version == Self::VERSION_PLACEHOLDER {
+                Self::VERSION_REPLACEMENT
+            } else {
+                lint.version
+            },
             applicability,
         }
     }
@@ -686,7 +699,11 @@ impl LintMetadata {
                 Nothing. This lint has been deprecated\n\n\
                 ### Deprecation reason\n\n{reason}.\n",
             ),
-            version,
+            version: if version == Self::VERSION_PLACEHOLDER {
+                Self::VERSION_REPLACEMENT
+            } else {
+                version
+            },
             applicability: Applicability::Unspecified,
         }
     }
