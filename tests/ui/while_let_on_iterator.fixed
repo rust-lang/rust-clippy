@@ -1,5 +1,6 @@
 #![warn(clippy::while_let_on_iterator)]
 #![expect(
+    clippy::const_size_windows,
     clippy::redundant_closure_call,
     clippy::single_range_in_vec_init,
     clippy::useless_vec
