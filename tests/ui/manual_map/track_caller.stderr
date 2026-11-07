@@ -1,0 +1,25 @@
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map/track_caller.rs:39:5
+   |
+LL | /     match value {
+LL | |
+LL | |         Some(value) => Some(value + 1),
+LL | |         None => None,
+LL | |     }
+   | |_____^ help: try: `value.map(|value| value + 1)`
+   |
+   = note: `-D clippy::manual-map` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_map)]`
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map/track_caller.rs:47:5
+   |
+LL | /     match value {
+LL | |
+LL | |         Some(value) => Some(make_value(value, caller_line())),
+LL | |         None => None,
+LL | |     }
+   | |_____^ help: try: `value.map(|value| make_value(value, caller_line()))`
+
+error: aborting due to 2 previous errors
+
