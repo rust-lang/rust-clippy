@@ -170,6 +170,31 @@ fn check_mut_iteratee_and_modify_inner_variable() {
     }
 }
 
+// Regression test for #16212: the clone is needed because each item is
+// moved into a `'static` closure, so the lint must not fire.
+fn issue16212() {
+    use std::sync::{Arc, Mutex};
+    use std::thread;
+
+    struct Instances {
+        inner: Vec<Arc<Mutex<u32>>>,
+    }
+
+    let instances = Instances {
+        inner: vec![Arc::new(Mutex::new(0))],
+    };
+    let mut handles = Vec::new();
+    for instance in instances.inner.iter().cloned() {
+        // no lint
+        handles.push(thread::spawn(move || {
+            *instance.lock().unwrap() += 1;
+        }));
+    }
+    for h in handles {
+        h.join().unwrap();
+    }
+}
+
 mod issue_12821 {
     fn foo() {
         let v: Vec<_> = "hello".chars().collect();
