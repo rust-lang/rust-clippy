@@ -187,6 +187,19 @@ pub fn hard_coded_allowed() {
     let _ = inferred_saturating + inferred_saturating;
     let _ = inferred_string + "";
     let _ = inferred_wrapping + inferred_wrapping;
+
+    // Type aliases should also be allowed (regression test for type alias handling)
+    type MySaturating = Saturating<u32>;
+    type MyWrapping = Wrapping<u32>;
+    type MyString = String;
+
+    let sat_alias: MySaturating = Saturating(0u32);
+    let wrap_alias: MyWrapping = Wrapping(0u32);
+    let str_alias: MyString = String::new();
+
+    let _ = sat_alias + sat_alias;
+    let _ = wrap_alias + wrap_alias;
+    let _ = str_alias + "";
 }
 
 #[rustfmt::skip]
