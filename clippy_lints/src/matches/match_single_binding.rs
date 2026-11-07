@@ -339,7 +339,7 @@ fn sugg_with_curlies<'a>(
     is_var_binding_used_later: bool,
 ) -> String {
     let assignment_str = assignment.map_or_else(String::new, |span| {
-        let mut s = snippet(cx, span, "..").to_string();
+        let mut s = snippet(cx, span, "..").into_owned();
         s.push_str(" = ");
         s
     });
@@ -354,7 +354,7 @@ fn sugg_with_curlies<'a>(
     } else {
         snippet_with_context(cx, matched_vars, ctxt, "..", applicability)
             .0
-            .to_string()
+            .into_owned()
     };
 
     let mut indent = " ".repeat(indent_of(cx, ex.span).unwrap_or(0));
