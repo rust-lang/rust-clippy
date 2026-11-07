@@ -1,6 +1,6 @@
 //@require-annotations-for-level: WARN
 #![warn(clippy::single_match)]
-#![allow(clippy::redundant_pattern_matching)]
+#![allow(clippy::neg_cmp_op_on_partial_ord, clippy::redundant_pattern_matching)]
 fn dummy() {}
 
 fn single_match() {
@@ -496,4 +496,145 @@ fn issue14493() {
         mac!(some) => println!("eq"),
         _ => println!("neq"),
     }
+}
+
+fn issue17756(a: bool, b: bool, x: u8, y: u8) {
+    match x < y {
+        true => println!("lt"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a && b {
+        false => println!("not both"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x + 1 {
+        3 => println!("three"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    const T: bool = true;
+    match x < y {
+        T => println!("lt"),
+        _ => (),
+    }
+    //~^^^^ single_match
+}
+
+fn issue17756_comparisons(x: u8, y: u8) {
+    const T: bool = true;
+
+    match x == y {
+        false => println!("=="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x == y {
+        T => println!("=="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x != y {
+        false => println!("!="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x != y {
+        T => println!("!="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x < y {
+        false => println!("<"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x < y {
+        T => println!("<"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x <= y {
+        false => println!("<="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x <= y {
+        T => println!("<="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x > y {
+        false => println!(">"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x > y {
+        T => println!(">"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x >= y {
+        false => println!(">="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match x >= y {
+        T => println!(">="),
+        _ => (),
+    }
+    //~^^^^ single_match
+}
+
+fn issue17756_partial_ord(a: f64, b: f64) {
+    match a == b {
+        false => println!("=="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a != b {
+        false => println!("!="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a < b {
+        false => println!("<"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a <= b {
+        false => println!("<="),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a > b {
+        false => println!(">"),
+        _ => (),
+    }
+    //~^^^^ single_match
+
+    match a >= b {
+        false => println!(">="),
+        _ => (),
+    }
+    //~^^^^ single_match
 }
