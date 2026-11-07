@@ -1,5 +1,6 @@
 #![warn(clippy::iter_on_empty_collections)]
 #![allow(clippy::iter_next_slice)]
+#![expect(clippy::missing_return_type)]
 
 fn array() {
     assert_eq!([].into_iter().next(), Option::<i32>::None);

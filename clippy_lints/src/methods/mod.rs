@@ -82,6 +82,7 @@ mod map_unwrap_or;
 mod map_unwrap_or_default;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
+mod missing_return_type;
 mod mut_mutex_lock;
 mod needless_as_bytes;
 mod needless_character_iteration;
@@ -2572,6 +2573,35 @@ declare_clippy_lint! {
     pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     restriction,
     "map of a trivial closure (not dependent on parameter) over a range"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for methods named `as_*`, `to_*` or `into_*` that return `()`.
+    /// ### Why is this bad?
+    /// Conversion should return with a type according to the [C-CONV](https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv) API guideline.
+    /// ### Example
+    /// ```no_run
+    /// struct MyStruct;
+    ///
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) {}
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// struct MyStruct;
+    ///
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) -> &[u8] {
+    ///         b"conversion should return with something"
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub MISSING_RETURN_TYPE,
+    style,
+    "conversion-named method that returns `()`"
 }
 
 declare_clippy_lint! {
@@ -5161,6 +5191,7 @@ impl_lint_pass!(Methods => [
     MAP_OR_IDENTITY,
     MAP_UNWRAP_OR,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+    MISSING_RETURN_TYPE,
     MUT_MUTEX_LOCK,
     NAIVE_BYTECOUNT,
     NEEDLESS_AS_BYTES,
@@ -5397,6 +5428,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
+            missing_return_type::check_impl_item(cx, impl_item, implements_trait);
         }
     }
 
@@ -5428,6 +5460,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             }
 
             new_ret_no_self::check_trait_item(cx, item);
+            missing_return_type::check_trait_item(cx, item);
         }
     }
 }

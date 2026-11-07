@@ -1,7 +1,7 @@
 //@ check-pass
 
 #![warn(clippy::useless_asref)]
-#![expect(clippy::needless_lifetimes)]
+#![expect(clippy::missing_return_type, clippy::needless_lifetimes)]
 
 trait Trait {
     fn as_ptr(&self);
