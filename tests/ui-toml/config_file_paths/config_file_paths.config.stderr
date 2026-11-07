@@ -1,5 +1,5 @@
 error: use of a disallowed/placeholder name `selected`
-  --> tests/ui-toml/config_file_paths/config_file_paths.rs:17:9
+  --> tests/ui-toml/config_file_paths/config_file_paths.rs:14:9
    |
 LL |     let selected = 0;
    |         ^^^^^^^^

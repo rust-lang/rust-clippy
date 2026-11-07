@@ -15,7 +15,6 @@ In each directory, Clippy checks these relative paths in order:
 1. `.clippy.toml`
 2. `clippy.toml`
 3. `.cargo/clippy.toml`
-4. `.config/clippy.toml`
 
 If multiple configuration files exist at the same search level, Clippy uses the first one and warns that the others
 will be ignored. If none exist, Clippy searches the parent directory using the same order, until it finds a

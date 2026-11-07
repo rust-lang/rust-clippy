@@ -862,12 +862,7 @@ pub fn sanitize_explanation(raw_docs: &str) -> String {
 /// Returns any unexpected filesystem error encountered when searching for the config file
 fn load_conf_file(sess: &Session) -> Option<Arc<SourceFile>> {
     /// Relative config paths in order of priority.
-    const CONFIG_FILE_PATHS: [&str; 4] = [
-        ".clippy.toml",
-        "clippy.toml",
-        ".cargo/clippy.toml",
-        ".config/clippy.toml",
-    ];
+    const CONFIG_FILE_PATHS: [&str; 3] = [".clippy.toml", "clippy.toml", ".cargo/clippy.toml"];
 
     // Start looking for a config file in CLIPPY_CONF_DIR, or failing that, CARGO_MANIFEST_DIR.
     // If neither of those exist, use ".". (Update documentation if this priority changes)
