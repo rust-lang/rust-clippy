@@ -1,4 +1,5 @@
 #![warn(clippy::derive_partial_eq_without_eq)]
+#![expect(clippy::derived_partial_eq_with_manual_eq)]
 
 // Don't warn on structs that aren't PartialEq
 pub struct NotPartialEq {

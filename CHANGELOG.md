@@ -7067,6 +7067,7 @@ Released 2018-09-13
 [`derive_ord_xor_partial_ord`]: https://clippy.rust-lang.org/main/index.html#derive_ord_xor_partial_ord
 [`derive_partial_eq_without_eq`]: https://clippy.rust-lang.org/main/index.html#derive_partial_eq_without_eq
 [`derived_hash_with_manual_eq`]: https://clippy.rust-lang.org/main/index.html#derived_hash_with_manual_eq
+[`derived_partial_eq_with_manual_eq`]: https://clippy.rust-lang.org/main/index.html#derived_partial_eq_with_manual_eq
 [`disallowed_fields`]: https://clippy.rust-lang.org/main/index.html#disallowed_fields
 [`disallowed_macros`]: https://clippy.rust-lang.org/main/index.html#disallowed_macros
 [`disallowed_method`]: https://clippy.rust-lang.org/main/index.html#disallowed_method
