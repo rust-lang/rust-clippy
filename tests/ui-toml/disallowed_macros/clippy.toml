@@ -1,4 +1,5 @@
 disallowed-macros = [
+    "std::panic",
     "std::println",
     "std::vec",
     { path = "std::cfg" },
@@ -10,5 +11,7 @@ disallowed-macros = [
     "macros::item",
     "macros::binop",
     "macros::attr",
+    "macros::attr_item",
+    "macros::attr_expr",
     "proc_macros::Derive",
 ]
