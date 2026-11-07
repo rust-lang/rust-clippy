@@ -67,5 +67,11 @@ error: the borrowed expression implements the required traits
 LL |         f(&"".to_owned()); // Lint
    |           ^^^^^^^^^^^^^^ help: change this to: `"".to_owned()`
 
-error: aborting due to 11 previous errors
+error: the borrowed expression implements the required traits
+  --> tests/ui/needless_borrows_for_generic_args/needless_borrows_for_generic_args.rs:438:16
+   |
+LL |         shared(&mut value);
+   |                ^^^^^^^^^^ help: change this to: `value`
+
+error: aborting due to 12 previous errors
 
