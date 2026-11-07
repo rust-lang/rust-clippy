@@ -3,7 +3,18 @@ use std::path::PathBuf;
 #[warn(clippy::path_buf_push_overwrite)]
 #[allow(clippy::pathbuf_init_then_push)]
 fn main() {
-    let mut x = PathBuf::from("/foo");
-    x.push("/bar");
+    let mut path = PathBuf::from("/bin");
+    path.push("/sh");
     //~^ path_buf_push_overwrite
+
+    let mut path = PathBuf::from("C:\\Users");
+    path.push("\\user");
+    //~^ path_buf_push_overwrite
+
+    let mut path = PathBuf::from("C:\\Users");
+    path.push(r#"\user"#);
+    //~^ path_buf_push_overwrite
+
+    let mut path = PathBuf::from("/bin");
+    path.push("sh");
 }
