@@ -3,6 +3,18 @@ use rustc_ast::visit::{Visitor, walk_attribute, walk_expr};
 use rustc_ast::{Attribute, Expr};
 use rustc_span::symbol::Ident;
 
+/// Iterator over all identifiers of a specific node in the AST.
+///
+/// The iterator is created by using the `From` trait on an AST node and therefore
+/// is usually created by calling `.into()`. This is made possible as the `From` trait
+/// is implemented for `&Expr` and `&Attribute`.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// let mut iter = IdentIter::from(expr);
+/// let mut iter: IdentIter = expr.into();
+/// ```
 pub struct IdentIter(std::vec::IntoIter<Ident>);
 
 impl Iterator for IdentIter {
