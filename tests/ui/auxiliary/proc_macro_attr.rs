@@ -10,8 +10,8 @@ use quote::{quote, quote_spanned};
 use syn::spanned::Spanned;
 use syn::token::Star;
 use syn::{
-    Attribute, FnArg, ImplItem, Item, ItemFn, ItemImpl, ItemStruct, ItemTrait, Lifetime, Pat, PatIdent, PatType,
-    Signature, TraitItem, Type, Visibility, parse_macro_input, parse_quote,
+    Attribute, FnArg, ImplItem, Item, ItemFn, ItemImpl, ItemStruct, ItemTrait, Lifetime, LitStr, Pat, PatIdent,
+    PatType, Signature, TraitItem, Type, Visibility, parse_macro_input, parse_quote,
 };
 
 #[proc_macro_attribute]
@@ -235,6 +235,24 @@ pub fn duplicated_attr(_attr: TokenStream, input: TokenStream) -> TokenStream {
         #[allow(unused)]
         #[allow(unused)]
         #[allow(unused)]
+        #item
+    }
+    .into()
+}
+
+/// Documents each argument as `` - **name** ``, with the literal spanned at the identifier.
+#[proc_macro_attribute]
+pub fn doc_args_with_ident_span(_attr: TokenStream, input: TokenStream) -> TokenStream {
+    let item = parse_macro_input!(input as ItemFn);
+    let docs = item.sig.inputs.iter().filter_map(|arg| match arg {
+        FnArg::Typed(PatType { pat, .. }) => match &**pat {
+            Pat::Ident(PatIdent { ident, .. }) => Some(LitStr::new(&format!(" - **{ident}**"), ident.span())),
+            _ => None,
+        },
+        FnArg::Receiver(_) => None,
+    });
+    quote! {
+        #(#[doc = #docs])*
         #item
     }
     .into()

@@ -2,6 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::attrs::is_doc_hidden;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_help, span_lint_and_then};
 use clippy_utils::macros::root_macro_call;
+use clippy_utils::source::SpanExt as _;
 use clippy_utils::{is_entrypoint_fn, is_trait_impl_item, sym};
 use rustc_ast::attr::AttributeExt as _;
 use rustc_ast::token::DocFragmentKind;
@@ -900,7 +901,13 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
 
         // we can handle docs that aren't produced by macros except `include_str!` which could track
         // errors from other files
-        if !doc_str_span.in_external_macro(cx.sess().source_map()) || from_include_str_macro {
+        if from_include_str_macro {
+            continue;
+        }
+
+        // Proc macros can reuse a user token's span for generated doc attributes.
+        let in_user_code = !doc_str_span.in_external_macro(cx.sess().source_map());
+        if in_user_code && (!is_raw || is_doc_text_source(cx, doc_str_span)) {
             continue;
         }
 
@@ -985,6 +992,18 @@ fn check_attrs(cx: &LateContext<'_>, valid_idents: &FxHashSet<String>, attrs: &[
         },
         attrs,
     ))
+}
+
+/// Checks whether `span` originates from a string literal or doc comment
+/// (proc macros desugar doc comments into `#[doc = ".."]` while preserving the span).
+fn is_doc_text_source(cx: &LateContext<'_>, span: Span) -> bool {
+    const OPENERS: [&str; 5] = ["\"", "///", "//!", "/**", "/*!"];
+    span.check_text(cx, |src| {
+        OPENERS.iter().any(|&opener| src.starts_with(opener))
+            || src
+                .strip_prefix('r')
+                .is_some_and(|rest| rest.trim_start_matches('#').starts_with('"'))
+    })
 }
 
 fn originated_from_include_str_macro(cx: &LateContext<'_>, span: Span) -> bool {
