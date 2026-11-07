@@ -199,6 +199,30 @@ fn wrongly_unmangled_macros() {
     //~^ unnecessary_fold
 }
 
+fn issue17792() {
+    let mut hits = 0;
+
+    let _ = (0..3).fold(false, |acc, item| {
+        //~^ unnecessary_fold
+        acc || {
+            hits += 1;
+            item > 2
+        }
+    });
+    let _ = (0..3).fold(true, |acc, item| {
+        //~^ unnecessary_fold
+        acc && {
+            hits += 1;
+            item > 2
+        }
+    });
+    let _ = (0..3).fold(false, |flag, value| { hits += 1; value > 2 } || flag);
+    //~^ unnecessary_fold
+
+    let _ = (0..3).fold(false, |acc, x| acc || x > 2);
+    //~^ unnecessary_fold
+}
+
 /// Folding over an `Option`'s iterator is `map_or` in disguise (issue #1658)
 fn option_fold() {
     let opt: Option<i32> = Some(2);
