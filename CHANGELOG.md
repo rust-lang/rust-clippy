@@ -6996,6 +6996,7 @@ Released 2018-09-13
 [`byte_char_slices`]: https://clippy.rust-lang.org/main/index.html#byte_char_slices
 [`bytes_count_to_len`]: https://clippy.rust-lang.org/main/index.html#bytes_count_to_len
 [`bytes_nth`]: https://clippy.rust-lang.org/main/index.html#bytes_nth
+[`call_missing_target_feature`]: https://clippy.rust-lang.org/main/index.html#call_missing_target_feature
 [`cargo_common_metadata`]: https://clippy.rust-lang.org/main/index.html#cargo_common_metadata
 [`case_sensitive_file_extension_comparisons`]: https://clippy.rust-lang.org/main/index.html#case_sensitive_file_extension_comparisons
 [`cast_abs_to_unsigned`]: https://clippy.rust-lang.org/main/index.html#cast_abs_to_unsigned
