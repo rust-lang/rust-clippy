@@ -1,0 +1,24 @@
+#![warn(clippy::iter_unzip)]
+
+#[clippy::msrv = "1.78"]
+fn pre_msrv() {
+    let (odds, evens): (Vec<i32>, Vec<i32>) = vec![(1, 2), (3, 4)].into_iter().unzip();
+}
+
+#[clippy::msrv = "1.79"]
+fn post_msrv() {
+    let (odds, evens): (Vec<i32>, Vec<i32>) = vec![(1, 2), (3, 4)].into_iter().collect();
+    //~^ iter_unzip
+
+    let (odds, evens) = vec![(1, 2), (3, 4)].into_iter().collect::<(Vec<i32>, Vec<i32>)>();
+    //~^ iter_unzip
+
+    let (odds, evens) = vec![(1, 2), (3, 4)].into_iter().collect::<(Vec<_>, Vec<_>)>();
+    //~^ iter_unzip
+
+    let (odds, evens): (Vec<i32>, Vec<i32>) = vec![(1, 2), (3, 4)].into_iter().collect::<(_, _)>();
+    //~^ iter_unzip
+
+    // Option::unzip should not be included
+    let (odd, even) = Some((1, 2)).unzip();
+}

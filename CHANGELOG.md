@@ -7267,6 +7267,7 @@ Released 2018-09-13
 [`iter_overeager_cloned`]: https://clippy.rust-lang.org/main/index.html#iter_overeager_cloned
 [`iter_skip_next`]: https://clippy.rust-lang.org/main/index.html#iter_skip_next
 [`iter_skip_zero`]: https://clippy.rust-lang.org/main/index.html#iter_skip_zero
+[`iter_unzip`]: https://clippy.rust-lang.org/main/index.html#iter_unzip
 [`iter_with_drain`]: https://clippy.rust-lang.org/main/index.html#iter_with_drain
 [`iter_without_into_iter`]: https://clippy.rust-lang.org/main/index.html#iter_without_into_iter
 [`iterator_step_by_zero`]: https://clippy.rust-lang.org/main/index.html#iterator_step_by_zero

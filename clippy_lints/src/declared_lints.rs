@@ -422,6 +422,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::methods::ITER_OVEREAGER_CLONED_INFO,
     crate::methods::ITER_SKIP_NEXT_INFO,
     crate::methods::ITER_SKIP_ZERO_INFO,
+    crate::methods::ITER_UNZIP_INFO,
     crate::methods::ITER_WITH_DRAIN_INFO,
     crate::methods::ITERATOR_STEP_BY_ZERO_INFO,
     crate::methods::JOIN_ABSOLUTE_PATHS_INFO,
