@@ -118,3 +118,29 @@ fn issue_15576() {
     );
     //~^^ print_literal
 }
+
+fn issue_16478() {
+    // Escape sequences that evaluate to braces must be doubled up as well, otherwise the suggestion
+    // would inline a brace into the format string and fail to compile
+    println!("\x7B\x7Ba\x7D\x7D \x7B\x7Bb\x7D\x7D");
+    //~^ print_literal
+    println!("\u{7B}\u{7B}a\u{7D}\u{7D}");
+    //~^ print_literal
+    println!("\x7b\x7b\x7d\x7d");
+    //~^ print_literal
+    // A single brace on its own
+    println!("\x7B\x7Ba");
+    //~^ print_literal
+    // Consecutive braces each get doubled
+    println!("\x7B\x7B\x7B\x7Ba\x7D\x7D\x7D\x7D");
+    //~^ print_literal
+    // When the literal ends up in a raw format string, or comes from a raw string literal, there
+    // are no escape sequences: `\x7b` and `\u{7b}` are literal text, so only the braces they
+    // contain are doubled up
+    println!(r"\x7b \u{{7b}}");
+    //~^ print_literal
+    println!(r"\x7b \u{{7b}}");
+    //~^ print_literal
+    println!("\\x7b \\u{{7b}}");
+    //~^ print_literal
+}
