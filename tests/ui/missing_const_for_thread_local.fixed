@@ -75,3 +75,25 @@ fn f() {
         static TLS: i32 = 1;
     }
 }
+
+fn nested_const_initializers() {
+    thread_local! {
+        static WRAPPED: Cell<u8> = const { const { Cell::new(0) } };
+        //~^ missing_const_for_thread_local
+        static PARENTHESIZED: Cell<u8> = const { (const { Cell::new(0) }) };
+        //~^ missing_const_for_thread_local
+    }
+}
+
+#[expect(clippy::missing_const_for_thread_local)]
+fn macro_const_initializer() {
+    macro_rules! constant_initializer {
+        () => {
+            const { Cell::new(0) }
+        };
+    }
+
+    thread_local! {
+        static VALUE: Cell<u8> = constant_initializer!();
+    }
+}
