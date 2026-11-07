@@ -1,4 +1,4 @@
-error: useless use of `vec!`
+error: use of `vec!` when an allocation is not necessary
   --> tests/ui-toml/useless_vec/useless_vec.rs:8:9
    |
 LL |     foo(&vec![1_u32]);

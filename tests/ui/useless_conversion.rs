@@ -145,7 +145,7 @@ fn main() {
     //~^ useless_conversion
     let _ = "".lines().into_iter();
     //~^ useless_conversion
-    let _ = vec![1, 2, 3].into_iter().into_iter();
+    let _ = [1, 2, 3].into_iter().into_iter();
     //~^ useless_conversion
     let _: String = format!("Hello {}", "world").into();
     //~^ useless_conversion
@@ -166,7 +166,7 @@ fn main() {
     let _ = Foo::<'a'>::from(s3);
     //~^ useless_conversion
     let s4: Foo<'a'> = Foo;
-    let _ = vec![s4, s4, s4].into_iter().into_iter();
+    let _ = [s4, s4, s4].into_iter().into_iter();
     //~^ useless_conversion
 
     issue11300::bar();
@@ -196,23 +196,23 @@ fn explicit_into_iter_fn_arg() {
     }
     fn f(_: std::vec::IntoIter<i32>) {}
 
-    a(vec![1, 2].into_iter());
-    b(vec![1, 2].into_iter());
+    a([1, 2].into_iter());
+    b([1, 2].into_iter());
     //~^ useless_conversion
-    c(vec![1, 2].into_iter());
+    c([1, 2].into_iter());
     //~^ useless_conversion
-    d(vec![1, 2].into_iter());
+    d([1, 2].into_iter());
     //~^ useless_conversion
     b([&1, &2, &3].into_iter().cloned());
 
-    b(vec![1, 2].into_iter().into_iter());
+    b([1, 2].into_iter().into_iter());
     //~^ useless_conversion
-    b(vec![1, 2].into_iter().into_iter().into_iter());
+    b([1, 2].into_iter().into_iter().into_iter());
     //~^ useless_conversion
 
     macro_rules! macro_generated {
         () => {
-            vec![1, 2].into_iter()
+            [1, 2].into_iter()
         };
     }
     b(macro_generated!());
