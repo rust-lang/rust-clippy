@@ -4,17 +4,13 @@ error: the loop variable `i` is only used to index `ns`
 LL |     for i in 3..10 {
    |              ^^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:14:24
-   |
-LL |         println!("{}", ns[i]);
-   |                        ^^^^^
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
    = note: `-D clippy::needless-range-loop` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::needless_range_loop)]`
 help: consider using an iterator
    |
 LL -     for i in 3..10 {
-LL +     for <item> in ns.iter().take(10).skip(3) {
+LL +     for <item> in ns[..10].iter().skip(3) {
    |
 
 error: the loop variable `i` is only used to index `ms`
@@ -23,11 +19,6 @@ error: the loop variable `i` is only used to index `ms`
 LL |     for i in 0..ms.len() {
    |              ^^^^^^^^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:37:9
-   |
-LL |         ms[i] *= 2;
-   |         ^^^^^
 help: consider using an iterator
    |
 LL -     for i in 0..ms.len() {
@@ -40,11 +31,6 @@ error: the loop variable `i` is only used to index `ms`
 LL |     for i in 0..ms.len() {
    |              ^^^^^^^^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:45:22
-   |
-LL |         let x = &mut ms[i];
-   |                      ^^^^^
 help: consider using an iterator
    |
 LL -     for i in 0..ms.len() {
@@ -57,15 +43,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in x..x + 4 {
    |              ^^^^^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:71:9
-   |
-LL |         vec[i] += 1;
-   |         ^^^^^^
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in x..x + 4 {
-LL +     for <item> in vec.iter_mut().skip(x).take(4) {
+LL +     for <item> in vec[..x + 4].iter_mut().skip(x) {
    |
 
 error: the loop variable `i` is only used to index `vec`
@@ -74,15 +56,11 @@ error: the loop variable `i` is only used to index `vec`
 LL |     for i in x..=x + 4 {
    |              ^^^^^^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:80:9
-   |
-LL |         vec[i] += 1;
-   |         ^^^^^^
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in x..=x + 4 {
-LL +     for <item> in vec.iter_mut().skip(x).take(4 + 1) {
+LL +     for <item> in vec[..=x + 4].iter_mut().skip(x) {
    |
 
 error: the loop variable `i` is only used to index `arr`
@@ -91,11 +69,6 @@ error: the loop variable `i` is only used to index `arr`
 LL |     for i in 0..3 {
    |              ^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:88:24
-   |
-LL |         println!("{}", arr[i]);
-   |                        ^^^^^^
 help: consider using an iterator
    |
 LL -     for i in 0..3 {
@@ -108,15 +81,11 @@ error: the loop variable `i` is only used to index `arr`
 LL |     for i in 0..2 {
    |              ^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:94:24
-   |
-LL |         println!("{}", arr[i]);
-   |                        ^^^^^^
+   = note: this suggestion preserves panic behavior, but the panic will occur before iteration if the upper bound exceeds the collection length
 help: consider using an iterator
    |
 LL -     for i in 0..2 {
-LL +     for <item> in arr.iter().take(2) {
+LL +     for <item> in arr[..2].iter() {
    |
 
 error: the loop variable `i` is only used to index `arr`
@@ -125,11 +94,6 @@ error: the loop variable `i` is only used to index `arr`
 LL |     for i in 1..3 {
    |              ^^^^
    |
-note: for this index operation
-  --> tests/ui/needless_range_loop2.rs:100:24
-   |
-LL |         println!("{}", arr[i]);
-   |                        ^^^^^^
 help: consider using an iterator
    |
 LL -     for i in 1..3 {
