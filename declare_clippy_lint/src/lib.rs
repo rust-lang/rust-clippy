@@ -129,6 +129,7 @@ macro_rules! declare_clippy_lint_inner {
         $(, @eval_always = $eval_always:literal)?
     ) => {
         $crate::rustc_lint::declare_tool_lint! {
+            #[allow(clippy::manual_intra_doc_links, reason="the website doesn't support rustdoc links")]
             $(#[doc = $docs])*
             #[clippy::version = $version]
             $vis clippy::$lint_name,
