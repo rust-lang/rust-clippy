@@ -158,3 +158,14 @@ mod issue17162 {
         }
     }
 }
+
+mod issue17772 {
+    struct Inherent;
+
+    impl Inherent {
+        // Inherent methods are `unused_async`'s job, not `unused_async_trait_impl`'s.
+        async fn get(&self) -> u32 {
+            1
+        }
+    }
+}
