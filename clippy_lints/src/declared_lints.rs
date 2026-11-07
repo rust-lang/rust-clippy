@@ -314,6 +314,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::manual_bits::MANUAL_BITS_INFO,
     crate::manual_checked_ops::MANUAL_CHECKED_OPS_INFO,
     crate::manual_clamp::MANUAL_CLAMP_INFO,
+    crate::manual_env_var::MANUAL_ENV_VAR_INFO,
     crate::manual_float_methods::MANUAL_IS_FINITE_INFO,
     crate::manual_float_methods::MANUAL_IS_INFINITE_INFO,
     crate::manual_hash_one::MANUAL_HASH_ONE_INFO,
