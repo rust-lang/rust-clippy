@@ -7157,6 +7157,7 @@ Released 2018-09-13
 [`float_cmp`]: https://clippy.rust-lang.org/main/index.html#float_cmp
 [`float_cmp_const`]: https://clippy.rust-lang.org/main/index.html#float_cmp_const
 [`float_equality_without_abs`]: https://clippy.rust-lang.org/main/index.html#float_equality_without_abs
+[`floats_used`]: https://clippy.rust-lang.org/main/index.html#floats_used
 [`fn_address_comparisons`]: https://clippy.rust-lang.org/main/index.html#fn_address_comparisons
 [`fn_null_check`]: https://clippy.rust-lang.org/main/index.html#fn_null_check
 [`fn_params_excessive_bools`]: https://clippy.rust-lang.org/main/index.html#fn_params_excessive_bools

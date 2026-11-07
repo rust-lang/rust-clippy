@@ -138,6 +138,7 @@ mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
 mod float_literal;
 mod floating_point_arithmetic;
+mod floats_used;
 mod format;
 mod format_args;
 mod format_impl;
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        FloatsUsed: floats_used::FloatsUsed = floats_used::FloatsUsed,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

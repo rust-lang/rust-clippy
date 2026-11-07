@@ -1,0 +1,70 @@
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:4:8
+   |
+LL |     a: f32,
+   |        ^^^
+   |
+   = note: `-D clippy::floats-used` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::floats_used)]`
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:10:35
+   |
+LL | const FLOAT_STRUCT: GenericStruct<f32> = GenericStruct(0.1);
+   |                                   ^^^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:13:18
+   |
+LL | static ST_FLOAT: f64 = 20.0;
+   |                  ^^^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:19:17
+   |
+LL |     let float = 0.2;
+   |                 ^^^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:21:33
+   |
+LL |     let array_float: [f64; 4] = [0.0; 4];
+   |                                 ^^^^^^^^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:23:31
+   |
+LL |     let vec_float: Vec<f32> = Vec::new();
+   |                               ^^^^^^^^^^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:28:16
+   |
+LL |     let expr = 0.3 + float;
+   |                ^^^^^^^^^^^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:32:30
+   |
+LL |   fn float_func(a: f32) -> f32 {
+   |  ______________________________^
+LL | |
+LL | |     let mut a_int = a as u32;
+...  |
+LL | | }
+   | |_^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:34:21
+   |
+LL |     let mut a_int = a as u32;
+   |                     ^
+
+error: use of floating-point integers
+  --> tests/ui/floats_used.rs:39:5
+   |
+LL |     a_int as f32
+   |     ^^^^^^^^^^^^
+
+error: aborting due to 10 previous errors
+
