@@ -103,7 +103,7 @@ LL ~             black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:71:10
+  --> tests/ui/redundant_else.rs:90:10
    |
 LL |           } else {
    |  __________^
@@ -120,7 +120,7 @@ LL ~         black_box(());
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:78:10
+  --> tests/ui/redundant_else.rs:97:10
    |
 LL |           } else {
    |  __________^
@@ -137,7 +137,7 @@ LL ~         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:85:10
+  --> tests/ui/redundant_else.rs:104:10
    |
 LL |           } else {
    |  __________^
@@ -154,7 +154,7 @@ LL ~         black_box(0i32);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:95:10
+  --> tests/ui/redundant_else.rs:114:10
    |
 LL |           } else {
    |  __________^
@@ -171,7 +171,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:102:10
+  --> tests/ui/redundant_else.rs:121:10
    |
 LL |           } else {
    |  __________^
@@ -190,7 +190,7 @@ LL +         black_box(());
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:110:10
+  --> tests/ui/redundant_else.rs:129:10
    |
 LL |           } else {
    |  __________^
@@ -207,7 +207,7 @@ LL +         { black_box(()) }
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:117:10
+  --> tests/ui/redundant_else.rs:136:10
    |
 LL |           } else {
    |  __________^
@@ -228,7 +228,7 @@ LL +         }
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:126:10
+  --> tests/ui/redundant_else.rs:145:10
    |
 LL |           } else {
    |  __________^
@@ -250,7 +250,7 @@ LL +         }
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:137:10
+  --> tests/ui/redundant_else.rs:156:10
    |
 LL |           } else {
    |  __________^
@@ -275,7 +275,7 @@ LL +         }
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:150:10
+  --> tests/ui/redundant_else.rs:169:10
    |
 LL |           } else {
    |  __________^
@@ -298,7 +298,7 @@ LL +         }
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:161:10
+  --> tests/ui/redundant_else.rs:180:10
    |
 LL |           } else {
    |  __________^
@@ -321,7 +321,7 @@ LL +         }
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:172:10
+  --> tests/ui/redundant_else.rs:191:10
    |
 LL |           } else {
    |  __________^
@@ -344,7 +344,7 @@ LL +         };
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:183:10
+  --> tests/ui/redundant_else.rs:202:10
    |
 LL |           } else {
    |  __________^
@@ -361,7 +361,7 @@ LL +         black_box(1)
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:196:10
+  --> tests/ui/redundant_else.rs:215:10
    |
 LL |           } else {
    |  __________^
@@ -378,7 +378,7 @@ LL ~         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:206:10
+  --> tests/ui/redundant_else.rs:225:10
    |
 LL |           } else {
    |  __________^
@@ -395,7 +395,7 @@ LL ~         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:222:14
+  --> tests/ui/redundant_else.rs:241:14
    |
 LL |               } else {
    |  ______________^
@@ -412,7 +412,7 @@ LL ~             black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:235:10
+  --> tests/ui/redundant_else.rs:253:10
    |
 LL |           } else {
    |  __________^
@@ -429,24 +429,7 @@ LL ~         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:231:14
-   |
-LL |               } else {
-   |  ______________^
-LL | |
-LL | |                 return;
-LL | |             }
-   | |_____________^
-   |
-help: remove the `else` block and move the contents out
-   |
-LL ~             }
-LL +
-LL +             return;
-   |
-
-error: redundant else block
-  --> tests/ui/redundant_else.rs:251:10
+  --> tests/ui/redundant_else.rs:269:10
    |
 LL |           } else {
    |  __________^
@@ -463,7 +446,7 @@ LL ~         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:289:10
+  --> tests/ui/redundant_else.rs:307:10
    |
 LL |           } else {
    |  __________^
@@ -480,7 +463,7 @@ LL ~         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:304:10
+  --> tests/ui/redundant_else.rs:322:10
    |
 LL |           } else {
    |  __________^
@@ -497,13 +480,13 @@ LL ~         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:325:42
+  --> tests/ui/redundant_else.rs:343:42
    |
 LL |             if black_box(true) { return } else { black_box(0) }
    |                                          ^^^^^^^^^^^^^^^^^^^^^^ help: remove the `else` block and move the contents out: `black_box(0)`
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:425:14
+  --> tests/ui/redundant_else.rs:443:14
    |
 LL |               } else {
    |  ______________^
@@ -521,7 +504,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:432:14
+  --> tests/ui/redundant_else.rs:450:14
    |
 LL |               } else {
    |  ______________^
@@ -539,7 +522,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:445:14
+  --> tests/ui/redundant_else.rs:462:14
    |
 LL |               } else {
    |  ______________^
@@ -557,27 +540,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:440:18
-   |
-LL |                   } else {
-   |  __________________^
-LL | |
-LL | |                     let _ = ();
-LL | |                     return
-LL | |                 }
-   | |_________________^
-   |
-   = note: this error originates in the macro `__inline_mac_fn_main` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: remove the `else` block and move the contents out
-   |
-LL ~                 }
-LL +
-LL +         let _ = ();
-LL +         return
-   |
-
-error: redundant else block
-  --> tests/ui/redundant_else.rs:458:14
+  --> tests/ui/redundant_else.rs:474:14
    |
 LL |               } else {
    |  ______________^
@@ -595,7 +558,7 @@ LL +         black_box(0);
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:472:14
+  --> tests/ui/redundant_else.rs:488:14
    |
 LL |               } else {
    |  ______________^
@@ -613,7 +576,7 @@ LL +         inline!({ black_box(()); });
    |
 
 error: redundant else block
-  --> tests/ui/redundant_else.rs:480:14
+  --> tests/ui/redundant_else.rs:496:14
    |
 LL |               } else {
    |  ______________^
@@ -630,5 +593,5 @@ LL +
 LL +         $({ black_box(()) });
    |
 
-error: aborting due to 35 previous errors
+error: aborting due to 33 previous errors
 
