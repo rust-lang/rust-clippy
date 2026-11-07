@@ -76,5 +76,43 @@ LL |             println!("Hello world!");
 LL ~         }
    |
 
-error: aborting due to 4 previous errors
+error: this `if` statement can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:43:5
+   |
+LL | /     if let Some(s) = opt {
+LL | |         if s == 1 {
+LL | |             s;
+LL | |         } else {
+...  |
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     if let Some(s) = opt
+LL ~         && s == 1 {
+LL |             s;
+LL ~         }
+   |
+
+error: this `if` statement can be collapsed
+  --> tests/ui-toml/collapsible_if/collapsible_if.rs:52:5
+   |
+LL | /     if let Some(s) = opt {
+LL | |         if s == 1 {
+LL | |             s;
+LL | |         } else {
+...  |
+LL | |     }
+   | |_____^
+   |
+help: collapse nested if block
+   |
+LL ~     if let Some(s) = opt
+LL ~         && s == 1 {
+LL |             s;
+LL ~         } else {
+   |
+
+error: aborting due to 6 previous errors
 
