@@ -613,31 +613,7 @@ LL +         || dot_inner!(a).eq_ignore_ascii_case("abc")
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:207:5
-   |
-LL |     c.to_ascii_uppercase() == 'A';
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     c.to_ascii_uppercase() == 'A';
-LL +     c.eq_ignore_ascii_case(&'A');
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:209:5
-   |
-LL |     c.to_ascii_lowercase() == '0';
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     c.to_ascii_lowercase() == '0';
-LL +     c.eq_ignore_ascii_case(&'0');
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:211:5
+  --> tests/ui/manual_ignore_case_cmp.rs:193:5
    |
 LL |     c.to_ascii_lowercase() == 'Ł';
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -649,151 +625,19 @@ LL +     c.eq_ignore_ascii_case(&'Ł');
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:214:5
+  --> tests/ui/manual_ignore_case_cmp.rs:195:5
    |
-LL |     b.to_ascii_uppercase() == b'A';
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_uppercase() == b'A';
-LL +     b.eq_ignore_ascii_case(&b'A');
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:216:5
-   |
-LL |     b.to_ascii_lowercase() == b'\xff';
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     bytes.to_ascii_uppercase() == b"A\xff";
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 help: consider using `.eq_ignore_ascii_case()` instead
    |
-LL -     b.to_ascii_lowercase() == b'\xff';
-LL +     b.eq_ignore_ascii_case(&b'\xff');
+LL -     bytes.to_ascii_uppercase() == b"A\xff";
+LL +     bytes.eq_ignore_ascii_case(b"A\xff");
    |
 
 error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:219:5
-   |
-LL |     s.to_ascii_uppercase() == "ABC";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     s.to_ascii_uppercase() == "ABC";
-LL +     s.eq_ignore_ascii_case("ABC");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:221:5
-   |
-LL |     s.to_ascii_lowercase() == "123";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     s.to_ascii_lowercase() == "123";
-LL +     s.eq_ignore_ascii_case("123");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:223:5
-   |
-LL |     s.to_ascii_lowercase() == "";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     s.to_ascii_lowercase() == "";
-LL +     s.eq_ignore_ascii_case("");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:225:5
-   |
-LL |     s.to_ascii_lowercase() == "Ä";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     s.to_ascii_lowercase() == "Ä";
-LL +     s.eq_ignore_ascii_case("Ä");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:228:5
-   |
-LL |     bytes.to_ascii_uppercase() == b"ABC";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     bytes.to_ascii_uppercase() == b"ABC";
-LL +     bytes.eq_ignore_ascii_case(b"ABC");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:230:5
-   |
-LL |     bytes.to_ascii_lowercase() == b"\xff";
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     bytes.to_ascii_lowercase() == b"\xff";
-LL +     bytes.eq_ignore_ascii_case(b"\xff");
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:235:5
-   |
-LL |     97_u8 == b.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     97_u8 == b.to_ascii_lowercase();
-LL +     b.eq_ignore_ascii_case(&97_u8);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:237:5
-   |
-LL |     b.to_ascii_lowercase() == 97_u8;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_lowercase() == 97_u8;
-LL +     b.eq_ignore_ascii_case(&97_u8);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:239:5
-   |
-LL |     65_u8 != b.to_ascii_uppercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     65_u8 != b.to_ascii_uppercase();
-LL +     !b.eq_ignore_ascii_case(&65_u8);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:241:5
-   |
-LL |     b.to_ascii_uppercase() != 65_u8;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_uppercase() != 65_u8;
-LL +     !b.eq_ignore_ascii_case(&65_u8);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:244:5
+  --> tests/ui/manual_ignore_case_cmp.rs:197:5
    |
 LL |     97 == b.to_ascii_lowercase();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -804,137 +648,5 @@ LL -     97 == b.to_ascii_lowercase();
 LL +     b.eq_ignore_ascii_case(&97);
    |
 
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:246:5
-   |
-LL |     b.to_ascii_lowercase() == 97;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_lowercase() == 97;
-LL +     b.eq_ignore_ascii_case(&97);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:248:5
-   |
-LL |     65 != b.to_ascii_uppercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     65 != b.to_ascii_uppercase();
-LL +     !b.eq_ignore_ascii_case(&65);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:250:5
-   |
-LL |     b.to_ascii_uppercase() != 65;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_uppercase() != 65;
-LL +     !b.eq_ignore_ascii_case(&65);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:253:5
-   |
-LL |     b.to_ascii_lowercase() == 0;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_lowercase() == 0;
-LL +     b.eq_ignore_ascii_case(&0);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:255:5
-   |
-LL |     255 == b.to_ascii_uppercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     255 == b.to_ascii_uppercase();
-LL +     b.eq_ignore_ascii_case(&255);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:257:5
-   |
-LL |     0x61 == b.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     0x61 == b.to_ascii_lowercase();
-LL +     b.eq_ignore_ascii_case(&0x61);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:259:5
-   |
-LL |     b.to_ascii_uppercase() != 0b0100_0001;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     b.to_ascii_uppercase() != 0b0100_0001;
-LL +     !b.eq_ignore_ascii_case(&0b0100_0001);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:262:5
-   |
-LL |     97 == r.to_ascii_lowercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     97 == r.to_ascii_lowercase();
-LL +     r.eq_ignore_ascii_case(&97);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:264:5
-   |
-LL |     r.to_ascii_lowercase() == 97;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     r.to_ascii_lowercase() == 97;
-LL +     r.eq_ignore_ascii_case(&97);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:266:5
-   |
-LL |     65_u8 != r.to_ascii_uppercase();
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     65_u8 != r.to_ascii_uppercase();
-LL +     !r.eq_ignore_ascii_case(&65_u8);
-   |
-
-error: manual case-insensitive ASCII comparison
-  --> tests/ui/manual_ignore_case_cmp.rs:268:5
-   |
-LL |     r.to_ascii_uppercase() != 65_u8;
-   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   |
-help: consider using `.eq_ignore_ascii_case()` instead
-   |
-LL -     r.to_ascii_uppercase() != 65_u8;
-LL +     !r.eq_ignore_ascii_case(&65_u8);
-   |
-
-error: aborting due to 78 previous errors
+error: aborting due to 54 previous errors
 

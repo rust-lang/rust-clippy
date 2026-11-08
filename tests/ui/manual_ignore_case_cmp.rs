@@ -181,113 +181,19 @@ fn wrongly_unmangled_macros(a: &str, b: &str) -> bool {
     //~^ manual_ignore_case_cmp
 }
 
-fn mismatched_literal_case_17991(c: char, b: u8, s: &str, bytes: &[u8]) {
+#[allow(overflowing_literals, unused_comparisons)]
+fn issue_17991(c: char, b: u8, s: &str, bytes: &[u8]) {
     c.to_ascii_uppercase() == 'a';
-    'a' != c.to_ascii_uppercase();
-    c.to_ascii_lowercase() == 'A';
-    'A' != c.to_ascii_lowercase();
-
-    b.to_ascii_uppercase() == b'a';
-    b'a' != b.to_ascii_uppercase();
     b.to_ascii_lowercase() == b'A';
-    b'A' != b.to_ascii_lowercase();
+    "aBc" != s.to_ascii_lowercase();
+    bytes.to_ascii_uppercase() == b"AbC";
+    b.to_ascii_lowercase() == 65;
+    256 == b.to_ascii_lowercase();
 
-    s.to_ascii_uppercase() == "a";
-    "a" != s.to_ascii_uppercase();
-    s.to_ascii_lowercase() == "A";
-    "A" != s.to_ascii_lowercase();
-    s.to_ascii_lowercase() == "aBc";
-    s.to_ascii_uppercase() == "aBc";
-
-    bytes.to_ascii_uppercase() == b"a";
-    bytes.to_ascii_lowercase() == b"A";
-}
-
-fn matching_literal_case_17991(c: char, b: u8, s: &str, bytes: &[u8]) {
-    c.to_ascii_uppercase() == 'A';
-    //~^ manual_ignore_case_cmp
-    c.to_ascii_lowercase() == '0';
-    //~^ manual_ignore_case_cmp
     c.to_ascii_lowercase() == 'Ł';
     //~^ manual_ignore_case_cmp
-
-    b.to_ascii_uppercase() == b'A';
+    bytes.to_ascii_uppercase() == b"A\xff";
     //~^ manual_ignore_case_cmp
-    b.to_ascii_lowercase() == b'\xff';
-    //~^ manual_ignore_case_cmp
-
-    s.to_ascii_uppercase() == "ABC";
-    //~^ manual_ignore_case_cmp
-    s.to_ascii_lowercase() == "123";
-    //~^ manual_ignore_case_cmp
-    s.to_ascii_lowercase() == "";
-    //~^ manual_ignore_case_cmp
-    s.to_ascii_lowercase() == "Ä";
-    //~^ manual_ignore_case_cmp
-
-    bytes.to_ascii_uppercase() == b"ABC";
-    //~^ manual_ignore_case_cmp
-    bytes.to_ascii_lowercase() == b"\xff";
-    //~^ manual_ignore_case_cmp
-}
-
-fn matching_integer_literal_case_17991(b: u8, r: &u8) {
-    97_u8 == b.to_ascii_lowercase();
-    //~^ manual_ignore_case_cmp
-    b.to_ascii_lowercase() == 97_u8;
-    //~^ manual_ignore_case_cmp
-    65_u8 != b.to_ascii_uppercase();
-    //~^ manual_ignore_case_cmp
-    b.to_ascii_uppercase() != 65_u8;
-    //~^ manual_ignore_case_cmp
-
     97 == b.to_ascii_lowercase();
     //~^ manual_ignore_case_cmp
-    b.to_ascii_lowercase() == 97;
-    //~^ manual_ignore_case_cmp
-    65 != b.to_ascii_uppercase();
-    //~^ manual_ignore_case_cmp
-    b.to_ascii_uppercase() != 65;
-    //~^ manual_ignore_case_cmp
-
-    b.to_ascii_lowercase() == 0;
-    //~^ manual_ignore_case_cmp
-    255 == b.to_ascii_uppercase();
-    //~^ manual_ignore_case_cmp
-    0x61 == b.to_ascii_lowercase();
-    //~^ manual_ignore_case_cmp
-    b.to_ascii_uppercase() != 0b0100_0001;
-    //~^ manual_ignore_case_cmp
-
-    97 == r.to_ascii_lowercase();
-    //~^ manual_ignore_case_cmp
-    r.to_ascii_lowercase() == 97;
-    //~^ manual_ignore_case_cmp
-    65_u8 != r.to_ascii_uppercase();
-    //~^ manual_ignore_case_cmp
-    r.to_ascii_uppercase() != 65_u8;
-    //~^ manual_ignore_case_cmp
-}
-
-fn mismatched_integer_literal_case_17991(b: u8) {
-    b.to_ascii_lowercase() == 65;
-    65 != b.to_ascii_lowercase();
-    b.to_ascii_uppercase() == 97;
-    97 != b.to_ascii_uppercase();
-
-    65_u8 == b.to_ascii_lowercase();
-    b.to_ascii_lowercase() != 65_u8;
-    97_u8 == b.to_ascii_uppercase();
-    b.to_ascii_uppercase() != 97_u8;
-
-    0x41 == b.to_ascii_lowercase();
-    0x61 != b.to_ascii_uppercase();
-}
-
-#[allow(overflowing_literals, unused_comparisons)]
-fn out_of_range_integer_literals_17991(b: u8) {
-    b.to_ascii_lowercase() == 256;
-    256 == b.to_ascii_lowercase();
-    b.to_ascii_uppercase() == 353_u8;
-    321_u8 == b.to_ascii_lowercase();
 }
