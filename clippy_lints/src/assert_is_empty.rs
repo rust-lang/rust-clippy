@@ -19,8 +19,8 @@ declare_clippy_lint! {
     ///
     /// Checks assertions that only test whether a supported value is empty.
     ///
-    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`, and
-    /// `BinaryHeap`.
+    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`,
+    /// `BinaryHeap`, and `HashMap`.
     ///
     /// ### Why is this bad?
     ///
@@ -44,8 +44,11 @@ declare_clippy_lint! {
     /// If the first assertion fails, the second assertion never runs, so the failure can hide the
     /// check that would have shown more useful context.
     ///
-    /// Instead, compare the value with an empty value using `assert_eq!`, `assert_ne!`,
-    /// `debug_assert_eq!`, or `debug_assert_ne!`. These macros print the asserted value on failure.
+    /// Instead, for strings, slices, arrays, `Vec` and `BinaryHeap` compare the value with an empty value using
+    /// `assert_eq!`, `assert_ne!`, `debug_assert_eq!`, or `debug_assert_ne!`.
+    /// These macros print the asserted value on failure.
+    ///
+    /// For `HashMap` add custom message that will emit the content on failure.
     ///
     /// ### Known problems
     ///
@@ -67,6 +70,20 @@ declare_clippy_lint! {
     /// # let items = vec![1, 2, 3];
     /// assert_eq!(items, [] as [i32; 0]);
     /// assert_ne!(items, [] as [i32; 0]);
+    /// ```
+    ///
+    /// ```no_run
+    /// # let hm = HashMap::new();
+    /// assert!(hm.is_empty());
+    /// assert!(!hm.is_empty());
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// # let hm = HashMap::new();
+    /// assert!(hm.is_empty(), "assertion `is empty` failed, contents: {hm:?}"));
+    /// assert!(!hm.is_empty(), "assertion `is not empty` failed, contents: {hm:?}"));
     /// ```
     #[clippy::version = "1.99.0"]
     pub ASSERT_IS_EMPTY,
@@ -90,7 +107,8 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
     /// Finds assertion conditions that only test emptiness.
     ///
     /// Matching assertions without a custom message are rewritten as equality or inequality
-    /// assertions against an empty value.
+    /// assertions against an empty value for string, slices, arrays, `Vec` and `BinaryHeap`. For `HashMap`
+    /// rewrites assertion with failure message.
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // `assert!` and `debug_assert!` expand to `if`; skip other expressions before walking the
         // macro backtrace.
@@ -98,18 +116,44 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
             && !is_in_const_context(cx)
             && let Some((macro_name, condition, assert_span)) = assert_call(cx, expr)
             && let Some((assertion_kind, receiver)) = emptiness_assertion(condition)
-            && let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver, self.msrv)
         {
-            emit_assertion_suggestion(
-                cx,
-                macro_name,
-                assert_span,
-                condition,
-                assertion_kind,
-                receiver,
-                (receiver_suffix, &empty_value),
-            );
+            emit_by_receiver_type(cx, receiver, macro_name, assert_span, condition, assertion_kind, self.msrv)
         }
+    }
+}
+
+/// Emits an assertion suggestion based on the receiver type.
+///
+/// For a `HashMap`, if both the key and value types implement the `Debug` trait, the emitted
+/// suggestion adds a failure message. Rewrites assertion to `assert_eq!`, `assert_ne!`,
+/// `debug_assert_eq!`, or `debug_assert_ne!` for strings, slices, arrays, and `Vec`.
+fn emit_by_receiver_type<'tcx>(
+    cx: &LateContext<'tcx>,
+    receiver: &'tcx Expr<'_>,
+    macro_name: &str,
+    assert_span: Span,
+    condition: &Expr<'_>,
+    assertion_kind: AssertionKind,
+    msrv: Msrv,
+) {
+    let receiver_ty = cx.typeck_results().expr_ty(receiver);
+    match receiver_ty.peel_refs().opt_diag_name(cx) {
+        Some(sym::HashMap) if has_required_traits(cx, receiver_ty.peel_refs()) => {
+            emit_assertion_custom_message_suggestion(cx, macro_name, assert_span, condition, assertion_kind, receiver);
+        },
+        _ => {
+            if let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver_ty, msrv) {
+                emit_assertion_suggestion(
+                    cx,
+                    macro_name,
+                    assert_span,
+                    condition,
+                    assertion_kind,
+                    receiver,
+                    (receiver_suffix, &empty_value),
+                );
+            }
+        },
     }
 }
 
@@ -202,12 +246,7 @@ impl AssertionKind {
 /// The replacement assertion must compile, compare the same value, and print useful failure
 /// output. Returns `None` for unsupported collection types and for element types that cannot be
 /// printed and compared by the replacement assertion.
-fn assertion_suggestion<'tcx>(
-    cx: &LateContext<'tcx>,
-    receiver: &'tcx Expr<'tcx>,
-    msrv: Msrv,
-) -> Option<(&'static str, String)> {
-    let receiver_ty = cx.typeck_results().expr_ty(receiver);
+fn assertion_suggestion<'tcx>(cx: &LateContext<'tcx>, receiver_ty: Ty<'tcx>, msrv: Msrv, ) -> Option<(&'static str, String)> {
     if receiver_ty.peel_refs().is_diag_item(cx, sym::BinaryHeap) && !msrv.meets(cx, msrvs::BINARY_HEAP_AS_SLICE) {
         return None;
     }
@@ -255,6 +294,28 @@ fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Opt
             },
             _ => None,
         }
+    }
+}
+
+/// Returns whether the `HashMap` arguments have useful failure output.
+///
+/// Suggestions are limited to cases where the assertion can print the elements on
+/// failure. A `HashMap` requires printable keys and values. Returns `false` when either
+/// element lacks the trait bound.
+fn has_required_traits<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    let ty::Adt(_, args) = ty.kind() else { return false };
+    match (
+        args.get(0).and_then(|a| a.as_type()),
+        args.get(1).and_then(|a| a.as_type()),
+    ) {
+        (Some(key_type), Some(value_type)) => {
+            if let Some(debug_trait) = cx.tcx.get_diagnostic_item(sym::Debug) {
+                implements_trait(cx, key_type, debug_trait, &[]) && implements_trait(cx, value_type, debug_trait, &[])
+            } else {
+                false
+            }
+        },
+        _ => false,
     }
 }
 
@@ -324,6 +385,44 @@ fn emit_assertion_suggestion(
                     (macro_name_span.shrink_to_hi(), assertion_suffix.to_string()),
                     (condition_span, format!("{receiver_snip}, {empty_value}")),
                 ],
+                applicability,
+            );
+        },
+    );
+}
+
+/// Emits the suggestion to add failure message for a boolean assertion for `HashMap`.
+fn emit_assertion_custom_message_suggestion(
+    cx: &LateContext<'_>,
+    macro_name: &str,
+    assert_span: Span,
+    condition: &Expr<'_>,
+    assertion_kind: AssertionKind,
+    receiver: &Expr<'_>,
+) {
+    let mut applicability = Applicability::MachineApplicable;
+    let receiver_snip =
+        Sugg::hir_with_context(cx, receiver, assert_span.ctxt(), "..", &mut applicability).maybe_paren();
+
+    span_lint_and_then(
+        cx,
+        ASSERT_IS_EMPTY,
+        assert_span,
+        format!("used `{macro_name}!` without failure message"),
+        |diag| {
+            let condition_span = walk_span_to_context(condition.span, assert_span.ctxt()).unwrap_or(condition.span);
+            let suggestion_string = {
+                let (receiver_prefix, empty_prefix) = match assertion_kind {
+                    AssertionKind::Eq => ("", ""),
+                    AssertionKind::Ne => ("!", "not "),
+                };
+                format!(
+                    "{receiver_prefix}{receiver_snip}.is_empty(), \"assertion `is {empty_prefix}empty` failed, contents: {{{receiver_snip}:?}}\""
+                )
+            };
+            diag.multipart_suggestion(
+                format!("add a custom message to `{macro_name}! to show the value on failure"),
+                vec![(condition_span, suggestion_string)],
                 applicability,
             );
         },
