@@ -88,15 +88,33 @@ impl LateLintPass<'_> for ManualIgnoreCaseCmp {
             && let Some((right_span, right_val)) = get_ascii_type(cx, right.kind)
             && match (&left_val, &right_val) {
                 (ToAscii(l_lower, ..), ToAscii(r_lower, ..)) if l_lower == r_lower => true,
-                (ToAscii(..), Literal(..)) | (Literal(..), ToAscii(..)) => true,
+                (ToAscii(is_lower, ..), Literal(lit)) | (Literal(lit), ToAscii(is_lower, ..)) => {
+                    let is_wrong_case: fn(&u8) -> bool = if *is_lower {
+                        u8::is_ascii_uppercase
+                    } else {
+                        u8::is_ascii_lowercase
+                    };
+                    match lit {
+                        LitKind::Char(c) => !(c.is_ascii() && is_wrong_case(&(*c as u8))),
+                        LitKind::Byte(b) => !is_wrong_case(b),
+                        LitKind::Int(n, _) => u8::try_from(n.get()).is_ok_and(|b| !is_wrong_case(&b)),
+                        LitKind::Str(s, _) => !s.as_str().as_bytes().iter().any(is_wrong_case),
+                        LitKind::ByteStr(s, _) => !s.as_byte_str().iter().any(is_wrong_case),
+                        _ => false,
+                    }
+                },
                 _ => false,
             }
         {
+            let (left_span, right_span, right_val) = match left_val {
+                Literal(LitKind::Int(..)) => (right_span, left_span, left_val),
+                _ => (left_span, right_span, right_val),
+            };
             let deref = match right_val {
                 ToAscii(_, ty) if needs_ref_to_cmp(cx, ty) => "&",
                 ToAscii(..) => "",
                 Literal(ty) => {
-                    if let LitKind::Char(_) | LitKind::Byte(_) = ty {
+                    if let LitKind::Char(_) | LitKind::Byte(_) | LitKind::Int(..) = ty {
                         "&"
                     } else {
                         ""
