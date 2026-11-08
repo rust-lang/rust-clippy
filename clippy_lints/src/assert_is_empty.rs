@@ -73,7 +73,8 @@ declare_clippy_lint! {
     /// ```
     ///
     /// ```no_run
-    /// # let hm = HashMap::new();
+    /// use std::collections::HashMap;
+    /// # let hm: HashMap<u8, u8> = HashMap::new();
     /// assert!(hm.is_empty());
     /// assert!(!hm.is_empty());
     /// ```
@@ -81,9 +82,10 @@ declare_clippy_lint! {
     /// Use instead:
     ///
     /// ```no_run
-    /// # let hm = HashMap::new();
-    /// assert!(hm.is_empty(), "assertion `is empty` failed, contents: {hm:?}"));
-    /// assert!(!hm.is_empty(), "assertion `is not empty` failed, contents: {hm:?}"));
+    /// use std::collections::HashMap;
+    /// # let hm: HashMap<u8, u8> = HashMap::new();
+    /// assert!(hm.is_empty(), "assertion `is empty` failed, contents: {hm:?}");
+    /// assert!(!hm.is_empty(), "assertion `is not empty` failed, contents: {hm:?}");
     /// ```
     #[clippy::version = "1.99.0"]
     pub ASSERT_IS_EMPTY,
