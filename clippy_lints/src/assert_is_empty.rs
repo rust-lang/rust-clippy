@@ -73,7 +73,8 @@ declare_clippy_lint! {
     /// ```
     ///
     /// ```no_run
-    /// # let hm = HashMap::new();
+    /// use std::collections::HashMap;
+    /// # let hm: HashMap<u8, u8> = HashMap::new();
     /// assert!(hm.is_empty());
     /// assert!(!hm.is_empty());
     /// ```
@@ -81,9 +82,10 @@ declare_clippy_lint! {
     /// Use instead:
     ///
     /// ```no_run
-    /// # let hm = HashMap::new();
-    /// assert!(hm.is_empty(), "assertion `is empty` failed, contents: {hm:?}"));
-    /// assert!(!hm.is_empty(), "assertion `is not empty` failed, contents: {hm:?}"));
+    /// use std::collections::HashMap;
+    /// # let hm: HashMap<u8, u8> = HashMap::new();
+    /// assert!(hm.is_empty(), "assertion `is empty` failed, contents: {hm:?}");
+    /// assert!(!hm.is_empty(), "assertion `is not empty` failed, contents: {hm:?}");
     /// ```
     #[clippy::version = "1.99.0"]
     pub ASSERT_IS_EMPTY,
@@ -117,7 +119,15 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
             && let Some((macro_name, condition, assert_span)) = assert_call(cx, expr)
             && let Some((assertion_kind, receiver)) = emptiness_assertion(condition)
         {
-            emit_by_receiver_type(cx, receiver, macro_name, assert_span, condition, assertion_kind, self.msrv)
+            emit_by_receiver_type(
+                cx,
+                receiver,
+                macro_name,
+                assert_span,
+                condition,
+                assertion_kind,
+                self.msrv,
+            );
         }
     }
 }
@@ -246,7 +256,11 @@ impl AssertionKind {
 /// The replacement assertion must compile, compare the same value, and print useful failure
 /// output. Returns `None` for unsupported collection types and for element types that cannot be
 /// printed and compared by the replacement assertion.
-fn assertion_suggestion<'tcx>(cx: &LateContext<'tcx>, receiver_ty: Ty<'tcx>, msrv: Msrv, ) -> Option<(&'static str, String)> {
+fn assertion_suggestion<'tcx>(
+    cx: &LateContext<'tcx>,
+    receiver_ty: Ty<'tcx>,
+    msrv: Msrv,
+) -> Option<(&'static str, String)> {
     if receiver_ty.peel_refs().is_diag_item(cx, sym::BinaryHeap) && !msrv.meets(cx, msrvs::BINARY_HEAP_AS_SLICE) {
         return None;
     }
@@ -305,7 +319,7 @@ fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Opt
 fn has_required_traits<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
     let ty::Adt(_, args) = ty.kind() else { return false };
     match (
-        args.get(0).and_then(|a| a.as_type()),
+        args.first().and_then(|a| a.as_type()),
         args.get(1).and_then(|a| a.as_type()),
     ) {
         (Some(key_type), Some(value_type)) => {
