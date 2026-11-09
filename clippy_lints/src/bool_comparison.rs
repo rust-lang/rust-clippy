@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{is_expn_of, peel_blocks, sym};
+use clippy_utils::{is_expn_of, peel_blocks, span_has_balanced_delims, sym};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
@@ -110,11 +110,13 @@ fn check_comparison<'a, 'tcx>(
     right_false: Option<(impl FnOnce(Sugg<'a>) -> Sugg<'a>, &'static str)>,
     no_literal: Option<(impl FnOnce(Sugg<'a>, Sugg<'a>) -> Sugg<'a>, &'static str)>,
 ) {
-    if let ExprKind::Binary(_, left_side, right_side) = e.kind {
-        let mut applicability = Applicability::MachineApplicable;
+    if let ExprKind::Binary(_, left_side, right_side) = e.kind
         // Eliminate parentheses in `e` by using the lo pos of lhs and hi pos of rhs,
         // calling `source_callsite` make sure macros are handled correctly, see issue #9907
-        let binop_span = left_side.span.source_callsite().to(right_side.span.source_callsite());
+        && let binop_span = left_side.span.source_callsite().to(right_side.span.source_callsite())
+        && span_has_balanced_delims(cx, binop_span)
+    {
+        let mut applicability = Applicability::MachineApplicable;
 
         match (fetch_bool_expr(left_side), fetch_bool_expr(right_side)) {
             (Some(true), None) => left_true.map_or((), |(h, m)| {
