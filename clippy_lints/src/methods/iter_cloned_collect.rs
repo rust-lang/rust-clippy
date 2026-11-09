@@ -1,6 +1,7 @@
 use crate::methods::utils::derefs_to_slice;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::res::MaybeDef as _;
+use clippy_utils::span_has_balanced_delims;
 use clippy_utils::ty::get_iterator_item_ty;
 use rustc_errors::Applicability;
 use rustc_hir::Expr;
@@ -20,6 +21,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, method_name: Symbol, expr: &Ex
         && let ty::Ref(_, iter_item_ty, _) = iter_item_ty.kind()
         && *iter_item_ty == args.type_at(0)
         && let Some(to_replace) = expr.span.trim_start(slice.span.source_callsite())
+        && span_has_balanced_delims(cx, to_replace)
     {
         span_lint_and_then(
             cx,
