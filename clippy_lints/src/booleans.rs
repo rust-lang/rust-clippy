@@ -6,7 +6,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::source::{SpanExt as _, snippet_with_context};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::implements_trait;
-use clippy_utils::{eq_expr_value, sym};
+use clippy_utils::{eq_expr_value, get_parent_expr, sym};
 use rustc_ast::ast::LitKind;
 use rustc_attr_ir::RustcVersion;
 use rustc_errors::Applicability;
@@ -467,7 +467,7 @@ fn simplify_not(cx: &LateContext<'_>, curr_msrv: Msrv, expr: &Expr<'_>) -> Optio
     }
 }
 
-fn suggest(cx: &LateContext<'_>, msrv: Msrv, suggestion: &Bool, terminals: &[&Expr<'_>]) -> String {
+fn suggest(cx: &LateContext<'_>, msrv: Msrv, expr: &Expr<'_>, suggestion: &Bool, terminals: &[&Expr<'_>]) -> String {
     let mut suggest_context = SuggestContext {
         terminals,
         cx,
@@ -475,7 +475,15 @@ fn suggest(cx: &LateContext<'_>, msrv: Msrv, suggestion: &Bool, terminals: &[&Ex
         output: String::new(),
     };
     suggest_context.recurse(suggestion);
-    suggest_context.output
+    if matches!(suggestion, Bool::Or(_))
+        && let Some(parent) = get_parent_expr(cx, expr)
+        && let ExprKind::Binary(op, _, _) = parent.kind
+        && op.node == BinOpKind::And
+    {
+        format!("({})", suggest_context.output)
+    } else {
+        suggest_context.output
+    }
 }
 
 fn simple_negate(b: Bool) -> Bool {
@@ -584,7 +592,7 @@ impl<'tcx> NonminimalBoolVisitor<'_, 'tcx> {
                                 diag.span_suggestion(
                                     e.span,
                                     "it would look like the following",
-                                    suggest(self.cx, self.msrv, suggestion, &h2q.terminals),
+                                    suggest(self.cx, self.msrv, e, suggestion, &h2q.terminals),
                                     // nonminimal_bool can produce minimal but
                                     // not human readable expressions (#3141)
                                     Applicability::Unspecified,
@@ -637,7 +645,7 @@ impl<'tcx> NonminimalBoolVisitor<'_, 'tcx> {
                 nonminimal_bool_lint(
                     improvements
                         .into_iter()
-                        .map(|suggestion| suggest(self.cx, self.msrv, suggestion, &h2q.terminals))
+                        .map(|suggestion| suggest(self.cx, self.msrv, e, suggestion, &h2q.terminals))
                         .collect(),
                 );
             }

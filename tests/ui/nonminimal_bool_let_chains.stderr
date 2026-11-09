@@ -1,0 +1,126 @@
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:7:12
+   |
+LL |         && !(a && !b)
+   |            ^^^^^^^^^^
+   |
+   = note: `-D clippy::nonminimal-bool` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::nonminimal_bool)]`
+help: try
+   |
+LL -         && !(a && !b)
+LL +         && (!a || b)
+   |
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:11:8
+   |
+LL |     if !(a && !b)
+   |        ^^^^^^^^^^
+   |
+help: try
+   |
+LL -     if !(a && !b)
+LL +     if (!a || b)
+   |
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:17:12
+   |
+LL |         && !(a && !b)
+   |            ^^^^^^^^^^
+   |
+help: try
+   |
+LL -         && !(a && !b)
+LL +         && (!a || b)
+   |
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:24:12
+   |
+LL |         && !(a && !b)
+   |            ^^^^^^^^^^
+   |
+help: try
+   |
+LL -         && !(a && !b)
+LL +         && (!a || b)
+   |
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:31:12
+   |
+LL |         && !(a && !b)
+   |            ^^^^^^^^^^
+   |
+help: try
+   |
+LL -         && !(a && !b)
+LL +         && (!a || b)
+   |
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:37:11
+   |
+LL |     while !(a && !b)
+   |           ^^^^^^^^^^
+   |
+help: try
+   |
+LL -     while !(a && !b)
+LL +     while (!a || b)
+   |
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:47:12
+   |
+LL |         && !(a && !b)
+   |            ^^^^^^^^^^
+   |
+help: try
+   |
+LL -         && !(a && !b)
+LL +         && (!a || b)
+   |
+
+error: this boolean expression contains a logic bug
+  --> tests/ui/nonminimal_bool_let_chains.rs:54:12
+   |
+LL |         && ((a || b) && (a || b || c))
+   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: it would look like the following: `(a || b)`
+   |
+help: this expression can be optimized out by applying boolean operations to the outer expression
+  --> tests/ui/nonminimal_bool_let_chains.rs:54:36
+   |
+LL |         && ((a || b) && (a || b || c))
+   |                                    ^
+   = note: `-D clippy::overly-complex-bool-expr` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::overly_complex_bool_expr)]`
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:61:12
+   |
+LL |         && !(a || !b)
+   |            ^^^^^^^^^^
+   |
+help: try
+   |
+LL -         && !(a || !b)
+LL +         && !a && b
+   |
+
+error: this boolean expression can be simplified
+  --> tests/ui/nonminimal_bool_let_chains.rs:65:8
+   |
+LL |     if !(a && !b) {}
+   |        ^^^^^^^^^^
+   |
+help: try
+   |
+LL -     if !(a && !b) {}
+LL +     if !a || b {}
+   |
+
+error: aborting due to 10 previous errors
+
