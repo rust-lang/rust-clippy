@@ -230,3 +230,43 @@ fn issue_17804() {
     Some(&mut inner).filter(|x| x.peek());
     //~^ manual_filter
 }
+
+#[expect(clippy::manual_map)]
+fn issue18004() {
+    let a = Some(1);
+    let b = Some(2);
+    // Don't lint `if let` conditions, as `let` expressions are not valid expressions
+    // inside a closure (`filter(|&x| let Some(y) = ...)` is syntax error).
+    let _ = a.and_then(|x| {
+        if let Some(y) = b
+            && y > x
+        {
+            Some(x)
+        } else {
+            None
+        }
+    });
+    let _ = a.and_then(|x| if let Some(y) = b { Some(x) } else { None });
+    let _ = match a {
+        Some(x) => {
+            if let Some(y) = b
+                && y > x
+            {
+                Some(x)
+            } else {
+                None
+            }
+        },
+        None => None,
+    };
+    let _ = match a {
+        Some(x) => {
+            if let Some(y) = b {
+                Some(x)
+            } else {
+                None
+            }
+        },
+        None => None,
+    };
+}
