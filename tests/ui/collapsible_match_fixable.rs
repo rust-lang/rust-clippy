@@ -77,3 +77,44 @@ fn issue16894() {
         //~^ collapsible_match
     };
 }
+
+fn dont_cut_through_macro_call(x: i32, c: bool) -> i32 {
+    macro_rules! id {
+        ($e:expr) => {
+            $e
+        };
+    }
+
+    // #18008: the inner `if` is a macro argument, so a suggestion would cut through `id!(..)`
+    let _ = match x {
+        1 => id!(if x > 0 { 1 } else { 2 }),
+        _ => 2,
+    };
+
+    // The outer guard or pattern is a macro argument
+    macro_rules! id_pat {
+        ($p:pat) => {
+            $p
+        };
+    }
+    let _ = match x {
+        1 if id!(c) => {
+            if x > 0 {
+                1
+            } else {
+                2
+            }
+        },
+        _ => 2,
+    };
+    match x {
+        id_pat!(1) => {
+            if x > 0 {
+                1
+            } else {
+                2
+            }
+        },
+        _ => 2,
+    }
+}

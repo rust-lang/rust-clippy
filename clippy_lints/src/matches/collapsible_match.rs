@@ -7,7 +7,7 @@ use clippy_utils::usage::mutated_variables;
 use clippy_utils::visitors::{for_each_expr_without_closures, is_local_used};
 use clippy_utils::{
     SpanlessEq, get_ref_operators, is_none_pattern, is_refutable, is_unit_expr, peel_blocks_with_stmt,
-    peel_ref_operators, span_contains_non_whitespace,
+    peel_ref_operators, span_contains_non_whitespace, span_has_balanced_delims,
 };
 use core::ops::ControlFlow;
 use rustc_ast::BorrowKind;
@@ -180,6 +180,14 @@ fn check_arm<'tcx>(
         if contains_block && span_contains_non_whitespace(cx, outer_then_open_bracket.between(inner_expr.span), false) {
             return;
         }
+        let outer_arrow_end = if let Some(outer_guard) = outer_guard {
+            outer_guard.span.shrink_to_hi()
+        } else {
+            outer_pat.span.shrink_to_hi()
+        };
+        if !span_has_balanced_delims(cx, outer_arrow_end.until(outer_then_body.span)) {
+            return;
+        }
 
         span_lint_hir_and_then(
             cx,
@@ -188,11 +196,6 @@ fn check_arm<'tcx>(
             inner_expr.span,
             "this `if` can be collapsed into the outer `match`",
             |diag| {
-                let outer_arrow_end = if let Some(outer_guard) = outer_guard {
-                    outer_guard.span.shrink_to_hi()
-                } else {
-                    outer_pat.span.shrink_to_hi()
-                };
                 let (paren_start, inner_if_span, paren_end) = peel_parens(cx, inner_expr.span);
                 let inner_if = inner_if_span.split_at(2).0;
                 let mut sugg = vec![(inner.then.span.shrink_to_lo(), "=> ".to_string())];
