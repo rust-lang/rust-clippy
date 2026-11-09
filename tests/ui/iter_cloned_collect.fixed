@@ -55,3 +55,15 @@ mod issue9119 {
         //~^ iter_cloned_collect
     }
 }
+
+fn dont_cut_through_macro_call() {
+    macro_rules! id {
+        ($e:expr) => {
+            $e
+        };
+    }
+
+    // #18009: the receiver is a macro argument, so a suggestion would cut through `id!(..)`
+    let v = [1, 2, 3];
+    let _: Vec<i32> = id!(v).iter().cloned().collect();
+}
