@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef as _;
-use clippy_utils::source::walk_span_to_context;
+use clippy_utils::source::{indent_of, walk_span_to_context};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_in_const_context, sym};
@@ -48,7 +48,8 @@ declare_clippy_lint! {
     /// `assert_eq!`, `assert_ne!`, `debug_assert_eq!`, or `debug_assert_ne!`.
     /// These macros print the asserted value on failure.
     ///
-    /// For `HashMap` add custom message that will emit the content on failure.
+    /// Creating an empty `HashMap` with the default hasher is not as free as the types above,
+    /// so for assertions on those, keep the `is_empty()` check but add a message that formats the map.
     ///
     /// ### Known problems
     ///
@@ -132,6 +133,87 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
     }
 }
 
+/// Generates suggestions for receivers with side effects.
+///
+/// For assertions, the receiver is unwrapped into a `let` binding first, and used to refer to
+/// in the assert macro suggestion. For the debug assertions, the suggestion is first wrapped in
+/// a `#[cfg(debug_assertions)]` block, and then unwrapped into a `let` binding. This binding is
+/// used in the assert macro suggestion.
+fn resolve_side_effects<'tcx>(
+    cx: &LateContext<'tcx>,
+    macro_name: &str,
+    assert_span: Span,
+    condition_span: Span,
+    empty_prefix: &str,
+    receiver_prefix: &str,
+    receiver_snip: &Sugg<'tcx>,
+) -> Option<Vec<(Span, String)>> {
+    let macro_name_span = cx.sess().source_map().span_until_char(assert_span, '!');
+    let indent = indent_of(cx, macro_name_span).unwrap_or(0);
+    let pad = " ".repeat(indent);
+    let assertion_message = format!("\"assertion `is {empty_prefix}empty` failed, contents: {{map:?}}\"");
+    let condition_string = format!("{receiver_prefix}map.is_empty(), {assertion_message}");
+    let start_span = macro_name_span.shrink_to_lo();
+    match macro_name {
+        "assert" => Some(vec![
+            (start_span, format!("let map = {receiver_snip};\n{pad}")),
+            (condition_span, condition_string),
+        ]),
+        "debug_assert" => {
+            let last_span_point = cx.sess().source_map().end_point(assert_span).shrink_to_hi();
+            Some(vec![
+                (
+                    start_span,
+                    format!("#[cfg(debug_assertions)]\n{pad}{{\n{pad}{pad}let map = {receiver_snip};\n{pad}{pad}"),
+                ),
+                (condition_span, condition_string),
+                (last_span_point, format!(";\n{pad}}}")),
+            ])
+        },
+        _ => None,
+    }
+}
+
+/// Generates suggestions depending on whether the receiver has side effects.
+///
+/// For the receivers with side effects, the suggestion unwraps it into a `let` binding, which is
+/// then used in the assert macro. For receivers without side effects, the suggestion
+/// adds a failure message.
+fn get_suggestion<'tcx>(
+    cx: &LateContext<'tcx>,
+    receiver: &'tcx Expr<'_>,
+    macro_name: &str,
+    assert_span: Span,
+    condition: &Expr<'_>,
+    assertion_kind: AssertionKind,
+    applicability: &mut Applicability,
+) -> Option<Vec<(Span, String)>> {
+    let receiver_snip = Sugg::hir_with_context(cx, receiver, assert_span.ctxt(), "..", applicability).maybe_paren();
+    let condition_span = walk_span_to_context(condition.span, assert_span.ctxt()).unwrap_or(condition.span);
+    let (receiver_prefix, empty_prefix) = match assertion_kind {
+        AssertionKind::Eq => ("", ""),
+        AssertionKind::Ne => ("!", "not "),
+    };
+    if receiver.can_have_side_effects() {
+        resolve_side_effects(
+            cx,
+            macro_name,
+            assert_span,
+            condition_span,
+            empty_prefix,
+            receiver_prefix,
+            &receiver_snip,
+        )
+    } else {
+        let assertion_message =
+            format!("\"assertion `is {empty_prefix}empty` failed, contents: {{{receiver_snip}:?}}\"");
+        Some(vec![(
+            condition_span,
+            format!("{receiver_prefix}{receiver_snip}.is_empty(), {assertion_message}"),
+        )])
+    }
+}
+
 /// Emits an assertion suggestion based on the receiver type.
 ///
 /// For a `HashMap`, if both the key and value types implement the `Debug` trait, the emitted
@@ -149,7 +231,18 @@ fn emit_by_receiver_type<'tcx>(
     let receiver_ty = cx.typeck_results().expr_ty(receiver);
     match receiver_ty.peel_refs().opt_diag_name(cx) {
         Some(sym::HashMap) if has_required_traits(cx, receiver_ty.peel_refs()) => {
-            emit_assertion_custom_message_suggestion(cx, macro_name, assert_span, condition, assertion_kind, receiver);
+            let mut applicability = Applicability::MachineApplicable;
+            if let Some(suggestion) = get_suggestion(
+                cx,
+                receiver,
+                macro_name,
+                assert_span,
+                condition,
+                assertion_kind,
+                &mut applicability,
+            ) {
+                emit_assertion_custom_message_suggestion(cx, macro_name, assert_span, suggestion, applicability);
+            }
         },
         _ => {
             if let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver_ty, msrv) {
@@ -410,33 +503,18 @@ fn emit_assertion_custom_message_suggestion(
     cx: &LateContext<'_>,
     macro_name: &str,
     assert_span: Span,
-    condition: &Expr<'_>,
-    assertion_kind: AssertionKind,
-    receiver: &Expr<'_>,
+    suggestion: Vec<(Span, String)>,
+    applicability: Applicability,
 ) {
-    let mut applicability = Applicability::MachineApplicable;
-    let receiver_snip =
-        Sugg::hir_with_context(cx, receiver, assert_span.ctxt(), "..", &mut applicability).maybe_paren();
-
     span_lint_and_then(
         cx,
         ASSERT_IS_EMPTY,
         assert_span,
-        format!("used `{macro_name}!` without failure message"),
+        format!("used `{macro_name}!` without including the collection in the failure message"),
         |diag| {
-            let condition_span = walk_span_to_context(condition.span, assert_span.ctxt()).unwrap_or(condition.span);
-            let suggestion_string = {
-                let (receiver_prefix, empty_prefix) = match assertion_kind {
-                    AssertionKind::Eq => ("", ""),
-                    AssertionKind::Ne => ("!", "not "),
-                };
-                format!(
-                    "{receiver_prefix}{receiver_snip}.is_empty(), \"assertion `is {empty_prefix}empty` failed, contents: {{{receiver_snip}:?}}\""
-                )
-            };
             diag.multipart_suggestion(
                 format!("add a custom message to `{macro_name}! to show the value on failure"),
-                vec![(condition_span, suggestion_string)],
+                suggestion,
                 applicability,
             );
         },

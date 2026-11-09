@@ -205,7 +205,7 @@ LL +     assert_ne!(items, [] as [&str; 0]);
    |
 
 error: used `assert!` to check that a value is empty
-  --> tests/ui/assert_is_empty.rs:115:9
+  --> tests/ui/assert_is_empty.rs:116:9
    |
 LL |         assert!(heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -217,7 +217,7 @@ LL +         assert_eq!(heap.as_slice(), [] as [i32; 0]);
    |
 
 error: used `assert!` to check that a value is not empty
-  --> tests/ui/assert_is_empty.rs:117:9
+  --> tests/ui/assert_is_empty.rs:118:9
    |
 LL |         assert!(!heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -229,7 +229,7 @@ LL +         assert_ne!(heap.as_slice(), [] as [i32; 0]);
    |
 
 error: used `debug_assert!` to check that a value is empty
-  --> tests/ui/assert_is_empty.rs:119:9
+  --> tests/ui/assert_is_empty.rs:120:9
    |
 LL |         debug_assert!(heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -241,7 +241,7 @@ LL +         debug_assert_eq!(heap.as_slice(), [] as [i32; 0]);
    |
 
 error: used `debug_assert!` to check that a value is not empty
-  --> tests/ui/assert_is_empty.rs:121:9
+  --> tests/ui/assert_is_empty.rs:122:9
    |
 LL |         debug_assert!(!heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -253,7 +253,7 @@ LL +         debug_assert_ne!(heap.as_slice(), [] as [i32; 0]);
    |
 
 error: used `assert!` to check that a value is empty
-  --> tests/ui/assert_is_empty.rs:135:9
+  --> tests/ui/assert_is_empty.rs:136:9
    |
 LL |         assert!(heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -265,7 +265,7 @@ LL +         assert_eq!(heap.as_slice(), [] as [T; 0]);
    |
 
 error: used `assert!` to check that a value is empty
-  --> tests/ui/assert_is_empty.rs:140:9
+  --> tests/ui/assert_is_empty.rs:141:9
    |
 LL |         assert!(heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -277,7 +277,7 @@ LL +         assert_eq!(heap.as_slice(), [] as [T; 0]);
    |
 
 error: used `assert!` to check that a value is empty
-  --> tests/ui/assert_is_empty.rs:145:9
+  --> tests/ui/assert_is_empty.rs:146:9
    |
 LL |         assert!(heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -289,7 +289,7 @@ LL +         assert_eq!(heap.as_slice(), [] as [i32; 0]);
    |
 
 error: used `assert!` to check that a value is empty
-  --> tests/ui/assert_is_empty.rs:149:9
+  --> tests/ui/assert_is_empty.rs:150:9
    |
 LL |         assert!(heap_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -301,7 +301,7 @@ LL +         assert_eq!(heap_ref.as_slice(), [] as [i32; 0]);
    |
 
 error: used `assert!` to check that a value is not empty
-  --> tests/ui/assert_is_empty.rs:153:9
+  --> tests/ui/assert_is_empty.rs:154:9
    |
 LL |         assert!(!heap_ref_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -313,7 +313,7 @@ LL +         assert_ne!(heap_ref_ref.as_slice(), [] as [i32; 0]);
    |
 
 error: used `assert!` to check that a value is not empty
-  --> tests/ui/assert_is_empty.rs:157:9
+  --> tests/ui/assert_is_empty.rs:158:9
    |
 LL |         assert!(!heap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -324,8 +324,8 @@ LL -         assert!(!heap.is_empty());
 LL +         assert_ne!(heap.as_slice(), [] as [i32; 0]);
    |
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:227:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:228:9
    |
 LL |         assert!(hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -335,8 +335,8 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(hashmap.is_empty(), "assertion `is empty` failed, contents: {hashmap:?}");
    |                                   ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:229:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:230:9
    |
 LL |         assert!(!hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -346,8 +346,8 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(!hashmap.is_empty(), "assertion `is not empty` failed, contents: {hashmap:?}");
    |                                    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `debug_assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:231:9
+error: used `debug_assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:232:9
    |
 LL |         debug_assert!(hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -357,8 +357,8 @@ help: add a custom message to `debug_assert! to show the value on failure
 LL |         debug_assert!(hashmap.is_empty(), "assertion `is empty` failed, contents: {hashmap:?}");
    |                                         ++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `debug_assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:233:9
+error: used `debug_assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:234:9
    |
 LL |         debug_assert!(!hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -368,8 +368,8 @@ help: add a custom message to `debug_assert! to show the value on failure
 LL |         debug_assert!(!hashmap.is_empty(), "assertion `is not empty` failed, contents: {hashmap:?}");
    |                                          ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:236:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:237:9
    |
 LL |         assert!(hashmap_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -379,8 +379,8 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(hashmap_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_ref:?}");
    |                                       ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:238:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:239:9
    |
 LL |         assert!(!hashmap_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -390,8 +390,8 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(!hashmap_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_ref:?}");
    |                                        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:242:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:243:9
    |
 LL |         assert!(hashmap_double_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -401,8 +401,8 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(hashmap_double_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_double_ref:?}");
    |                                              +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:244:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:245:9
    |
 LL |         assert!(!hashmap_double_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -412,8 +412,8 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(!hashmap_double_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_double_ref:?}");
    |                                               +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:248:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:249:9
    |
 LL |         assert!(hashmap_mut_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -423,8 +423,8 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(hashmap_mut_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_mut_ref:?}");
    |                                           ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: used `assert!` without failure message
-  --> tests/ui/assert_is_empty.rs:250:9
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:251:9
    |
 LL |         assert!(!hashmap_mut_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -434,5 +434,59 @@ help: add a custom message to `assert! to show the value on failure
 LL |         assert!(!hashmap_mut_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_mut_ref:?}");
    |                                            ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-error: aborting due to 37 previous errors
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:259:9
+   |
+LL |         assert!(create_map().is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert! to show the value on failure
+   |
+LL ~         let map = create_map();
+LL ~         assert!(map.is_empty(), "assertion `is empty` failed, contents: {map:?}");
+   |
+
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:261:9
+   |
+LL |         assert!(!create_map().is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert! to show the value on failure
+   |
+LL ~         let map = create_map();
+LL ~         assert!(!map.is_empty(), "assertion `is not empty` failed, contents: {map:?}");
+   |
+
+error: used `debug_assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:263:9
+   |
+LL |         debug_assert!(create_map().is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `debug_assert! to show the value on failure
+   |
+LL ~         #[cfg(debug_assertions)]
+LL +         {
+LL +                 let map = create_map();
+LL ~                 debug_assert!(map.is_empty(), "assertion `is empty` failed, contents: {map:?}");
+LL ~         };
+   |
+
+error: used `debug_assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:265:9
+   |
+LL |         debug_assert!(!create_map().is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `debug_assert! to show the value on failure
+   |
+LL ~         #[cfg(debug_assertions)]
+LL +         {
+LL +                 let map = create_map();
+LL ~                 debug_assert!(!map.is_empty(), "assertion `is not empty` failed, contents: {map:?}");
+LL ~         };
+   |
+
+error: aborting due to 41 previous errors
 

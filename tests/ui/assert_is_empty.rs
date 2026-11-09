@@ -102,7 +102,8 @@ fn main() {
     let not_debug = vec![NotDebug];
     assert!(not_debug.is_empty());
 
-    hashmaps::lint();
+    hashmaps::lint_identifier();
+    hashmaps::lint_non_identifier();
     hashmaps::do_not_lint();
 }
 
@@ -222,7 +223,7 @@ mod hashmaps {
     // References issue #17936
     use std::collections::HashMap;
 
-    pub(super) fn lint() {
+    pub(super) fn lint_identifier() {
         let mut hashmap: HashMap<&str, i32> = HashMap::new();
         assert!(hashmap.is_empty());
         //~^ assert_is_empty
@@ -248,6 +249,20 @@ mod hashmaps {
         assert!(hashmap_mut_ref.is_empty());
         //~^ assert_is_empty
         assert!(!hashmap_mut_ref.is_empty());
+        //~^ assert_is_empty
+    }
+
+    pub(super) fn lint_non_identifier() {
+        fn create_map() -> HashMap<u8, u8> {
+            HashMap::new()
+        }
+        assert!(create_map().is_empty());
+        //~^ assert_is_empty
+        assert!(!create_map().is_empty());
+        //~^ assert_is_empty
+        debug_assert!(create_map().is_empty());
+        //~^ assert_is_empty
+        debug_assert!(!create_map().is_empty());
         //~^ assert_is_empty
     }
 
