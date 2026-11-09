@@ -314,3 +314,16 @@ fn ok_trait_method_via_ref(res: &Result<i32, ()>) {
     // wrongly fire; resolving the called method's `DefId` keeps this correct. Don't touch.
     let _ = res.ok().is_some_and(|x| x > 0);
 }
+
+fn dont_cut_through_macro_call() {
+    macro_rules! id {
+        ($e:expr) => {
+            $e
+        };
+    }
+
+    // #18010: the receiver is a macro argument, so a suggestion would cut through `id!(..)`
+    let opt = Some(1);
+    let _ = id!(opt).filter(|&x| x > 0).is_some();
+    let _ = id!(opt.map(|x| x > 1)).unwrap_or_default();
+}

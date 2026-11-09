@@ -3,7 +3,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use clippy_utils::sugg::Sugg;
-use clippy_utils::{SpanlessEq, get_parent_expr, sym};
+use clippy_utils::{SpanlessEq, get_parent_expr, span_has_balanced_delims, sym};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorKind, CtorOf, DefKind, Res};
@@ -80,6 +80,9 @@ pub(super) fn check_map_unwrap_or_default(
     }
 
     let lint_span = expr.span.with_lo(map_span.lo());
+    if !span_has_balanced_delims(cx, lint_span) {
+        return;
+    }
     let lint_msg = match flavor {
         Flavor::Option => "called `map(<f>).unwrap_or_default()` on an `Option` value",
         Flavor::Result => "called `map(<f>).unwrap_or_default()` on a `Result` value",
@@ -316,9 +319,10 @@ pub(super) fn check_is_some_is_none<'tcx>(
         .is_diag_item(cx, sym::Option)
         && let Ok(map_func) = MapFunc::try_from(arg)
         && (is_some || msrv.meets(cx, msrvs::IS_NONE_OR))
+        && let lint_span = recv.span.to(call_span)
+        && span_has_balanced_delims(cx, lint_span)
     {
         let method = if is_some { "is_some_and" } else { "is_none_or" };
-        let lint_span = recv.span.to(call_span);
         span_lint_and_then(
             cx,
             MANUAL_IS_VARIANT_AND,
