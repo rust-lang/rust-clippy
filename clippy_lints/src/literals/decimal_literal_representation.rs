@@ -13,7 +13,7 @@ pub(super) fn check(cx: &EarlyContext<'_>, lit: token::Lit, span: Span, threshol
         && val >= u128::from(threshold)
         && let Some(src) = span.get_text(cx)
         && let Some(num_lit) = NumericLiteral::from_lit_kind(&src, &lit_kind)
-        && num_lit.radix == Radix::Decimal
+        && num_lit.radix == Radix::Dec
         && let hex = format!("{val:#X}")
         && let num_lit = NumericLiteral::new(&hex, num_lit.suffix, false)
         && check_text(num_lit.integer)
