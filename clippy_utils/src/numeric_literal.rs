@@ -5,13 +5,13 @@ use std::iter;
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum Radix {
     /// A binary literal (e.g., `0b1010`)
-    Binary,
+    Bin,
     /// An octal literal (e.g., `0o670`)
-    Octal,
+    Oct,
     /// A decimal literal (e.g., `123`)
-    Decimal,
+    Dec,
     /// A hexadecimal literal (e.g., `0xFF`)
-    Hexadecimal,
+    Hex,
 }
 
 impl Radix {
@@ -19,8 +19,8 @@ impl Radix {
     #[must_use]
     fn suggest_grouping(self) -> usize {
         match self {
-            Self::Binary | Self::Hexadecimal => 4,
-            Self::Octal | Self::Decimal => 3,
+            Self::Bin | Self::Hex => 4,
+            Self::Oct | Self::Dec => 3,
         }
     }
 }
@@ -75,17 +75,17 @@ impl<'a> NumericLiteral<'a> {
         let unsigned_lit = lit.trim_start_matches('-');
         // Determine delimiter for radix prefix, if present, and radix.
         let radix = if unsigned_lit.starts_with("0x") {
-            Radix::Hexadecimal
+            Radix::Hex
         } else if unsigned_lit.starts_with("0b") {
-            Radix::Binary
+            Radix::Bin
         } else if unsigned_lit.starts_with("0o") {
-            Radix::Octal
+            Radix::Oct
         } else {
-            Radix::Decimal
+            Radix::Dec
         };
 
         // Grab part of the literal after prefix, if present.
-        let (prefix, mut sans_prefix) = if radix == Radix::Decimal {
+        let (prefix, mut sans_prefix) = if radix == Radix::Dec {
             (None, lit)
         } else {
             let (p, s) = lit.split_at(2);
@@ -111,7 +111,7 @@ impl<'a> NumericLiteral<'a> {
 
     /// Checks if the literal's radix is `Radix::Decimal`
     pub fn is_decimal(&self) -> bool {
-        self.radix == Radix::Decimal
+        self.radix == Radix::Dec
     }
 
     fn split_digit_parts(digits: &str, float: bool) -> (&str, Option<&str>, Option<(&str, &str)>) {
@@ -160,7 +160,7 @@ impl<'a> NumericLiteral<'a> {
             self.integer,
             group_size,
             true,
-            self.radix == Radix::Hexadecimal,
+            self.radix == Radix::Hex,
         );
 
         if let Some(fraction) = self.fraction {

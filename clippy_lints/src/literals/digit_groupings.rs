@@ -78,7 +78,7 @@ fn is_literal_uuid_formatted(num_lit: &NumericLiteral<'_>) -> bool {
     // Length of each UUID hyphenated group in hex digits.
     const UUID_GROUP_LENS: [usize; 5] = [8, 4, 4, 4, 12];
 
-    if num_lit.radix != Radix::Hexadecimal {
+    if num_lit.radix != Radix::Hex {
         return false;
     }
 
@@ -102,14 +102,14 @@ fn get_group_size<'a>(
 
     let first = groups.next().expect("At least one group");
 
-    if (radix == Radix::Octal || radix == Radix::Hexadecimal)
+    if (radix == Radix::Oct || radix == Radix::Hex)
         && let Some(second_size) = groups.next()
         && (!groups.all(|i| i == second_size) || first > second_size)
     {
         return Err(WarningType::UnusualByteGroupings);
     }
 
-    if radix == Radix::Decimal
+    if radix == Radix::Dec
         && let Some(second) = groups.next()
     {
         if !groups.all(|x| x == second) || first > second {
@@ -119,7 +119,7 @@ fn get_group_size<'a>(
         } else {
             Ok(Some(second))
         }
-    } else if first > 5 && lint_unreadable && (radix != Radix::Binary || groups.next().is_none()) {
+    } else if first > 5 && lint_unreadable && (radix != Radix::Bin || groups.next().is_none()) {
         Err(WarningType::UnreadableLiteral)
     } else {
         Ok(None)
