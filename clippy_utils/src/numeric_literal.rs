@@ -1,5 +1,9 @@
 use rustc_ast::ast::{LitFloatType, LitIntType, LitKind};
+use rustc_ast::token;
+use rustc_span::{BytePos, Span, SpanData, Symbol};
 use std::iter;
+
+use crate::sym;
 
 /// Represents the base of a numeric literal, used for parsing and formatting.
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
@@ -21,6 +25,15 @@ impl Radix {
         match self {
             Self::Bin | Self::Hex => 4,
             Self::Oct | Self::Dec => 3,
+        }
+    }
+
+    pub fn prefix_str(self) -> &'static str {
+        match self {
+            Self::Dec => "",
+            Self::Bin => "0b",
+            Self::Oct => "0o",
+            Self::Hex => "0x",
         }
     }
 }
@@ -155,13 +168,7 @@ impl<'a> NumericLiteral<'a> {
 
         let group_size = self.radix.suggest_grouping();
 
-        Self::group_digits(
-            &mut output,
-            self.integer,
-            group_size,
-            true,
-            self.radix == Radix::Hex,
-        );
+        Self::group_digits(&mut output, self.integer, group_size, true, self.radix == Radix::Hex);
 
         if let Some(fraction) = self.fraction {
             output.push('.');
@@ -255,3 +262,189 @@ fn lit_suffix_length(lit_kind: &LitKind) -> Option<usize> {
 
     suffix.map(str::len)
 }
+
+/// The type of an integer literal.
+///
+/// Note that this is the parser's idea of an integer literal. As such floating point
+/// types are included (e.g. `1f32`).
+#[derive(Clone, Copy)]
+pub enum IntLitTy {
+    U8,
+    U16,
+    U32,
+    U64,
+    U128,
+    Usize,
+    I8,
+    I16,
+    I32,
+    I64,
+    I128,
+    Isize,
+    F16,
+    F32,
+    F64,
+    F128,
+}
+impl IntLitTy {
+    /// Gets the literal type from it's canonical symbol.
+    pub fn from_sym(s: Symbol) -> Option<Self> {
+        match s {
+            sym::u8 => Some(Self::U8),
+            sym::u16 => Some(Self::U16),
+            sym::u32 => Some(Self::U32),
+            sym::u64 => Some(Self::U64),
+            sym::u128 => Some(Self::U128),
+            sym::usize => Some(Self::Usize),
+            sym::i8 => Some(Self::I8),
+            sym::i16 => Some(Self::I16),
+            sym::i32 => Some(Self::I32),
+            sym::i64 => Some(Self::I64),
+            sym::i128 => Some(Self::I128),
+            sym::isize => Some(Self::Isize),
+            sym::f16 => Some(Self::F16),
+            sym::f32 => Some(Self::F32),
+            sym::f64 => Some(Self::F64),
+            sym::f128 => Some(Self::F128),
+            _ => None,
+        }
+    }
+
+    /// Checks whether this is actually a floating point type.
+    #[inline]
+    pub fn is_float(self) -> bool {
+        matches!(self, Self::F16 | Self::F32 | Self::F64 | Self::F128)
+    }
+
+    /// Gets the type's canonical name.
+    pub fn name_str(self) -> &'static str {
+        match self {
+            Self::U8 => "u8",
+            Self::U16 => "u16",
+            Self::U32 => "u32",
+            Self::U64 => "u64",
+            Self::U128 => "u128",
+            Self::Usize => "usize",
+            Self::I8 => "i8",
+            Self::I16 => "i16",
+            Self::I32 => "i32",
+            Self::I64 => "i64",
+            Self::I128 => "i128",
+            Self::Isize => "isize",
+            Self::F16 => "f16",
+            Self::F32 => "f32",
+            Self::F64 => "f64",
+            Self::F128 => "f128",
+        }
+    }
+}
+
+/// The parsed string representation of an integer literal.
+#[derive(Clone, Copy)]
+pub struct IntStr<'a> {
+    /// The literal text without the prefix, suffix and suffix separator.
+    pub text: &'a str,
+    pub radix: Radix,
+    /// Whether there's an underscore separating the number and the suffix.
+    pub has_suffix_sep: bool,
+    pub suffix: Option<IntLitTy>,
+}
+impl<'a> IntStr<'a> {
+    /// Attempts to parse token literal. Returns `None` if the literal is not an integer
+    /// literal or it has an unknown suffix.
+    pub fn from_token_lit(lit: &'a token::Lit) -> Option<Self> {
+        let text = lit.symbol.as_str();
+        let (radix, text) = match text.as_bytes() {
+            [b'0', b'x', ..] => (Radix::Hex, &text[2..]),
+            [b'0', b'o', ..] => (Radix::Oct, &text[2..]),
+            [b'0', b'b', ..] => (Radix::Bin, &text[2..]),
+            _ => (Radix::Dec, text),
+        };
+        let (text, has_suffix_sep, suffix) = match lit.suffix {
+            Some(suffix) => {
+                let suffix = IntLitTy::from_sym(suffix)?;
+                match text.strip_suffix('_') {
+                    Some(text) => (text, true, Some(suffix)),
+                    None => (text, false, Some(suffix)),
+                }
+            },
+            None => (text, false, None),
+        };
+        Some(Self {
+            text,
+            radix,
+            has_suffix_sep,
+            suffix,
+        })
+    }
+
+    /// Shrinks the token's span to contain just the digits without the radix, suffix, or
+    /// the final underscore separating the suffix.
+    ///
+    /// This functions assumes the span points to the literals text. This can be checked
+    /// using `eq_str` with the span's source text.
+    #[expect(clippy::cast_possible_truncation)]
+    pub fn trim_sp_to_digits(&self, sp: &SpanData) -> Span {
+        Span::new(
+            BytePos(sp.lo.0 + self.radix.prefix_str().len() as u32),
+            BytePos(sp.hi.0 - u32::from(self.has_suffix_sep) - self.suffix.map_or(0, |s| s.name_str().len() as u32)),
+            sp.ctxt,
+            sp.parent,
+        )
+    }
+
+    /// Checks whether this literal's text exactly equals the unparsed text.
+    pub fn eq_str(&self, s: &str) -> bool {
+        if let Some(s) = s.strip_prefix(self.radix.prefix_str())
+            && let Some(s) = s.strip_prefix(self.text)
+            && let (true, [b'_', s @ ..]) | (false, s) = (self.has_suffix_sep, s.as_bytes())
+        {
+            s == self.suffix.map_or("", IntLitTy::name_str).as_bytes()
+        } else {
+            false
+        }
+    }
+}
+
+macro_rules! impl_parse_int_as {
+    ($($ty:ident)*) => {
+        impl IntStr<'_> {$(
+            /// Parses the integer's digits.
+            pub fn ${concat(parse_as_, $ty)}(&self) -> Option<$ty> {
+                let mut acc: $ty = 0;
+                let base_lg2 = match self.radix {
+                    Radix::Dec => {
+                        for c in self.text.bytes() {
+                            let next = acc.checked_mul(10);
+                            let c = match c {
+                                b'_' => continue,
+                                c => c - b'0',
+                            };
+                            acc = next?.checked_add($ty::from(c))?;
+                        }
+                        return Some(acc);
+                    },
+                    Radix::Bin => 1,
+                    Radix::Oct => 3,
+                    Radix::Hex => 4,
+                };
+
+                let limit = $ty::MAX >> base_lg2;
+                for c in self.text.bytes() {
+                    if acc > limit {
+                        return None;
+                    }
+                    let c = match c {
+                        b'0'..=b'9' => c - b'0',
+                        b'A'..=b'F' => c - b'A' + 10,
+                        b'_' => continue,
+                        c => c - b'a' + 10,
+                    };
+                    acc = (acc << base_lg2) | $ty::from(c);
+                }
+                Some(acc)
+            }
+        )*}
+    }
+}
+impl_parse_int_as!(u64 u128);

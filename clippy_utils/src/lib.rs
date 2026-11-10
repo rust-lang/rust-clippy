@@ -1,5 +1,6 @@
 #![feature(deref_patterns)]
 #![feature(macro_metavar_expr)]
+#![feature(macro_metavar_expr_concat)]
 #![feature(rustc_private)]
 #![recursion_limit = "512"]
 #![expect(clippy::missing_errors_doc, clippy::missing_panics_doc, clippy::must_use_candidate)]
