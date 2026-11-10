@@ -119,6 +119,7 @@ mod skip_while_next;
 mod sliced_string_as_bytes;
 mod some_filter;
 mod stable_sort_primitive;
+mod str_parse_infer_to_i32;
 mod str_split;
 mod str_splitn;
 mod string_extend_chars;
@@ -3810,6 +3811,40 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Checks for usage of `str::parse` whose target type is unconstrained, so
+    /// it falls back to using the default integer type `i32`.
+    ///
+    /// ### Why is this bad?
+    /// The default `i32` type might not actually be what is needed. The value
+    /// might not fit into `i32`, the code migh be using an `as` cast
+    /// incorrectly.
+    ///
+    /// ### Example
+    /// ```no_run
+    /// if "3000000000".parse().unwrap_or(0) > 0 {
+    ///     // never reached: 3000000000 does not fit in an `i32`
+    /// }
+    ///
+    /// if "3000000000".parse().unwrap_or(0) as i64 > 0 {
+    ///     // never reached: the cast happens after parsing as `i32`
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// let input = "3000000000";
+    /// let count = input.parse::<u64>().unwrap_or(0);
+    /// if count > 0 {
+    ///     // reached
+    /// }
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub STR_PARSE_INFER_TO_I32,
+    suspicious,
+    "`str::parse` whose target type silently falls back to `i32`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     ///
     /// Checks for usages of `str.trim().split("\n")` and `str.trim().split("\r\n")`.
     ///
@@ -5206,6 +5241,7 @@ impl_lint_pass!(Methods => [
     STRING_EXTEND_CHARS,
     STRING_FROM_UTF8_AS_BYTES,
     STRING_LIT_CHARS_ANY,
+    STR_PARSE_INFER_TO_I32,
     STR_SPLIT_AT_NEWLINE,
     SUSPICIOUS_COMMAND_ARG_SPACE,
     SUSPICIOUS_MAP,
@@ -5877,6 +5913,9 @@ impl Methods {
                     if !bind_instead_of_map::check_or_else_err(cx, expr, recv, arg) {
                         unnecessary_lazy_eval::check(cx, expr, recv, arg, "or", false);
                     }
+                },
+                (sym::parse, []) => {
+                    str_parse_infer_to_i32::check(cx, expr);
                 },
                 (sym::peek, []) => {
                     by_ref_peekable_peek::check(cx, expr, recv);
