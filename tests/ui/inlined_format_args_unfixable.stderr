@@ -1,0 +1,36 @@
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_unfixable.rs:11:5
+   |
+LL |     println!("{0} {local_i32}", local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: pass the inlined variables as explicit arguments
+   = note: `-D clippy::inlined-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::inlined_format_args)]`
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_unfixable.rs:13:5
+   |
+LL |     println!("{local_f64:0$}", width);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: pass the inlined variables as explicit arguments
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_unfixable.rs:15:5
+   |
+LL |     println!("{1} {local_i32} {0}", local_f64, 5);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: pass the inlined variables as explicit arguments
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_unfixable.rs:19:5
+   |
+LL |     println!("{} {local_i32}", val = local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: pass the inlined variables as explicit arguments
+
+error: aborting due to 4 previous errors
+

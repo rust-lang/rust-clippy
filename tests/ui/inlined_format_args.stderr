@@ -1,0 +1,465 @@
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:28:5
+   |
+LL |     println!("val='{local_i32}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::inlined-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::inlined_format_args)]`
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{local_i32}'");
+LL +     println!("val='{}'", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:30:5
+   |
+LL |     println!("val='{local_i32:?}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{local_i32:?}'");
+LL +     println!("val='{:?}'", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:32:5
+   |
+LL |     println!("val='{local_i32:#?}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{local_i32:#?}'");
+LL +     println!("val='{:#?}'", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:34:5
+   |
+LL |     println!("val='{local_i32:4}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{local_i32:4}'");
+LL +     println!("val='{:4}'", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:36:5
+   |
+LL |     println!("val='{local_i32:<4}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{local_i32:<4}'");
+LL +     println!("val='{:<4}'", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:38:5
+   |
+LL |     println!("val='{local_i32:#010x}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{local_i32:#010x}'");
+LL +     println!("val='{:#010x}'", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:40:5
+   |
+LL |     println!("{local_opt:?}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_opt:?}");
+LL +     println!("{:?}", local_opt);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:42:5
+   |
+LL |     println!("{CONST}");
+   |     ^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{CONST}");
+LL +     println!("{}", CONST);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:44:13
+   |
+LL |     let _ = format!("{local_i32}");
+   |             ^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     let _ = format!("{local_i32}");
+LL +     let _ = format!("{}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:46:5
+   |
+LL |     print!("{local_i32}");
+   |     ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     print!("{local_i32}");
+LL +     print!("{}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:48:5
+   |
+LL |     eprintln!("{local_i32}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     eprintln!("{local_i32}");
+LL +     eprintln!("{}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:51:13
+   |
+LL |     let _ = write!(s, "{local_i32}");
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     let _ = write!(s, "{local_i32}");
+LL +     let _ = write!(s, "{}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:53:13
+   |
+LL |     let _ = writeln!(s, "{local_i32}");
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     let _ = writeln!(s, "{local_i32}");
+LL +     let _ = writeln!(s, "{}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:57:5
+   |
+LL |     println!("{local_i32} {local_f64}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_i32} {local_f64}");
+LL +     println!("{} {}", local_i32, local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:59:5
+   |
+LL |     println!("{local_i32} {local_i32}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_i32} {local_i32}");
+LL +     println!("{} {}", local_i32, local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:61:5
+   |
+LL |     println!("{{}} {local_i32} {{local_f64}}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{{}} {local_i32} {{local_f64}}");
+LL +     println!("{{}} {} {{local_f64}}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:65:5
+   |
+LL |     println!("{} {local_i32}", local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{} {local_i32}", local_f64);
+LL +     println!("{} {}", local_f64, local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:67:5
+   |
+LL |     println!("{local_i32} {}", local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_i32} {}", local_f64);
+LL +     println!("{} {}", local_i32, local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:69:5
+   |
+LL |     println!("{local_i32} {} {local_opt:?} {}", local_f64, 5);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_i32} {} {local_opt:?} {}", local_f64, 5);
+LL +     println!("{} {} {:?} {}", local_i32, local_f64, local_opt, 5);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:71:5
+   |
+LL |     println!("{local_i32} {}", local_f64,);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_i32} {}", local_f64,);
+LL +     println!("{} {}", local_i32, local_f64,);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:73:5
+   |
+LL |     println!("{local_i32} {}", local_i32 + 1);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_i32} {}", local_i32 + 1);
+LL +     println!("{} {}", local_i32, local_i32 + 1);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:75:5
+   |
+LL |     println!(r"{local_i32} {}", local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!(r"{local_i32} {}", local_f64);
+LL +     println!(r"{} {}", local_i32, local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:77:5
+   |
+LL |     println!(r#"{local_i32} "{}""#, local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!(r#"{local_i32} "{}""#, local_f64);
+LL +     println!(r#"{} "{}""#, local_i32, local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:79:5
+   |
+LL |     println!("\n{local_i32}\t{}", local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("\n{local_i32}\t{}", local_f64);
+LL +     println!("\n{}\t{}", local_i32, local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:83:5
+   |
+LL |     println!("{local_i32} {val}", val = local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_i32} {val}", val = local_f64);
+LL +     println!("{} {val}", local_i32, val = local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:85:5
+   |
+LL |     println!("{} {local_i32} {val}", 5, val = local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{} {local_i32} {val}", 5, val = local_f64);
+LL +     println!("{} {} {val}", 5, local_i32, val = local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:89:5
+   |
+LL |     println!("{local_f64:width$}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_f64:width$}");
+LL +     println!("{:1$}", local_f64, width);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:91:5
+   |
+LL |     println!("{local_f64:.prec$}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_f64:.prec$}");
+LL +     println!("{:.1$}", local_f64, prec);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:93:5
+   |
+LL |     println!("{local_f64:width$.prec$}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_f64:width$.prec$}");
+LL +     println!("{:1$.2$}", local_f64, width, prec);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:95:5
+   |
+LL |     println!("{:width$}", local_f64);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{:width$}", local_f64);
+LL +     println!("{:1$}", local_f64, width);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:97:5
+   |
+LL |     println!("{:width$} {:width$}", local_f64, local_i32);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{:width$} {:width$}", local_f64, local_i32);
+LL +     println!("{:2$} {:2$}", local_f64, local_i32, width);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:99:5
+   |
+LL |     println!("{local_f64:.*}", 3);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{local_f64:.*}", 3);
+LL +     println!("{:.*}", 3, local_f64);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:101:5
+   |
+LL |     println!("{:.*} {local_f64:.prec$}", 3, 1.5);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{:.*} {local_f64:.prec$}", 3, 1.5);
+LL +     println!("{:.*} {:.3$}", 3, 1.5, local_f64, prec);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:105:5
+   |
+LL | /     println!(
+LL | |
+LL | |         "{}
+LL | |         {local_i32}",
+LL | |         local_f64,
+LL | |     );
+   | |_____^
+   |
+help: pass them as explicit arguments
+   |
+LL ~         {}",
+LL ~         local_f64, local_i32,
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:113:5
+   |
+LL |     println!("{}", format_args!("{local_i32}"));
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     println!("{}", format_args!("{local_i32}"));
+LL +     println!("{}", format_args!("{}", local_i32));
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:118:9
+   |
+LL |         panic!("{local_i32}");
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -         panic!("{local_i32}");
+LL +         panic!("{}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:121:5
+   |
+LL |     assert!(local_i32 > 0, "{local_i32}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     assert!(local_i32 > 0, "{local_i32}");
+LL +     assert!(local_i32 > 0, "{}", local_i32);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args.rs:123:5
+   |
+LL |     assert_eq!(local_i32, 1, "{local_i32}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     assert_eq!(local_i32, 1, "{local_i32}");
+LL +     assert_eq!(local_i32, 1, "{}", local_i32);
+   |
+
+error: aborting due to 38 previous errors
+

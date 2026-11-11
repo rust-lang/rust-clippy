@@ -177,6 +177,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::floating_point_arithmetic::SUBOPTIMAL_FLOPS_INFO,
     crate::format::USELESS_FORMAT_INFO,
     crate::format_args::FORMAT_IN_FORMAT_ARGS_INFO,
+    crate::format_args::INLINED_FORMAT_ARGS_INFO,
     crate::format_args::POINTER_FORMAT_INFO,
     crate::format_args::TO_STRING_IN_FORMAT_ARGS_INFO,
     crate::format_args::UNINLINED_FORMAT_ARGS_INFO,

@@ -60,6 +60,52 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
+    /// Detects variables that are inlined (implicitly captured) into a format string,
+    /// and suggests passing them as explicit arguments instead.
+    ///
+    /// This is the opposite of [`uninlined_format_args`](#uninlined_format_args).
+    ///
+    /// ### Why restrict this?
+    /// Some projects prefer a consistent style where all values are passed explicitly,
+    /// for example to keep the format string free of identifiers, to make searching
+    /// for usages of a variable easier, or for compatibility with older compilers
+    /// (inlined format arguments require Rust 1.58).
+    ///
+    /// ### Example
+    /// ```no_run
+    /// # let var = 42;
+    /// # let width = 1;
+    /// # let prec = 2;
+    /// format!("{var}");
+    /// format!("{var:?}");
+    /// format!("{var} {var}");
+    /// format!("{var:width$}");
+    /// format!("{var:.prec$}");
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// # let var = 42;
+    /// # let width = 1;
+    /// # let prec = 2;
+    /// format!("{}", var);
+    /// format!("{:?}", var);
+    /// format!("{} {}", var, var);
+    /// format!("{:1$}", var, width);
+    /// format!("{:.1$}", var, prec);
+    /// ```
+    ///
+    /// ### Known Problems
+    ///
+    /// If the format string refers to an argument by its index (e.g. `{0}`), or refers to
+    /// a named argument positionally, the lint is emitted without a suggestion.
+    #[clippy::version = "1.101.0"]
+    pub INLINED_FORMAT_ARGS,
+    restriction,
+    "using variables inlined into `format!` strings"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
     /// Detects [pointer format] as well as `Debug` formatting of raw pointers or function pointers
     /// or any types that have a derived `Debug` impl that recursively contains them.
     ///
@@ -304,6 +350,7 @@ declare_clippy_lint! {
 
 impl_lint_pass!(FormatArgs<'_> => [
     FORMAT_IN_FORMAT_ARGS,
+    INLINED_FORMAT_ARGS,
     POINTER_FORMAT,
     TO_STRING_IN_FORMAT_ARGS,
     UNINLINED_FORMAT_ARGS,
@@ -357,6 +404,12 @@ impl<'tcx> LateLintPass<'tcx> for FormatArgs<'tcx> {
 
             linter.check_trailing_comma();
             linter.check_templates();
+
+            let mut inlined_queue = vec![format_args];
+            while let Some(inner_format_args) = inlined_queue.pop() {
+                check_inlined_args(cx, &macro_call, inner_format_args);
+                inlined_queue.extend(self.format_args.get_nested(inner_format_args));
+            }
 
             if !self.msrv.meets(cx, msrvs::FORMAT_ARGS_CAPTURE) {
                 return;
@@ -893,6 +946,232 @@ impl<'tcx> FormatArgsExpr<'_, 'tcx> {
             _ => false,
         }
     }
+}
+
+/// An argument of the rewritten format macro call suggested by `INLINED_FORMAT_ARGS`.
+#[derive(Clone, Copy)]
+enum NewFormatArg {
+    /// An already existing explicit positional argument, by index.
+    Explicit(usize),
+    /// A previously inlined variable that becomes an explicit positional argument.
+    Captured(Symbol),
+}
+
+fn check_inlined_args(cx: &LateContext<'_>, macro_call: &MacroCall, format_args: &rustc_ast::FormatArgs) {
+    if format_args.span.from_expansion()
+        || !format_args
+            .arguments
+            .all_args()
+            .iter()
+            .any(|arg| matches!(arg.kind, FormatArgumentKind::Captured(_)))
+        // The format string must be a literal written by the user, not e.g. produced by a proc macro
+        || !format_args
+            .span
+            .get_text(cx)
+            .is_some_and(|src| src.starts_with('"') || src.starts_with('r'))
+    {
+        return;
+    }
+    if macro_call.span.edition() < Edition2021
+        && (is_panic(cx, macro_call.def_id) || is_assert_macro(cx, macro_call.def_id))
+    {
+        // panic!, assert!, and debug_assert! before 2021 edition considers a single string argument as
+        // non-format
+        return;
+    }
+
+    let fixes = inlined_args_fixes(cx, format_args);
+
+    span_lint_and_then(
+        cx,
+        INLINED_FORMAT_ARGS,
+        macro_call.span,
+        "variables are inlined into the `format!` string",
+        |diag| {
+            if let Some(fixes) = fixes {
+                // multiline span display suggestion is sometimes broken: https://github.com/rust-lang/rust/pull/102729#discussion_r988704308
+                // in those cases, make the code suggestion hidden
+                let multiline_fix = fixes.iter().any(|(span, _)| cx.sess().source_map().is_multiline(*span));
+                diag.multipart_suggestion_with_style(
+                    "pass them as explicit arguments",
+                    fixes,
+                    Applicability::MachineApplicable,
+                    if multiline_fix { CompletelyHidden } else { ShowCode },
+                );
+            } else {
+                diag.help("pass the inlined variables as explicit arguments");
+            }
+        },
+    );
+}
+
+/// Computes the edits that turn every inlined (captured) variable into an explicit argument.
+///
+/// Inlined values become implicit positional arguments (`{x}` -> `{}`), inserted into the
+/// argument list at the place matching their order in the format string. Inlined widths and
+/// precisions are appended after all positional arguments and referenced by index
+/// (`{:w$}` -> `{:N$}`).
+///
+/// Returns `None` if the edits cannot be computed reliably, e.g. if the format string refers to
+/// arguments by index, which would be shifted by inserting new arguments.
+fn inlined_args_fixes(cx: &LateContext<'_>, format_args: &rustc_ast::FormatArgs) -> Option<Vec<(Span, String)>> {
+    let ctxt = format_args.span.ctxt();
+    let all_args = format_args.arguments.all_args();
+    let in_source = |span: Span| span.ctxt() == ctxt && !span.is_dummy();
+
+    let mut fixes = Vec::new();
+    // Arguments consumed by implicit positions (`{}`, `.*`), in order
+    let mut positional = Vec::new();
+    // Inlined widths and precisions, deduplicated
+    let mut counts: Vec<Symbol> = Vec::new();
+    // Width and precision positions to be replaced by `N$` once the final indices are known
+    let mut count_fixes = Vec::new();
+
+    let mut visit = |pos: &FormatArgPosition, usage: FormatParamUsage| -> Option<()> {
+        let index = pos.index.ok()?;
+        let arg = all_args.get(index)?;
+        match (pos.kind, &arg.kind) {
+            (FormatArgPositionKind::Named, &FormatArgumentKind::Captured(ident)) => {
+                let span = pos.span.filter(|&span| in_source(span))?;
+                let expected = match usage {
+                    FormatParamUsage::Argument => ident.name.to_string(),
+                    FormatParamUsage::Width => format!("{}$", ident.name),
+                    FormatParamUsage::Precision => format!(".{}$", ident.name),
+                };
+                // Bail out if the span does not point to the variable name in the source,
+                // e.g. for format strings coming from proc macros
+                if span.get_text(cx).as_deref() != Some(expected.as_str()) {
+                    return None;
+                }
+                if usage == FormatParamUsage::Argument {
+                    fixes.push((span, String::new()));
+                    positional.push(NewFormatArg::Captured(ident.name));
+                } else {
+                    let count_index = if let Some(i) = counts.iter().position(|&name| name == ident.name) {
+                        i
+                    } else {
+                        counts.push(ident.name);
+                        counts.len() - 1
+                    };
+                    count_fixes.push((span, usage, count_index));
+                }
+            },
+            (FormatArgPositionKind::Implicit, FormatArgumentKind::Normal) => {
+                positional.push(NewFormatArg::Explicit(index));
+            },
+            // An explicit named argument referred to by its name is not affected
+            (FormatArgPositionKind::Named, FormatArgumentKind::Named(_)) => {},
+            // Arguments referred to by index would be shifted by the inserted arguments,
+            // implicit references to named arguments as well
+            _ => return None,
+        }
+        Some(())
+    };
+
+    for piece in &format_args.template {
+        let FormatArgsPiece::Placeholder(placeholder) = piece else {
+            continue;
+        };
+        let options = &placeholder.format_options;
+        let precision = match &options.precision {
+            Some(FormatCount::Argument(position)) => Some(position),
+            _ => None,
+        };
+        let implicit_precision = precision.filter(|position| position.kind == FormatArgPositionKind::Implicit);
+
+        // `.*` takes its argument before the value
+        if let Some(position) = implicit_precision {
+            visit(position, FormatParamUsage::Precision)?;
+        }
+        visit(&placeholder.argument, FormatParamUsage::Argument)?;
+        if let Some(FormatCount::Argument(position)) = &options.width {
+            visit(position, FormatParamUsage::Width)?;
+        }
+        if let Some(position) = precision
+            && implicit_precision.is_none()
+        {
+            visit(position, FormatParamUsage::Precision)?;
+        }
+    }
+
+    // Every explicit positional argument must be consumed exactly once, in order
+    let unnamed_args = format_args.arguments.unnamed_args();
+    let n_positional = unnamed_args.len();
+    if !positional
+        .iter()
+        .filter_map(|arg| match *arg {
+            NewFormatArg::Explicit(index) => Some(index),
+            NewFormatArg::Captured(_) => None,
+        })
+        .eq(0..n_positional)
+    {
+        return None;
+    }
+
+    for (span, usage, count_index) in count_fixes {
+        let index = positional.len() + count_index;
+        let replacement = match usage {
+            FormatParamUsage::Width => format!("{index}$"),
+            _ => format!(".{index}$"),
+        };
+        fixes.push((span, replacement));
+    }
+
+    let new_args = positional
+        .into_iter()
+        .chain(counts.into_iter().map(NewFormatArg::Captured));
+    insert_inlined_args(format_args, new_args, &mut fixes)?;
+
+    Some(fixes)
+}
+
+/// Adds to `fixes` the insertions of the previously inlined variables into the argument list, so
+/// that the arguments end up in the order of `new_args`.
+fn insert_inlined_args(
+    format_args: &rustc_ast::FormatArgs,
+    new_args: impl IntoIterator<Item = NewFormatArg>,
+    fixes: &mut Vec<(Span, String)>,
+) -> Option<()> {
+    // Insert the inlined variables before the explicit argument that follows them
+    let ctxt = format_args.span.ctxt();
+    let in_source = |span: Span| span.ctxt() == ctxt && !span.is_dummy();
+    let unnamed_args = format_args.arguments.unnamed_args();
+
+    let mut pending = Vec::new();
+    for arg in new_args {
+        match arg {
+            NewFormatArg::Captured(name) => pending.push(name),
+            NewFormatArg::Explicit(index) => {
+                if !pending.is_empty() {
+                    let span = unnamed_args[index].original_span;
+                    if !in_source(span) {
+                        return None;
+                    }
+                    fixes.push((span.shrink_to_lo(), format!("{}, ", pending.iter().join(", "))));
+                    pending.clear();
+                }
+            },
+        }
+    }
+
+    // The remaining ones go after all explicit positional arguments, before any named argument
+    if !pending.is_empty() {
+        let fix = if let Some(named) = format_args.arguments.named_args().first() {
+            (
+                named.original_span.shrink_to_lo(),
+                format!("{}, ", pending.iter().join(", ")),
+            )
+        } else {
+            let last = unnamed_args.last().map_or(format_args.span, |arg| arg.original_span);
+            (last.shrink_to_hi(), format!(", {}", pending.iter().join(", ")))
+        };
+        if !in_source(fix.0) {
+            return None;
+        }
+        fixes.push(fix);
+    }
+
+    Some(())
 }
 
 fn make_ty_msrv_map(tcx: TyCtxt<'_>) -> FxHashMap<Ty<'_>, Option<RustcVersion>> {

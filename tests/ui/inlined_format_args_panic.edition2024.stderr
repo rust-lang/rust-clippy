@@ -1,0 +1,52 @@
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_panic.rs:12:5
+   |
+LL |     println!("val='{var}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::inlined-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::inlined_format_args)]`
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{var}'");
+LL +     println!("val='{}'", var);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_panic.rs:16:9
+   |
+LL |         panic!("p1 {var}");
+   |         ^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -         panic!("p1 {var}");
+LL +         panic!("p1 {}", var);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_panic.rs:26:5
+   |
+LL |     assert!(var == 1, "p4 {var}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     assert!(var == 1, "p4 {var}");
+LL +     assert!(var == 1, "p4 {}", var);
+   |
+
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_panic.rs:28:5
+   |
+LL |     debug_assert!(var == 1, "p5 {var}");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: pass them as explicit arguments
+   |
+LL -     debug_assert!(var == 1, "p5 {var}");
+LL +     debug_assert!(var == 1, "p5 {}", var);
+   |
+
+error: aborting due to 4 previous errors
+

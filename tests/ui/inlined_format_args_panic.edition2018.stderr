@@ -1,0 +1,16 @@
+error: variables are inlined into the `format!` string
+  --> tests/ui/inlined_format_args_panic.rs:12:5
+   |
+LL |     println!("val='{var}'");
+   |     ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `-D clippy::inlined-format-args` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::inlined_format_args)]`
+help: pass them as explicit arguments
+   |
+LL -     println!("val='{var}'");
+LL +     println!("val='{}'", var);
+   |
+
+error: aborting due to 1 previous error
+

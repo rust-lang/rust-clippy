@@ -7229,6 +7229,7 @@ Released 2018-09-13
 [`inline_fn_without_body`]: https://clippy.rust-lang.org/main/index.html#inline_fn_without_body
 [`inline_modules`]: https://clippy.rust-lang.org/main/index.html#inline_modules
 [`inline_trait_bounds`]: https://clippy.rust-lang.org/main/index.html#inline_trait_bounds
+[`inlined_format_args`]: https://clippy.rust-lang.org/main/index.html#inlined_format_args
 [`inspect_for_each`]: https://clippy.rust-lang.org/main/index.html#inspect_for_each
 [`int_plus_one`]: https://clippy.rust-lang.org/main/index.html#int_plus_one
 [`integer_arithmetic`]: https://clippy.rust-lang.org/main/index.html#integer_arithmetic
