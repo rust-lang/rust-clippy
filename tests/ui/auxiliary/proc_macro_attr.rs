@@ -257,3 +257,8 @@ pub fn doc_args_with_ident_span(_attr: TokenStream, input: TokenStream) -> Token
     }
     .into()
 }
+
+#[proc_macro_derive(DerivedAttrs, attributes(attr))]
+pub fn derived_attrs(_input: TokenStream) -> TokenStream {
+    TokenStream::new()
+}
