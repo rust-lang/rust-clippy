@@ -330,7 +330,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(hashmap.is_empty(), "assertion `is empty` failed, contents: {hashmap:?}");
    |                                   ++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -341,7 +341,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(!hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(!hashmap.is_empty(), "assertion `is not empty` failed, contents: {hashmap:?}");
    |                                    ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -352,7 +352,7 @@ error: used `debug_assert!` without including the collection in the failure mess
 LL |         debug_assert!(hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `debug_assert! to show the value on failure
+help: add a custom message to `debug_assert!` to show the value on failure
    |
 LL |         debug_assert!(hashmap.is_empty(), "assertion `is empty` failed, contents: {hashmap:?}");
    |                                         ++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -363,7 +363,7 @@ error: used `debug_assert!` without including the collection in the failure mess
 LL |         debug_assert!(!hashmap.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `debug_assert! to show the value on failure
+help: add a custom message to `debug_assert!` to show the value on failure
    |
 LL |         debug_assert!(!hashmap.is_empty(), "assertion `is not empty` failed, contents: {hashmap:?}");
    |                                          ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -374,7 +374,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(hashmap_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(hashmap_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_ref:?}");
    |                                       ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -385,7 +385,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(!hashmap_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(!hashmap_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_ref:?}");
    |                                        ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -396,7 +396,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(hashmap_double_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(hashmap_double_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_double_ref:?}");
    |                                              +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -407,7 +407,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(!hashmap_double_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(!hashmap_double_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_double_ref:?}");
    |                                               +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -418,7 +418,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(hashmap_mut_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(hashmap_mut_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_mut_ref:?}");
    |                                           ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -429,7 +429,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(!hashmap_mut_ref.is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL |         assert!(!hashmap_mut_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_mut_ref:?}");
    |                                            ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -440,7 +440,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(create_map().is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL ~         let map = create_map();
 LL ~         assert!(map.is_empty(), "assertion `is empty` failed, contents: {map:?}");
@@ -452,7 +452,7 @@ error: used `assert!` without including the collection in the failure message
 LL |         assert!(!create_map().is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `assert! to show the value on failure
+help: add a custom message to `assert!` to show the value on failure
    |
 LL ~         let map = create_map();
 LL ~         assert!(!map.is_empty(), "assertion `is not empty` failed, contents: {map:?}");
@@ -464,7 +464,7 @@ error: used `debug_assert!` without including the collection in the failure mess
 LL |         debug_assert!(create_map().is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `debug_assert! to show the value on failure
+help: add a custom message to `debug_assert!` to show the value on failure
    |
 LL ~         #[cfg(debug_assertions)]
 LL +         {
@@ -479,7 +479,7 @@ error: used `debug_assert!` without including the collection in the failure mess
 LL |         debug_assert!(!create_map().is_empty());
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
-help: add a custom message to `debug_assert! to show the value on failure
+help: add a custom message to `debug_assert!` to show the value on failure
    |
 LL ~         #[cfg(debug_assertions)]
 LL +         {

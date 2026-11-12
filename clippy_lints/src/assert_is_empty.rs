@@ -218,7 +218,7 @@ fn get_suggestion<'tcx>(
 ///
 /// For a `HashMap`, if both the key and value types implement the `Debug` trait, the emitted
 /// suggestion adds a failure message. Rewrites assertion to `assert_eq!`, `assert_ne!`,
-/// `debug_assert_eq!`, or `debug_assert_ne!` for strings, slices, arrays, and `Vec`.
+/// `debug_assert_eq!`, or `debug_assert_ne!` for strings, slices, arrays, `Vec` and `BinaryHeap`.
 fn emit_by_receiver_type<'tcx>(
     cx: &LateContext<'tcx>,
     receiver: &'tcx Expr<'_>,
@@ -513,7 +513,7 @@ fn emit_assertion_custom_message_suggestion(
         format!("used `{macro_name}!` without including the collection in the failure message"),
         |diag| {
             diag.multipart_suggestion(
-                format!("add a custom message to `{macro_name}! to show the value on failure"),
+                format!("add a custom message to `{macro_name}!` to show the value on failure"),
                 suggestion,
                 applicability,
             );
