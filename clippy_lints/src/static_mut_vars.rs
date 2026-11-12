@@ -1,11 +1,12 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_from_proc_macro;
 use clippy_utils::source::{IntoSpan as _, SpanExt as _, snippet};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::ty_from_hir_ty;
 use rustc_ast::{IntTy, UintTy};
 use rustc_errors::Applicability;
 use rustc_hir::{Item, ItemKind, Mutability, Ty, TyKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
 use rustc_middle::ty;
 use rustc_middle::ty::Ty as MidTy;
 
@@ -93,7 +94,10 @@ impl Replacement<'_> {
 
 impl<'tcx> LateLintPass<'tcx> for StaticMutVars {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
-        if let ItemKind::Static(Mutability::Mut, ref ident, hir_ty, body_id) = item.kind {
+        if let ItemKind::Static(Mutability::Mut, ref ident, hir_ty, body_id) = item.kind
+            && !item.span.in_external_macro(cx.sess().source_map())
+            && !is_from_proc_macro(cx, item)
+        {
             span_lint_and_then(
                 cx,
                 STATIC_MUT_VARS,
@@ -101,7 +105,7 @@ impl<'tcx> LateLintPass<'tcx> for StaticMutVars {
                 format!("static `{}` is declared as mutable", ident.name),
                 |diag| match Replacement::new(hir_ty, ty_from_hir_ty(cx, hir_ty)) {
                     Some(repl) => {
-                        let mut applicability = Applicability::MaybeIncorrect;
+                        let mut applicability = Applicability::Unspecified;
 
                         let body = cx.tcx.hir_body(body_id).value.peel_blocks();
                         let arg = Sugg::hir_with_context(cx, body, item.span.ctxt(), "_", &mut applicability);

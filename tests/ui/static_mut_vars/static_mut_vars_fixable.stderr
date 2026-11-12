@@ -1,5 +1,5 @@
 error: static `BOOL_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:7:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:11:1
    |
 LL | static mut BOOL_VAR: bool = false;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -13,7 +13,7 @@ LL + static BOOL_VAR: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicB
    |
 
 error: static `ISIZE_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:10:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:14:1
    |
 LL | static mut ISIZE_VAR: isize = 0isize;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -25,7 +25,7 @@ LL + static ISIZE_VAR: std::sync::atomic::AtomicIsize = std::sync::atomic::Atomi
    |
 
 error: static `I8_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:12:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:16:1
    |
 LL | static mut I8_VAR: i8 = 0i8;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -37,7 +37,7 @@ LL + static I8_VAR: std::sync::atomic::AtomicI8 = std::sync::atomic::AtomicI8::n
    |
 
 error: static `I16_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:14:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:18:1
    |
 LL | static mut I16_VAR: i16 = 0i16;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,7 +49,7 @@ LL + static I16_VAR: std::sync::atomic::AtomicI16 = std::sync::atomic::AtomicI16
    |
 
 error: static `I32_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:16:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:20:1
    |
 LL | static mut I32_VAR: i32 = 1i32;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -61,7 +61,7 @@ LL + static I32_VAR: std::sync::atomic::AtomicI32 = std::sync::atomic::AtomicI32
    |
 
 error: static `I64_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:18:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:22:1
    |
 LL | static mut I64_VAR: i64 = 1i64;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -73,7 +73,7 @@ LL + static I64_VAR: std::sync::atomic::AtomicI64 = std::sync::atomic::AtomicI64
    |
 
 error: static `USIZE_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:21:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:25:1
    |
 LL | static mut USIZE_VAR: usize = 0usize;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,7 +85,7 @@ LL + static USIZE_VAR: std::sync::atomic::AtomicUsize = std::sync::atomic::Atomi
    |
 
 error: static `U8_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:23:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:27:1
    |
 LL | static mut U8_VAR: u8 = 0u8;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -97,7 +97,7 @@ LL + static U8_VAR: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::n
    |
 
 error: static `U16_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:25:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:29:1
    |
 LL | static mut U16_VAR: u16 = 0u16;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -109,7 +109,7 @@ LL + static U16_VAR: std::sync::atomic::AtomicU16 = std::sync::atomic::AtomicU16
    |
 
 error: static `U32_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:27:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:31:1
    |
 LL | static mut U32_VAR: u32 = 0u32;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,7 +121,7 @@ LL + static U32_VAR: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32
    |
 
 error: static `U64_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:29:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:33:1
    |
 LL | static mut U64_VAR: u64 = 0u64;
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -133,7 +133,7 @@ LL + static U64_VAR: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64
    |
 
 error: static `MUT_PTR_VAR` is declared as mutable
-  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:32:1
+  --> tests/ui/static_mut_vars/static_mut_vars_fixable.rs:36:1
    |
 LL | static mut MUT_PTR_VAR: *mut i32 = std::ptr::null_mut();
    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

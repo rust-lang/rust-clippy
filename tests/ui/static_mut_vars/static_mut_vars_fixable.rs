@@ -1,4 +1,8 @@
+//@aux-build:../../ui/auxiliary/proc_macros.rs
 #![warn(clippy::static_mut_vars)]
+
+extern crate proc_macros;
+use proc_macros::{external, with_span};
 
 unsafe extern "C" {
     pub safe static mut EXTERN_VAR: [u8; 5];
@@ -33,5 +37,14 @@ static mut MUT_PTR_VAR: *mut i32 = std::ptr::null_mut();
 //~^ static_mut_vars
 
 static VAL: u8 = 0u8;
+
+external!(
+    static mut EXTERN_ISIZE_VAR: isize = 0isize;
+);
+
+with_span!(
+    span
+    static mut EXTERN_I8_VAR: i8 = 0i8;
+);
 
 fn main() {}
