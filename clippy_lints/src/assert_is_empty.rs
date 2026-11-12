@@ -19,8 +19,8 @@ declare_clippy_lint! {
     ///
     /// Checks assertions that only test whether a supported value is empty.
     ///
-    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`, `VecDeque` and
-    /// `BinaryHeap` and `HashMap`.
+    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`, `VecDeque`,
+    /// `BinaryHeap`, and `HashMap`.
     ///
     /// ### Why is this bad?
     ///
@@ -516,7 +516,7 @@ fn emit_assertion_custom_message_suggestion(
         format!("used `{macro_name}!` without including the collection in the failure message"),
         |diag| {
             diag.multipart_suggestion(
-                format!("add a custom message to `{macro_name}! to show the value on failure"),
+                format!("add a custom message to `{macro_name}!` to show the value on failure"),
                 suggestion,
                 applicability,
             );
