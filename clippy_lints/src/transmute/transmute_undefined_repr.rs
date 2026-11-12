@@ -1,9 +1,11 @@
 use super::TRANSMUTE_UNDEFINED_REPR;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::sym;
 use clippy_utils::ty::is_c_void;
+use rustc_attr_ir::LangItem;
 use rustc_hir::Expr;
 use rustc_lint::LateContext;
-use rustc_middle::ty::{self, GenericArgsRef, IntTy, Ty, UintTy, Unnormalized};
+use rustc_middle::ty::{self, AdtDef, GenericArgsRef, IntTy, Ty, UintTy, Unnormalized};
 
 #[expect(clippy::too_many_lines)]
 pub(super) fn check<'tcx>(
@@ -290,6 +292,17 @@ fn reduce_ty<'tcx>(cx: &LateContext<'tcx>, mut ty: Ty<'tcx>) -> ReducedTy<'tcx> 
             ty::Adt(def, _) if def.is_enum() && (def.variants().is_empty() || is_c_void(cx, ty)) => {
                 ReducedTy::TypeErasure { raw_ptr_only: false }
             },
+            ty::Adt(def, args) if def.is_enum() => {
+                if let Some(inner) = guaranteed_layout_inner(cx, def, args) {
+                    ty = inner;
+                    continue;
+                }
+                if def.repr().inhibit_enum_layout_opt() || def.repr().transparent() {
+                    ReducedTy::Other(ty)
+                } else {
+                    ReducedTy::UnorderedFields(ty)
+                }
+            },
             // TODO: Check if the conversion to or from at least one of a union's fields is valid.
             ty::Adt(def, _) if def.is_union() => ReducedTy::TypeErasure { raw_ptr_only: false },
             ty::Foreign(_) | ty::Param(_) => ReducedTy::TypeErasure { raw_ptr_only: false },
@@ -297,6 +310,56 @@ fn reduce_ty<'tcx>(cx: &LateContext<'tcx>, mut ty: Ty<'tcx>) -> ReducedTy<'tcx> 
             _ => ReducedTy::Other(ty),
         };
     }
+}
+
+/// For `Option` and `Result` types whose layout is documented to match one of their type arguments,
+/// returns that type argument.
+fn guaranteed_layout_inner<'tcx>(
+    cx: &LateContext<'tcx>,
+    def: AdtDef<'tcx>,
+    args: GenericArgsRef<'tcx>,
+) -> Option<Ty<'tcx>> {
+    if cx.tcx.is_diagnostic_item(sym::Option, def.did()) {
+        let inner = args.type_at(0);
+        has_guaranteed_niche(cx, inner).then_some(inner)
+    } else if cx.tcx.is_diagnostic_item(sym::Result, def.did()) {
+        let (ok, err) = (args.type_at(0), args.type_at(1));
+        if is_one_zst(cx, err) && has_guaranteed_niche(cx, ok) {
+            Some(ok)
+        } else if is_one_zst(cx, ok) && has_guaranteed_niche(cx, err) {
+            Some(err)
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+/// Whether `Option<ty>` is documented to have the same layout as `ty`.
+fn has_guaranteed_niche<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    match *ty.kind() {
+        ty::Ref(_, pointee, _) => pointee.is_sized(cx.tcx, cx.typing_env()),
+        ty::FnPtr(..) => true,
+        ty::Adt(def, args) if def.is_box() || cx.tcx.is_lang_item(def.did(), LangItem::NonNull) => {
+            args.type_at(0).is_sized(cx.tcx, cx.typing_env())
+        },
+        ty::Adt(def, _) if cx.tcx.is_diagnostic_item(sym::NonZero, def.did()) => true,
+        ty::Adt(def, args) if def.is_struct() && def.repr().transparent() => def
+            .non_enum_variant()
+            .fields
+            .iter()
+            .map(|f| cx.tcx.type_of(f.did).instantiate(cx.tcx, args).skip_norm_wip())
+            .find(|&ty| !is_zero_sized_ty(cx, ty))
+            .is_some_and(|ty| has_guaranteed_niche(cx, ty)),
+        _ => false,
+    }
+}
+
+fn is_one_zst<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    cx.tcx
+        .layout_of(cx.typing_env().as_query_input(ty))
+        .is_ok_and(|layout| layout.layout.size().bytes() == 0 && layout.layout.align().abi.bytes() == 1)
 }
 
 fn is_zero_sized_ty<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
