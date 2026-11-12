@@ -6,7 +6,12 @@ use rustc_errors::Applicability;
 use rustc_lint::EarlyContext;
 use rustc_span::sym;
 
-pub(super) fn check_fields<'cx>(cx: &EarlyContext<'cx>, items: Option<&[MetaItemInner]>, attr: &'cx Attribute) {
+pub(super) fn check_fields<'cx>(
+    cx: &EarlyContext<'cx>,
+    items: Option<&[MetaItemInner]>,
+    attr: &'cx Attribute,
+    is_public: bool,
+) {
     let mut has_note = attr.value_span().is_some();
     let mut has_since = false;
 
@@ -41,7 +46,7 @@ pub(super) fn check_fields<'cx>(cx: &EarlyContext<'cx>, items: Option<&[MetaItem
         );
     }
 
-    if !has_since {
+    if !has_since && is_public {
         let mut applicability = Applicability::HasPlaceholders;
 
         let suggestion = if let Some(eq_note) = attr.value_span() {

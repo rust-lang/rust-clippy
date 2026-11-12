@@ -647,11 +647,15 @@ impl EarlyLintPass for EarlyAttributes {
 
 pub struct PostExpansionEarlyAttributes {
     msrv: MsrvStack,
+    current_item_is_pub: bool,
 }
 
 impl PostExpansionEarlyAttributes {
     pub fn new(conf: &'static Conf) -> Self {
-        Self { msrv: conf.msrv.into() }
+        Self {
+            msrv: conf.msrv.into(),
+            current_item_is_pub: true,
+        }
     }
 }
 
@@ -691,7 +695,12 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
             && !attr.span.in_external_macro(cx.sess().source_map())
             && !is_from_proc_macro(cx, attr)
         {
-            deprecated_attributes_without_fields::check_fields(cx, attr.meta_item_list().as_deref(), attr);
+            deprecated_attributes_without_fields::check_fields(
+                cx,
+                attr.meta_item_list().as_deref(),
+                attr,
+                self.current_item_is_pub,
+            );
         }
 
         if attr.has_name(sym::should_panic) {
@@ -714,12 +723,22 @@ impl EarlyLintPass for PostExpansionEarlyAttributes {
     }
 
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &'_ ast::Item) {
+        self.current_item_is_pub = item.vis.kind.is_pub();
+
         match item.kind {
             ast::ItemKind::ExternCrate(..) | ast::ItemKind::Use(..) => useless_attribute::check(cx, item, &item.attrs),
             _ => {},
         }
 
         mixed_attributes_style::check(cx, item.span, &item.attrs);
+    }
+
+    fn check_impl_item(&mut self, _cx: &EarlyContext<'_>, item: &ast::Item<ast::AssocItemKind>) {
+        self.current_item_is_pub = item.vis.kind.is_pub();
+    }
+
+    fn check_trait_item(&mut self, _cx: &EarlyContext<'_>, _item: &ast::Item<ast::AssocItemKind>) {
+        self.current_item_is_pub = true;
     }
 
     fn check_attributes(&mut self, cx: &EarlyContext<'_>, attrs: &[Attribute]) {
