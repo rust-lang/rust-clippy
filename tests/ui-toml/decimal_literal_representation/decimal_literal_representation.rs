@@ -1,6 +1,209 @@
+//@aux-build:../../ui/auxiliary/proc_macros.rs
+//@revisions: default large_threshold small_threshold
+//@[default] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/decimal_literal_representation/default
+//@[large_threshold] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/decimal_literal_representation/large_threshold
+//@[small_threshold] rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/decimal_literal_representation/small_threshold
+
 #![warn(clippy::decimal_literal_representation)]
+#![expect(clippy::assertions_on_constants, clippy::eq_op)]
+
+extern crate proc_macros;
+
+use proc_macros::{external, with_span};
+
+const _: () = {
+    // Small powers-of-two
+    assert!(1 == 0x1); //~[small_threshold] decimal_literal_representation
+    assert!(2 == 0x2); //~[small_threshold] decimal_literal_representation
+    assert!(4 == 0x4); //~[small_threshold] decimal_literal_representation
+    assert!(8 == 0x8); //~[small_threshold] decimal_literal_representation
+    assert!(16 == 0x10); //~[small_threshold] decimal_literal_representation
+    assert!(32 == 0x20); //~[small_threshold] decimal_literal_representation
+    assert!(64 == 0x40); //~[small_threshold] decimal_literal_representation
+    assert!(128 == 0x80); //~[small_threshold] decimal_literal_representation
+    assert!(256 == 0x100); //~[small_threshold] decimal_literal_representation
+    assert!(512 == 0x200); //~[small_threshold] decimal_literal_representation
+    assert!(1024 == 0x400); //~[small_threshold] decimal_literal_representation
+    assert!(2048 == 0x800); //~[small_threshold] decimal_literal_representation
+    assert!(4096 == 0x1000); //~[small_threshold] decimal_literal_representation
+    assert!(8192 == 0x2000); //~[small_threshold] decimal_literal_representation
+
+    // Small powers-of-two minus one
+    assert!(3 == 0x3); //~[small_threshold] decimal_literal_representation
+    assert!(7 == 0x7); //~[small_threshold] decimal_literal_representation
+    assert!(15 == 0xf); //~[small_threshold] decimal_literal_representation
+    assert!(31 == 0x1f); //~[small_threshold] decimal_literal_representation
+    assert!(63 == 0x3f); //~[small_threshold] decimal_literal_representation
+    assert!(127 == 0x7f); //~[small_threshold] decimal_literal_representation
+    assert!(255 == 0xff); //~[small_threshold] decimal_literal_representation
+    assert!(511 == 0x1ff); //~[small_threshold] decimal_literal_representation
+    assert!(1023 == 0x3ff); //~[small_threshold] decimal_literal_representation
+    assert!(2047 == 0x7ff); //~[small_threshold] decimal_literal_representation
+    assert!(4095 == 0xfff); //~[small_threshold] decimal_literal_representation
+    assert!(8191 == 0x1fff); //~[small_threshold] decimal_literal_representation
+    assert!(16_383 == 0x3fff); //~[small_threshold] decimal_literal_representation
+
+    // Middle powers-of-two
+    assert!(16_384 == 0x4000); //~[default,small_threshold] decimal_literal_representation
+    assert!(32_768 == 0x8000); //~[default,small_threshold] decimal_literal_representation
+
+    // Middle powers-of-two minus one
+    assert!(32_767 == 0x7fff); //~[default,small_threshold] decimal_literal_representation
+    assert!(65_535 == 0xffff); //~[default,small_threshold] decimal_literal_representation
+
+    // Large powers-of-two
+    assert!(65_536 == 0x10000); //~ decimal_literal_representation
+    assert!(131_072 == 0x20000); //~ decimal_literal_representation
+    assert!(262_144 == 0x40000); //~ decimal_literal_representation
+    assert!(524_288 == 0x80000); //~ decimal_literal_representation
+    assert!(1_048_576 == 0x10_0000); //~ decimal_literal_representation
+    assert!(2_147_483_648 == 0x8000_0000_u32); //~ decimal_literal_representation
+    assert!(4_294_967_296 == 0x1_0000_0000_i64); //~ decimal_literal_representation
+    assert!(9_223_372_036_854_775_808 == 0x8000_0000_0000_0000_u64); //~ decimal_literal_representation
+    assert!(18_446_744_073_709_551_616 == 0x1_0000_0000_0000_0000_i128); //~ decimal_literal_representation
+    assert!(170_141_183_460_469_231_731_687_303_715_884_105_728 == 0x8000_0000_0000_0000_0000_0000_0000_0000_u128); //~ decimal_literal_representation
+
+    // Large powers-of-two minus one
+    assert!(131_071 == 0x1ffff); //~ decimal_literal_representation
+    assert!(262_143 == 0x3ffff); //~ decimal_literal_representation
+    assert!(524_287 == 0x7ffff); //~ decimal_literal_representation
+    assert!(1_048_575 == 0xfffff); //~ decimal_literal_representation
+    assert!(2_147_483_647 == 0x7fff_ffff); //~ decimal_literal_representation
+    assert!(4_294_967_295_u32 == 0xffff_ffff_u32); //~ decimal_literal_representation
+    assert!(9_223_372_036_854_775_807_i64 == 0x7fff_ffff_ffff_ffff_i64); //~ decimal_literal_representation
+    assert!(18_446_744_073_709_551_615_u64 == 0xffff_ffff_ffff_ffff_u64); //~ decimal_literal_representation
+    assert!(170_141_183_460_469_231_731_687_303_715_884_105_727 == 0x7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_i128); //~ decimal_literal_representation
+    assert!(340_282_366_920_938_463_463_374_607_431_768_211_455 == 0xffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_u128); //~ decimal_literal_representation
+
+    // Approx powers-of-two
+    assert!(4097 == 0x1001); //~[small_threshold] decimal_literal_representation
+    assert!(4098 == 0x1002); //~[small_threshold] decimal_literal_representation
+    assert!(4099 == 0x1003); //~[small_threshold] decimal_literal_representation
+    assert!(4100 == 0x1004); //~[small_threshold] decimal_literal_representation
+    assert!(4101 == 0x1005); //~[small_threshold] decimal_literal_representation
+    assert!(4102 == 0x1006); //~[small_threshold] decimal_literal_representation
+    assert!(4103 == 0x1007); //~[small_threshold] decimal_literal_representation
+    assert!(4104 == 0x1008); //~[small_threshold] decimal_literal_representation
+    assert!(4105 == 0x1009); //~[small_threshold] decimal_literal_representation
+    assert!(4106 == 0x100a); //~[small_threshold] decimal_literal_representation
+    assert!(4107 == 0x100b); //~[small_threshold] decimal_literal_representation
+    assert!(4108 == 0x100c); //~[small_threshold] decimal_literal_representation
+    assert!(4109 == 0x100d); //~[small_threshold] decimal_literal_representation
+    assert!(4110 == 0x100e); //~[small_threshold] decimal_literal_representation
+    assert!(4111 == 0x100f); //~[small_threshold] decimal_literal_representation
+
+    // Approx powers-of-two minus one
+    assert!(8176 == 0x1ff0); //~[small_threshold] decimal_literal_representation
+    assert!(8177 == 0x1ff1); //~[small_threshold] decimal_literal_representation
+    assert!(8178 == 0x1ff2); //~[small_threshold] decimal_literal_representation
+    assert!(8179 == 0x1ff3); //~[small_threshold] decimal_literal_representation
+    assert!(8180 == 0x1ff4); //~[small_threshold] decimal_literal_representation
+    assert!(8181 == 0x1ff5); //~[small_threshold] decimal_literal_representation
+    assert!(8182 == 0x1ff6); //~[small_threshold] decimal_literal_representation
+    assert!(8183 == 0x1ff7); //~[small_threshold] decimal_literal_representation
+    assert!(8184 == 0x1ff8); //~[small_threshold] decimal_literal_representation
+    assert!(8185 == 0x1ff9); //~[small_threshold] decimal_literal_representation
+    assert!(8186 == 0x1ffa); //~[small_threshold] decimal_literal_representation
+    assert!(8187 == 0x1ffb); //~[small_threshold] decimal_literal_representation
+    assert!(8188 == 0x1ffc); //~[small_threshold] decimal_literal_representation
+    assert!(8189 == 0x1ffd); //~[small_threshold] decimal_literal_representation
+    assert!(8190 == 0x1ffe); //~[small_threshold] decimal_literal_representation
+
+    // Small only `0` and `F`
+    assert!(240 == 0xf0); //~[small_threshold] decimal_literal_representation
+    assert!(3840 == 0xf00); //~[small_threshold] decimal_literal_representation
+    assert!(3855 == 0xf0f); //~[small_threshold] decimal_literal_representation
+    assert!(4080 == 0xff0); //~[small_threshold] decimal_literal_representation
+
+    // Middle only `0` and `F`
+    assert!(61_440 == 0xf000); //~[small_threshold,default] decimal_literal_representation
+    assert!(61_455 == 0xf00f); //~[small_threshold,default] decimal_literal_representation
+    assert!(61_680 == 0xf0f0); //~[small_threshold,default] decimal_literal_representation
+    assert!(61_695 == 0xf0ff); //~[small_threshold,default] decimal_literal_representation
+    assert!(65_280 == 0xff00); //~[small_threshold,default] decimal_literal_representation
+    assert!(65_295 == 0xff0f); //~[small_threshold,default] decimal_literal_representation
+    assert!(65_520 == 0xfff0); //~[small_threshold,default] decimal_literal_representation
+
+    // Large only `0` and `F`
+    assert!(983_040 == 0xf0000); //~ decimal_literal_representation
+    assert!(983_055 == 0xf000f); //~ decimal_literal_representation
+    assert!(983_280 == 0xf00f0); //~ decimal_literal_representation
+    assert!(983_295 == 0xf00ff); //~ decimal_literal_representation
+    assert!(986_880 == 0xf0f00); //~ decimal_literal_representation
+    assert!(986_895 == 0xf0f0f); //~ decimal_literal_representation
+    assert!(987_120 == 0xf0ff0); //~ decimal_literal_representation
+    assert!(987_135 == 0xf0fff); //~ decimal_literal_representation
+    assert!(1_044_480 == 0xff000); //~ decimal_literal_representation
+    assert!(1_044_495 == 0xff00f); //~ decimal_literal_representation
+    assert!(1_044_720 == 0xff0f0); //~ decimal_literal_representation
+    assert!(1_044_735 == 0xff0ff); //~ decimal_literal_representation
+    assert!(1_048_320 == 0xfff00); //~ decimal_literal_representation
+    assert!(1_048_335 == 0xfff0f); //~ decimal_literal_representation
+    assert!(1_048_560 == 0xffff0); //~ decimal_literal_representation
+    assert!(19_938_419_936_773_738_093_557_105_904_205_168_640 == 0xf00_0000_0000_0000_0000_0000_0000_0000_u128); //~ decimal_literal_representation
+    assert!(319_014_718_988_379_809_496_913_694_467_282_698_240 == 0xf000_0000_0000_0000_0000_0000_0000_0000_u128); //~ decimal_literal_representation
+
+    // Small with leading `7`
+    assert!(112 == 0x70); //~[small_threshold] decimal_literal_representation
+    assert!(1792 == 0x700); //~[small_threshold] decimal_literal_representation
+    assert!(1807 == 0x70f); //~[small_threshold] decimal_literal_representation
+    assert!(2032 == 0x7f0); //~[small_threshold] decimal_literal_representation
+
+    // Middle with leading `7`
+    assert!(28_672 == 0x7000); //~[default,small_threshold] decimal_literal_representation
+    assert!(28_687 == 0x700f); //~[default,small_threshold] decimal_literal_representation
+    assert!(28_912 == 0x70f0); //~[default,small_threshold] decimal_literal_representation
+    assert!(28_927 == 0x70ff); //~[default,small_threshold] decimal_literal_representation
+    assert!(32_512 == 0x7f00); //~[default,small_threshold] decimal_literal_representation
+    assert!(32_752 == 0x7ff0); //~[default,small_threshold] decimal_literal_representation
+
+    // Large with leading `7`
+    assert!(458_752 == 0x70000); //~ decimal_literal_representation
+    assert!(458_767 == 0x7000f); //~ decimal_literal_representation
+    assert!(458_992 == 0x700f0); //~ decimal_literal_representation
+    assert!(459_007 == 0x700ff); //~ decimal_literal_representation
+    assert!(462_592 == 0x70f00); //~ decimal_literal_representation
+    assert!(462_607 == 0x70f0f); //~ decimal_literal_representation
+    assert!(462_832 == 0x70ff0); //~ decimal_literal_representation
+    assert!(462_847 == 0x70fff); //~ decimal_literal_representation
+    assert!(520_192 == 0x7f000); //~ decimal_literal_representation
+    assert!(520_207 == 0x7f00f); //~ decimal_literal_representation
+    assert!(520_432 == 0x7f0f0); //~ decimal_literal_representation
+    assert!(520_447 == 0x7f0ff); //~ decimal_literal_representation
+    assert!(524_032 == 0x7ff00); //~ decimal_literal_representation
+    assert!(524_047 == 0x7ff0f); //~ decimal_literal_representation
+    assert!(524_272 == 0x7fff0); //~ decimal_literal_representation
+    assert!(148_873_535_527_910_577_765_226_390_751_398_592_512 == 0x7000_0000_0000_0000_0000_0000_0000_0000_i128); //~ decimal_literal_representation
+    assert!(148_873_535_527_910_577_765_226_390_751_398_592_527 == 0x7000_0000_0000_0000_0000_0000_0000_000f_i128); //~ decimal_literal_representation
+    assert!(168_811_955_464_684_315_858_783_496_655_603_761_152 == 0x7f00_0000_0000_0000_0000_0000_0000_0000_i128); //~ decimal_literal_representation
+};
+
 fn main() {
-    let _ = 8388608;
-    let _ = 16777215;
-    //~^ ERROR: integer literal has a better hexadecimal representation
+    #[rustfmt::skip]
+    let _ = [
+        // 0..=128 which shouldn't lint.
+        0, 5, 6, 9, 10, 11, 12, 13, 14,
+        17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
+        33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+        49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62,
+        65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+        81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96,
+        96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111,
+        113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126,
+        // Large numbers which shouldn't lint.
+        30_572_243_903_053_065_076_787_562_386_447_925_248_u128, // 0x1700_0000_0000_0000_0000_0000_0000_0000
+        328_319_314_958_874_220_607_240_343_889_245_110_272_u128, // 0xf700_0000_0000_0000_0000_0000_0000_0000
+    ];
+
+    // Don't change the separator for the suffix.
+    let _ = 65_536u32; //~ decimal_literal_representation
+    let _ = 65_536_u32; //~ decimal_literal_representation
+
+    external! {
+        let _ = 65_536;
+    }
+    with_span! {
+        sp
+        let _ = 65_536;
+    }
 }
