@@ -1,0 +1,1692 @@
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:17:13
+   |
+LL |     assert!(1 == 0x1);
+   |             ^
+   |
+   = note: `-D clippy::decimal-literal-representation` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::decimal_literal_representation)]`
+help: use a hex literal
+   |
+LL |     assert!(0x1 == 0x1);
+   |             ++
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:18:13
+   |
+LL |     assert!(2 == 0x2);
+   |             ^
+   |
+help: use a hex literal
+   |
+LL |     assert!(0x2 == 0x2);
+   |             ++
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:19:13
+   |
+LL |     assert!(4 == 0x4);
+   |             ^
+   |
+help: use a hex literal
+   |
+LL |     assert!(0x4 == 0x4);
+   |             ++
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:20:13
+   |
+LL |     assert!(8 == 0x8);
+   |             ^
+   |
+help: use a hex literal
+   |
+LL |     assert!(0x8 == 0x8);
+   |             ++
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:21:13
+   |
+LL |     assert!(16 == 0x10);
+   |             ^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(16 == 0x10);
+LL +     assert!(0x10 == 0x10);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:22:13
+   |
+LL |     assert!(32 == 0x20);
+   |             ^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(32 == 0x20);
+LL +     assert!(0x20 == 0x20);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:23:13
+   |
+LL |     assert!(64 == 0x40);
+   |             ^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(64 == 0x40);
+LL +     assert!(0x40 == 0x40);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:24:13
+   |
+LL |     assert!(128 == 0x80);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(128 == 0x80);
+LL +     assert!(0x80 == 0x80);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:25:13
+   |
+LL |     assert!(256 == 0x100);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(256 == 0x100);
+LL +     assert!(0x100 == 0x100);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:26:13
+   |
+LL |     assert!(512 == 0x200);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(512 == 0x200);
+LL +     assert!(0x200 == 0x200);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:27:13
+   |
+LL |     assert!(1024 == 0x400);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1024 == 0x400);
+LL +     assert!(0x400 == 0x400);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:28:13
+   |
+LL |     assert!(2048 == 0x800);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(2048 == 0x800);
+LL +     assert!(0x800 == 0x800);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:29:13
+   |
+LL |     assert!(4096 == 0x1000);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4096 == 0x1000);
+LL +     assert!(0x1000 == 0x1000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:30:13
+   |
+LL |     assert!(8192 == 0x2000);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8192 == 0x2000);
+LL +     assert!(0x2000 == 0x2000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:33:13
+   |
+LL |     assert!(3 == 0x3);
+   |             ^
+   |
+help: use a hex literal
+   |
+LL |     assert!(0x3 == 0x3);
+   |             ++
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:34:13
+   |
+LL |     assert!(7 == 0x7);
+   |             ^
+   |
+help: use a hex literal
+   |
+LL |     assert!(0x7 == 0x7);
+   |             ++
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:35:13
+   |
+LL |     assert!(15 == 0xf);
+   |             ^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(15 == 0xf);
+LL +     assert!(0xF == 0xf);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:36:13
+   |
+LL |     assert!(31 == 0x1f);
+   |             ^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(31 == 0x1f);
+LL +     assert!(0x1F == 0x1f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:37:13
+   |
+LL |     assert!(63 == 0x3f);
+   |             ^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(63 == 0x3f);
+LL +     assert!(0x3F == 0x3f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:38:13
+   |
+LL |     assert!(127 == 0x7f);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(127 == 0x7f);
+LL +     assert!(0x7F == 0x7f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:39:13
+   |
+LL |     assert!(255 == 0xff);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(255 == 0xff);
+LL +     assert!(0xFF == 0xff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:40:13
+   |
+LL |     assert!(511 == 0x1ff);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(511 == 0x1ff);
+LL +     assert!(0x1FF == 0x1ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:41:13
+   |
+LL |     assert!(1023 == 0x3ff);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1023 == 0x3ff);
+LL +     assert!(0x3FF == 0x3ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:42:13
+   |
+LL |     assert!(2047 == 0x7ff);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(2047 == 0x7ff);
+LL +     assert!(0x7FF == 0x7ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:43:13
+   |
+LL |     assert!(4095 == 0xfff);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4095 == 0xfff);
+LL +     assert!(0xFFF == 0xfff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:44:13
+   |
+LL |     assert!(8191 == 0x1fff);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8191 == 0x1fff);
+LL +     assert!(0x1FFF == 0x1fff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:45:13
+   |
+LL |     assert!(16_383 == 0x3fff);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(16_383 == 0x3fff);
+LL +     assert!(0x3FFF == 0x3fff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:48:13
+   |
+LL |     assert!(16_384 == 0x4000);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(16_384 == 0x4000);
+LL +     assert!(0x4000 == 0x4000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:49:13
+   |
+LL |     assert!(32_768 == 0x8000);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(32_768 == 0x8000);
+LL +     assert!(0x8000 == 0x8000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:52:13
+   |
+LL |     assert!(32_767 == 0x7fff);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(32_767 == 0x7fff);
+LL +     assert!(0x7FFF == 0x7fff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:53:13
+   |
+LL |     assert!(65_535 == 0xffff);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(65_535 == 0xffff);
+LL +     assert!(0xFFFF == 0xffff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:56:13
+   |
+LL |     assert!(65_536 == 0x10000);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(65_536 == 0x10000);
+LL +     assert!(0x1_0000 == 0x10000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:57:13
+   |
+LL |     assert!(131_072 == 0x20000);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(131_072 == 0x20000);
+LL +     assert!(0x2_0000 == 0x20000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:58:13
+   |
+LL |     assert!(262_144 == 0x40000);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(262_144 == 0x40000);
+LL +     assert!(0x4_0000 == 0x40000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:59:13
+   |
+LL |     assert!(524_288 == 0x80000);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(524_288 == 0x80000);
+LL +     assert!(0x8_0000 == 0x80000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:60:13
+   |
+LL |     assert!(1_048_576 == 0x10_0000);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_048_576 == 0x10_0000);
+LL +     assert!(0x10_0000 == 0x10_0000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:61:13
+   |
+LL |     assert!(2_147_483_648 == 0x8000_0000_u32);
+   |             ^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(2_147_483_648 == 0x8000_0000_u32);
+LL +     assert!(0x8000_0000 == 0x8000_0000_u32);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:62:13
+   |
+LL |     assert!(4_294_967_296 == 0x1_0000_0000_i64);
+   |             ^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4_294_967_296 == 0x1_0000_0000_i64);
+LL +     assert!(0x1_0000_0000 == 0x1_0000_0000_i64);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:63:13
+   |
+LL |     assert!(9_223_372_036_854_775_808 == 0x8000_0000_0000_0000_u64);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(9_223_372_036_854_775_808 == 0x8000_0000_0000_0000_u64);
+LL +     assert!(0x8000_0000_0000_0000 == 0x8000_0000_0000_0000_u64);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:64:13
+   |
+LL |     assert!(18_446_744_073_709_551_616 == 0x1_0000_0000_0000_0000_i128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(18_446_744_073_709_551_616 == 0x1_0000_0000_0000_0000_i128);
+LL +     assert!(0x1_0000_0000_0000_0000 == 0x1_0000_0000_0000_0000_i128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:65:13
+   |
+LL |     assert!(170_141_183_460_469_231_731_687_303_715_884_105_728 == 0x8000_0000_0000_0000_0000_0000_0000_0000_u128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(170_141_183_460_469_231_731_687_303_715_884_105_728 == 0x8000_0000_0000_0000_0000_0000_0000_0000_u128);
+LL +     assert!(0x8000_0000_0000_0000_0000_0000_0000_0000 == 0x8000_0000_0000_0000_0000_0000_0000_0000_u128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:68:13
+   |
+LL |     assert!(131_071 == 0x1ffff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(131_071 == 0x1ffff);
+LL +     assert!(0x1_FFFF == 0x1ffff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:69:13
+   |
+LL |     assert!(262_143 == 0x3ffff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(262_143 == 0x3ffff);
+LL +     assert!(0x3_FFFF == 0x3ffff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:70:13
+   |
+LL |     assert!(524_287 == 0x7ffff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(524_287 == 0x7ffff);
+LL +     assert!(0x7_FFFF == 0x7ffff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:71:13
+   |
+LL |     assert!(1_048_575 == 0xfffff);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_048_575 == 0xfffff);
+LL +     assert!(0xF_FFFF == 0xfffff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:72:13
+   |
+LL |     assert!(2_147_483_647 == 0x7fff_ffff);
+   |             ^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(2_147_483_647 == 0x7fff_ffff);
+LL +     assert!(0x7FFF_FFFF == 0x7fff_ffff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:73:13
+   |
+LL |     assert!(4_294_967_295_u32 == 0xffff_ffff_u32);
+   |             ^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4_294_967_295_u32 == 0xffff_ffff_u32);
+LL +     assert!(0xFFFF_FFFF_u32 == 0xffff_ffff_u32);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:74:13
+   |
+LL |     assert!(9_223_372_036_854_775_807_i64 == 0x7fff_ffff_ffff_ffff_i64);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(9_223_372_036_854_775_807_i64 == 0x7fff_ffff_ffff_ffff_i64);
+LL +     assert!(0x7FFF_FFFF_FFFF_FFFF_i64 == 0x7fff_ffff_ffff_ffff_i64);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:75:13
+   |
+LL |     assert!(18_446_744_073_709_551_615_u64 == 0xffff_ffff_ffff_ffff_u64);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(18_446_744_073_709_551_615_u64 == 0xffff_ffff_ffff_ffff_u64);
+LL +     assert!(0xFFFF_FFFF_FFFF_FFFF_u64 == 0xffff_ffff_ffff_ffff_u64);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:76:13
+   |
+LL |     assert!(170_141_183_460_469_231_731_687_303_715_884_105_727 == 0x7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_i128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(170_141_183_460_469_231_731_687_303_715_884_105_727 == 0x7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_i128);
+LL +     assert!(0x7FFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF == 0x7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_i128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:77:13
+   |
+LL |     assert!(340_282_366_920_938_463_463_374_607_431_768_211_455 == 0xffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_u128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(340_282_366_920_938_463_463_374_607_431_768_211_455 == 0xffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_u128);
+LL +     assert!(0xFFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF_FFFF == 0xffff_ffff_ffff_ffff_ffff_ffff_ffff_ffff_u128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:80:13
+   |
+LL |     assert!(4097 == 0x1001);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4097 == 0x1001);
+LL +     assert!(0x1001 == 0x1001);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:81:13
+   |
+LL |     assert!(4098 == 0x1002);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4098 == 0x1002);
+LL +     assert!(0x1002 == 0x1002);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:82:13
+   |
+LL |     assert!(4099 == 0x1003);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4099 == 0x1003);
+LL +     assert!(0x1003 == 0x1003);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:83:13
+   |
+LL |     assert!(4100 == 0x1004);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4100 == 0x1004);
+LL +     assert!(0x1004 == 0x1004);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:84:13
+   |
+LL |     assert!(4101 == 0x1005);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4101 == 0x1005);
+LL +     assert!(0x1005 == 0x1005);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:85:13
+   |
+LL |     assert!(4102 == 0x1006);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4102 == 0x1006);
+LL +     assert!(0x1006 == 0x1006);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:86:13
+   |
+LL |     assert!(4103 == 0x1007);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4103 == 0x1007);
+LL +     assert!(0x1007 == 0x1007);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:87:13
+   |
+LL |     assert!(4104 == 0x1008);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4104 == 0x1008);
+LL +     assert!(0x1008 == 0x1008);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:88:13
+   |
+LL |     assert!(4105 == 0x1009);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4105 == 0x1009);
+LL +     assert!(0x1009 == 0x1009);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:89:13
+   |
+LL |     assert!(4106 == 0x100a);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4106 == 0x100a);
+LL +     assert!(0x100A == 0x100a);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:90:13
+   |
+LL |     assert!(4107 == 0x100b);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4107 == 0x100b);
+LL +     assert!(0x100B == 0x100b);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:91:13
+   |
+LL |     assert!(4108 == 0x100c);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4108 == 0x100c);
+LL +     assert!(0x100C == 0x100c);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:92:13
+   |
+LL |     assert!(4109 == 0x100d);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4109 == 0x100d);
+LL +     assert!(0x100D == 0x100d);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:93:13
+   |
+LL |     assert!(4110 == 0x100e);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4110 == 0x100e);
+LL +     assert!(0x100E == 0x100e);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:94:13
+   |
+LL |     assert!(4111 == 0x100f);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4111 == 0x100f);
+LL +     assert!(0x100F == 0x100f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:97:13
+   |
+LL |     assert!(8176 == 0x1ff0);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8176 == 0x1ff0);
+LL +     assert!(0x1FF0 == 0x1ff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:98:13
+   |
+LL |     assert!(8177 == 0x1ff1);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8177 == 0x1ff1);
+LL +     assert!(0x1FF1 == 0x1ff1);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:99:13
+   |
+LL |     assert!(8178 == 0x1ff2);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8178 == 0x1ff2);
+LL +     assert!(0x1FF2 == 0x1ff2);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:100:13
+   |
+LL |     assert!(8179 == 0x1ff3);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8179 == 0x1ff3);
+LL +     assert!(0x1FF3 == 0x1ff3);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:101:13
+   |
+LL |     assert!(8180 == 0x1ff4);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8180 == 0x1ff4);
+LL +     assert!(0x1FF4 == 0x1ff4);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:102:13
+   |
+LL |     assert!(8181 == 0x1ff5);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8181 == 0x1ff5);
+LL +     assert!(0x1FF5 == 0x1ff5);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:103:13
+   |
+LL |     assert!(8182 == 0x1ff6);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8182 == 0x1ff6);
+LL +     assert!(0x1FF6 == 0x1ff6);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:104:13
+   |
+LL |     assert!(8183 == 0x1ff7);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8183 == 0x1ff7);
+LL +     assert!(0x1FF7 == 0x1ff7);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:105:13
+   |
+LL |     assert!(8184 == 0x1ff8);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8184 == 0x1ff8);
+LL +     assert!(0x1FF8 == 0x1ff8);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:106:13
+   |
+LL |     assert!(8185 == 0x1ff9);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8185 == 0x1ff9);
+LL +     assert!(0x1FF9 == 0x1ff9);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:107:13
+   |
+LL |     assert!(8186 == 0x1ffa);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8186 == 0x1ffa);
+LL +     assert!(0x1FFA == 0x1ffa);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:108:13
+   |
+LL |     assert!(8187 == 0x1ffb);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8187 == 0x1ffb);
+LL +     assert!(0x1FFB == 0x1ffb);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:109:13
+   |
+LL |     assert!(8188 == 0x1ffc);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8188 == 0x1ffc);
+LL +     assert!(0x1FFC == 0x1ffc);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:110:13
+   |
+LL |     assert!(8189 == 0x1ffd);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8189 == 0x1ffd);
+LL +     assert!(0x1FFD == 0x1ffd);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:111:13
+   |
+LL |     assert!(8190 == 0x1ffe);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(8190 == 0x1ffe);
+LL +     assert!(0x1FFE == 0x1ffe);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:114:13
+   |
+LL |     assert!(240 == 0xf0);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(240 == 0xf0);
+LL +     assert!(0xF0 == 0xf0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:115:13
+   |
+LL |     assert!(3840 == 0xf00);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(3840 == 0xf00);
+LL +     assert!(0xF00 == 0xf00);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:116:13
+   |
+LL |     assert!(3855 == 0xf0f);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(3855 == 0xf0f);
+LL +     assert!(0xF0F == 0xf0f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:117:13
+   |
+LL |     assert!(4080 == 0xff0);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(4080 == 0xff0);
+LL +     assert!(0xFF0 == 0xff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:120:13
+   |
+LL |     assert!(61_440 == 0xf000);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(61_440 == 0xf000);
+LL +     assert!(0xF000 == 0xf000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:121:13
+   |
+LL |     assert!(61_455 == 0xf00f);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(61_455 == 0xf00f);
+LL +     assert!(0xF00F == 0xf00f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:122:13
+   |
+LL |     assert!(61_680 == 0xf0f0);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(61_680 == 0xf0f0);
+LL +     assert!(0xF0F0 == 0xf0f0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:123:13
+   |
+LL |     assert!(61_695 == 0xf0ff);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(61_695 == 0xf0ff);
+LL +     assert!(0xF0FF == 0xf0ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:124:13
+   |
+LL |     assert!(65_280 == 0xff00);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(65_280 == 0xff00);
+LL +     assert!(0xFF00 == 0xff00);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:125:13
+   |
+LL |     assert!(65_295 == 0xff0f);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(65_295 == 0xff0f);
+LL +     assert!(0xFF0F == 0xff0f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:126:13
+   |
+LL |     assert!(65_520 == 0xfff0);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(65_520 == 0xfff0);
+LL +     assert!(0xFFF0 == 0xfff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:129:13
+   |
+LL |     assert!(983_040 == 0xf0000);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(983_040 == 0xf0000);
+LL +     assert!(0xF_0000 == 0xf0000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:130:13
+   |
+LL |     assert!(983_055 == 0xf000f);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(983_055 == 0xf000f);
+LL +     assert!(0xF_000F == 0xf000f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:131:13
+   |
+LL |     assert!(983_280 == 0xf00f0);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(983_280 == 0xf00f0);
+LL +     assert!(0xF_00F0 == 0xf00f0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:132:13
+   |
+LL |     assert!(983_295 == 0xf00ff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(983_295 == 0xf00ff);
+LL +     assert!(0xF_00FF == 0xf00ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:133:13
+   |
+LL |     assert!(986_880 == 0xf0f00);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(986_880 == 0xf0f00);
+LL +     assert!(0xF_0F00 == 0xf0f00);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:134:13
+   |
+LL |     assert!(986_895 == 0xf0f0f);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(986_895 == 0xf0f0f);
+LL +     assert!(0xF_0F0F == 0xf0f0f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:135:13
+   |
+LL |     assert!(987_120 == 0xf0ff0);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(987_120 == 0xf0ff0);
+LL +     assert!(0xF_0FF0 == 0xf0ff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:136:13
+   |
+LL |     assert!(987_135 == 0xf0fff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(987_135 == 0xf0fff);
+LL +     assert!(0xF_0FFF == 0xf0fff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:137:13
+   |
+LL |     assert!(1_044_480 == 0xff000);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_044_480 == 0xff000);
+LL +     assert!(0xF_F000 == 0xff000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:138:13
+   |
+LL |     assert!(1_044_495 == 0xff00f);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_044_495 == 0xff00f);
+LL +     assert!(0xF_F00F == 0xff00f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:139:13
+   |
+LL |     assert!(1_044_720 == 0xff0f0);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_044_720 == 0xff0f0);
+LL +     assert!(0xF_F0F0 == 0xff0f0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:140:13
+   |
+LL |     assert!(1_044_735 == 0xff0ff);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_044_735 == 0xff0ff);
+LL +     assert!(0xF_F0FF == 0xff0ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:141:13
+   |
+LL |     assert!(1_048_320 == 0xfff00);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_048_320 == 0xfff00);
+LL +     assert!(0xF_FF00 == 0xfff00);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:142:13
+   |
+LL |     assert!(1_048_335 == 0xfff0f);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_048_335 == 0xfff0f);
+LL +     assert!(0xF_FF0F == 0xfff0f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:143:13
+   |
+LL |     assert!(1_048_560 == 0xffff0);
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1_048_560 == 0xffff0);
+LL +     assert!(0xF_FFF0 == 0xffff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:144:13
+   |
+LL |     assert!(19_938_419_936_773_738_093_557_105_904_205_168_640 == 0xf00_0000_0000_0000_0000_0000_0000_0000_u128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(19_938_419_936_773_738_093_557_105_904_205_168_640 == 0xf00_0000_0000_0000_0000_0000_0000_0000_u128);
+LL +     assert!(0xF00_0000_0000_0000_0000_0000_0000_0000 == 0xf00_0000_0000_0000_0000_0000_0000_0000_u128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:145:13
+   |
+LL |     assert!(319_014_718_988_379_809_496_913_694_467_282_698_240 == 0xf000_0000_0000_0000_0000_0000_0000_0000_u128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(319_014_718_988_379_809_496_913_694_467_282_698_240 == 0xf000_0000_0000_0000_0000_0000_0000_0000_u128);
+LL +     assert!(0xF000_0000_0000_0000_0000_0000_0000_0000 == 0xf000_0000_0000_0000_0000_0000_0000_0000_u128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:148:13
+   |
+LL |     assert!(112 == 0x70);
+   |             ^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(112 == 0x70);
+LL +     assert!(0x70 == 0x70);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:149:13
+   |
+LL |     assert!(1792 == 0x700);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1792 == 0x700);
+LL +     assert!(0x700 == 0x700);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:150:13
+   |
+LL |     assert!(1807 == 0x70f);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(1807 == 0x70f);
+LL +     assert!(0x70F == 0x70f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:151:13
+   |
+LL |     assert!(2032 == 0x7f0);
+   |             ^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(2032 == 0x7f0);
+LL +     assert!(0x7F0 == 0x7f0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:154:13
+   |
+LL |     assert!(28_672 == 0x7000);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(28_672 == 0x7000);
+LL +     assert!(0x7000 == 0x7000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:155:13
+   |
+LL |     assert!(28_687 == 0x700f);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(28_687 == 0x700f);
+LL +     assert!(0x700F == 0x700f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:156:13
+   |
+LL |     assert!(28_912 == 0x70f0);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(28_912 == 0x70f0);
+LL +     assert!(0x70F0 == 0x70f0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:157:13
+   |
+LL |     assert!(28_927 == 0x70ff);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(28_927 == 0x70ff);
+LL +     assert!(0x70FF == 0x70ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:158:13
+   |
+LL |     assert!(32_512 == 0x7f00);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(32_512 == 0x7f00);
+LL +     assert!(0x7F00 == 0x7f00);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:159:13
+   |
+LL |     assert!(32_752 == 0x7ff0);
+   |             ^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(32_752 == 0x7ff0);
+LL +     assert!(0x7FF0 == 0x7ff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:162:13
+   |
+LL |     assert!(458_752 == 0x70000);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(458_752 == 0x70000);
+LL +     assert!(0x7_0000 == 0x70000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:163:13
+   |
+LL |     assert!(458_767 == 0x7000f);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(458_767 == 0x7000f);
+LL +     assert!(0x7_000F == 0x7000f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:164:13
+   |
+LL |     assert!(458_992 == 0x700f0);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(458_992 == 0x700f0);
+LL +     assert!(0x7_00F0 == 0x700f0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:165:13
+   |
+LL |     assert!(459_007 == 0x700ff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(459_007 == 0x700ff);
+LL +     assert!(0x7_00FF == 0x700ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:166:13
+   |
+LL |     assert!(462_592 == 0x70f00);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(462_592 == 0x70f00);
+LL +     assert!(0x7_0F00 == 0x70f00);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:167:13
+   |
+LL |     assert!(462_607 == 0x70f0f);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(462_607 == 0x70f0f);
+LL +     assert!(0x7_0F0F == 0x70f0f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:168:13
+   |
+LL |     assert!(462_832 == 0x70ff0);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(462_832 == 0x70ff0);
+LL +     assert!(0x7_0FF0 == 0x70ff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:169:13
+   |
+LL |     assert!(462_847 == 0x70fff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(462_847 == 0x70fff);
+LL +     assert!(0x7_0FFF == 0x70fff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:170:13
+   |
+LL |     assert!(520_192 == 0x7f000);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(520_192 == 0x7f000);
+LL +     assert!(0x7_F000 == 0x7f000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:171:13
+   |
+LL |     assert!(520_207 == 0x7f00f);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(520_207 == 0x7f00f);
+LL +     assert!(0x7_F00F == 0x7f00f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:172:13
+   |
+LL |     assert!(520_432 == 0x7f0f0);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(520_432 == 0x7f0f0);
+LL +     assert!(0x7_F0F0 == 0x7f0f0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:173:13
+   |
+LL |     assert!(520_447 == 0x7f0ff);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(520_447 == 0x7f0ff);
+LL +     assert!(0x7_F0FF == 0x7f0ff);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:174:13
+   |
+LL |     assert!(524_032 == 0x7ff00);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(524_032 == 0x7ff00);
+LL +     assert!(0x7_FF00 == 0x7ff00);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:175:13
+   |
+LL |     assert!(524_047 == 0x7ff0f);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(524_047 == 0x7ff0f);
+LL +     assert!(0x7_FF0F == 0x7ff0f);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:176:13
+   |
+LL |     assert!(524_272 == 0x7fff0);
+   |             ^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(524_272 == 0x7fff0);
+LL +     assert!(0x7_FFF0 == 0x7fff0);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:177:13
+   |
+LL |     assert!(148_873_535_527_910_577_765_226_390_751_398_592_512 == 0x7000_0000_0000_0000_0000_0000_0000_0000_i128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(148_873_535_527_910_577_765_226_390_751_398_592_512 == 0x7000_0000_0000_0000_0000_0000_0000_0000_i128);
+LL +     assert!(0x7000_0000_0000_0000_0000_0000_0000_0000 == 0x7000_0000_0000_0000_0000_0000_0000_0000_i128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:178:13
+   |
+LL |     assert!(148_873_535_527_910_577_765_226_390_751_398_592_527 == 0x7000_0000_0000_0000_0000_0000_0000_000f_i128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(148_873_535_527_910_577_765_226_390_751_398_592_527 == 0x7000_0000_0000_0000_0000_0000_0000_000f_i128);
+LL +     assert!(0x7000_0000_0000_0000_0000_0000_0000_000F == 0x7000_0000_0000_0000_0000_0000_0000_000f_i128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:179:13
+   |
+LL |     assert!(168_811_955_464_684_315_858_783_496_655_603_761_152 == 0x7f00_0000_0000_0000_0000_0000_0000_0000_i128);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     assert!(168_811_955_464_684_315_858_783_496_655_603_761_152 == 0x7f00_0000_0000_0000_0000_0000_0000_0000_i128);
+LL +     assert!(0x7F00_0000_0000_0000_0000_0000_0000_0000 == 0x7f00_0000_0000_0000_0000_0000_0000_0000_i128);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:183:17
+   |
+LL |         assert!(65_536 == 0x10000);
+   |                 ^^^^^^
+   |
+   = note: this error originates in the macro `__inline_mac_const__` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: use a hex literal
+   |
+LL -         assert!(65_536 == 0x10000);
+LL +         assert!(0x1_0000 == 0x10000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:184:17
+   |
+LL |         assert!(131_072 == 0x20000);
+   |                 ^^^^^^^
+   |
+   = note: this error originates in the macro `__inline_mac_const__` (in Nightly builds, run with -Z macro-backtrace for more info)
+help: use a hex literal
+   |
+LL -         assert!(131_072 == 0x20000);
+LL +         assert!(0x2_0000 == 0x20000);
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:206:13
+   |
+LL |     let _ = 65_536u32;
+   |             ^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     let _ = 65_536u32;
+LL +     let _ = 0x1_0000u32;
+   |
+
+error: integer literal has a better hexadecimal representation
+  --> tests/ui-toml/decimal_literal_representation/decimal_literal_representation.rs:207:13
+   |
+LL |     let _ = 65_536_u32;
+   |             ^^^^^^^^^^
+   |
+help: use a hex literal
+   |
+LL -     let _ = 65_536_u32;
+LL +     let _ = 0x1_0000_u32;
+   |
+
+error: aborting due to 141 previous errors
+
