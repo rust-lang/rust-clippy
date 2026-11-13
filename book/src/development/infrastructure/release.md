@@ -88,6 +88,7 @@ git push upstream stable
 After updating the `stable` branch, tag the HEAD commit and push it to the
 Clippy repo.
 
+<!-- TODO: Add a `cargo dev release push-tag` command to simplify this step. -->
 > Note: Only push the tag, once the Deploy GitHub action of the `beta` branch is
 > finished. Otherwise the deploy for the tag might fail.
 

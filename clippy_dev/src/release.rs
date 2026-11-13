@@ -36,16 +36,16 @@ pub fn bump_version(mut version: Version) {
 pub enum Branch {
     Stable,
     Beta,
-    Master,
+    Main,
 }
 
 impl Display for Branch {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Branch::Stable => write!(f, "stable"),
-            Branch::Beta => write!(f, "beta"),
-            Branch::Master => write!(f, "master"),
-        }
+        f.write_str(match self {
+            Branch::Stable => "stable",
+            Branch::Beta => "beta",
+            Branch::Main => "main",
+        })
     }
 }
 
@@ -76,7 +76,7 @@ pub fn rustc_clippy_commit(rustc_path: String, branch: Branch) {
     ]);
 
     let out = git_log.output().expect("failed to run git log");
-    let last_rustup_commit = String::from_utf8_lossy(out.stdout.trim_ascii()).to_string();
+    let last_rustup_commit = String::from_utf8_lossy(out.stdout.trim_ascii());
 
     let commit = last_rustup_commit
         .lines()
