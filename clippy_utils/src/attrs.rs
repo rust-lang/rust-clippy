@@ -2,7 +2,7 @@
 
 use crate::source::SpanExt as _;
 use crate::{sym, tokenize_with_text};
-use rustc_ast::attr::AttributeExt;
+use rustc_ast::AttrKind;
 use rustc_attr_ir::{AttrArgs, find_attr};
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
@@ -15,14 +15,14 @@ use std::str::FromStr as _;
 
 /// Validates a single clippy attribute and emits errors for unknown or deprecated ones.
 pub fn check_clippy_attr(sess: &Session, attr: &rustc_ast::ast::Attribute) {
-    if let [clippy, segment2] = &*attr.path()
-        && *clippy == sym::clippy
+    let AttrKind::Normal(normal) = &attr.kind else { return };
+    let attr_item = &normal.item;
+    if let [clippy, segment2] = &*attr_item.path.segments
+        && clippy.ident.name == sym::clippy
     {
-        let path_span = attr
-            .path_span()
-            .expect("Clippy attributes are tool attributes, so they have a span");
+        let path_span = attr_item.path.span;
 
-        match *segment2 {
+        match segment2.ident.name {
             sym::cyclomatic_complexity => {
                 sess.dcx()
                     .struct_span_err(path_span, "usage of deprecated attribute")
@@ -46,21 +46,6 @@ pub fn check_clippy_attr(sess: &Session, attr: &rustc_ast::ast::Attribute) {
                 sess.dcx().span_err(path_span, "usage of unknown attribute");
             },
         }
-    }
-}
-
-/// Retrieves the span of a Clippy attribute, such as `#[clippy::format_args]`.
-///
-/// Panics if used on an attribute that isn't a tool attribute, so always check
-/// for that first with e.g. `path` or `path_matches`.
-pub fn span_of_clippy_attr(attr: &(impl AttributeExt + 'static)) -> Span {
-    let a: &dyn core::any::Any = attr;
-    if let Some(a) = a.downcast_ref::<rustc_ast::ast::Attribute>() {
-        a.span
-    } else if let Some(rustc_attr_ir::Attribute::Tool(u)) = a.downcast_ref::<rustc_attr_ir::Attribute>() {
-        u.span
-    } else {
-        panic!("attribute {attr:?} is not a clippy attribute")
     }
 }
 
