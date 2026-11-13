@@ -222,3 +222,44 @@ mod issue17930 {
         }
     }
 }
+
+mod issue17937 {
+    use std::collections::HashSet;
+    use std::fmt::Debug;
+    use std::hash::Hash;
+
+    trait ElementExists {
+        const ELEMENT: Self;
+    }
+
+    // T: Eq + Hash is implied by the requirements of HashSet
+    fn hashset_normal<T: ElementExists + Eq + Hash>() {
+        let mut s = HashSet::new();
+        let _: bool = s.insert(T::ELEMENT);
+        assert!(s.is_empty());
+        assert!(!s.is_empty());
+    }
+
+    // T requires Debug
+    fn hashset_eq<T: ElementExists + Eq + Hash + Debug>() {
+        let mut s = HashSet::new();
+        let _: bool = s.insert(T::ELEMENT);
+        assert!(s.is_empty());
+        //~^ assert_is_empty
+        assert!(!s.is_empty());
+        //~^ assert_is_empty
+
+        let mut hs: HashSet<T> = HashSet::new();
+        let hs_double_ref = &&hs;
+        assert!(hs_double_ref.is_empty());
+        //~^ assert_is_empty
+        assert!(!hs_double_ref.is_empty());
+        //~^ assert_is_empty
+
+        let hs_mut_ref = &mut hs;
+        assert!(hs_mut_ref.is_empty());
+        //~^ assert_is_empty
+        assert!(!hs_mut_ref.is_empty());
+        //~^ assert_is_empty
+    }
+}

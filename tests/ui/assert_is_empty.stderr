@@ -324,5 +324,71 @@ LL -         assert!(!heap.is_empty());
 LL +         assert_ne!(heap.as_slice(), [] as [i32; 0]);
    |
 
-error: aborting due to 27 previous errors
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:247:9
+   |
+LL |         assert!(s.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert`! to show the value on failure
+   |
+LL |         assert!(s.is_empty(), "assertion `is empty` failed, contents: {s:?}");
+   |                             ++++++++++++++++++++++++++++++++++++++++++++++++
+
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:249:9
+   |
+LL |         assert!(!s.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert`! to show the value on failure
+   |
+LL |         assert!(!s.is_empty(), "assertion `is not empty` failed, contents: {s:?}");
+   |                              ++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:254:9
+   |
+LL |         assert!(hs_double_ref.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert`! to show the value on failure
+   |
+LL |         assert!(hs_double_ref.is_empty(), "assertion `is empty` failed, contents: {hs_double_ref:?}");
+   |                                         ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:256:9
+   |
+LL |         assert!(!hs_double_ref.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert`! to show the value on failure
+   |
+LL |         assert!(!hs_double_ref.is_empty(), "assertion `is not empty` failed, contents: {hs_double_ref:?}");
+   |                                          ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:260:9
+   |
+LL |         assert!(hs_mut_ref.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert`! to show the value on failure
+   |
+LL |         assert!(hs_mut_ref.is_empty(), "assertion `is empty` failed, contents: {hs_mut_ref:?}");
+   |                                      +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error: used `assert!` without including the collection in the failure message
+  --> tests/ui/assert_is_empty.rs:262:9
+   |
+LL |         assert!(!hs_mut_ref.is_empty());
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: add a custom message to `assert`! to show the value on failure
+   |
+LL |         assert!(!hs_mut_ref.is_empty(), "assertion `is not empty` failed, contents: {hs_mut_ref:?}");
+   |                                       +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+error: aborting due to 33 previous errors
 
