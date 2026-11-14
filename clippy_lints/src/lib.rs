@@ -225,6 +225,7 @@ mod manual_slice_size_calculation;
 mod manual_string_new;
 mod manual_strip;
 mod manual_take;
+mod manual_vec;
 mod map_unit_fn;
 mod match_result_ok;
 mod matches;
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        ManualVec: manual_vec::ManualVec = manual_vec::ManualVec,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

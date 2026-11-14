@@ -523,6 +523,7 @@ generate! {
     regex,
     rem_euclid,
     repeat,
+    repeat_n,
     replace,
     replacen,
     res,
