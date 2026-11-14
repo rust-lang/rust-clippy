@@ -72,7 +72,7 @@ type = "merge-queue"
 
 [notify-zulip."lint-nominated"]
 zulip_stream = 577190 # #t-clippy/fcp
-topic = "FCP rust-clippy#{number}: {title}"
+topic = "{title}"
 github_comment = """\
 This lint has been nominated for inclusion.
 
@@ -82,19 +82,19 @@ This lint has been nominated for inclusion.
 # the title of a poll don't get recognized. Therefore we need to send two messages.
 message_on_add = [
     """\
-PR rust-clippy#{number} "{title}" has been nominated for lint inclusion.
+PR [#{number}](https://github.com/rust-lang/rust-clippy/pull/#{number}) "{title}" has been nominated for lint inclusion.
 Cc: {recipients}
 """,
     """\
-/poll Approve lint inclusion of rust-clippy#{number}?
+/poll Approve lint inclusion of [#{number}](https://github.com/rust-lang/rust-clippy/pull/#{number})?
 approve
 decline
 don't know
 """,
 ]
-message_on_remove = "PR rust-clippy#{number} lint nomination has been removed."
-message_on_close = "PR rust-clippy#{number} has been closed. Thanks for participating!"
-message_on_reopen = "PR rust-clippy#{number} has been reopened."
+message_on_remove = "PR [#{number}](https://github.com/rust-lang/rust-clippy/pull/#{number}) lint nomination has been removed."
+message_on_close = "PR [#{number}](https://github.com/rust-lang/rust-clippy/pull/#{number}) has been resolved. Thanks for participating!"
+message_on_reopen = "PR [#{number}](https://github.com/rust-lang/rust-clippy/pull/#{number}) has been reopened."
 
 [assign]
 contributing_url = "https://github.com/rust-lang/rust-clippy/blob/HEAD/CONTRIBUTING.md"
