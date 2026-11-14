@@ -335,6 +335,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::manual_string_new::MANUAL_STRING_NEW_INFO,
     crate::manual_strip::MANUAL_STRIP_INFO,
     crate::manual_take::MANUAL_TAKE_INFO,
+    crate::manual_vec::MANUAL_VEC_INFO,
     crate::map_unit_fn::OPTION_MAP_UNIT_FN_INFO,
     crate::map_unit_fn::RESULT_MAP_UNIT_FN_INFO,
     crate::match_result_ok::MATCH_RESULT_OK_INFO,
