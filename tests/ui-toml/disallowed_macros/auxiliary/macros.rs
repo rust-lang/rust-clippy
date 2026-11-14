@@ -45,3 +45,29 @@ macro_rules! attr {
         $i
     };
 }
+
+#[macro_export]
+macro_rules! attr_item {
+    () => {
+        #[repr(C)]
+        struct AttrItem {}
+    };
+}
+
+#[macro_export]
+macro_rules! attr_expr {
+    ($e:expr) => {{
+        #[repr(C)]
+        struct AttrExpr {}
+        $e
+    }};
+}
+
+#[macro_export]
+macro_rules! wrap_attr_expr {
+    ($e:expr) => {{
+        #[allow(clippy::disallowed_macros)]
+        let x = $crate::attr_expr!($e);
+        x
+    }};
+}
