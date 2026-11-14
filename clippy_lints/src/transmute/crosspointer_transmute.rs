@@ -6,6 +6,10 @@ use rustc_middle::ty::{self, Ty};
 
 /// Checks for `crosspointer_transmute` lint.
 /// Returns `true` if it's triggered, otherwise returns `false`.
+///
+/// A pointer to an integer transmuted to that integer is ambiguous: the address may have been
+/// intended, or the target type may be wrong. In that case the lint is emitted but `false` is
+/// returned, so that `transmutes_expressible_as_ptr_casts` can still suggest a pointer cast.
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, from_ty: Ty<'tcx>, to_ty: Ty<'tcx>) -> bool {
     match (*from_ty.kind(), *to_ty.kind()) {
         (ty::RawPtr(from_ptr_ty, _), _) if from_ptr_ty == to_ty => {
@@ -15,7 +19,7 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, e: &'tcx Expr<'_>, from_ty: Ty
                 e.span,
                 format!("transmute from a type (`{from_ty}`) to the type that it points to (`{to_ty}`)"),
             );
-            true
+            !matches!(to_ty.kind(), ty::Int(_) | ty::Uint(_))
         },
         (_, ty::RawPtr(to_ptr_ty, _)) if to_ptr_ty == from_ty => {
             span_lint(
