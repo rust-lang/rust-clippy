@@ -96,11 +96,11 @@ error: useless conversion to the same type: `std::str::Lines<'_>`
 LL |     let _ = "".lines().into_iter();
    |             ^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `.into_iter()`: `"".lines()`
 
-error: useless conversion to the same type: `std::vec::IntoIter<i32>`
+error: useless conversion to the same type: `std::array::IntoIter<i32, 3>`
   --> tests/ui/useless_conversion.rs:148:13
    |
-LL |     let _ = vec![1, 2, 3].into_iter().into_iter();
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `.into_iter()`: `vec![1, 2, 3].into_iter()`
+LL |     let _ = [1, 2, 3].into_iter().into_iter();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `.into_iter()`: `[1, 2, 3].into_iter()`
 
 error: useless conversion to the same type: `std::string::String`
   --> tests/ui/useless_conversion.rs:150:21
@@ -126,17 +126,17 @@ error: useless conversion to the same type: `Foo<'a'>`
 LL |     let _ = Foo::<'a'>::from(s3);
    |             ^^^^^^^^^^^^^^^^^^^^ help: consider removing `Foo::<'a'>::from()`: `s3`
 
-error: useless conversion to the same type: `std::vec::IntoIter<Foo<'a'>>`
+error: useless conversion to the same type: `std::array::IntoIter<Foo<'a'>, 3>`
   --> tests/ui/useless_conversion.rs:169:13
    |
-LL |     let _ = vec![s4, s4, s4].into_iter().into_iter();
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `.into_iter()`: `vec![s4, s4, s4].into_iter()`
+LL |     let _ = [s4, s4, s4].into_iter().into_iter();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider removing `.into_iter()`: `[s4, s4, s4].into_iter()`
 
 error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
   --> tests/ui/useless_conversion.rs:200:7
    |
-LL |     b(vec![1, 2].into_iter());
-   |       ^^^^^^^^^^^^^^^^^^^^^^
+LL |     b([1, 2].into_iter());
+   |       ^^^^^^^^^^^^^^^^^^
    |
 note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
   --> tests/ui/useless_conversion.rs:190:13
@@ -145,15 +145,15 @@ LL |     fn b<T: IntoIterator<Item = i32>>(_: T) {}
    |             ^^^^^^^^^^^^^^^^^^^^^^^^
 help: consider removing the `.into_iter()`
    |
-LL -     b(vec![1, 2].into_iter());
-LL +     b(vec![1, 2]);
+LL -     b([1, 2].into_iter());
+LL +     b([1, 2]);
    |
 
 error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
   --> tests/ui/useless_conversion.rs:202:7
    |
-LL |     c(vec![1, 2].into_iter());
-   |       ^^^^^^^^^^^^^^^^^^^^^^
+LL |     c([1, 2].into_iter());
+   |       ^^^^^^^^^^^^^^^^^^
    |
 note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
   --> tests/ui/useless_conversion.rs:191:18
@@ -162,15 +162,15 @@ LL |     fn c(_: impl IntoIterator<Item = i32>) {}
    |                  ^^^^^^^^^^^^^^^^^^^^^^^^
 help: consider removing the `.into_iter()`
    |
-LL -     c(vec![1, 2].into_iter());
-LL +     c(vec![1, 2]);
+LL -     c([1, 2].into_iter());
+LL +     c([1, 2]);
    |
 
 error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
   --> tests/ui/useless_conversion.rs:204:7
    |
-LL |     d(vec![1, 2].into_iter());
-   |       ^^^^^^^^^^^^^^^^^^^^^^
+LL |     d([1, 2].into_iter());
+   |       ^^^^^^^^^^^^^^^^^^
    |
 note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
   --> tests/ui/useless_conversion.rs:194:12
@@ -179,15 +179,15 @@ LL |         T: IntoIterator<Item = i32>,
    |            ^^^^^^^^^^^^^^^^^^^^^^^^
 help: consider removing the `.into_iter()`
    |
-LL -     d(vec![1, 2].into_iter());
-LL +     d(vec![1, 2]);
+LL -     d([1, 2].into_iter());
+LL +     d([1, 2]);
    |
 
 error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
   --> tests/ui/useless_conversion.rs:208:7
    |
-LL |     b(vec![1, 2].into_iter().into_iter());
-   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     b([1, 2].into_iter().into_iter());
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
   --> tests/ui/useless_conversion.rs:190:13
@@ -196,15 +196,15 @@ LL |     fn b<T: IntoIterator<Item = i32>>(_: T) {}
    |             ^^^^^^^^^^^^^^^^^^^^^^^^
 help: consider removing the `.into_iter()`s
    |
-LL -     b(vec![1, 2].into_iter().into_iter());
-LL +     b(vec![1, 2]);
+LL -     b([1, 2].into_iter().into_iter());
+LL +     b([1, 2]);
    |
 
 error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
   --> tests/ui/useless_conversion.rs:210:7
    |
-LL |     b(vec![1, 2].into_iter().into_iter().into_iter());
-   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+LL |     b([1, 2].into_iter().into_iter().into_iter());
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: this parameter accepts any `IntoIterator`, so you don't need to call `.into_iter()`
   --> tests/ui/useless_conversion.rs:190:13
@@ -213,8 +213,8 @@ LL |     fn b<T: IntoIterator<Item = i32>>(_: T) {}
    |             ^^^^^^^^^^^^^^^^^^^^^^^^
 help: consider removing the `.into_iter()`s
    |
-LL -     b(vec![1, 2].into_iter().into_iter().into_iter());
-LL +     b(vec![1, 2]);
+LL -     b([1, 2].into_iter().into_iter().into_iter());
+LL +     b([1, 2]);
    |
 
 error: explicit call to `.into_iter()` in function argument accepting `IntoIterator`
