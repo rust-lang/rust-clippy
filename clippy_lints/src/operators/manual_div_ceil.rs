@@ -96,6 +96,32 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &Expr<'_>, op: BinOpKind, lhs: &
             },
             _ => (),
         }
+    } else if op == BinOpKind::Shr
+        && check_int_ty_and_feature(cx, cx.typeck_results().expr_ty(lhs))
+        && let ExprKind::Binary(inner_op, inner_lhs, inner_rhs) = lhs.kind
+        && inner_op.node == BinOpKind::Add
+        && let Some(shift) = shift_amount(rhs)
+        && let Some(value_bits) = unsigned_value_bits(cx, cx.typeck_results().expr_ty(lhs))
+        && shift < u128::from(value_bits)
+        && msrv.meets(cx, msrvs::DIV_CEIL)
+    {
+        let divisor = 1_u128 << shift;
+
+        // (x + (2^Y - 1)) >> Y
+        if let ExprKind::Lit(lit) = inner_rhs.kind
+            && let LitKind::Int(value, _) = lit.node
+            && value.get().checked_add(1) == Some(divisor)
+        {
+            build_suggestion(cx, expr, inner_lhs, rhs, &mut applicability);
+        }
+
+        // ((2^Y - 1) + x) >> Y
+        if let ExprKind::Lit(lit) = inner_lhs.kind
+            && let LitKind::Int(value, _) = lit.node
+            && value.get().checked_add(1) == Some(divisor)
+        {
+            build_suggestion(cx, expr, inner_rhs, rhs, &mut applicability);
+        }
     }
 }
 
@@ -138,6 +164,27 @@ fn check_literal(expr: &Expr<'_>) -> bool {
     false
 }
 
+/// Returns the shift amount of an integer literal.
+fn shift_amount(expr: &Expr<'_>) -> Option<u128> {
+    if let ExprKind::Lit(lit) = expr.kind
+        && let LitKind::Int(shift, _) = lit.node
+    {
+        Some(shift.get())
+    } else {
+        None
+    }
+}
+
+/// Returns the integer type's bit width excluding the sign bit, if any.
+/// The divisor must be representable as a positive integer.
+fn unsigned_value_bits(cx: &LateContext<'_>, expr_ty: Ty<'_>) -> Option<u64> {
+    match expr_ty.kind() {
+        ty::Uint(uint_ty) => Some(uint_ty.bit_width().unwrap_or(cx.tcx.data_layout.pointer_size().bits())),
+        ty::Int(int_ty) => Some(int_ty.bit_width().unwrap_or(cx.tcx.data_layout.pointer_size().bits()) - 1),
+        _ => None,
+    }
+}
+
 fn build_suggestion(
     cx: &LateContext<'_>,
     expr: &Expr<'_>,
@@ -165,7 +212,7 @@ fn build_suggestion(
                 }
             )
         ) {
-        format!("_{rhs_ty}")
+        format!("_{}", cx.typeck_results().expr_ty(lhs))
     } else {
         String::new()
     };
@@ -179,10 +226,17 @@ fn build_suggestion(
         format!("{dividend_sugg_str}{type_suffix}")
     };
 
-    // Dereference the RHS if it is a reference type
-    let divisor_snippet = match Sugg::hir_with_context(cx, rhs, ctxt, "_", applicability) {
-        sugg if rhs_ty.is_ref() => sugg.deref(),
-        sugg => sugg,
+    let divisor_snippet = if let ExprKind::Binary(op, _, _) = expr.kind
+        && op.node == BinOpKind::Shr
+    {
+        (1_u128 << shift_amount(rhs).unwrap()).to_string()
+    } else {
+        // Dereference the RHS if it is a reference type
+        match Sugg::hir_with_context(cx, rhs, ctxt, "_", applicability) {
+            sugg if rhs_ty.is_ref() => sugg.deref(),
+            sugg => sugg,
+        }
+        .to_string()
     };
 
     span_lint_and_sugg(
