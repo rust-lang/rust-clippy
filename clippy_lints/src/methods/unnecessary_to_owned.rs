@@ -379,6 +379,7 @@ fn check_string_from_utf8<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, 
 fn check_split_call_arg(cx: &LateContext<'_>, expr: &Expr<'_>, method_name: Symbol, receiver: &Expr<'_>) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr)
         && let Some((sym::split, argument_expr)) = get_fn_name_and_arg(cx, parent)
+        && check_caller_type_str(cx, parent)
         && let Some(receiver_snippet) = receiver.span.get_text(cx)
         && let Some(arg_snippet) = argument_expr.span.get_text(cx)
     {
@@ -409,6 +410,17 @@ fn check_split_call_arg(cx: &LateContext<'_>, expr: &Expr<'_>, method_name: Symb
         );
         return true;
     }
+    false
+}
+
+fn check_caller_type_str(cx: &LateContext<'_>, parent: &Expr<'_>) -> bool {
+    if let ExprKind::MethodCall(_, parent_receiver, [_], _) = parent.kind {
+        let receiver_type: Ty<'_> = cx.typeck_results().node_type(parent_receiver.hir_id);
+        if receiver_type.is_str() || receiver_type.is_imm_ref_str() {
+            return true;
+        }
+    }
+
     false
 }
 
