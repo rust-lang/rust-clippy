@@ -161,6 +161,62 @@ fn ref_osstring(a: OsString, b: &OsString) {
     //~^ manual_ignore_case_cmp
 }
 
+fn chars_cmp(a: &str, b: &str, s: String) {
+    a.chars()
+        .map(|c| c.to_ascii_lowercase())
+        .cmp(b.chars().map(|c| c.to_ascii_lowercase()))
+        .is_eq();
+    //~^^^^ manual_ignore_case_cmp
+
+    a.chars()
+        .map(|c| c.to_ascii_uppercase())
+        .cmp(b.chars().map(|c| c.to_ascii_uppercase()))
+        .is_ne();
+    //~^^^^ manual_ignore_case_cmp
+
+    s.chars()
+        .map(|c| c.to_ascii_lowercase())
+        .cmp(".xyz".chars().map(|c| c.to_ascii_lowercase()))
+        .is_eq();
+    //~^^^^ manual_ignore_case_cmp
+
+    a.chars()
+        .map(|c| c.to_ascii_lowercase())
+        .cmp(b.chars().map(|c| c.to_ascii_uppercase()))
+        .is_eq();
+}
+
+fn chars_cmp_in_closure(file_name: OsString) -> bool {
+    file_name.to_str().is_some_and(|dir| {
+        dir.chars()
+            .map(|c| c.to_ascii_lowercase())
+            .cmp(".xyz".chars().map(|c| c.to_ascii_lowercase()))
+            .is_eq()
+        //~^^^^ manual_ignore_case_cmp
+    })
+}
+
+fn chars_cmp_deref_to_str(s: S) -> bool {
+    s.chars()
+        .map(|c| c.to_ascii_lowercase())
+        .cmp(s.chars().map(|c| c.to_ascii_lowercase()))
+        .is_eq()
+}
+
+struct S;
+
+impl S {
+    fn eq_ignore_ascii_case(self) {}
+}
+
+impl std::ops::Deref for S {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        ""
+    }
+}
+
 fn wrongly_unmangled_macros(a: &str, b: &str) -> bool {
     struct S<'a> {
         inner: &'a str,
