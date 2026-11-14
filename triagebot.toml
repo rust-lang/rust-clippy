@@ -19,6 +19,12 @@ allow-unauthenticated = [
 
 [issue-links]
 
+# Automatically backport all ICE fixes, to reduce 
+[backport.ice-backport]
+required-issue-label = "I-ICE"
+required-pr-labels = []
+add-labels = ["beta-nominated"]
+
 [mentions."clippy_lints/src/doc"]
 cc = ["@notriddle"]
 
