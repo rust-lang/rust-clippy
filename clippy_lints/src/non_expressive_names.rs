@@ -1,5 +1,6 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::{span_lint, span_lint_and_then};
+use clippy_utils::source::SpanExt as _;
 use rustc_ast::ast::{
     self, Arm, AssocItem, AssocItemKind, Attribute, Block, FnDecl, Item, ItemKind, Local, Pat, PatKind,
 };
@@ -225,15 +226,6 @@ impl SimilarNamesNameVisitor<'_, '_, '_> {
         if interned_name.chars().any(char::is_uppercase) || interned_name.is_empty() {
             return;
         }
-        if interned_name.chars().all(|c| c.is_ascii_digit() || c == '_') {
-            span_lint(
-                self.0.cx,
-                JUST_UNDERSCORES_AND_DIGITS,
-                ident.span,
-                "consider choosing a more descriptive name",
-            );
-            return;
-        }
         if interned_name.starts_with('_') {
             // these bindings are typically unused or represent an ignored portion of a destructuring pattern
             return;
@@ -398,6 +390,25 @@ impl<'tcx> Visitor<'tcx> for SimilarNamesLocalVisitor<'_, 'tcx> {
 }
 
 impl EarlyLintPass for NonExpressiveNames {
+    fn check_pat(&mut self, cx: &EarlyContext<'_>, pat: &Pat) {
+        if let PatKind::Ident(_, ident, _) = pat.kind
+            && let name = ident.name.as_str()
+            && !pat.span.from_expansion()
+            && !ident.span.from_expansion()
+            && name.chars().all(|c| c.is_ascii_digit() || c == '_')
+            // Only lint identifiers written directly in source, not generated
+            // by a proc macro.
+            && ident.span.check_text(cx, |src| src == name)
+        {
+            span_lint(
+                cx,
+                JUST_UNDERSCORES_AND_DIGITS,
+                ident.span,
+                "consider choosing a more descriptive name",
+            );
+        }
+    }
+
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
         if item.span.in_external_macro(cx.sess().source_map()) {
             return;
