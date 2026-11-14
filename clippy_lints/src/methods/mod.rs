@@ -119,6 +119,7 @@ mod skip_while_next;
 mod sliced_string_as_bytes;
 mod some_filter;
 mod stable_sort_primitive;
+mod str_parse_infer_to_i32;
 mod str_split;
 mod str_splitn;
 mod string_extend_chars;
@@ -5079,6 +5080,25 @@ declare_clippy_lint! {
     "Check for offset calculations on raw pointers to zero-sized types"
 }
 
+declare_clippy_lint! {
+    /// ### What it does
+    ///
+    /// ### Why is this bad?
+    ///
+    /// ### Example
+    /// ```no_run
+    /// // example code where clippy issues a warning
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// // example code which does not raise clippy warning
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub STR_PARSE_INFER_TO_I32,
+    suspicious,
+    "default lint description"
+}
+
 impl_lint_pass!(Methods => [
     BIND_INSTEAD_OF_MAP,
     BYTES_COUNT_TO_LEN,
@@ -5244,6 +5264,7 @@ impl_lint_pass!(Methods => [
     WAKER_CLONE_WAKE,
     WRONG_SELF_CONVENTION,
     ZST_OFFSET,
+    STR_PARSE_INFER_TO_I32,
 ]);
 
 #[expect(clippy::struct_excessive_bools)]
@@ -5877,6 +5898,9 @@ impl Methods {
                     if !bind_instead_of_map::check_or_else_err(cx, expr, recv, arg) {
                         unnecessary_lazy_eval::check(cx, expr, recv, arg, "or", false);
                     }
+                },
+                (sym::parse, []) => {
+                    str_parse_infer_to_i32::check(cx, expr);
                 },
                 (sym::peek, []) => {
                     by_ref_peekable_peek::check(cx, expr, recv);
