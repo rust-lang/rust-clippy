@@ -173,4 +173,49 @@ fn main() {
 
     let z = Z::<i32>(1);
     z[0];
+
+    let should_not_lint: &[u8] = &[1, 2, 3];
+    let should_lint: &[u8] = &[1, 2, 3];
+
+    match should_not_lint.len() {
+        0 => {},
+        1 => println!("{}", should_not_lint[0]),
+        _ => println!("{} or {}", should_not_lint[0], should_not_lint[1]),
+    }
+
+    let x = match should_not_lint.len() {
+        0 => 0,
+        1 => should_not_lint[0],
+        _ => should_not_lint[1],
+    };
+
+    match (should_not_lint.len(), should_not_lint.contains(&0)) {
+        (0, false) => 0,
+        (1, true) => should_not_lint[0],
+        (_, false) => should_lint[1],
+        //~^ indexing_slicing
+        (_, true) => should_not_lint[2],
+    };
+
+    match should_not_lint.len() {
+        0 => {},
+        1 => println!("{}", should_lint[0]),
+        //~^ indexing_slicing
+        _ => println!("{} or {}", should_not_lint[0], should_not_lint[1]),
+    }
+
+    // I think we want to lint on this so we don't make assumptions about cloned or reffed values.
+    let helper_string = "helper";
+
+    let _ = match should_not_lint.len() {
+        0 => match helper_string == "helper" {
+            true => {
+                let should_lint = should_not_lint;
+                should_lint[0]
+                //~^ indexing_slicing
+            },
+            false => should_not_lint[0],
+        },
+        _ => should_not_lint[0],
+    };
 }
