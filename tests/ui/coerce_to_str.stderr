@@ -1,0 +1,317 @@
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:35:16
+   |
+LL |     s.push_str(&String::from(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+   |
+   = note: `-D clippy::coerce-to-str` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::coerce_to_str)]`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:39:16
+   |
+LL |     s.push_str(&Into::<String>::into(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:43:16
+   |
+LL |     s.push_str(&Cow::from(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:47:16
+   |
+LL |     s.push_str(&Cow::Borrowed(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:51:16
+   |
+LL |     s.push_str(&Into::<Cow<_>>::into(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:55:16
+   |
+LL |     s.push_str(&Box::from(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:59:16
+   |
+LL |     s.push_str(&Box::new(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:63:16
+   |
+LL |     s.push_str(&Into::<Box<_>>::into(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:67:16
+   |
+LL |     s.push_str(&Rc::from(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:71:16
+   |
+LL |     s.push_str(&Rc::new(" world"));
+   |                ^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:75:16
+   |
+LL |     s.push_str(&Into::<Rc<_>>::into(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:79:16
+   |
+LL |     s.push_str(&Arc::from(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:83:16
+   |
+LL |     s.push_str(&Arc::new(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:87:16
+   |
+LL |     s.push_str(&Into::<Arc<_>>::into(" world"));
+   |                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `" world"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:92:29
+   |
+LL |     test_struct.test_fn(42, &*String::from("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:95:29
+   |
+LL |     test_struct.test_fn(42, &*Into::<String>::into("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:98:29
+   |
+LL |     test_struct.test_fn(42, *Box::<&str>::from("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:101:29
+   |
+LL |     test_struct.test_fn(42, *Box::<&str>::new("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:104:29
+   |
+LL |     test_struct.test_fn(42, *Into::<Box<&str>>::into("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:107:29
+   |
+LL |     test_struct.test_fn(42, *Rc::<&str>::from("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:110:29
+   |
+LL |     test_struct.test_fn(42, *Rc::<&str>::new("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:113:29
+   |
+LL |     test_struct.test_fn(42, *Into::<Rc<&str>>::into("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:116:29
+   |
+LL |     test_struct.test_fn(42, *Arc::<&str>::from("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:119:29
+   |
+LL |     test_struct.test_fn(42, *Arc::<&str>::new("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:122:29
+   |
+LL |     test_struct.test_fn(42, *Into::<Arc<&str>>::into("hello"));
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:126:13
+   |
+LL |     test_fn(&String::from("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:129:13
+   |
+LL |     test_fn(&Into::<String>::into("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:132:13
+   |
+LL |     test_fn(&Cow::from("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:135:13
+   |
+LL |     test_fn(&Cow::Borrowed("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:138:13
+   |
+LL |     test_fn(&Into::<Cow<_>>::into("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:141:13
+   |
+LL |     test_fn(&Box::from("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:144:13
+   |
+LL |     test_fn(&Box::new("hello"));
+   |             ^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:147:13
+   |
+LL |     test_fn(&Into::<Box<_>>::into("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:150:13
+   |
+LL |     test_fn(&Rc::from("hello"));
+   |             ^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:153:13
+   |
+LL |     test_fn(&Rc::new("hello"));
+   |             ^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:156:13
+   |
+LL |     test_fn(&Into::<Rc<_>>::into("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:159:13
+   |
+LL |     test_fn(&Arc::from("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:162:13
+   |
+LL |     test_fn(&Arc::new("hello"));
+   |             ^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:165:13
+   |
+LL |     test_fn(&Into::<Arc<_>>::into("hello"));
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:168:15
+   |
+LL |     test_fn_2(&*String::from("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:171:15
+   |
+LL |     test_fn_2(&*Into::<String>::into("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:174:15
+   |
+LL |     test_fn_2(*Box::<&str>::from("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:177:15
+   |
+LL |     test_fn_2(*Box::<&str>::new("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:180:15
+   |
+LL |     test_fn_2(*Into::<Box<&str>>::into("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:183:15
+   |
+LL |     test_fn_2(*Rc::<&str>::from("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:186:15
+   |
+LL |     test_fn_2(*Rc::<&str>::new("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:189:15
+   |
+LL |     test_fn_2(*Into::<Rc<&str>>::into("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:192:15
+   |
+LL |     test_fn_2(*Arc::<&str>::from("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:195:15
+   |
+LL |     test_fn_2(*Arc::<&str>::new("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:198:15
+   |
+LL |     test_fn_2(*Into::<Arc<&str>>::into("hello"));
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:201:22
+   |
+LL |     let test: &str = &String::from("hello");
+   |                      ^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: unnecesary type conversion, use `&str` instead
+  --> tests/ui/coerce_to_str.rs:204:28
+   |
+LL |     let test: *const str = &*String::from("hello");
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^ help: use: `"hello"`
+
+error: aborting due to 52 previous errors
+
