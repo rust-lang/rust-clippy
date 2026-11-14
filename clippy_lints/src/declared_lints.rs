@@ -49,6 +49,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::box_default::BOX_DEFAULT_INFO,
     crate::bufreader_stdin::BUFREADER_STDIN_INFO,
     crate::byte_char_slices::BYTE_CHAR_SLICES_INFO,
+    crate::call_missing_target_feature::CALL_MISSING_TARGET_FEATURE_INFO,
     crate::cargo::CARGO_COMMON_METADATA_INFO,
     crate::cargo::LINT_GROUPS_PRIORITY_INFO,
     crate::cargo::MULTIPLE_CRATE_VERSIONS_INFO,
