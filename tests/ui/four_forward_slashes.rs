@@ -23,6 +23,7 @@ fn c() {}
 
 fn d() {}
 
+#[expect(clippy::test_without_assertions)]
 #[test]
 //// between attributes
 //~^ four_forward_slashes
