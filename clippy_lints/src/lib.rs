@@ -347,6 +347,7 @@ mod single_range_in_vec_init;
 mod size_of_in_element_count;
 mod size_of_ref;
 mod slow_vector_initialization;
+mod static_mut_vars;
 mod std_instead_of_core;
 mod string_patterns;
 mod strings;
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        StaticMutVars: static_mut_vars::StaticMutVars = static_mut_vars::StaticMutVars,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
