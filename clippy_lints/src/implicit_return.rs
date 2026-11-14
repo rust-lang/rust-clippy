@@ -1,3 +1,4 @@
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context, walk_span_to_context};
 use clippy_utils::visitors::for_each_expr_without_closures;
@@ -6,7 +7,7 @@ use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Block, Body, Expr, ExprKind, FnDecl, FnRetTy, HirId};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, SyntaxContext};
 
@@ -40,7 +41,19 @@ declare_clippy_lint! {
     "use a return statement like `return expr` instead of an expression"
 }
 
-declare_lint_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
+impl_lint_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
+
+pub struct ImplicitReturn {
+    ignore_single_line_closures: bool,
+}
+
+impl ImplicitReturn {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            ignore_single_line_closures: conf.ignore_single_line_closures,
+        }
+    }
+}
 
 fn lint_return(cx: &LateContext<'_>, emission_place: HirId, span: Span) {
     span_lint_hir_and_then(
@@ -234,6 +247,13 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitReturn {
             return;
         }
 
+        if self.ignore_single_line_closures
+            && matches!(kind, FnKind::Closure)
+            && !cx.sess().source_map().is_multiline(span)
+        {
+            return;
+        }
+
         let res_ty = cx.typeck_results().expr_ty(body.value);
         if res_ty.is_unit() || res_ty.is_never() {
             return;
@@ -253,6 +273,7 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitReturn {
         if is_from_proc_macro(cx, expr) {
             return;
         }
+
         lint_implicit_returns(cx, expr, expr.span.ctxt(), None);
     }
 }
