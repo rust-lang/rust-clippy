@@ -231,10 +231,15 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for double comparisons that could be simplified to a single expression.
-    ///
+    /// This also applies to longer chains of `||` or `&&`, e.g. `x == y || foo || x < y`.
     ///
     /// ### Why is this bad?
     /// Readability.
+    ///
+    /// ### Known problems
+    /// When the two comparisons are not adjacent in a chain, merging them can skip the
+    /// short-circuited evaluation of a term in between that has side effects (e.g. a function
+    /// call). Such suggestions are marked as maybe incorrect.
     ///
     /// ### Example
     /// ```no_run
@@ -1102,7 +1107,7 @@ impl<'tcx> LateLintPass<'tcx> for Operators {
                 self.arithmetic_context.check_binary(cx, e, op.node, lhs, rhs);
                 bit_mask::check(cx, e, op.node, lhs, rhs);
                 verbose_bit_mask::check(cx, e, op.node, lhs, rhs, self.verbose_bit_mask_threshold);
-                double_comparison::check(cx, op.node, lhs, rhs, e.span);
+                double_comparison::check(cx, e, op.node, lhs, rhs);
                 const_comparisons::check(cx, op, lhs, rhs, e.span);
                 duration_subsec::check(cx, e, op.node, lhs, rhs);
                 float_equality_without_abs::check(cx, e, op.node, lhs, rhs);
