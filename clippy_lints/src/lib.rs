@@ -135,6 +135,7 @@ mod explicit_write;
 mod extra_unused_type_parameters;
 mod fallible_impl_from;
 mod field_scoped_visibility_modifiers;
+mod file_creation_and_set_permissions;
 mod float_literal;
 mod floating_point_arithmetic;
 mod format;
@@ -875,5 +876,6 @@ rustc_lint::late_lint_methods!(
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
         // add late passes here, used by `cargo dev new_lint`
+        FileCreationAndSetPermissions: file_creation_and_set_permissions::FileCreationAndSetPermissions = file_creation_and_set_permissions::FileCreationAndSetPermissions,
     ]]
 );
