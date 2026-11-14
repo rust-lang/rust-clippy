@@ -17,7 +17,7 @@ use rustc_lint::LateContext;
 use rustc_middle::mir::Mutability;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind, OverloadedDeref};
 use rustc_middle::ty::{
-    self, ClauseKind, GenericArg, GenericArgKind, GenericArgsRef, ParamTy, ProjectionClause, TraitClause, Ty,
+    self, ClauseKind, GenericArg, GenericArgKind, GenericArgs, ParamTy, ProjectionClause, TraitClause, Ty, CallerBoundsIterator
 };
 use rustc_span::Symbol;
 use rustc_trait_selection::traits::query::evaluate_obligation::InferCtxtExt as _;
@@ -74,8 +74,20 @@ fn check_addr_of_expr(
 ) -> bool {
     if let Some(parent) = get_parent_expr(cx, expr)
         && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, _) = parent.kind
-        && let adjustments = cx.typeck_results().expr_adjustments(parent).iter().collect::<Vec<_>>()
-        && let
+        && let adjustments = cx.typeck_results().expr_adjustments(parent)
+        && let (referent_ty, target_ty) = match *adjustments {
+            [] if let target_ty = cx.typeck_results().expr_ty_adjusted(parent) &&
+                  let &ty::Ref(_, referent_ty, Mutability::Not) = target_ty.kind() => {
+                (referent_ty, target_ty)
+            }
+            [
+                Adjustment {
+                    kind: Adjust::Pointer(_),
+                    target: target_ty,
+                },
+            ] if let &ty::Ref(_, referent_ty, Mutability::Not) = cx.typeck_results().expr_ty(parent).kind() => {
+                (referent_ty, target_ty)
+            }
             // For matching uses of `Cow::from`
             [
                 Adjustment {
@@ -116,9 +128,11 @@ fn check_addr_of_expr(
                     kind: Adjust::Borrow(_),
                     target: target_ty,
                 },
-            ] = adjustments[..]
+            ] => (referent_ty, target_ty),
+            _ => return false,
+        }
         && let receiver_ty = cx.typeck_results().expr_ty(receiver)
-        && let (target_ty, n_target_refs, _) = peel_and_count_ty_refs(*target_ty)
+        && let (target_ty, n_target_refs, _) = peel_and_count_ty_refs(target_ty)
         && let (receiver_ty, n_receiver_refs, _) = peel_and_count_ty_refs(receiver_ty)
         // Only flag cases satisfying at least one of the following three conditions:
         // * the referent and receiver types are distinct
@@ -129,8 +143,8 @@ fn check_addr_of_expr(
         //  https://github.com/rust-lang/rust-clippy/issues/8759
         //   Arrays are a bit of a corner case. Non-copyable arrays are handled by
         // `redundant_clone`, but copyable arrays are not.
-        && (*referent_ty != receiver_ty
-            || (matches!(referent_ty.kind(), ty::Array(..)) && is_copy(cx, *referent_ty))
+        && (referent_ty != receiver_ty
+            || (matches!(referent_ty.kind(), ty::Array(..)) && is_copy(cx, referent_ty))
             || is_cow_into_owned(cx, method_name, method_parent_id))
     {
         let mut applicability = Applicability::MachineApplicable;
@@ -451,12 +465,7 @@ fn skip_addr_of_ancestors<'tcx>(
 fn get_callee_generic_args_and_args<'tcx>(
     cx: &LateContext<'tcx>,
     expr: &'tcx Expr<'tcx>,
-) -> Option<(
-    DefId,
-    GenericArgsRef<'tcx>,
-    Option<&'tcx Expr<'tcx>>,
-    &'tcx [Expr<'tcx>],
-)> {
+) -> Option<(DefId, GenericArgs<'tcx>, Option<&'tcx Expr<'tcx>>, &'tcx [Expr<'tcx>])> {
     if let ExprKind::Call(callee, args) = expr.kind
         && let callee_ty = cx.typeck_results().expr_ty(callee)
         && let ty::FnDef(callee_def_id, _) = callee_ty.kind()
@@ -481,7 +490,7 @@ fn get_input_traits_and_projections<'tcx>(
 ) -> (Vec<TraitClause<'tcx>>, Vec<ProjectionClause<'tcx>>) {
     let mut trait_predicates = Vec::new();
     let mut projection_predicates = Vec::new();
-    for clause in cx.tcx.param_env(callee_def_id).caller_bounds() {
+    for clause in cx.tcx.param_env(callee_def_id).caller_bounds().all_clauses(cx.tcx).iter() {
         match clause.kind().skip_binder() {
             ClauseKind::Trait(trait_predicate) if trait_predicate.trait_ref.self_ty() == input => {
                 trait_predicates.push(trait_predicate);
@@ -543,7 +552,7 @@ fn can_change_type<'a>(cx: &LateContext<'a>, mut expr: &'a Expr<'a>, mut ty: Ty<
                             return false;
                         }
 
-                        let mut trait_clauses = cx.tcx.param_env(callee_def_id).caller_bounds().filter(|clause| {
+                        let mut trait_clauses = cx.tcx.param_env(callee_def_id).caller_bounds().all_clauses(cx.tcx).iter().filter(|clause| {
                             if let ClauseKind::Trait(trait_predicate) = clause.kind().skip_binder()
                                 && trait_predicate.trait_ref.self_ty() == param_ty
                             {

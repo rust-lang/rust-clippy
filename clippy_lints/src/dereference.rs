@@ -18,7 +18,7 @@ use rustc_hir::{
     Node, OwnerId, Pat, PatKind, Path, QPath, TyKind, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
-use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
+use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability, DerefAdjustKind};
 use rustc_middle::ty::{self, AssocTag, Ty, TyCtxt, TypeVisitableExt as _, TypeckResults, Unnormalized};
 use rustc_span::{Span, Symbol, SyntaxContext};
 use std::borrow::Cow;
@@ -350,6 +350,12 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                 None => break None,
                             }
                         };
+                        if use_site.adjustments.last().is_some_and(|adj| {
+                            matches!(adj.kind, Adjust::Deref(DerefAdjustKind::Builtin))
+                                && adj.target.ref_mutability() == Some(Mutability::Not)
+                        }) {
+                            deref_count += 1;
+                        }
 
                         let use_node = use_site.use_node(cx);
                         let stability = use_node.defined_ty(cx).map_or(TyCoercionStability::None, |ty| {
@@ -380,7 +386,9 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                     && let Some(trait_id) = cx.tcx.trait_of_assoc(fn_id)
                                     && let arg_ty = cx.tcx.erase_and_anonymize_regions(adjusted_ty)
                                     && let ty::Ref(_, sub_ty, _) = *arg_ty.kind()
-                                    && let args = typeck.node_args_opt(hir_id).map_or_default(|args| &args[1..])
+                                    && let args = typeck
+                                        .node_args_opt(hir_id)
+                                        .map_or_default(|args| cx.tcx.mk_args(&args.as_slice()[1..]))
                                     && let impl_ty = if cx
                                         .tcx
                                         .fn_sig(fn_id)
@@ -404,7 +412,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                                             cx,
                                             impl_ty,
                                             trait_id,
-                                            &args[..cx.tcx.generics_of(trait_id).own_params.len() - 1],
+                                            &args.as_slice()[..cx.tcx.generics_of(trait_id).own_params.len() - 1],
                                         ))
                                         // If there's an inherent method, or a method from another trait,
                                         // with the same name that's also implemented on this same type,
@@ -1041,14 +1049,13 @@ impl<'tcx> Dereferencing<'tcx> {
                 [
                     Adjustment {
                         kind: Adjust::Deref(_),
-                        ..
+                        target
                     },
-                    Adjustment {
-                        kind: Adjust::Deref(_),
-                        ..
-                    },
-                    ..
-                ]
+                    rest @ ..
+                ] if match rest.first() {
+                    Some(adj) => matches!(adj.kind,Adjust::Deref(_)),
+                    None => target.ref_mutability() == Some(Mutability::Not),
+                }
             )
         {
             match get_parent_expr(cx, e) {
