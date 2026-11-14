@@ -68,7 +68,7 @@ fn internal_extern_flags() -> Vec<String> {
             }
             let (name, hash) = path.file_stem()?.to_str()?.rsplit_once('-')?;
             // the "lib" prefix is not present for dll files
-            let name = name.strip_prefix("lib").unwrap_or(name);
+            let name = name.trim_prefix("lib");
             Some((name, hash, path_str))
         };
         if let Some((name, hash, path)) = parse_name_path()
