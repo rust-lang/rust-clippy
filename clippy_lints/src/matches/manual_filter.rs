@@ -5,7 +5,7 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::is_copy;
 use clippy_utils::usage::is_potentially_mutated;
 use clippy_utils::visitors::contains_unsafe_block;
-use clippy_utils::{as_some_expr, span_contains_comment};
+use clippy_utils::{as_some_expr, higher, span_contains_comment};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Pat, PatKind};
 use rustc_lint::LateContext;
@@ -25,7 +25,11 @@ fn get_cond_expr<'tcx>(
     ctxt: SyntaxContext,
 ) -> Option<SomeExpr<'tcx>> {
     let block_expr = peels_blocks_incl_unsafe(expr);
-    if let ExprKind::If(cond, then_expr, Some(else_expr)) = block_expr.kind
+    if let Some(higher::If {
+        cond,
+        then: then_expr,
+        r#else: Some(else_expr),
+    }) = higher::If::hir(block_expr)
         && let PatKind::Binding(_, target, ..) = pat.kind
         // `Option::filter` only gives its predicate a `&T`, so a condition that needs `&mut` access
         // to the value can't be moved into it.
