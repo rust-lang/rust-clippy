@@ -1,0 +1,9 @@
+[package]
+name = "disallowed_paths_renamed_dependency"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+renamed_dependency = { package = "actual_dependency", path = "actual_dependency" }
+other_dependency = { package = "renamed_dependency", path = "renamed_dependency" }
