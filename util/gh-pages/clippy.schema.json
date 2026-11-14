@@ -1,0 +1,821 @@
+{
+  "$id": "https://clippy.rust-lang.org/main/clippy.schema.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Clippy configuration",
+  "description": "Clippy lint configuration",
+  "type": "object",
+  "properties": {
+    "absolute-paths-allowed-crates": {
+      "description": "Which crates to allow absolute paths from\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "absolute-paths-max-segments": {
+      "description": "The maximum number of segments a path can have before being linted, anything above this will\nbe linted.\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "accept-comment-above-attributes": {
+      "description": "Whether to accept a safety comment to be placed above the attributes for the `unsafe` block\n",
+      "type": "boolean"
+    },
+    "accept-comment-above-statement": {
+      "description": "Whether to accept a safety comment to be placed above the statement containing the `unsafe` block\n",
+      "type": "boolean"
+    },
+    "allow-comparison-to-zero": {
+      "description": "Don't lint when comparing the result of a modulo operation to zero.\n",
+      "type": "boolean"
+    },
+    "allow-dbg-in-tests": {
+      "description": "Whether `dbg!` should be allowed in test functions or `#[cfg(test)]`\n",
+      "type": "boolean"
+    },
+    "allow-exact-repetitions": {
+      "description": "Whether an item should be allowed to have the same name as its containing module\n",
+      "type": "boolean"
+    },
+    "allow-expect-in-consts": {
+      "description": "Whether `expect` should be allowed in code always evaluated at compile time\n",
+      "type": "boolean"
+    },
+    "allow-expect-in-tests": {
+      "description": "Whether `expect` should be allowed in test functions or `#[cfg(test)]`\n",
+      "type": "boolean"
+    },
+    "allow-indexing-slicing-in-tests": {
+      "description": "Whether `indexing_slicing` should be allowed in test functions or `#[cfg(test)]`\n",
+      "type": "boolean"
+    },
+    "allow-large-stack-frames-in-tests": {
+      "description": "Whether functions inside `#[cfg(test)]` modules or test functions should be checked.\n",
+      "type": "boolean"
+    },
+    "allow-mixed-uninlined-format-args": {
+      "description": "Whether to allow mixed uninlined format args, e.g. `format!(\"{} {}\", a, foo.bar)`\n",
+      "type": "boolean"
+    },
+    "allow-one-hash-in-raw-strings": {
+      "description": "Whether to allow `r#\"\"#` when `r\"\"` can be used\n",
+      "type": "boolean"
+    },
+    "allow-panic-in-tests": {
+      "description": "Whether `panic` should be allowed in test functions or `#[cfg(test)]`\n",
+      "type": "boolean"
+    },
+    "allow-print-in-tests": {
+      "description": "Whether print macros (ex. `println!`) should be allowed in test functions or `#[cfg(test)]`\n",
+      "type": "boolean"
+    },
+    "allow-private-module-inception": {
+      "description": "Whether to allow module inception if it's not public.\n",
+      "type": "boolean"
+    },
+    "allow-renamed-params-for": {
+      "description": "List of trait paths to ignore when checking renamed function parameters.\n\n#### Example\n\n```toml\nallow-renamed-params-for = [ \"std::convert::From\" ]\n```\n\n#### Noteworthy\n\n- By default, the following traits are ignored: `From`, `TryFrom`, `FromStr`\n- `\"..\"` can be used as part of the list to indicate that the configured values should be appended to the\ndefault configuration of Clippy. By default, any configuration will replace the default value.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allow-unwrap-in-consts": {
+      "description": "Whether `unwrap` should be allowed in code always evaluated at compile time\n",
+      "type": "boolean"
+    },
+    "allow-unwrap-in-tests": {
+      "description": "Whether `unwrap` should be allowed in test functions or `#[cfg(test)]`\n",
+      "type": "boolean"
+    },
+    "allow-unwrap-types": {
+      "description": "List of types to allow `unwrap()` and `expect()` on.\n\n#### Example\n\n```toml\nallow-unwrap-types = [ \"std::sync::LockResult\" ]\n```\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allow-useless-vec-in-tests": {
+      "description": "Whether `useless_vec` should ignore test functions or `#[cfg(test)]`\n",
+      "type": "boolean"
+    },
+    "allowed-dotfiles": {
+      "description": "Additional dotfiles (files or directories starting with a dot) to allow\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed-duplicate-crates": {
+      "description": "A list of crate names to allow duplicates of\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "allowed-idents-below-min-chars": {
+      "description": "Allowed names below the minimum allowed characters. The value `\"..\"` can be used as part of\nthe list to indicate that the configured values should be appended to the default\nconfiguration of Clippy. By default, any configuration will replace the default value.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "allowed-prefixes": {
+      "description": "List of prefixes to allow when determining whether an item's name ends with the module's name.\nIf the rest of an item's name is an allowed prefix (e.g. item `ToFoo` or `to_foo` in module `foo`),\nthen don't emit a warning.\n\n#### Example\n\n```toml\nallowed-prefixes = [ \"to\", \"from\" ]\n```\n\n#### Noteworthy\n\n- By default, the following prefixes are allowed: `to`, `as`, `into`, `from`, `try_into` and `try_from`\n- PascalCase variant is included automatically for each snake_case variant (e.g. if `try_into` is included,\n  `TryInto` will also be included)\n- Use `\"..\"` as part of the list to indicate that the configured values should be appended to the\ndefault configuration of Clippy. By default, any configuration will replace the default value\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed-scripts": {
+      "description": "The list of unicode scripts allowed to be used in the scope.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "allowed-wildcard-imports": {
+      "description": "List of path segments allowed to have wildcard imports.\n\n#### Example\n\n```toml\nallowed-wildcard-imports = [ \"utils\", \"common\" ]\n```\n\n#### Noteworthy\n\n1. This configuration has no effects if used with `warn_on_all_wildcard_imports = true`.\n2. Paths with any segment that containing the word 'prelude'\nare already allowed by default.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "arithmetic-side-effects-allowed": {
+      "description": "Suppress checking of the passed type names in all types of operations.\n\nIf a specific operation is desired, consider using `arithmetic_side_effects_allowed_binary` or `arithmetic_side_effects_allowed_unary` instead.\n\n#### Example\n\n```toml\narithmetic-side-effects-allowed = [\"SomeType\", \"AnotherType\"]\n```\n\n#### Noteworthy\n\nA type, say `SomeType`, listed in this configuration has the same behavior of\n`[\"SomeType\" , \"*\"], [\"*\", \"SomeType\"]` in `arithmetic_side_effects_allowed_binary`.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "arithmetic-side-effects-allowed-binary": {
+      "description": "Suppress checking of the passed type pair names in binary operations like addition or\nmultiplication.\n\nSupports the \"*\" wildcard to indicate that a certain type won't trigger the lint regardless\nof the involved counterpart. For example, `[\"SomeType\", \"*\"]` or `[\"*\", \"AnotherType\"]`.\n\nPairs are asymmetric, which means that `[\"SomeType\", \"AnotherType\"]` is not the same as\n`[\"AnotherType\", \"SomeType\"]`.\n\n#### Example\n\n```toml\narithmetic-side-effects-allowed-binary = [[\"SomeType\" , \"f32\"], [\"AnotherType\", \"*\"]]\n```\n",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "maxItems": 2,
+        "minItems": 2
+      }
+    },
+    "arithmetic-side-effects-allowed-unary": {
+      "description": "Suppress checking of the passed type names in unary operations like \"negation\" (`-`).\n\n#### Example\n\n```toml\narithmetic-side-effects-allowed-unary = [\"SomeType\", \"AnotherType\"]\n```\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "array-size-threshold": {
+      "description": "The maximum allowed size for arrays on the stack\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "avoid-breaking-exported-api": {
+      "description": "Suppress lints whenever the suggested change would cause breakage for other crates.\n",
+      "type": "boolean"
+    },
+    "await-holding-invalid-types": {
+      "description": "The list of types which may not be held across an await point.\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DisallowedPathWithoutReplacement"
+      }
+    },
+    "blacklisted-names": {
+      "description": "Deprecated. Use `disallowed-names` instead.\n\nThe list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value\n`\"..\"` can be used as part of the list to indicate that the configured values should be appended to the\ndefault configuration of Clippy. By default, any configuration will replace the default value.\n",
+      "type": "array",
+      "deprecated": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "cargo-ignore-publish": {
+      "description": "For internal testing only, ignores the current `publish` settings in the Cargo manifest.\n",
+      "type": "boolean"
+    },
+    "check-grouped-late-init": {
+      "description": "Whether to check for grouped late initializations from multiple `let` statements.\n\n#### Example\n```rust\nlet a;\nlet b;\nif true {\n    a = 1;\n    b = 2;\n} else {\n    a = 3;\n    b = 4;\n}\n```\nUse instead:\n```rust\nlet (a, b) = if true {\n    (1, 2)\n} else {\n    (3, 4)\n};\n```\n",
+      "type": "boolean"
+    },
+    "check-incompatible-msrv-in-tests": {
+      "description": "Whether to check MSRV compatibility in `#[test]` and `#[cfg(test)]` code.\n",
+      "type": "boolean"
+    },
+    "check-inconsistent-struct-field-initializers": {
+      "description": "Whether to suggest reordering constructor fields when initializers are present.\n\nWarnings produced by this configuration aren't necessarily fixed by just reordering the fields. Even if the\nsuggested code would compile, it can change semantics if the initializer expressions have side effects. The\nfollowing example [from rust-clippy#11846] shows how the suggestion can run into borrow check errors:\n\n```rust\nstruct MyStruct {\n    vector: Vec<u32>,\n    length: usize\n}\nfn main() {\n    let vector = vec![1,2,3];\n    MyStruct { length: vector.len(), vector};\n}\n```\n\n[from rust-clippy#11846]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924\n",
+      "type": "boolean"
+    },
+    "check-private-items": {
+      "description": "Whether to also run the listed lints on private items.\n",
+      "type": "boolean"
+    },
+    "cognitive-complexity-threshold": {
+      "description": "The maximum cognitive complexity a function can have\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "const-literal-digits-threshold": {
+      "description": "The minimum digits a const float literal must have to suppress the `excessive_precision` lint\n",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "cyclomatic-complexity-threshold": {
+      "description": "Deprecated. Use `cognitive-complexity-threshold` instead.\n\nThe maximum cognitive complexity a function can have\n",
+      "type": "integer",
+      "format": "uint64",
+      "deprecated": true,
+      "minimum": 0
+    },
+    "disallowed-fields": {
+      "description": "The list of disallowed fields, written as fully qualified paths.\n\n**Fields:**\n- `path` (required): the fully qualified path to the field that should be disallowed\n- `reason` (optional): explanation why this field is disallowed\n- `replacement` (optional): suggested alternative method\n- `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry\n  if the path doesn't exist, instead of emitting an error\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DisallowedPath"
+      }
+    },
+    "disallowed-macros": {
+      "description": "The list of disallowed macros, written as fully qualified paths.\n\n**Fields:**\n- `path` (required): the fully qualified path to the macro that should be disallowed\n- `reason` (optional): explanation why this macro is disallowed\n- `replacement` (optional): suggested alternative macro\n- `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry\n  if the path doesn't exist, instead of emitting an error\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DisallowedPath"
+      }
+    },
+    "disallowed-methods": {
+      "description": "The list of disallowed methods, written as fully qualified paths.\n\n**Fields:**\n- `path` (required): the fully qualified path to the method that should be disallowed\n- `reason` (optional): explanation why this method is disallowed\n- `replacement` (optional): suggested alternative method\n- `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry\n  if the path doesn't exist, instead of emitting an error\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DisallowedPath"
+      }
+    },
+    "disallowed-names": {
+      "description": "The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value\n`\"..\"` can be used as part of the list to indicate that the configured values should be appended to the\ndefault configuration of Clippy. By default, any configuration will replace the default value.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "disallowed-types": {
+      "description": "The list of disallowed types, written as fully qualified paths.\n\n**Fields:**\n- `path` (required): the fully qualified path to the type that should be disallowed\n- `reason` (optional): explanation why this type is disallowed\n- `replacement` (optional): suggested alternative type\n- `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry\n  if the path doesn't exist, instead of emitting an error\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/DisallowedPath"
+      }
+    },
+    "doc-valid-idents": {
+      "description": "The list of words this lint should not consider as identifiers needing ticks. The value\n`\"..\"` can be used as part of the list to indicate that the configured values should be appended to the\ndefault configuration of Clippy. By default, any configuration will replace the default value. For example:\n* `doc-valid-idents = [\"ClipPy\"]` would replace the default list with `[\"ClipPy\"]`.\n* `doc-valid-idents = [\"ClipPy\", \"..\"]` would append `ClipPy` to the default list.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "enable-raw-pointer-heuristic-for-send": {
+      "description": "Whether to apply the raw pointer heuristic to determine if a type is `Send`.\n",
+      "type": "boolean"
+    },
+    "enforce-iter-loop-reborrow": {
+      "description": "Whether to recommend using implicit into iter for reborrowed values.\n\n#### Example\n```rust\nlet mut vec = vec![1, 2, 3];\nlet rmvec = &mut vec;\nfor _ in rmvec.iter() {}\nfor _ in rmvec.iter_mut() {}\n```\n\nUse instead:\n```rust\nlet mut vec = vec![1, 2, 3];\nlet rmvec = &mut vec;\nfor _ in &*rmvec {}\nfor _ in &mut *rmvec {}\n```\n",
+      "type": "boolean"
+    },
+    "enforced-import-renames": {
+      "description": "The list of imports to always rename, a fully qualified path followed by the rename.\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Rename"
+      }
+    },
+    "enum-variant-name-threshold": {
+      "description": "The minimum number of enum variants for the lints about variant names to trigger\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "enum-variant-size-threshold": {
+      "description": "The maximum size of an enum's variant to avoid box suggestion\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "excessive-nesting-threshold": {
+      "description": "The maximum amount of nesting a block can reside in\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "future-size-threshold": {
+      "description": "The maximum byte size a `Future` can have, before it triggers the `clippy::large_futures` lint\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "ignore-interior-mutability": {
+      "description": "A list of paths to types that should be treated as if they do not contain interior mutability\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inherent-impl-lint-scope": {
+      "description": "Sets the scope (\"crate\", \"file\", or \"module\") in which duplicate inherent `impl` blocks for the same type are linted.\n",
+      "allOf": [
+        {
+          "$ref": "#/definitions/InherentImplLintScope"
+        }
+      ]
+    },
+    "large-error-ignored": {
+      "description": "A list of paths to types that should be ignored as overly large `Err`-variants in a\n`Result` returned from a function\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "large-error-threshold": {
+      "description": "The maximum size of the `Err`-variant in a `Result` returned from a function\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "lint-commented-code": {
+      "description": "Whether collapsible `if` and `else if` chains are linted if they contain comments inside the parts\nthat would be collapsed.\n",
+      "type": "boolean"
+    },
+    "lint-inconsistent-struct-field-initializers": {
+      "description": "Deprecated. Use `check-inconsistent-struct-field-initializers` instead.\n\nWhether to suggest reordering constructor fields when initializers are present.\n\nWarnings produced by this configuration aren't necessarily fixed by just reordering the fields. Even if the\nsuggested code would compile, it can change semantics if the initializer expressions have side effects. The\nfollowing example [from rust-clippy#11846] shows how the suggestion can run into borrow check errors:\n\n```rust\nstruct MyStruct {\n    vector: Vec<u32>,\n    length: usize\n}\nfn main() {\n    let vector = vec![1,2,3];\n    MyStruct { length: vector.len(), vector};\n}\n```\n\n[from rust-clippy#11846]: https://github.com/rust-lang/rust-clippy/issues/11846#issuecomment-1820747924\n",
+      "type": "boolean",
+      "deprecated": true
+    },
+    "literal-representation-threshold": {
+      "description": "The lower bound for linting decimal literals\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "matches-for-let-else": {
+      "description": "Whether the matches should be considered by the lint, and whether there should\nbe filtering for common types.\n",
+      "allOf": [
+        {
+          "$ref": "#/definitions/MatchLintBehaviour"
+        }
+      ]
+    },
+    "max-fn-params-bools": {
+      "description": "The maximum number of bool parameters a function can have.\nUse `0` to lint on any function with a bool parameter.\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "max-include-file-size": {
+      "description": "The maximum size of a file included via `include_bytes!()` or `include_str!()`, in bytes\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "max-struct-bools": {
+      "description": "The maximum number of bool fields a struct can have\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "max-suggested-slice-pattern-length": {
+      "description": "When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in\nthe slice pattern that is suggested. If more elements are necessary, the lint is suppressed.\nFor example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "max-trait-bounds": {
+      "description": "The maximum number of bounds a trait can have to be linted\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "may-panic-functions": {
+      "description": "List of function/method paths that may panic and should be documented with a `// Panic:` comment\nat call sites.\n",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "min-ident-chars-lint-trait-impl": {
+      "description": "Whether to lint idents that have too few chars even when following trait declaration.\n",
+      "type": "boolean"
+    },
+    "min-ident-chars-threshold": {
+      "description": "Minimum chars an ident can have, anything below or equal to this will be linted.\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "missing-docs-allow-unused": {
+      "description": "Whether to allow fields starting with an underscore to skip documentation requirements\n",
+      "type": "boolean"
+    },
+    "missing-docs-in-crate-items": {
+      "description": "Whether to **only** check for missing documentation in items visible within the current\ncrate. For example, `pub(crate)` items.\n",
+      "type": "boolean"
+    },
+    "module-item-order-groupings": {
+      "description": "The named groupings of different source item kinds within modules.\n",
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/SourceItemOrderingModuleItemKind"
+            }
+          }
+        ],
+        "maxItems": 2,
+        "minItems": 2
+      }
+    },
+    "module-items-ordered-within-groupings": {
+      "description": "Whether the items within module groups should be ordered alphabetically or not.\n\nThis option can be configured to \"all\", \"none\", or a list of specific grouping names that should be checked\n(e.g. only \"enums\").\n",
+      "allOf": [
+        {
+          "$ref": "#/definitions/WithinGroupings"
+        }
+      ]
+    },
+    "msrv": {
+      "description": "The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`\n",
+      "type": "string"
+    },
+    "pass-by-value-size-limit": {
+      "description": "The minimum size (in bytes) to consider a type for passing by reference instead of by value.\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "pub-underscore-fields-behavior": {
+      "description": "Lint \"public\" fields in a struct that are prefixed with an underscore based on their\nexported visibility, or whether they are marked as \"pub\".\n",
+      "allOf": [
+        {
+          "$ref": "#/definitions/PubUnderscoreFieldsBehaviour"
+        }
+      ]
+    },
+    "recursive-self-in-type-definitions": {
+      "description": "Whether the type itself in a struct or enum should be replaced with `Self` when encountering recursive types.\n",
+      "type": "boolean"
+    },
+    "semicolon-inside-block-ignore-singleline": {
+      "description": "Whether to lint only if it's multiline.\n",
+      "type": "boolean"
+    },
+    "semicolon-outside-block-ignore-multiline": {
+      "description": "Whether to lint only if it's singleline.\n",
+      "type": "boolean"
+    },
+    "single-char-binding-names-threshold": {
+      "description": "The maximum number of single char bindings a scope may have\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "source-item-ordering": {
+      "description": "Which kind of elements should be ordered internally, possible values being `enum`, `impl`, `module`, `struct`, `trait`.\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SourceItemOrderingCategory"
+      },
+      "uniqueItems": true
+    },
+    "stack-size-threshold": {
+      "description": "The maximum allowed stack size for functions in bytes\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "standard-macro-braces": {
+      "description": "Enforce the named macros always use the braces specified.\n\nA `MacroMatcher` can be added like so `{ name = \"macro_name\", brace = \"(\" }`. If the macro\ncould be used with a full path two `MacroMatcher`s have to be added one with the full path\n`crate_name::macro_name` and one with just the macro name.\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/MacroMatcher"
+      }
+    },
+    "struct-field-name-threshold": {
+      "description": "The minimum number of struct fields for the lints about field names to trigger\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "suppress-restriction-lint-in-const": {
+      "description": "Whether to suppress a restriction lint in constant code. In same\ncases the restructured operation might not be unavoidable, as the\nsuggested counterparts are unavailable in constant code. This\nconfiguration will cause restriction lints to trigger even\nif no suggestion can be made.\n",
+      "type": "boolean"
+    },
+    "third-party": {
+      "description": "Third-party configuration. Clippy ignores the value of this setting."
+    },
+    "too-large-for-stack": {
+      "description": "The maximum size of objects (in bytes) that will be linted. Larger objects are ok on the heap\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "too-many-arguments-threshold": {
+      "description": "The maximum number of argument a function or method can have\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "too-many-lines-threshold": {
+      "description": "The maximum number of lines a function or method can have\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "trait-assoc-item-kinds-order": {
+      "description": "The order of associated items in traits.\n",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/SourceItemOrderingTraitAssocItemKind"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "uniqueItems": true
+    },
+    "trait-impl-item-order": {
+      "description": "The required ordering of associated items in trait impls: purely alphabetical,\nfollowing the trait definition order, or accepting either.\n\nNote that the trait definition order may change between versions of the\ncrate defining the trait without being considered a breaking change.\n\nExamples:\nWhen using trait definition item ordering:\n```toml\ntrait-impl-item-order = \"trait_item_ordering\"\n```\nWhen using trait definition item ordering and alphabetical for fallbacks:\n```toml\ntrait-impl-item-order = \"alphabetical_or_trait_item_ordering\"\n```\n",
+      "allOf": [
+        {
+          "$ref": "#/definitions/TraitImplItemOrder"
+        }
+      ]
+    },
+    "trivial-copy-size-limit": {
+      "description": "The maximum size (in bytes) to consider a `Copy` type for passing by value instead of by\nreference.\n",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint64",
+      "minimum": 0
+    },
+    "type-complexity-threshold": {
+      "description": "The maximum complexity a type can have\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "unnecessary-box-size": {
+      "description": "The byte size a `T` in `Box<T>` can have, below which it triggers the `clippy::unnecessary_box` lint\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "unreadable-literal-lint-fractions": {
+      "description": "Should the fraction of a decimal be linted to include separators.\n",
+      "type": "boolean"
+    },
+    "upper-case-acronyms-aggressive": {
+      "description": "Enables verbose mode. Triggers if there is more than one uppercase char next to each other\n",
+      "type": "boolean"
+    },
+    "vec-box-size-threshold": {
+      "description": "The size of the boxed type in bytes, where boxing in a `Vec` is allowed\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "verbose-bit-mask-threshold": {
+      "description": "The maximum allowed size of a bit mask before suggesting to use 'trailing_zeros'\n",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "warn-on-all-wildcard-imports": {
+      "description": "Whether to emit warnings on all wildcard imports, including those from `prelude`, from `super` in tests,\nor for `pub use` reexports.\n",
+      "type": "boolean"
+    },
+    "warn-unsafe-macro-metavars-in-private-macros": {
+      "description": "Whether to also emit warnings for unsafe blocks with metavariable expansions in **private** macros.\n",
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "not": {
+        "required": [
+          "blacklisted-names",
+          "disallowed-names"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "cyclomatic-complexity-threshold",
+          "cognitive-complexity-threshold"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "lint-inconsistent-struct-field-initializers",
+          "check-inconsistent-struct-field-initializers"
+        ]
+      }
+    }
+  ],
+  "definitions": {
+    "DisallowedPath": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "allow-invalid": {
+              "type": "boolean"
+            },
+            "path": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "replacement": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "path"
+          ]
+        }
+      ]
+    },
+    "DisallowedPathWithoutReplacement": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "allow-invalid": {
+              "type": "boolean"
+            },
+            "path": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "path"
+          ]
+        }
+      ]
+    },
+    "InherentImplLintScope": {
+      "type": "string",
+      "enum": [
+        "crate",
+        "file",
+        "module"
+      ]
+    },
+    "MacroMatcher": {
+      "type": "object",
+      "properties": {
+        "brace": {
+          "type": "string",
+          "enum": [
+            "{",
+            "{}",
+            "[",
+            "[]",
+            "(",
+            "()"
+          ]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "brace"
+      ]
+    },
+    "MatchLintBehaviour": {
+      "type": "string",
+      "enum": [
+        "AllTypes",
+        "WellKnownTypes",
+        "Never"
+      ]
+    },
+    "PubUnderscoreFieldsBehaviour": {
+      "type": "string",
+      "enum": [
+        "PubliclyExported",
+        "AllPubFields"
+      ]
+    },
+    "Rename": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "rename": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "rename"
+      ]
+    },
+    "SourceItemOrderingCategory": {
+      "type": "string",
+      "enum": [
+        "enum",
+        "impl",
+        "module",
+        "struct",
+        "trait"
+      ]
+    },
+    "SourceItemOrderingModuleItemKind": {
+      "type": "string",
+      "enum": [
+        "extern_crate",
+        "mod",
+        "foreign_mod",
+        "use",
+        "macro",
+        "global_asm",
+        "static",
+        "const",
+        "ty_alias",
+        "enum",
+        "struct",
+        "union",
+        "trait",
+        "trait_alias",
+        "impl",
+        "fn",
+        "test_binder_constraints"
+      ]
+    },
+    "SourceItemOrderingTraitAssocItemKind": {
+      "type": "string",
+      "enum": [
+        "const",
+        "fn",
+        "type"
+      ]
+    },
+    "TraitImplItemOrder": {
+      "type": "string",
+      "enum": [
+        "alphabetical",
+        "trait_item_ordering",
+        "alphabetical_or_trait_item_ordering"
+      ]
+    },
+    "WithinGroupings": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "all",
+            "none"
+          ]
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  }
+}
