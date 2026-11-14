@@ -1,8 +1,8 @@
 use crate::parse::cursor::{self, Capture, Cursor};
 use crate::parse::{ActiveLint, DeprecatedLint, Lint, LintData, LintName, ParseCx, ParsedLints, RenamedLint};
 use crate::utils::{
-    ErrAction, FileUpdater, UpdateMode, UpdateStatus, Version, delete_dir_if_exists, delete_file_if_exists,
-    expect_action, try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
+    ErrAction, FileUpdater, UpdateMode, UpdateStatus, delete_dir_if_exists, delete_file_if_exists, expect_action,
+    try_rename_dir, try_rename_file, walk_dir_no_dot_or_target,
 };
 use crate::{SourceFile, Span};
 use core::mem;
@@ -21,7 +21,7 @@ use std::{fs, path};
 /// # Panics
 ///
 /// If a file path could not read from or written to
-pub fn deprecate<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, name: &'env str, reason: &'env str) {
+pub fn deprecate<'cx, 'env: 'cx>(cx: ParseCx<'cx>, name: &'env str, reason: &'env str) {
     let mut data = cx.parse_lint_decls();
     let Entry::Occupied(mut lint) = data.lints.entry(name) else {
         cx.dcx.emit_unknown_lint(name);
@@ -33,7 +33,7 @@ pub fn deprecate<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, name
             name_sp: Span::new(data.deprecated_file, 0..0),
             data: LintData::Deprecated(DeprecatedLint {
                 reason,
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+                version: crate::VERSION_PLACEHOLDER,
             }),
         },
     );
@@ -55,7 +55,7 @@ pub fn deprecate<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, name
     println!("note: you must run `cargo uitest` to update the test results");
 }
 
-pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_name: &'env str, new_name: &'env str) {
+pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, old_name: &'env str, new_name: &'env str) {
     let mut data = cx.parse_lint_decls();
     let Entry::Occupied(mut lint) = data.lints.entry(old_name) else {
         cx.dcx.emit_unknown_lint(old_name);
@@ -67,7 +67,7 @@ pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
             name_sp: Span::new(data.deprecated_file, 0..0),
             data: LintData::Renamed(RenamedLint {
                 new_name: LintName::new_rustc(new_name),
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+                version: crate::VERSION_PLACEHOLDER,
             }),
         },
     );
@@ -106,7 +106,7 @@ pub fn uplift<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
 /// * If either lint name has a prefix
 /// * If `old_name` doesn't name an existing lint.
 /// * If `old_name` names a deprecated or renamed lint.
-pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_name: &'env str, new_name: &'env str) {
+pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, old_name: &'env str, new_name: &'env str) {
     let mut data = cx.parse_lint_decls();
     let Entry::Occupied(mut lint) = data.lints.entry(old_name) else {
         cx.dcx.emit_unknown_lint(old_name);
@@ -118,7 +118,7 @@ pub fn rename<'cx, 'env: 'cx>(cx: ParseCx<'cx>, clippy_version: Version, old_nam
             name_sp: Span::new(data.deprecated_file, 0..0),
             data: LintData::Renamed(RenamedLint {
                 new_name: LintName::new_clippy(new_name),
-                version: cx.str_buf.alloc_display(cx.arena, clippy_version.rust_display()),
+                version: crate::VERSION_PLACEHOLDER,
             }),
         },
     );
