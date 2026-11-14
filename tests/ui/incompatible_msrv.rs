@@ -185,4 +185,39 @@ fn vec_macro() {
     let _: Vec<u32> = vec![1, 2];
 }
 
+#[clippy::msrv = "1.85.0"]
+fn issue17903() {
+    let x = Some(7u32);
+    std::assert_matches!(x, Some(y) if y > 3);
+    //~^ incompatible_msrv
+}
+
+#[clippy::msrv = "1.85.0"]
+fn issue17903_multiple() {
+    let x = Some(7u32);
+
+    std::assert_matches!(x, Some(y) if y > 3);
+    //~^ incompatible_msrv
+
+    std::assert_matches!(x, Some(y) if y < 10);
+    //~^ incompatible_msrv
+}
+
+#[clippy::msrv = "1.85.0"]
+fn issue17903_nested_macro() {
+    macro_rules! check_some {
+        ($value:expr) => {
+            std::assert_matches!($value, Some(y) if y > 3);
+            //~^ incompatible_msrv
+        };
+    }
+
+    check_some!(Some(7u32));
+}
+
+#[clippy::msrv = "1.96.0"]
+fn issue17903_supported() {
+    std::assert_matches!(Some(7u32), Some(y) if y > 3);
+}
+
 fn main() {}
