@@ -244,6 +244,7 @@ impl Issue12357 {
 
 fn issue_14828() {
     pub trait T {
+        #[expect(clippy::missing_return_type)]
         fn as_ref(&self) {}
     }
 

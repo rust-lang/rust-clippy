@@ -1,4 +1,5 @@
 #![warn(clippy::wrong_self_convention)]
+#![expect(clippy::missing_return_type)]
 
 fn main() {}
 
