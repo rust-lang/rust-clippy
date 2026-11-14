@@ -87,14 +87,6 @@ fn main() {
     if vec.is_empty() {}
     if !vec.is_empty() {}
 
-    // Don't lint: maps do not have a compact empty literal suggestion. This is
-    // a conservative call; comparing against `HashMap::new()` may be worth
-    // revisiting if the type inference cost and constructor path are acceptable
-    // for aliases, custom hashers, and similar map types.
-    let map = std::collections::HashMap::<i32, i32>::new();
-    assert!(map.is_empty());
-    assert!(!map.is_empty());
-
     // Don't lint: assert_eq! would require Debug and PartialEq for the element type.
     struct NotDebugOrPartialEq;
     let not_debug_or_partial_eq = vec![NotDebugOrPartialEq];
@@ -109,6 +101,10 @@ fn main() {
     struct NotDebug;
     let not_debug = vec![NotDebug];
     assert!(not_debug.is_empty());
+
+    hashmaps::lint_identifier();
+    hashmaps::lint_non_identifier();
+    hashmaps::do_not_lint();
 }
 
 mod issue17935 {
@@ -220,5 +216,81 @@ mod issue17930 {
         const fn const_method(&self) {
             assert!(EMPTY.is_empty());
         }
+    }
+}
+
+mod hashmaps {
+    // References issue #17936
+    use std::collections::HashMap;
+
+    pub(super) fn lint_identifier() {
+        let mut hashmap: HashMap<&str, i32> = HashMap::new();
+        assert!(hashmap.is_empty(), "assertion `is empty` failed, contents: {hashmap:?}");
+        //~^ assert_is_empty
+        assert!(!hashmap.is_empty(), "assertion `is not empty` failed, contents: {hashmap:?}");
+        //~^ assert_is_empty
+        debug_assert!(hashmap.is_empty(), "assertion `is empty` failed, contents: {hashmap:?}");
+        //~^ assert_is_empty
+        debug_assert!(!hashmap.is_empty(), "assertion `is not empty` failed, contents: {hashmap:?}");
+        //~^ assert_is_empty
+        let hashmap_ref = &hashmap;
+        assert!(hashmap_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_ref:?}");
+        //~^ assert_is_empty
+        assert!(!hashmap_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_ref:?}");
+        //~^ assert_is_empty
+
+        let hashmap_double_ref = &&hashmap;
+        assert!(hashmap_double_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_double_ref:?}");
+        //~^ assert_is_empty
+        assert!(!hashmap_double_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_double_ref:?}");
+        //~^ assert_is_empty
+
+        let hashmap_mut_ref = &mut hashmap;
+        assert!(hashmap_mut_ref.is_empty(), "assertion `is empty` failed, contents: {hashmap_mut_ref:?}");
+        //~^ assert_is_empty
+        assert!(!hashmap_mut_ref.is_empty(), "assertion `is not empty` failed, contents: {hashmap_mut_ref:?}");
+        //~^ assert_is_empty
+    }
+
+    pub(super) fn lint_non_identifier() {
+        fn create_map() -> HashMap<u8, u8> {
+            HashMap::new()
+        }
+        let map = create_map();
+        assert!(map.is_empty(), "assertion `is empty` failed, contents: {map:?}");
+        //~^ assert_is_empty
+        let map = create_map();
+        assert!(!map.is_empty(), "assertion `is not empty` failed, contents: {map:?}");
+        //~^ assert_is_empty
+        #[cfg(debug_assertions)]
+        {
+                let map = create_map();
+                debug_assert!(map.is_empty(), "assertion `is empty` failed, contents: {map:?}");
+        };
+        //~^ assert_is_empty
+        #[cfg(debug_assertions)]
+        {
+                let map = create_map();
+                debug_assert!(!map.is_empty(), "assertion `is not empty` failed, contents: {map:?}");
+        };
+        //~^ assert_is_empty
+    }
+
+    // Don't lint: custom message requires Debug for the key and value types.
+    #[derive(PartialEq, Eq, Hash)]
+    struct NotDebug;
+
+    pub(super) fn do_not_lint() {
+        // Key type doesn't implement Debug
+        let mut hash_map: HashMap<NotDebug, u8> = HashMap::new();
+        assert!(hash_map.is_empty());
+        hash_map.insert(NotDebug, 42);
+        assert!(!hash_map.is_empty());
+
+        // Value type doesn't implement Debug
+        let mut hash_map: HashMap<u8, NotDebug> = HashMap::new();
+        assert!(hash_map.is_empty());
+        hash_map.insert(42, NotDebug);
+        assert!(!hash_map.is_empty());
     }
 }

@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::{find_assert_args, root_macro_call_first_node};
 use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::MaybeDef as _;
-use clippy_utils::source::walk_span_to_context;
+use clippy_utils::source::{indent_of, walk_span_to_context};
 use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::implements_trait;
 use clippy_utils::{is_in_const_context, sym};
@@ -19,8 +19,8 @@ declare_clippy_lint! {
     ///
     /// Checks assertions that only test whether a supported value is empty.
     ///
-    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`, and
-    /// `BinaryHeap`.
+    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`,
+    /// `BinaryHeap`, and `HashMap`.
     ///
     /// ### Why is this bad?
     ///
@@ -44,8 +44,12 @@ declare_clippy_lint! {
     /// If the first assertion fails, the second assertion never runs, so the failure can hide the
     /// check that would have shown more useful context.
     ///
-    /// Instead, compare the value with an empty value using `assert_eq!`, `assert_ne!`,
-    /// `debug_assert_eq!`, or `debug_assert_ne!`. These macros print the asserted value on failure.
+    /// Instead, for strings, slices, arrays, `Vec` and `BinaryHeap` compare the value with an empty value using
+    /// `assert_eq!`, `assert_ne!`, `debug_assert_eq!`, or `debug_assert_ne!`.
+    /// These macros print the asserted value on failure.
+    ///
+    /// Creating an empty `HashMap` with the default hasher is not as free as the types above,
+    /// so for assertions on those, keep the `is_empty()` check but add a message that formats the map.
     ///
     /// ### Known problems
     ///
@@ -67,6 +71,22 @@ declare_clippy_lint! {
     /// # let items = vec![1, 2, 3];
     /// assert_eq!(items, [] as [i32; 0]);
     /// assert_ne!(items, [] as [i32; 0]);
+    /// ```
+    ///
+    /// ```no_run
+    /// use std::collections::HashMap;
+    /// # let hm: HashMap<u8, u8> = HashMap::new();
+    /// assert!(hm.is_empty());
+    /// assert!(!hm.is_empty());
+    /// ```
+    ///
+    /// Use instead:
+    ///
+    /// ```no_run
+    /// use std::collections::HashMap;
+    /// # let hm: HashMap<u8, u8> = HashMap::new();
+    /// assert!(hm.is_empty(), "assertion `is empty` failed, contents: {hm:?}");
+    /// assert!(!hm.is_empty(), "assertion `is not empty` failed, contents: {hm:?}");
     /// ```
     #[clippy::version = "1.99.0"]
     pub ASSERT_IS_EMPTY,
@@ -90,7 +110,8 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
     /// Finds assertion conditions that only test emptiness.
     ///
     /// Matching assertions without a custom message are rewritten as equality or inequality
-    /// assertions against an empty value.
+    /// assertions against an empty value for string, slices, arrays, `Vec` and `BinaryHeap`. For `HashMap`
+    /// rewrites assertion with failure message.
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // `assert!` and `debug_assert!` expand to `if`; skip other expressions before walking the
         // macro backtrace.
@@ -98,18 +119,144 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
             && !is_in_const_context(cx)
             && let Some((macro_name, condition, assert_span)) = assert_call(cx, expr)
             && let Some((assertion_kind, receiver)) = emptiness_assertion(condition)
-            && let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver, self.msrv)
         {
-            emit_assertion_suggestion(
+            emit_by_receiver_type(
                 cx,
+                receiver,
                 macro_name,
                 assert_span,
                 condition,
                 assertion_kind,
-                receiver,
-                (receiver_suffix, &empty_value),
+                self.msrv,
             );
         }
+    }
+}
+
+/// Generates suggestions for receivers with side effects.
+///
+/// For assertions, the receiver is unwrapped into a `let` binding first, and used to refer to
+/// in the assert macro suggestion. For the debug assertions, the suggestion is first wrapped in
+/// a `#[cfg(debug_assertions)]` block, and then unwrapped into a `let` binding. This binding is
+/// used in the assert macro suggestion.
+fn resolve_side_effects<'tcx>(
+    cx: &LateContext<'tcx>,
+    macro_name: &str,
+    assert_span: Span,
+    condition_span: Span,
+    empty_prefix: &str,
+    receiver_prefix: &str,
+    receiver_snip: &Sugg<'tcx>,
+) -> Option<Vec<(Span, String)>> {
+    let macro_name_span = cx.sess().source_map().span_until_char(assert_span, '!');
+    let indent = indent_of(cx, macro_name_span).unwrap_or(0);
+    let pad = " ".repeat(indent);
+    let assertion_message = format!("\"assertion `is {empty_prefix}empty` failed, contents: {{map:?}}\"");
+    let condition_string = format!("{receiver_prefix}map.is_empty(), {assertion_message}");
+    let start_span = macro_name_span.shrink_to_lo();
+    match macro_name {
+        "assert" => Some(vec![
+            (start_span, format!("let map = {receiver_snip};\n{pad}")),
+            (condition_span, condition_string),
+        ]),
+        "debug_assert" => {
+            let last_span_point = cx.sess().source_map().end_point(assert_span).shrink_to_hi();
+            Some(vec![
+                (
+                    start_span,
+                    format!("#[cfg(debug_assertions)]\n{pad}{{\n{pad}{pad}let map = {receiver_snip};\n{pad}{pad}"),
+                ),
+                (condition_span, condition_string),
+                (last_span_point, format!(";\n{pad}}}")),
+            ])
+        },
+        _ => None,
+    }
+}
+
+/// Generates suggestions depending on whether the receiver has side effects.
+///
+/// For the receivers with side effects, the suggestion unwraps it into a `let` binding, which is
+/// then used in the assert macro. For receivers without side effects, the suggestion
+/// adds a failure message.
+fn get_suggestion<'tcx>(
+    cx: &LateContext<'tcx>,
+    receiver: &'tcx Expr<'_>,
+    macro_name: &str,
+    assert_span: Span,
+    condition: &Expr<'_>,
+    assertion_kind: AssertionKind,
+    applicability: &mut Applicability,
+) -> Option<Vec<(Span, String)>> {
+    let receiver_snip = Sugg::hir_with_context(cx, receiver, assert_span.ctxt(), "..", applicability).maybe_paren();
+    let condition_span = walk_span_to_context(condition.span, assert_span.ctxt()).unwrap_or(condition.span);
+    let (receiver_prefix, empty_prefix) = match assertion_kind {
+        AssertionKind::Eq => ("", ""),
+        AssertionKind::Ne => ("!", "not "),
+    };
+    if receiver.can_have_side_effects() {
+        resolve_side_effects(
+            cx,
+            macro_name,
+            assert_span,
+            condition_span,
+            empty_prefix,
+            receiver_prefix,
+            &receiver_snip,
+        )
+    } else {
+        let assertion_message =
+            format!("\"assertion `is {empty_prefix}empty` failed, contents: {{{receiver_snip}:?}}\"");
+        Some(vec![(
+            condition_span,
+            format!("{receiver_prefix}{receiver_snip}.is_empty(), {assertion_message}"),
+        )])
+    }
+}
+
+/// Emits an assertion suggestion based on the receiver type.
+///
+/// For a `HashMap`, if both the key and value types implement the `Debug` trait, the emitted
+/// suggestion adds a failure message. Rewrites assertion to `assert_eq!`, `assert_ne!`,
+/// `debug_assert_eq!`, or `debug_assert_ne!` for strings, slices, arrays, `Vec` and `BinaryHeap`.
+fn emit_by_receiver_type<'tcx>(
+    cx: &LateContext<'tcx>,
+    receiver: &'tcx Expr<'_>,
+    macro_name: &str,
+    assert_span: Span,
+    condition: &Expr<'_>,
+    assertion_kind: AssertionKind,
+    msrv: Msrv,
+) {
+    let receiver_ty = cx.typeck_results().expr_ty(receiver);
+    match receiver_ty.peel_refs().opt_diag_name(cx) {
+        Some(sym::HashMap) if has_required_traits(cx, receiver_ty.peel_refs()) => {
+            let mut applicability = Applicability::MachineApplicable;
+            if let Some(suggestion) = get_suggestion(
+                cx,
+                receiver,
+                macro_name,
+                assert_span,
+                condition,
+                assertion_kind,
+                &mut applicability,
+            ) {
+                emit_assertion_custom_message_suggestion(cx, macro_name, assert_span, suggestion, applicability);
+            }
+        },
+        _ => {
+            if let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver_ty, msrv) {
+                emit_assertion_suggestion(
+                    cx,
+                    macro_name,
+                    assert_span,
+                    condition,
+                    assertion_kind,
+                    receiver,
+                    (receiver_suffix, &empty_value),
+                );
+            }
+        },
     }
 }
 
@@ -204,10 +351,9 @@ impl AssertionKind {
 /// printed and compared by the replacement assertion.
 fn assertion_suggestion<'tcx>(
     cx: &LateContext<'tcx>,
-    receiver: &'tcx Expr<'tcx>,
+    receiver_ty: Ty<'tcx>,
     msrv: Msrv,
 ) -> Option<(&'static str, String)> {
-    let receiver_ty = cx.typeck_results().expr_ty(receiver);
     if receiver_ty.peel_refs().is_diag_item(cx, sym::BinaryHeap) && !msrv.meets(cx, msrvs::BINARY_HEAP_AS_SLICE) {
         return None;
     }
@@ -255,6 +401,28 @@ fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Opt
             },
             _ => None,
         }
+    }
+}
+
+/// Returns whether the `HashMap` arguments have useful failure output.
+///
+/// Suggestions are limited to cases where the assertion can print the elements on
+/// failure. A `HashMap` requires printable keys and values. Returns `false` when either
+/// element lacks the trait bound.
+fn has_required_traits<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    let ty::Adt(_, args) = ty.kind() else { return false };
+    match (
+        args.first().and_then(|a| a.as_type()),
+        args.get(1).and_then(|a| a.as_type()),
+    ) {
+        (Some(key_type), Some(value_type)) => {
+            if let Some(debug_trait) = cx.tcx.get_diagnostic_item(sym::Debug) {
+                implements_trait(cx, key_type, debug_trait, &[]) && implements_trait(cx, value_type, debug_trait, &[])
+            } else {
+                false
+            }
+        },
+        _ => false,
     }
 }
 
@@ -324,6 +492,29 @@ fn emit_assertion_suggestion(
                     (macro_name_span.shrink_to_hi(), assertion_suffix.to_string()),
                     (condition_span, format!("{receiver_snip}, {empty_value}")),
                 ],
+                applicability,
+            );
+        },
+    );
+}
+
+/// Emits the suggestion to add failure message for a boolean assertion for `HashMap`.
+fn emit_assertion_custom_message_suggestion(
+    cx: &LateContext<'_>,
+    macro_name: &str,
+    assert_span: Span,
+    suggestion: Vec<(Span, String)>,
+    applicability: Applicability,
+) {
+    span_lint_and_then(
+        cx,
+        ASSERT_IS_EMPTY,
+        assert_span,
+        format!("used `{macro_name}!` without including the collection in the failure message"),
+        |diag| {
+            diag.multipart_suggestion(
+                format!("add a custom message to `{macro_name}!` to show the value on failure"),
+                suggestion,
                 applicability,
             );
         },
