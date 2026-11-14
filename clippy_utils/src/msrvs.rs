@@ -25,6 +25,7 @@ macro_rules! msrv_aliases {
 
 // names may refer to stabilized feature flags or library items
 msrv_aliases! {
+    1,101,0 { PTR_TRY_CAST_ALIGNED }
     1,99,0 { BOX_INTO_NON_NULL }
     1,98,0 { MAP_OR_DEFAULT, NONZERO_FROM_STR_RADIX }
     1,97,0 { ISOLATE_LOWEST_ONE, BIT_WIDTH }
