@@ -81,11 +81,21 @@ impl<'tcx> LateLintPass<'tcx> for RedundantClone {
         };
 
         let mut possible_borrower = PossibleBorrowerMap::new(cx, mir);
+        let guard_spans = match_guard_spans(body);
 
         for (bb, bbdata) in mir.basic_blocks.iter_enumerated() {
             let terminator = bbdata.terminator();
 
             if terminator.source_info.span.from_expansion() {
+                continue;
+            }
+
+            // Borrowck sees edges from a failed guard to the arms after it, but those edges are gone
+            // from optimized MIR, so a later arm's use of the cloned value is invisible here.
+            if guard_spans
+                .iter()
+                .any(|guard| guard.contains(terminator.source_info.span))
+            {
                 continue;
             }
 
@@ -267,6 +277,17 @@ fn contains_clone_like_call(body: &Body<'_>) -> bool {
         }
     })
     .is_some()
+}
+
+fn match_guard_spans(body: &Body<'_>) -> Vec<Span> {
+    let mut spans = Vec::new();
+    for_each_expr_without_closures(body, |expr| {
+        if let ExprKind::Match(_, arms, _) = expr.kind {
+            spans.extend(arms.iter().filter_map(|arm| arm.guard).map(|guard| guard.span));
+        }
+        ControlFlow::<()>::Continue(())
+    });
+    spans
 }
 
 /// If `kind` is `y = func(x: &T)` where `T: !Copy`, returns `(DefId of func, x, T, y)`.
