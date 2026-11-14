@@ -525,9 +525,8 @@ impl EarlyLintPass for EmptyLineAfter {
             mod_items: krate
                 .items
                 .iter()
-                .filter(|i| !matches!(i.span.ctxt().outer_expn_data().kind, ExpnKind::AstPass(_)))
-                .map(|i| i.id)
-                .next(),
+                .find(|i| !matches!(i.span.ctxt().outer_expn_data().kind, ExpnKind::AstPass(_)))
+                .map(|i| i.id),
         });
     }
 
@@ -558,9 +557,8 @@ impl EarlyLintPass for EmptyLineAfter {
             ItemKind::Mod(_, _, ModKind::Loaded(items, _, _)) => {
                 let first = items
                     .iter()
-                    .filter(|i| !matches!(i.span.ctxt().outer_expn_data().kind, ExpnKind::AstPass(_)))
-                    .map(|i| i.id)
-                    .next();
+                    .find(|i| !matches!(i.span.ctxt().outer_expn_data().kind, ExpnKind::AstPass(_)))
+                    .map(|i| i.id);
                 (ItemKindDescr::Module, first)
             },
             ItemKind::Mod(..) => (ItemKindDescr::Module, None),
