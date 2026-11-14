@@ -139,5 +139,11 @@ error: order comparisons between booleans can be simplified
 LL |         x < m!(func)
    |         ^^^^^^^^^^^^ help: try: `!x & m!(func)`
 
-error: aborting due to 23 previous errors
+error: equality checks against true are unnecessary
+  --> tests/ui/bool_comparison.rs:166:8
+   |
+LL |     if (s == ")") == true {}
+   |        ^^^^^^^^^^^^^^^^^^ help: try: `s == ")"`
+
+error: aborting due to 24 previous errors
 

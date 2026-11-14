@@ -149,3 +149,20 @@ fn issue15497() {
         //~^ bool_comparison
     }
 }
+
+fn dont_cut_through_macro_call() {
+    macro_rules! id {
+        ($e:expr) => {
+            $e
+        };
+    }
+
+    // #18007: the operand is a macro argument, so a suggestion would cut through `id!(..)`
+    let x = false;
+    if id!(x) == true {}
+
+    // Delimiters inside a string literal don't count
+    let s = "";
+    if (s == ")") == true {}
+    //~^ bool_comparison
+}
