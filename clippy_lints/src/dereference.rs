@@ -304,6 +304,7 @@ impl<'tcx> LateLintPass<'tcx> for Dereferencing<'tcx> {
                             && !use_node.is_recv()
                             && let Some(ty) = use_node.defined_ty(cx)
                             && TyCoercionStability::for_defined_ty(cx, ty, use_node.is_return()).is_deref_stable()
+                            && !use_site.adjustments.iter().any(|adj| matches!(adj.kind, Adjust::NeverToAny))
                         {
                             self.state = Some((
                                 State::ExplicitDeref { mutability: None },
