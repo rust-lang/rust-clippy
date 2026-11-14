@@ -1,5 +1,5 @@
 #![warn(clippy::redundant_pattern_matching)]
-#![allow(clippy::needless_bool)]
+#![allow(clippy::matches_with_unrelated_if, clippy::needless_bool)]
 #![expect(clippy::match_like_matches_macro, clippy::needless_ifs)]
 
 fn issue_11174<T>(boolean: bool, maybe_some: Option<T>) -> bool {
