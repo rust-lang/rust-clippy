@@ -62,6 +62,16 @@ macro_rules! conf_enum {
                 }
             }
         }
+        #[cfg(feature = "jsonschema")]
+        impl schemars::JsonSchema for $name {
+            fn schema_name() -> std::borrow::Cow<'static, str> {
+                stringify!($name).into()
+            }
+
+            fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                schemars::json_schema!({ "type": "string", "enum": Self::NAMES })
+            }
+        }
         impl FromDefault<$name> for $name {
             fn from_default(default: $name) -> Self {
                 default
@@ -94,6 +104,8 @@ macro_rules! conf_enum {
         }
     };
 }
+#[cfg_attr(feature = "jsonschema", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "jsonschema", schemars(deny_unknown_fields))]
 pub struct Rename {
     pub path: String,
     pub rename: String,
@@ -134,6 +146,54 @@ pub struct DisallowedPath<const REPLACEMENT_ALLOWED: bool = true> {
     /// This could be useful when conditional compilation is used, or when a clippy.toml file is
     /// shared among multiple projects.
     allow_invalid: bool,
+}
+
+#[cfg(feature = "jsonschema")]
+impl<const REPLACEMENT_ALLOWED: bool> schemars::JsonSchema for DisallowedPath<REPLACEMENT_ALLOWED> {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        if REPLACEMENT_ALLOWED {
+            "DisallowedPath".into()
+        } else {
+            "DisallowedPathWithoutReplacement".into()
+        }
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        if REPLACEMENT_ALLOWED {
+            schemars::json_schema!({
+                "anyOf": [
+                    { "type": "string" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "path": { "type": "string" },
+                            "reason": { "type": "string" },
+                            "replacement": { "type": "string" },
+                            "allow-invalid": { "type": "boolean" }
+                        },
+                        "additionalProperties": false,
+                        "required": ["path"]
+                    }
+                ]
+            })
+        } else {
+            schemars::json_schema!({
+                "anyOf": [
+                    { "type": "string" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "path": { "type": "string" },
+                            "reason": { "type": "string" },
+                            "allow-invalid": { "type": "boolean" }
+                        },
+                        "additionalProperties": false,
+                        "required": ["path"]
+                    }
+                ]
+            })
+        }
+    }
 }
 
 impl<const REPLACEMENT_ALLOWED: bool> DisallowedPath<REPLACEMENT_ALLOWED> {
@@ -332,6 +392,28 @@ pub struct MacroMatcher {
     pub braces: (char, char),
 }
 
+#[cfg(feature = "jsonschema")]
+impl schemars::JsonSchema for MacroMatcher {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        "MacroMatcher".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "type": "object",
+            "properties": {
+                "name": { "type": "string" },
+                "brace": {
+                    "type": "string",
+                    "enum": ["{", "{}", "[", "[]", "(", "()"]
+                }
+            },
+            "additionalProperties": false,
+            "required": ["name", "brace"]
+        })
+    }
+}
+
 impl Deserialize for MacroMatcher {
     fn deserialize(dcx: &DiagCtxt<'_>, value: &TomlValue<'_>) -> Option<Self> {
         if let Some(table) = value.as_ref().as_table() {
@@ -385,6 +467,11 @@ conf_enum! {
 ///
 /// The [`Deserialize`] implementation checks that there are no duplicates in
 /// the user configuration.
+#[cfg_attr(feature = "jsonschema", derive(schemars::JsonSchema))]
+#[cfg_attr(
+    feature = "jsonschema",
+    schemars(transparent, inline, extend("uniqueItems" = true))
+)]
 pub struct SourceItemOrdering(Vec<SourceItemOrderingCategory>);
 
 impl SourceItemOrdering {
@@ -733,6 +820,15 @@ impl SourceItemOrderingTraitAssocItemKind {
 /// letting the user know if there's any issues with the config (e.g. not
 /// listing all item kinds that should be sorted).
 #[derive(Clone)]
+#[cfg_attr(feature = "jsonschema", derive(schemars::JsonSchema))]
+#[cfg_attr(
+    feature = "jsonschema",
+    schemars(
+        transparent,
+        inline,
+        extend("minItems" = 3, "maxItems" = 3, "uniqueItems" = true)
+    )
+)]
 pub struct SourceItemOrderingTraitAssocItemKinds(Vec<SourceItemOrderingTraitAssocItemKind>);
 
 impl fmt::Debug for SourceItemOrderingTraitAssocItemKinds {
@@ -816,6 +912,22 @@ pub enum SourceItemOrderingWithinModuleItemGroupings {
 
     /// Only the specified groupings should have their order checked.
     Custom(Vec<Spanned<String>>),
+}
+
+#[cfg(feature = "jsonschema")]
+impl schemars::JsonSchema for SourceItemOrderingWithinModuleItemGroupings {
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        "WithinGroupings".into()
+    }
+
+    fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "anyOf": [
+                { "type": "string", "enum": ["all", "none"] },
+                { "type": "array", "items": { "type": "string" } }
+            ]
+        })
+    }
 }
 
 impl SourceItemOrderingWithinModuleItemGroupings {
