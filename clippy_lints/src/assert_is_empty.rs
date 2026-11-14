@@ -19,8 +19,8 @@ declare_clippy_lint! {
     ///
     /// Checks assertions that only test whether a supported value is empty.
     ///
-    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`, and
-    /// `BinaryHeap`.
+    /// The lint handles `assert!` and `debug_assert!` calls on strings, slices, arrays, `Vec`,
+    /// `BinaryHeap`, and `HashSet`.
     ///
     /// ### Why is this bad?
     ///
@@ -44,8 +44,12 @@ declare_clippy_lint! {
     /// If the first assertion fails, the second assertion never runs, so the failure can hide the
     /// check that would have shown more useful context.
     ///
-    /// Instead, compare the value with an empty value using `assert_eq!`, `assert_ne!`,
-    /// `debug_assert_eq!`, or `debug_assert_ne!`. These macros print the asserted value on failure.
+    /// Instead, for strings, slices, arrays and `Vec`, compare the value with an empty value using
+    /// `assert_eq!`, `assert_ne!`, `debug_assert_eq!`, or `debug_assert_ne!`. These macros print
+    /// the asserted value on failure.
+    ///
+    /// Creating a new `HashSet` often mutates TLS which has a performance cost. The lint fields a
+    /// custom message formatting the set to avoid this.
     ///
     /// ### Known problems
     ///
@@ -68,6 +72,22 @@ declare_clippy_lint! {
     /// assert_eq!(items, [] as [i32; 0]);
     /// assert_ne!(items, [] as [i32; 0]);
     /// ```
+    ///
+    /// ```no_run
+    /// use std::collections::HashSet;
+    /// # let hs: HashSet<u8> = HashSet::new();
+    /// assert!(hs.is_empty());
+    /// assert!(!hs.is_empty());
+    /// ```
+    ///
+    /// Use instead:
+    /// ```no_run
+    /// use std::collections::HashSet;
+    /// # let hs: HashSet<u8> = HashSet::new();
+    /// assert!(hs.is_empty(), "assertion `is empty` failed, contents: {hs:?}");
+    /// assert!(!hs.is_empty(), "assertion `is not empty` failed.");
+    /// ```
+    ///
     #[clippy::version = "1.99.0"]
     pub ASSERT_IS_EMPTY,
     pedantic,
@@ -90,7 +110,9 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
     /// Finds assertion conditions that only test emptiness.
     ///
     /// Matching assertions without a custom message are rewritten as equality or inequality
-    /// assertions against an empty value.
+    /// assertions against an empty value for strings, slices, arrays, `Vec`, and `BinaryHeap`.
+    ///
+    /// For `HashSet`, a custom failure message is suggested.
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // `assert!` and `debug_assert!` expand to `if`; skip other expressions before walking the
         // macro backtrace.
@@ -98,16 +120,15 @@ impl<'tcx> LateLintPass<'tcx> for AssertIsEmpty {
             && !is_in_const_context(cx)
             && let Some((macro_name, condition, assert_span)) = assert_call(cx, expr)
             && let Some((assertion_kind, receiver)) = emptiness_assertion(condition)
-            && let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver, self.msrv)
         {
-            emit_assertion_suggestion(
+            emit_suggestion(
                 cx,
                 macro_name,
                 assert_span,
                 condition,
                 assertion_kind,
                 receiver,
-                (receiver_suffix, &empty_value),
+                self.msrv,
             );
         }
     }
@@ -212,7 +233,7 @@ fn assertion_suggestion<'tcx>(
         return None;
     }
     let suggestion = suggestion_for_type(cx, receiver_ty)?;
-    if type_is_printable_and_comparable(cx, receiver_ty.peel_refs()) {
+    if implements_required_traits(cx, receiver_ty.peel_refs()) {
         Some(suggestion)
     } else {
         None
@@ -258,6 +279,22 @@ fn suggestion_for_peeled_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Opt
     }
 }
 
+/// Returns whether the receiver type implements the traits required for the replacement assertion.
+fn implements_required_traits<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> bool {
+    match ty.opt_diag_name(cx) {
+        Some(sym::HashSet) => {
+            if let Some(debug_trait) = cx.tcx.get_diagnostic_item(sym::Debug)
+                && let Some(partial_eq_trait) = cx.tcx.get_diagnostic_item(sym::PartialEq)
+            {
+                implements_trait(cx, ty, debug_trait, &[]) && implements_trait(cx, ty, partial_eq_trait, &[ty.into()])
+            } else {
+                false
+            }
+        },
+        _ => type_is_printable_and_comparable(cx, ty),
+    }
+}
+
 /// Returns whether the replacement assertion has useful failure output.
 ///
 /// Suggestions are limited to cases where the replacement assertion can both compare the value and
@@ -289,6 +326,98 @@ fn collection_element_type<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option
         ty::Adt(_, args) if matches!(ty.opt_diag_name(cx), Some(sym::Vec | sym::BinaryHeap)) => args.types().next(),
         _ => None,
     }
+}
+/// Emits the suggestion appropriate for the receiver's type.
+///
+/// `HashSet` receivers get a custom failure message on the original assertion; other supported
+/// receivers are rewritten as equality checks against an empty value.
+fn emit_suggestion<'tcx>(
+    cx: &LateContext<'tcx>,
+    macro_name: &str,
+    assert_span: Span,
+    condition: &Expr<'_>,
+    assertion_kind: AssertionKind,
+    receiver: &'tcx Expr<'_>,
+    msrv: Msrv,
+) {
+    let receiver_ty = cx.typeck_results().expr_ty(receiver);
+    match receiver_ty.peel_refs().opt_diag_name(cx) {
+        Some(sym::HashSet) => {
+            if let Some(suggestion) = hashset_suggestion(cx, assert_span, assertion_kind, receiver) {
+                emit_hashset_suggestion(cx, macro_name, assert_span, condition, suggestion);
+            }
+        },
+        _ => {
+            if let Some((receiver_suffix, empty_value)) = assertion_suggestion(cx, receiver, msrv) {
+                emit_assertion_suggestion(
+                    cx,
+                    macro_name,
+                    assert_span,
+                    condition,
+                    assertion_kind,
+                    receiver,
+                    (receiver_suffix, &empty_value),
+                );
+            }
+        },
+    }
+}
+
+/// Emits the lint suggesting a custom failure message for a `HashSet` boolean assertion.
+fn emit_hashset_suggestion(
+    cx: &LateContext<'_>,
+    macro_name: &str,
+    assert_span: Span,
+    condition: &Expr<'_>,
+    suggestion: String,
+) {
+    let applicability = Applicability::MachineApplicable;
+    let condition_span = walk_span_to_context(condition.span, assert_span.ctxt()).unwrap_or(condition.span);
+    span_lint_and_then(
+        cx,
+        ASSERT_IS_EMPTY,
+        assert_span,
+        format!("used `{macro_name}!` without including the collection in the failure message"),
+        |diag| {
+            diag.multipart_suggestion(
+                format!("add a custom message to `{macro_name}`! to show the value on failure"),
+                vec![(condition_span, suggestion)],
+                applicability,
+            );
+        },
+    );
+}
+
+/// Builds the replacement condition and failure message for a `HashSet` emptiness assertion.
+/// that formats the contents of the set.
+///
+/// Returns `None` if the set doesn't implement the required traits.
+fn hashset_suggestion<'tcx>(
+    cx: &LateContext<'tcx>,
+    assert_span: Span,
+    assertion_kind: AssertionKind,
+    receiver: &'tcx Expr<'_>,
+) -> Option<String> {
+    let receiver_ty = cx.typeck_results().expr_ty(receiver);
+    if !implements_required_traits(cx, receiver_ty.peel_refs()) {
+        return None;
+    }
+    let receiver_snip = Sugg::hir_with_context(
+        cx,
+        receiver,
+        assert_span.ctxt(),
+        "..",
+        &mut Applicability::MachineApplicable,
+    )
+    .maybe_paren();
+    let receiver_prefix = match assertion_kind {
+        AssertionKind::Eq => "",
+        AssertionKind::Ne => "!",
+    };
+    let expected_state = assertion_kind.expected_state();
+    let message = format!("\"assertion `is {expected_state}` failed, contents: {{{receiver_snip}:?}}\"");
+
+    Some(format!("{receiver_prefix}{receiver_snip}.is_empty(), {message}"))
 }
 
 /// Emits the rewrite from a boolean assertion to a comparison assertion.
