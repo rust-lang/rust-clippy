@@ -687,3 +687,24 @@ mod issue_13094 {
             .collect()
     }
 }
+
+// https://github.com/rust-lang/rust-clippy/issues/14215
+fn early_bound_region_in_adt() {
+    use std::marker::PhantomData;
+
+    struct Guard<'a, S> {
+        _data: PhantomData<&'a S>,
+    }
+
+    impl<S> Guard<'_, S> {
+        fn do_something(_this: &mut Self) {}
+    }
+
+    fn takes_guard_fn<S, F>(_func: F)
+    where
+        F: FnOnce(&mut Guard<S>),
+    {
+    }
+
+    takes_guard_fn::<i32, _>(|s| Guard::do_something(s));
+}

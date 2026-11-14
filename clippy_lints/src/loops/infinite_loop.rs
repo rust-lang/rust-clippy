@@ -219,7 +219,7 @@ fn is_never_return(ret_ty: FnRetTy<'_>) -> bool {
             bounds,
             ..
         }) => {
-            if let Some(trait_ref) = bounds.iter().find_map(|b| b.trait_ref())
+            if let Some(trait_ref) = bounds.iter().find_map(hir::GenericBound::trait_ref)
                 && let Some(segment) = trait_ref
                     .path
                     .segments
