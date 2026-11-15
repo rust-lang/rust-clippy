@@ -2,17 +2,19 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{
     SpanExt as _, expr_block, snippet, snippet_block_with_context, snippet_with_applicability, snippet_with_context,
 };
+use clippy_utils::sugg::{Sugg, make_binop, make_unop};
 use clippy_utils::ty::{implements_trait, peel_and_count_ty_refs};
 use clippy_utils::{is_lint_allowed, is_unit_expr, peel_blocks, peel_hir_pat_refs, peel_n_hir_expr_refs, sym};
 use core::ops::ControlFlow;
 use rustc_arena::DroplessArena;
+use rustc_ast::{BinOpKind, LitKind};
 use rustc_errors::{Applicability, Diag};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_pat};
 use rustc_hir::{Arm, Expr, ExprKind, HirId, Node, Pat, PatExpr, PatExprKind, PatKind, QPath, StmtKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, AdtDef, TyCtxt, TypeckResults, VariantDef};
-use rustc_span::Span;
+use rustc_span::{Span, SyntaxContext};
 
 use super::{MATCH_BOOL, SINGLE_MATCH, SINGLE_MATCH_ELSE};
 
@@ -162,12 +164,9 @@ fn report_single_pattern(
         };
 
         let msg = "you seem to be trying to use `match` for an equality check. Consider using `if`";
+        let cond = equality_cond(cx, ex, pat, arm.pat, ctxt, &ref_or_deref_adjust, &mut app);
         let sugg = format!(
-            "if {} == {}{} {}{els_str}",
-            snippet_with_context(cx, ex.span, ctxt, "..", &mut app).0,
-            // PartialEq for different reference counts may not exist.
-            ref_or_deref_adjust,
-            snippet_with_applicability(cx, arm.pat.span, "..", &mut app),
+            "if {cond} {}{els_str}",
             expr_block(cx, arm.body, ctxt, "..", Some(expr.span), &mut app),
         );
         (msg, sugg)
@@ -186,6 +185,59 @@ fn report_single_pattern(
         diag.span_suggestion(expr.span, "try", sugg, app);
         note(diag);
     });
+}
+
+/// Builds the condition `<ex> == <pat>`, simplifying comparisons against boolean literals and
+/// adding parentheses where needed.
+fn equality_cond(
+    cx: &LateContext<'_>,
+    ex: &Expr<'_>,
+    peeled_pat: &Pat<'_>,
+    pat: &Pat<'_>,
+    ctxt: SyntaxContext,
+    ref_or_deref_adjust: &str,
+    app: &mut Applicability,
+) -> String {
+    let lhs = Sugg::hir_with_context(cx, ex, ctxt, "..", app);
+    if let PatKind::Expr(PatExpr {
+        kind: PatExprKind::Lit { lit, .. },
+        ..
+    }) = peeled_pat.kind
+        && let LitKind::Bool(val) = lit.node
+        && ref_or_deref_adjust.is_empty()
+        && cx.typeck_results().expr_ty(ex).is_bool()
+    {
+        // `x == true` is `x`, and `x == false` is `!x`
+        if val {
+            lhs.to_string()
+        } else if let ExprKind::Binary(op, op_lhs, _) = ex.kind
+            && matches!(op.node, BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge)
+            && !implements_ord(cx, op_lhs)
+        {
+            // Inverting `a < b` into `a >= b` is only valid for totally ordered types
+            make_unop("!", lhs).to_string()
+        } else {
+            (!lhs).to_string()
+        }
+    } else {
+        let rhs = Sugg::NonParen(
+            format!(
+                // PartialEq for different reference counts may not exist.
+                "{ref_or_deref_adjust}{}",
+                snippet_with_applicability(cx, pat.span, "..", app),
+            )
+            .into(),
+        );
+        make_binop(BinOpKind::Eq, &lhs, &rhs).to_string()
+    }
+}
+
+/// Checks if the type of `expr` implements `Ord`.
+fn implements_ord(cx: &LateContext<'_>, expr: &Expr<'_>) -> bool {
+    let ty = cx.typeck_results().expr_ty(expr);
+    cx.tcx
+        .get_diagnostic_item(sym::Ord)
+        .is_some_and(|id| implements_trait(cx, ty, id, &[]))
 }
 
 struct PatVisitor<'tcx> {
