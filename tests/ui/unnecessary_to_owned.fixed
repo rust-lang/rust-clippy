@@ -699,3 +699,21 @@ fn vec_contains_cloned() {
     let _ = Vec::new().iter().any(|i: &String| i == "str");
     //~^ unnecessary_to_owned
 }
+
+mod issue17842 {
+    fn receiver(_a: &str, _b: &mut String) {}
+
+    fn no_overlap() {
+        // `a` does not borrow from `s`, so removing `to_owned` is fine.
+        let mut s = String::from("str");
+        let a: &str = "lit";
+        receiver(a, &mut s);
+        //~^ unnecessary_to_owned
+    }
+
+    fn param_receiver(a: &str) {
+        let mut s = String::from("str");
+        receiver(a, &mut s);
+        //~^ unnecessary_to_owned
+    }
+}
