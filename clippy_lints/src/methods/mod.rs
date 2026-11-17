@@ -168,6 +168,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
 use rustc_data_structures::fx::FxHashSet;
+use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_middle::ty::TraitRef;
@@ -5411,8 +5412,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             should_implement_trait::check_impl_item(cx, impl_item, self_ty, implements_trait, first_arg_ty_opt, sig);
 
             if sig.decl.implicit_self().has_implicit_self()
-                && !(self.avoid_breaking_exported_api
-                    && cx.effective_visibilities.is_exported(impl_item.owner_id.def_id))
+                && self.may_break_exported_api(cx, impl_item.owner_id.def_id)
                 && let Some(first_arg) = iter_input_pats(sig.decl, cx.tcx.hir_body(id)).next()
                 && let Some(first_arg_ty) = first_arg_ty_opt
             {
@@ -5427,8 +5427,10 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 );
             }
 
+            if self.may_break_exported_api(cx, impl_item.owner_id.def_id) {
+                missing_return_type::check_impl_item(cx, impl_item, implements_trait);
+            }
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
-            missing_return_type::check_impl_item(cx, impl_item, implements_trait);
         }
     }
 
@@ -5459,13 +5461,20 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 );
             }
 
+            if self.may_break_exported_api(cx, item.owner_id.def_id) {
+                missing_return_type::check_trait_item(cx, item);
+            }
+
             new_ret_no_self::check_trait_item(cx, item);
-            missing_return_type::check_trait_item(cx, item);
         }
     }
 }
 
 impl Methods {
+    fn may_break_exported_api(&self, cx: &LateContext<'_>, id: LocalDefId) -> bool {
+        !(self.avoid_breaking_exported_api && cx.effective_visibilities.is_exported(id))
+    }
+
     #[expect(clippy::too_many_lines)]
     fn check_methods<'tcx>(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         // Handle method calls whose receiver and arguments may not come from expansion
