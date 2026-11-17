@@ -818,6 +818,7 @@ fn check_doctests(lints_not_used: &[String]) {
         .open("tests/doctest.bless")
         .expect("Couldn't create tests/doctest.bless");
     if env::var_os("RUSTC_BLESS").is_some_and(|v| v != "0") {
+        f.set_len(0).unwrap();
         writeln!(
             &mut f,
             "// File generated automatically by doctest.rs, used to identify which lints do not (yet) have
@@ -825,10 +826,10 @@ fn check_doctests(lints_not_used: &[String]) {
 // because a new lint's documentation does not actually trigger said lint. You should review your
 // documentation to make sure that the example actually triggers the lint.
 
+{lints_not_used:#?}
 "
         )
         .unwrap();
-        writeln!(&mut f, "{lints_not_used:#?}").unwrap();
         return;
     }
 

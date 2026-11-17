@@ -3,8 +3,6 @@
 // because a new lint's documentation does not actually trigger said lint. You should review your
 // documentation to make sure that the example actually triggers the lint.
 
-
-
 [
     "as_conversions",
     "assertions_on_constants",
@@ -84,7 +82,6 @@
     "large_const_arrays",
     "large_futures",
     "large_include_file",
-    "large_unopt_stack_frames",
     "large_unopt_stack_frames",
     "len_without_is_empty",
     "comparison_to_empty",
@@ -217,3 +214,4 @@
     "unused_collect",
     "wrong_pub_self_convention",
 ]
+
