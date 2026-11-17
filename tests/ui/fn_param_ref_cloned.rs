@@ -51,6 +51,33 @@ impl IsClone {
         //~^ fn_param_ref_cloned
     }
 
+    pub fn in_loop(&self, is_clone: &IsClone) {
+        let mut x = 0;
+        loop {
+            let cloned_ref_param = is_clone.clone();
+            //~^ fn_param_ref_cloned
+
+            x += 1;
+            if x == 1 {
+                break;
+            }
+        }
+    }
+
+    pub fn in_for(&self, is_clone: &IsClone) {
+        for x in 0..=2 {
+            let cloned_ref_param = is_clone.clone();
+        }
+    }
+
+    pub fn in_while(&self, is_clone: &IsClone) {
+        let mut x = 0;
+        while x < 2 {
+            let cloned_ref_param = is_clone.clone();
+            x += 1;
+        }
+    }
+
     pub fn using_ref(&self, is_clone: &IsClone) {
         let x = "";
         let b = is_clone;
