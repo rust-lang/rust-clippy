@@ -148,6 +148,7 @@ mod from_raw_with_void_ptr;
 mod from_str_radix_10;
 mod functions;
 mod future_not_send;
+mod hashmap_contains_key_then_get;
 mod if_let_mutex;
 mod if_not_else;
 mod if_then_some_else_none;
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        HashmapContainsKeyThenGet: hashmap_contains_key_then_get::HashmapContainsKeyThenGet = hashmap_contains_key_then_get::HashmapContainsKeyThenGet,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
