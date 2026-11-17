@@ -1,0 +1,89 @@
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:14:5
+   |
+LL | /     if m1.contains_key(&1) {
+LL | |         let val = m1.get(&1).unwrap();
+   | |______________________________________^ help: use: `if let Some(val) = m1.get(&1) {`
+   |
+   = note: `-D clippy::hashmap-contains-key-then-get` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::hashmap_contains_key_then_get)]`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:21:5
+   |
+LL | /     if m1.contains_key(&1) {
+LL | |         let val = m1.get(&1).expect("impossible!");
+   | |___________________________________________________^ help: use: `if let Some(val) = m1.get(&1) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:27:5
+   |
+LL | /     if m1.contains_key(&1) {
+LL | |         let val = m1.get(&1).copied().unwrap_or_default();
+   | |__________________________________________________________^ help: use: `if let Some(val) = m1.get(&1).copied() {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:33:5
+   |
+LL | /     if m1.contains_key(&1) {
+LL | |         let val = m1.get(&1).unwrap_or(&199);
+   | |_____________________________________________^ help: use: `if let Some(val) = m1.get(&1) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:38:5
+   |
+LL | /     if m1.contains_key(&1) {
+LL | |         let val = m1.get(&1).unwrap_or(&199);
+   | |_____________________________________________^ help: use: `if let Some(val) = m1.get(&1) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:45:5
+   |
+LL | /     if m1.contains_key(&1) {
+LL | |         let val = m1.get(&1).copied().map(i32::neg).filter(|it| *it > 64).unwrap();
+   | |___________________________________________________________________________________^ help: use: `if let Some(val) = m1.get(&1).copied().map(i32::neg).filter(|it| *it > 64) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:51:5
+   |
+LL | /     if m1.contains_key(&1) {
+LL | |         let val = m1.get(&1).cloned().unwrap();
+   | |_______________________________________________^ help: use: `if let Some(val) = m1.get(&1).cloned() {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:58:5
+   |
+LL | /     if m1.contains_key(&strct.a) {
+LL | |         let val = m1.get(&strct.a).unwrap();
+   | |____________________________________________^ help: use: `if let Some(val) = m1.get(&strct.a) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:65:5
+   |
+LL | /     if map_wrapper.m.contains_key(&1) {
+LL | |         let val = map_wrapper.m.get(&1).unwrap();
+   | |_________________________________________________^ help: use: `if let Some(val) = map_wrapper.m.get(&1) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:71:5
+   |
+LL | /     if map_wrapper.m.contains_key(&strct.a) {
+LL | |         let val = map_wrapper.m.get(&strct.a).unwrap();
+   | |_______________________________________________________^ help: use: `if let Some(val) = map_wrapper.m.get(&strct.a) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:78:5
+   |
+LL | /     if map_wrapper.m.contains_key(&strct.a) {
+LL | |         let val = map_wrapper.m.get(&strct.a).unwrap();
+   | |_______________________________________________________^ help: use: `if let Some(val) = map_wrapper.m.get(&strct.a) {`
+
+error: manual check for key before extracting its value from a map
+  --> tests/ui/hashmap_contains_key_then_get.rs:87:5
+   |
+LL | /     if bm.contains_key(&1) {
+LL | |         let val = bm.get(&1).unwrap();
+   | |______________________________________^ help: use: `if let Some(val) = bm.get(&1) {`
+
+error: aborting due to 12 previous errors
+

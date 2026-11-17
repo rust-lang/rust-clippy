@@ -210,6 +210,7 @@ generate! {
     collect,
     const_ptr,
     contains,
+    contains_key,
     convert_identity,
     copied,
     copy_from,
