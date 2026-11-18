@@ -10,7 +10,8 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::def::{CtorOf, DefKind, Res};
 use rustc_hir::{
-    Arm, BlockCheckMode, Expr, ExprKind, MatchSource, Pat, PatExpr, PatExprKind, PatKind, QPath, Stmt, StmtKind,
+    Arm, BlockCheckMode, Expr, ExprKind, MatchSource, Pat, PatExpr, PatExprKind, PatField, PatKind, QPath, Stmt,
+    StmtKind,
 };
 use rustc_lint::{LateContext, LintContext as _};
 use rustc_span::Span;
@@ -160,37 +161,40 @@ fn emit_manual_let_else(
     pat: &Pat<'_>,
     else_body: &Expr<'_>,
 ) {
+    // This is far from perfect, for example there needs to be:
+    // * renamings of the bindings for many `PatKind`s like slices, etc.
+    // * limitations in the existing replacement algorithms
+    // * unused binding collision detection with existing ones
+    // for this to be machine applicable.
+    let mut app = Applicability::HasPlaceholders;
+    let (sn_expr, _) = snippet_with_context(cx, expr.span, span.ctxt(), "", &mut app);
+    let (sn_else, else_is_mac_call) = snippet_with_context(cx, else_body.span, span.ctxt(), "", &mut app);
+
+    let else_bl = if let ExprKind::Block(block, None) = else_body.kind
+        && matches!(block.rules, BlockCheckMode::DefaultBlock)
+        && !else_is_mac_call
+    {
+        sn_else.into_owned()
+    } else {
+        format!("{{ {sn_else} }}")
+    };
+    let Some(sn_bl) = replace_in_pattern(cx, span, ident_map, pat, &mut app, true) else {
+        return;
+    };
+    let sugg = if sn_expr.ends_with('}') {
+        // let-else statement expressions are not allowed to end with `}`
+        // https://rust-lang.github.io/rfcs/3137-let-else.html#let-pattern--if--else--else-
+        format!("let {sn_bl} = ({sn_expr}) else {else_bl};")
+    } else {
+        format!("let {sn_bl} = {sn_expr} else {else_bl};")
+    };
+
     span_lint_and_then(
         cx,
         MANUAL_LET_ELSE,
         span,
         "this could be rewritten as `let...else`",
         |diag| {
-            // This is far from perfect, for example there needs to be:
-            // * renamings of the bindings for many `PatKind`s like slices, etc.
-            // * limitations in the existing replacement algorithms
-            // * unused binding collision detection with existing ones
-            // for this to be machine applicable.
-            let mut app = Applicability::HasPlaceholders;
-            let (sn_expr, _) = snippet_with_context(cx, expr.span, span.ctxt(), "", &mut app);
-            let (sn_else, else_is_mac_call) = snippet_with_context(cx, else_body.span, span.ctxt(), "", &mut app);
-
-            let else_bl = if let ExprKind::Block(block, None) = else_body.kind
-                && matches!(block.rules, BlockCheckMode::DefaultBlock)
-                && !else_is_mac_call
-            {
-                sn_else.into_owned()
-            } else {
-                format!("{{ {sn_else} }}")
-            };
-            let sn_bl = replace_in_pattern(cx, span, ident_map, pat, &mut app, true);
-            let sugg = if sn_expr.ends_with('}') {
-                // let-else statement expressions are not allowed to end with `}`
-                // https://rust-lang.github.io/rfcs/3137-let-else.html#let-pattern--if--else--else-
-                format!("let {sn_bl} = ({sn_expr}) else {else_bl};")
-            } else {
-                format!("let {sn_bl} = {sn_expr} else {else_bl};")
-            };
             diag.span_suggestion(span, "consider writing", sugg, app);
         },
     );
@@ -223,11 +227,8 @@ fn replace_in_pattern(
     pat: &Pat<'_>,
     app: &mut Applicability,
     top_level: bool,
-) -> String {
-    // We put a labeled block here so that we can implement the fallback in this function.
-    // As the function has multiple call sites, implementing the fallback via an Option<T>
-    // return type and unwrap_or_else would cause repetition. Similarly, the function also
-    // invokes the fall back multiple times.
+) -> Option<String> {
+    // The labeled block lets unsupported cases fall back to the original pattern snippet.
     'a: {
         // If the ident map is empty, there is no replacement to do.
         // The code following this if assumes a non-empty ident_map.
@@ -242,13 +243,19 @@ fn replace_in_pattern(
                         let sn_pfx = binding_mode.prefix_str();
                         let (sn_ptp, _) = snippet_with_context(cx, pat_to_put.span, span.ctxt(), "", app);
                         if let Some(subpt) = opt_subpt {
-                            let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
-                            return format!("{sn_pfx}{sn_ptp} @ {subpt}");
+                            if !sn_pfx.is_empty() {
+                                return None;
+                            }
+                            if matches!(pat_to_put.kind, PatKind::Binding(_, _, _, None)) {
+                                let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false)?;
+                                return Some(format!("{sn_ptp} @ {subpt}"));
+                            }
+                            return merge_patterns(cx, span, ident_map, pat_to_put, subpt, app);
                         }
-                        return format!("{sn_pfx}{sn_ptp}");
+                        return Some(format!("{sn_pfx}{sn_ptp}"));
                     },
                     (None, Some(subpt)) => {
-                        let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false);
+                        let subpt = replace_in_pattern(cx, span, ident_map, subpt, app, false)?;
                         // scanning for a value that matches is not sensitive to order
                         #[expect(rustc::potential_query_instability)]
                         if ident_map.values().any(|(other_pat, _)| {
@@ -259,10 +266,10 @@ fn replace_in_pattern(
                             }
                         }) {
                             // this name is shadowed, and, therefore, not usable
-                            return subpt;
+                            return Some(subpt);
                         }
                         let binding_pfx = ann.prefix_str();
-                        return format!("{binding_pfx}{binding_name} @ {subpt}");
+                        return Some(format!("{binding_pfx}{binding_name} @ {subpt}"));
                     },
                     (None, None) => break 'a,
                 }
@@ -271,70 +278,197 @@ fn replace_in_pattern(
                 let patterns = pats
                     .iter()
                     .map(|pat| replace_in_pattern(cx, span, ident_map, pat, app, false))
-                    .collect::<Vec<_>>();
+                    .collect::<Option<Vec<_>>>()?;
                 let or_pat = patterns.join(" | ");
                 if top_level {
-                    return format!("({or_pat})");
+                    return Some(format!("({or_pat})"));
                 }
-                return or_pat;
+                return Some(or_pat);
             },
             PatKind::Struct(path, fields, dot_dot) => {
-                let fields = fields
-                    .iter()
-                    .map(|fld| {
-                        if let PatKind::Binding(_, _, name, None) = fld.pat.kind
-                            && let Some((pat_to_put, binding_mode)) = ident_map.get(&name.name)
-                        {
-                            let sn_pfx = binding_mode.prefix_str();
-                            let (sn_fld_name, _) = snippet_with_context(cx, fld.ident.span, span.ctxt(), "", app);
-                            let (sn_ptp, _) = snippet_with_context(cx, pat_to_put.span, span.ctxt(), "", app);
-                            // TODO: this is a bit of a hack, but it does its job. Ideally, we'd check if pat_to_put is
-                            // a PatKind::Binding but that is also hard to get right.
-                            if sn_fld_name == sn_ptp {
-                                // Field init shorthand
-                                return format!("{sn_pfx}{sn_fld_name}");
-                            }
-                            return format!("{sn_fld_name}: {sn_pfx}{sn_ptp}");
-                        }
-                        let (sn_fld, _) = snippet_with_context(cx, fld.span, span.ctxt(), "", app);
-                        sn_fld.into_owned()
-                    })
-                    .collect::<Vec<_>>();
-                let fields_string = fields.join(", ");
-
-                let dot_dot_str = if dot_dot.is_some() { ", .." } else { "" };
-                let (sn_pth, _) = snippet_with_context(cx, path.span(), span.ctxt(), "", app);
-                return format!("{sn_pth} {{ {fields_string}{dot_dot_str} }}");
+                return Some(replace_in_struct_pattern(
+                    cx,
+                    span,
+                    ident_map,
+                    path,
+                    fields,
+                    dot_dot.is_some(),
+                    app,
+                ));
             },
             // Replace the variable name iff `TupleStruct` has one argument like `Variant(v)`.
             PatKind::TupleStruct(ref w, args, dot_dot_pos) => {
                 let mut args = args
                     .iter()
                     .map(|pat| replace_in_pattern(cx, span, ident_map, pat, app, false))
-                    .collect::<Vec<_>>();
+                    .collect::<Option<Vec<_>>>()?;
                 if let Some(pos) = dot_dot_pos.as_opt_usize() {
                     args.insert(pos, "..".to_owned());
                 }
                 let args = args.join(", ");
                 let sn_wrapper = cx.sess().source_map().span_to_snippet(w.span()).unwrap_or_default();
-                return format!("{sn_wrapper}({args})");
+                return Some(format!("{sn_wrapper}({args})"));
             },
             PatKind::Tuple(args, dot_dot_pos) => {
                 let mut args = args
                     .iter()
                     .map(|pat| replace_in_pattern(cx, span, ident_map, pat, app, false))
-                    .collect::<Vec<_>>();
+                    .collect::<Option<Vec<_>>>()?;
                 if let Some(pos) = dot_dot_pos.as_opt_usize() {
                     args.insert(pos, "..".to_owned());
                 }
                 let args = args.join(", ");
-                return format!("({args})");
+                return Some(format!("({args})"));
             },
             _ => {},
         }
     }
     let (sn_pat, _) = snippet_with_context(cx, pat.span, span.ctxt(), "", app);
-    sn_pat.into_owned()
+    Some(sn_pat.into_owned())
+}
+
+fn replace_in_struct_pattern(
+    cx: &LateContext<'_>,
+    span: Span,
+    ident_map: &FxHashMap<Symbol, (&Pat<'_>, BindingMode)>,
+    path: QPath<'_>,
+    fields: &[PatField<'_>],
+    has_rest: bool,
+    app: &mut Applicability,
+) -> String {
+    let fields = fields
+        .iter()
+        .map(|field| {
+            if let PatKind::Binding(_, _, name, None) = field.pat.kind
+                && let Some((replacement, binding_mode)) = ident_map.get(&name.name)
+            {
+                let prefix = binding_mode.prefix_str();
+                let (field_name, _) = snippet_with_context(cx, field.ident.span, span.ctxt(), "", app);
+                let (replacement, _) = snippet_with_context(cx, replacement.span, span.ctxt(), "", app);
+                if field_name == replacement {
+                    return format!("{prefix}{field_name}");
+                }
+                return format!("{field_name}: {prefix}{replacement}");
+            }
+            let (field, _) = snippet_with_context(cx, field.span, span.ctxt(), "", app);
+            field.into_owned()
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
+    let rest = if has_rest { ", .." } else { "" };
+    let (path, _) = snippet_with_context(cx, path.span(), span.ctxt(), "", app);
+    format!("{path} {{ {fields}{rest} }}")
+}
+
+/// Combines an irrefutable binding pattern with the refutable subpattern of an `@` binding.
+///
+/// This only handles combinations whose structure can be aligned without type-dependent pattern
+/// reasoning. Returning `None` suppresses the lint instead of producing an invalid `@`
+/// pattern with a non-binding left-hand side.
+fn merge_patterns(
+    cx: &LateContext<'_>,
+    span: Span,
+    ident_map: &FxHashMap<Symbol, (&Pat<'_>, BindingMode)>,
+    binding_pat: &Pat<'_>,
+    subpat: &Pat<'_>,
+    app: &mut Applicability,
+) -> Option<String> {
+    if matches!(subpat.kind, PatKind::Wild) {
+        let (snippet, _) = snippet_with_context(cx, binding_pat.span, span.ctxt(), "", app);
+        return Some(snippet.into_owned());
+    }
+
+    match (binding_pat.kind, subpat.kind) {
+        (PatKind::Wild, _) => replace_in_pattern(cx, span, ident_map, subpat, app, false),
+        (PatKind::Binding(_, _, _, None), _) => {
+            let (binding, _) = snippet_with_context(cx, binding_pat.span, span.ctxt(), "", app);
+            let subpat = replace_in_pattern(cx, span, ident_map, subpat, app, true)?;
+            Some(format!("{binding} @ {subpat}"))
+        },
+        (PatKind::Tuple(binding_pats, binding_rest), PatKind::Tuple(subpats, subpat_rest))
+            if binding_rest.as_opt_usize().is_none()
+                && subpat_rest.as_opt_usize().is_none()
+                && binding_pats.len() == subpats.len() =>
+        {
+            let pats = binding_pats
+                .iter()
+                .zip(subpats)
+                .map(|(binding_pat, subpat)| merge_patterns(cx, span, ident_map, binding_pat, subpat, app))
+                .collect::<Option<Vec<_>>>()?;
+            let trailing_comma = if pats.len() == 1 { "," } else { "" };
+            Some(format!("({}{trailing_comma})", pats.join(", ")))
+        },
+        (PatKind::Slice(binding_before, None, binding_after), PatKind::Slice(subpat_before, None, subpat_after))
+            if binding_before.len() + binding_after.len() == subpat_before.len() + subpat_after.len() =>
+        {
+            let binding_pats = binding_before.iter().chain(binding_after);
+            let subpats = subpat_before.iter().chain(subpat_after);
+            let pats = binding_pats
+                .zip(subpats)
+                .map(|(binding_pat, subpat)| merge_patterns(cx, span, ident_map, binding_pat, subpat, app))
+                .collect::<Option<Vec<_>>>()?;
+            Some(format!("[{}]", pats.join(", ")))
+        },
+        (PatKind::TupleStruct(lhs_path, lhs_args, lhs_rest), PatKind::TupleStruct(rhs_path, rhs_args, rhs_rest))
+            if cx.qpath_res(&lhs_path, binding_pat.hir_id) == cx.qpath_res(&rhs_path, subpat.hir_id)
+                && lhs_rest.as_opt_usize().is_none()
+                && rhs_rest.as_opt_usize().is_none()
+                && lhs_args.len() == rhs_args.len() =>
+        {
+            let merged = lhs_args
+                .iter()
+                .zip(rhs_args)
+                .map(|(binding_pat, subpat)| merge_patterns(cx, span, ident_map, binding_pat, subpat, app))
+                .collect::<Option<Vec<_>>>()?;
+            let (path_snippet, _) = snippet_with_context(cx, rhs_path.span(), span.ctxt(), "", app);
+            Some(format!("{path_snippet}({})", merged.join(", ")))
+        },
+        (PatKind::Struct(lhs_path, lhs_fields, lhs_rest), PatKind::Struct(rhs_path, rhs_fields, rhs_rest))
+            if cx.qpath_res(&lhs_path, binding_pat.hir_id) == cx.qpath_res(&rhs_path, subpat.hir_id) =>
+        {
+            let mut fields = Vec::with_capacity(lhs_fields.len().max(rhs_fields.len()));
+
+            for subpat_field in rhs_fields {
+                let field_name = subpat_field.ident.name;
+                let merged_field =
+                    if let Some(binding_field) = lhs_fields.iter().find(|field| field.ident.name == field_name) {
+                        merge_patterns(cx, span, ident_map, binding_field.pat, subpat_field.pat, app)?
+                    } else {
+                        replace_in_pattern(cx, span, ident_map, subpat_field.pat, app, false)?
+                    };
+                let field = subpat_field.ident.to_string();
+                fields.push(if merged_field == field {
+                    merged_field
+                } else {
+                    format!("{field}: {merged_field}")
+                });
+            }
+
+            for binding_field in lhs_fields {
+                if rhs_fields
+                    .iter()
+                    .all(|field| field.ident.name != binding_field.ident.name)
+                {
+                    let (pat, _) = snippet_with_context(cx, binding_field.pat.span, span.ctxt(), "", app);
+                    let field = binding_field.ident.to_string();
+                    fields.push(if pat == field {
+                        pat.into_owned()
+                    } else {
+                        format!("{field}: {pat}")
+                    });
+                }
+            }
+
+            let rest = if lhs_rest.is_some() && rhs_rest.is_some() {
+                if fields.is_empty() { ".." } else { ", .." }
+            } else {
+                ""
+            };
+            let (path_snippet, _) = snippet_with_context(cx, rhs_path.span(), span.ctxt(), "", app);
+            Some(format!("{path_snippet} {{ {}{rest} }}", fields.join(", ")))
+        },
+        _ => None,
+    }
 }
 
 fn pat_allowed_for_else(cx: &LateContext<'_>, pat: &'_ Pat<'_>, check_types: bool) -> bool {
