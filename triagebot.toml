@@ -19,7 +19,7 @@ allow-unauthenticated = [
 
 [issue-links]
 
-# Automatically backport all ICE fixes, to reduce 
+# Assume all ICE-fixing PRs should be backported (because that's usually the case)
 [backport.ice-backport]
 required-issue-label = "I-ICE"
 required-pr-labels = []
