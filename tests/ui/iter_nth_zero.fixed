@@ -62,7 +62,9 @@ trait Bar {
     }
 }
 
-impl Issue18074 {
+struct Baz;
+
+impl Baz {
     fn in_closure() -> Option<i32> {
         let f = || vec![1].into_iter().next();
         //~^ iter_nth_zero
@@ -70,7 +72,7 @@ impl Issue18074 {
     }
 }
 
-impl Default for Issue18074 {
+impl Default for Baz {
     fn default() -> Self {
         let _ = vec![1].into_iter().next();
         //~^ iter_nth_zero
@@ -78,9 +80,9 @@ impl Default for Issue18074 {
     }
 }
 
-struct Issue18074Iter;
+struct NestedIterNext;
 
-impl Iterator for Issue18074Iter {
+impl Iterator for NestedIterNext {
     type Item = ();
 
     fn next(&mut self) -> Option<Self::Item> {
