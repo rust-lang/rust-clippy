@@ -19,5 +19,41 @@ error: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
 LL |     let _unwrapped = iter2.nth(0).unwrap();
    |                      ^^^^^^^^^^^^ help: try calling `.next()` instead of `.nth(0)`: `iter2.next()`
 
-error: aborting due to 3 previous errors
+error: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
+  --> tests/ui/iter_nth_zero.rs:53:9
+   |
+LL |         vec![1].into_iter().nth(0)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try calling `.next()` instead of `.nth(0)`: `vec![1].into_iter().next()`
+
+error: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
+  --> tests/ui/iter_nth_zero.rs:60:9
+   |
+LL |         vec![1].into_iter().nth(0)
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try calling `.next()` instead of `.nth(0)`: `vec![1].into_iter().next()`
+
+error: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
+  --> tests/ui/iter_nth_zero.rs:67:20
+   |
+LL |         let f = || vec![1].into_iter().nth(0);
+   |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try calling `.next()` instead of `.nth(0)`: `vec![1].into_iter().next()`
+
+error: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
+  --> tests/ui/iter_nth_zero.rs:75:17
+   |
+LL |         let _ = vec![1].into_iter().nth(0);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try calling `.next()` instead of `.nth(0)`: `vec![1].into_iter().next()`
+
+error: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
+  --> tests/ui/iter_nth_zero.rs:89:13
+   |
+LL |             vec![1].into_iter().nth(0)
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try calling `.next()` instead of `.nth(0)`: `vec![1].into_iter().next()`
+
+error: called `.nth(0)` on a `std::iter::Iterator`, when `.next()` is equivalent
+  --> tests/ui/iter_nth_zero.rs:98:17
+   |
+LL |         let _ = vec![1].into_iter().nth(0);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try calling `.next()` instead of `.nth(0)`: `vec![1].into_iter().next()`
+
+error: aborting due to 9 previous errors
 

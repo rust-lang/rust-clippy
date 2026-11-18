@@ -45,3 +45,58 @@ impl Iterator for Issue9820 {
         self.nth(0)
     }
 }
+
+struct Issue18074;
+
+impl Issue18074 {
+    fn reproduce() -> Option<i32> {
+        vec![1].into_iter().nth(0)
+        //~^ iter_nth_zero
+    }
+}
+
+trait Bar {
+    fn baz() -> Option<i32> {
+        vec![1].into_iter().nth(0)
+        //~^ iter_nth_zero
+    }
+}
+
+impl Issue18074 {
+    fn in_closure() -> Option<i32> {
+        let f = || vec![1].into_iter().nth(0);
+        //~^ iter_nth_zero
+        f()
+    }
+}
+
+impl Default for Issue18074 {
+    fn default() -> Self {
+        let _ = vec![1].into_iter().nth(0);
+        //~^ iter_nth_zero
+        Self
+    }
+}
+
+struct Issue18074Iter;
+
+impl Iterator for Issue18074Iter {
+    type Item = ();
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // A nested fn is its own owner, so it is not part of `next`
+        fn helper() -> Option<i32> {
+            vec![1].into_iter().nth(0)
+            //~^ iter_nth_zero
+        }
+        helper();
+        None
+    }
+
+    // Only `next` is excluded, other `Iterator` methods should still lint
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let _ = vec![1].into_iter().nth(0);
+        //~^ iter_nth_zero
+        (0, None)
+    }
+}
