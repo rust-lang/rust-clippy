@@ -1,8 +1,11 @@
+use clippy_config::Conf;
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::msrvs::{self, Msrv};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, impl_lint_pass, std_or_core};
+use rustc_middle::ty;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -26,7 +29,17 @@ declare_clippy_lint! {
     "usage of `0.0 / 0.0` to obtain NaN instead of `f32::NAN` or `f64::NAN`"
 }
 
-declare_lint_pass!(ZeroDiv => [ZERO_DIVIDED_BY_ZERO]);
+impl_lint_pass!(ZeroDiv => [ZERO_DIVIDED_BY_ZERO]);
+
+pub struct ZeroDiv {
+    msrv: Msrv,
+}
+
+impl ZeroDiv {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self { msrv: conf.msrv.into() }
+    }
+}
 
 impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
@@ -49,13 +62,25 @@ impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
             } else {
                 Applicability::MachineApplicable
             };
+            // The associated constants `f32::NAN` and `f64::NAN` were added in 1.43; before that only
+            // the legacy module constants (`std::f32::NAN`) exist. `f16` and `f128` postdate 1.43 and
+            // only have the associated constants (there is no `std::f16::NAN`).
+            // `std_or_core` is `None` only in `#![no_core]` crates, which require nightly anyway.
+            let sugg = if matches!(float_type.kind(), ty::Float(ty::FloatTy::F32 | ty::FloatTy::F64))
+                && !self.msrv.meets(cx, msrvs::NUMERIC_ASSOCIATED_CONSTANTS)
+                && let Some(std_or_core) = std_or_core(cx)
+            {
+                format!("{std_or_core}::{float_type}::NAN")
+            } else {
+                format!("{float_type}::NAN")
+            };
             span_lint_and_sugg(
                 cx,
                 ZERO_DIVIDED_BY_ZERO,
                 expr.span,
                 "constant division of `0.0` with `0.0` will always result in NaN",
                 "use the constant instead",
-                format!("{float_type}::NAN"),
+                sugg,
                 applicability,
             );
         }

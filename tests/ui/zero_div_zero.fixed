@@ -1,7 +1,8 @@
 #![feature(f128)]
 #![feature(f16)]
-#[allow(unused_variables, clippy::eq_op)]
-#[warn(clippy::zero_divided_by_zero)]
+#![allow(unused_variables, clippy::eq_op)]
+#![warn(clippy::zero_divided_by_zero)]
+
 fn main() {
     let nan = f64::NAN;
     //~^ zero_divided_by_zero
@@ -40,4 +41,20 @@ fn main() {
     let also_not_nan = 0.0 / 2.0; // not an error: 0/2 = 0
     let f16_not_nan = 0.0f16 / 2.0;
     let f128_not_nan = 0.0f128 / 2.0;
+}
+
+#[clippy::msrv = "1.42.0"]
+#[allow(deprecated)]
+fn msrv_1_42() {
+    let nan = std::f64::NAN;
+    //~^ zero_divided_by_zero
+
+    let f32_nan = std::f32::NAN;
+    //~^ zero_divided_by_zero
+}
+
+#[clippy::msrv = "1.43.0"]
+fn msrv_1_43() {
+    let nan = f64::NAN;
+    //~^ zero_divided_by_zero
 }

@@ -1,5 +1,5 @@
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:6:15
+  --> tests/ui/zero_div_zero.rs:7:15
    |
 LL |     let nan = 0.0 / 0.0;
    |               ^^^^^^^^^ help: use the constant instead: `f64::NAN`
@@ -8,58 +8,76 @@ LL |     let nan = 0.0 / 0.0;
    = help: to override `-D warnings` add `#[allow(clippy::zero_divided_by_zero)]`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:9:19
+  --> tests/ui/zero_div_zero.rs:10:19
    |
 LL |     let f64_nan = 0.0 / 0.0f64;
    |                   ^^^^^^^^^^^^ help: use the constant instead: `f64::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:12:25
+  --> tests/ui/zero_div_zero.rs:13:25
    |
 LL |     let other_f64_nan = 0.0f64 / 0.0;
    |                         ^^^^^^^^^^^^ help: use the constant instead: `f64::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:15:28
+  --> tests/ui/zero_div_zero.rs:16:28
    |
 LL |     let one_more_f64_nan = 0.0f64 / 0.0f64;
    |                            ^^^^^^^^^^^^^^^ help: use the constant instead: `f64::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:18:19
+  --> tests/ui/zero_div_zero.rs:19:19
    |
 LL |     let neg_nan = -0.0 / 0.0;
    |                   ^^^^^^^^^^ help: use the constant instead: `f64::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:21:25
+  --> tests/ui/zero_div_zero.rs:22:25
    |
 LL |     let other_neg_nan = 0.0 / -0.0;
    |                         ^^^^^^^^^^ help: use the constant instead: `f64::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:24:24
+  --> tests/ui/zero_div_zero.rs:25:24
    |
 LL |     let both_neg_nan = -0.0f32 / -0.0;
    |                        ^^^^^^^^^^^^^^ help: use the constant instead: `f32::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:27:22
+  --> tests/ui/zero_div_zero.rs:28:22
    |
 LL |     let folded_nan = 0.0 / (2.0 - 2.0);
    |                      ^^^^^^^^^^^^^^^^^ help: use the constant instead: `f64::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:30:19
+  --> tests/ui/zero_div_zero.rs:31:19
    |
 LL |     let f16_nan = 0.0f16 / 0.0;
    |                   ^^^^^^^^^^^^ help: use the constant instead: `f16::NAN`
 
 error: constant division of `0.0` with `0.0` will always result in NaN
-  --> tests/ui/zero_div_zero.rs:33:20
+  --> tests/ui/zero_div_zero.rs:34:20
    |
 LL |     let f128_nan = 0.0f128 / 0.0;
    |                    ^^^^^^^^^^^^^ help: use the constant instead: `f128::NAN`
 
-error: aborting due to 10 previous errors
+error: constant division of `0.0` with `0.0` will always result in NaN
+  --> tests/ui/zero_div_zero.rs:49:15
+   |
+LL |     let nan = 0.0 / 0.0;
+   |               ^^^^^^^^^ help: use the constant instead: `std::f64::NAN`
+
+error: constant division of `0.0` with `0.0` will always result in NaN
+  --> tests/ui/zero_div_zero.rs:52:19
+   |
+LL |     let f32_nan = 0.0f32 / 0.0;
+   |                   ^^^^^^^^^^^^ help: use the constant instead: `std::f32::NAN`
+
+error: constant division of `0.0` with `0.0` will always result in NaN
+  --> tests/ui/zero_div_zero.rs:58:15
+   |
+LL |     let nan = 0.0 / 0.0;
+   |               ^^^^^^^^^ help: use the constant instead: `f64::NAN`
+
+error: aborting due to 13 previous errors
 
