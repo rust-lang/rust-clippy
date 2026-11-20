@@ -122,5 +122,34 @@ error: current MSRV (Minimum Supported Rust Version) is `1.38.0` but this item i
 LL |     let _ = "".len();
    |                ^^^^^
 
-error: aborting due to 19 previous errors
+error: current MSRV (Minimum Supported Rust Version) is `1.85.0` but this item is stable since `1.96.0`
+  --> tests/ui/incompatible_msrv.rs:191:5
+   |
+LL |     std::assert_matches!(x, Some(y) if y > 3);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.85.0` but this item is stable since `1.96.0`
+  --> tests/ui/incompatible_msrv.rs:199:5
+   |
+LL |     std::assert_matches!(x, Some(y) if y > 3);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.85.0` but this item is stable since `1.96.0`
+  --> tests/ui/incompatible_msrv.rs:202:5
+   |
+LL |     std::assert_matches!(x, Some(y) if y < 10);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: current MSRV (Minimum Supported Rust Version) is `1.85.0` but this item is stable since `1.96.0`
+  --> tests/ui/incompatible_msrv.rs:210:13
+   |
+LL |     macro_rules! check_some {
+LL |         ($value:expr) => {
+LL |             std::assert_matches!($value, Some(y) if y > 3);
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+...
+LL |     check_some!(Some(7u32));
+   |     ----------------------- in this macro invocation
+
+error: aborting due to 23 previous errors
 

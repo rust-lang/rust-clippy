@@ -193,7 +193,7 @@ LL +     cool_letter.is_ascii_uppercase();
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:56:13
+  --> tests/ui/manual_is_ascii_check.rs:58:13
    |
 LL |     assert!(matches!(b'1', b'0'..=b'9'));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -205,7 +205,7 @@ LL +     assert!(b'1'.is_ascii_digit());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:58:13
+  --> tests/ui/manual_is_ascii_check.rs:60:13
    |
 LL |     assert!(matches!('X', 'A'..='Z'));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -217,7 +217,7 @@ LL +     assert!('X'.is_ascii_uppercase());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:60:13
+  --> tests/ui/manual_is_ascii_check.rs:62:13
    |
 LL |     assert!(matches!('x', 'A'..='Z' | 'a'..='z'));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -229,7 +229,7 @@ LL +     assert!('x'.is_ascii_alphabetic());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:62:13
+  --> tests/ui/manual_is_ascii_check.rs:64:13
    |
 LL |     assert!(matches!('x', '0'..='9' | 'a'..='f' | 'A'..='F'));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -241,7 +241,7 @@ LL +     assert!('x'.is_ascii_hexdigit());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:74:23
+  --> tests/ui/manual_is_ascii_check.rs:76:23
    |
 LL |     const FOO: bool = matches!('x', '0'..='9');
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -253,7 +253,7 @@ LL +     const FOO: bool = 'x'.is_ascii_digit();
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:76:23
+  --> tests/ui/manual_is_ascii_check.rs:78:23
    |
 LL |     const BAR: bool = matches!('x', '0'..='9' | 'a'..='f' | 'A'..='F');
    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -265,7 +265,7 @@ LL +     const BAR: bool = 'x'.is_ascii_hexdigit();
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:83:5
+  --> tests/ui/manual_is_ascii_check.rs:85:5
    |
 LL |     ('0'..='9').contains(&&cool_letter);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -277,7 +277,7 @@ LL +     cool_letter.is_ascii_digit();
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:85:5
+  --> tests/ui/manual_is_ascii_check.rs:87:5
    |
 LL |     ('a'..='z').contains(*cool_letter);
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -289,7 +289,7 @@ LL +     cool_letter.is_ascii_lowercase();
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:104:20
+  --> tests/ui/manual_is_ascii_check.rs:106:20
    |
 LL |     take_while(|c| ('A'..='Z').contains(&c));
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -301,7 +301,7 @@ LL +     take_while(|c: char| c.is_ascii_uppercase());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:106:20
+  --> tests/ui/manual_is_ascii_check.rs:108:20
    |
 LL |     take_while(|c| (b'A'..=b'Z').contains(&c));
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -313,7 +313,7 @@ LL +     take_while(|c: u8| c.is_ascii_uppercase());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:108:26
+  --> tests/ui/manual_is_ascii_check.rs:110:26
    |
 LL |     take_while(|c: char| ('A'..='Z').contains(&c));
    |                          ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -325,7 +325,7 @@ LL +     take_while(|c: char| c.is_ascii_uppercase());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:110:20
+  --> tests/ui/manual_is_ascii_check.rs:112:20
    |
 LL |     take_while(|c| matches!(c, 'A'..='Z'));
    |                    ^^^^^^^^^^^^^^^^^^^^^^
@@ -337,7 +337,7 @@ LL +     take_while(|c: char| c.is_ascii_uppercase());
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:115:63
+  --> tests/ui/manual_is_ascii_check.rs:117:63
    |
 LL |     let digits: Vec<&char> = ['1', 'A'].iter().take_while(|c| ('0'..='9').contains(c)).collect();
    |                                                               ^^^^^^^^^^^^^^^^^^^^^^^
@@ -349,7 +349,7 @@ LL +     let digits: Vec<&char> = ['1', 'A'].iter().take_while(|c: &&char| c.is_
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:117:71
+  --> tests/ui/manual_is_ascii_check.rs:119:71
    |
 LL |     let digits: Vec<&mut char> = ['1', 'A'].iter_mut().take_while(|c| ('0'..='9').contains(c)).collect();
    |                                                                       ^^^^^^^^^^^^^^^^^^^^^^^
@@ -361,7 +361,7 @@ LL +     let digits: Vec<&mut char> = ['1', 'A'].iter_mut().take_while(|c: &&mut
    |
 
 error: manual check for common ascii range
-  --> tests/ui/manual_is_ascii_check.rs:119:71
+  --> tests/ui/manual_is_ascii_check.rs:121:71
    |
 LL |     let digits: Vec<&mut char> = ['1', 'A'].iter_mut().take_while(|c| matches!(c, '0'..='9')).collect();
    |                                                                       ^^^^^^^^^^^^^^^^^^^^^^

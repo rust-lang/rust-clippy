@@ -1,14 +1,15 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::macro_backtrace;
 use clippy_utils::msrvs::Msrv;
 use clippy_utils::{is_in_const_context, is_in_test, sym};
 use rustc_attr_ir::{RustcVersion, StabilityLevel, StableSince, find_attr};
-use rustc_data_structures::fx::FxHashMap;
+use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_hir::{self as hir, AmbigArg, Expr, ExprKind, HirId};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_span::def_id::{CrateNum, DefId};
-use rustc_span::{ExpnKind, Span};
+use rustc_span::{ExpnId, ExpnKind, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -113,6 +114,7 @@ pub struct IncompatibleMsrv {
     // The most recently called path. Used to skip checking the path after it's
     // been checked when visiting the call expression.
     called_path: Option<HirId>,
+    checked_macros: FxHashSet<ExpnId>,
 }
 
 impl IncompatibleMsrv {
@@ -123,6 +125,7 @@ impl IncompatibleMsrv {
             check_in_tests: conf.check_incompatible_msrv_in_tests,
             std_crates: StdCrates::new(tcx),
             called_path: None,
+            checked_macros: FxHashSet::default(),
         }
     }
 
@@ -162,6 +165,18 @@ impl IncompatibleMsrv {
         };
         self.availability_cache.insert((def_id, needs_const), version);
         version
+    }
+
+    fn check_macro_expansions(&mut self, cx: &LateContext<'_>, node: HirId, span: Span) {
+        for mac in macro_backtrace(span) {
+            if matches!(mac.kind, rustc_span::hygiene::MacroKind::Bang)
+                && self.std_crates.contains(mac.def_id.krate)
+                && mac.is_local()
+                && self.checked_macros.insert(mac.expn)
+            {
+                self.emit_lint_if_under_msrv(cx, false, mac.def_id, node, mac.span);
+            }
+        }
     }
 
     /// Emit lint if `def_id`, associated with `node` and `span`, is below the current MSRV.
@@ -219,6 +234,7 @@ impl IncompatibleMsrv {
 
 impl<'tcx> LateLintPass<'tcx> for IncompatibleMsrv {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
+        self.check_macro_expansions(cx, expr.hir_id, expr.span);
         match expr.kind {
             ExprKind::MethodCall(_, _, _, span) => {
                 if let Some(method_did) = cx.typeck_results().type_dependent_def_id(expr.hir_id) {
@@ -255,6 +271,7 @@ impl<'tcx> LateLintPass<'tcx> for IncompatibleMsrv {
     }
 
     fn check_ty(&mut self, cx: &LateContext<'tcx>, hir_ty: &'tcx hir::Ty<'tcx, AmbigArg>) {
+        self.check_macro_expansions(cx, hir_ty.hir_id, hir_ty.span);
         if let hir::TyKind::Path(qpath) = hir_ty.kind
             && let Some(ty_def_id) = cx.qpath_res(&qpath, hir_ty.hir_id).opt_def_id()
             // `CStr` and `CString` have been moved around but have been available since Rust 1.0.0
