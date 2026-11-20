@@ -39,12 +39,7 @@ impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
             && is_float_zero(&lhs_value)
             && is_float_zero(&rhs_value)
         {
-            // since we're about to suggest a use of f32::NAN or f64::NAN,
-            // match the precision of the literals that are given.
-            let float_type = match (lhs_value, rhs_value) {
-                (Constant::F64(_), _) | (_, Constant::F64(_)) => "f64",
-                _ => "f32",
-            };
+            let float_type = cx.typeck_results().expr_ty(expr);
             span_lint_and_help(
                 cx,
                 ZERO_DIVIDED_BY_ZERO,
