@@ -301,13 +301,13 @@ pub fn gen_sorted_lints_file(
                 s
             } else {
                 // Remove only full lines unless something is in the way.
-                s.strip_prefix('\n').unwrap_or(s)
+                s.trim_prefix('\n')
             });
             range.end
         });
 
         // Since we always generate an empty line at the end, make sure to always skip it.
         let s = &src[pos as usize..];
-        dst.push_str(s.strip_prefix('\n').map_or(s, |s| s.strip_prefix('\n').unwrap_or(s)));
+        dst.push_str(s.strip_prefix('\n').map_or(s, |s| s.trim_prefix('\n')));
     });
 }

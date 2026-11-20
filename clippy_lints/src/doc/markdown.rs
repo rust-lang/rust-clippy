@@ -110,7 +110,7 @@ fn check_word(
         {
             prefix
         } else {
-            s.strip_suffix('s').unwrap_or(s)
+            s.trim_suffix('s')
         };
 
         s.chars().all(char::is_alphanumeric)
