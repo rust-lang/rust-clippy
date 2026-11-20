@@ -1,0 +1,75 @@
+#![warn(clippy::manual_map)]
+
+// Regression test for #16193: an empty expansion must not let `manual_map` suggest a replacement that deletes the macro
+// invocation from the source.
+macro_rules! ignore {
+    ($anything:tt) => {};
+}
+
+fn if_let(opt: Option<u32>) -> Option<u32> {
+    if let Some(n) = opt {
+        ignore!("this will expand to nothing");
+        Some(n + 1)
+    } else {
+        None
+    }
+}
+
+fn match_expr(opt: Option<u32>) -> Option<u32> {
+    match opt {
+        Some(n) => {
+            ignore!("this will expand to nothing");
+            Some(n + 1)
+        },
+        None => None,
+    }
+}
+
+fn nested(opt: Option<u32>) -> Option<u32> {
+    if let Some(n) = opt {
+        {
+            ignore!("nested expansion");
+            Some(n + 1)
+        }
+    } else {
+        None
+    }
+}
+
+unsafe fn increment(n: u32) -> u32 {
+    n + 1
+}
+
+fn unsafe_block(opt: Option<u32>) -> Option<u32> {
+    match opt {
+        Some(n) => unsafe {
+            ignore!("unsafe expansion");
+            Some(increment(n))
+        },
+        None => None,
+    }
+}
+
+fn cfg_statement(opt: Option<u32>) -> Option<u32> {
+    if let Some(n) = opt {
+        #[cfg(any())]
+        println!("{n}");
+        Some(n + 1)
+    } else {
+        None
+    }
+}
+
+// Comments and nested blocks without statements should not prevent the usual suggestion.
+fn comments(opt: Option<u32>) -> Option<u32> {
+    opt.map(|n| n + 1)
+}
+
+fn unsafe_comments(opt: Option<u32>) -> Option<u32> {
+    opt.map(|n| unsafe { increment(n) })
+}
+
+fn main() {
+    let _ = if_let(Some(1));
+    let _ = match_expr(Some(1));
+}
