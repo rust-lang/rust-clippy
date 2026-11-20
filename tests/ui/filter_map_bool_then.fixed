@@ -2,6 +2,7 @@
 #![allow(clippy::map_identity)]
 #![expect(
     clippy::clone_on_copy,
+    clippy::matches_with_unrelated_if,
     clippy::unnecessary_filter_map,
     clippy::unnecessary_lazy_evaluations
 )]
