@@ -52,13 +52,15 @@ impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
     }
 }
 
-/// Checks for `0.0` or `-0.0`. Uses float comparison rather than `Constant`'s bitwise `PartialEq`,
-/// which distinguishes between the two.
+/// Checks for `0.0` or `-0.0`. Avoids `Constant`'s bitwise `PartialEq`, which distinguishes
+/// between the two.
 fn is_float_zero(c: &Constant) -> bool {
-    // FIXME(f16_f128): add these types when eq is available on all platforms
     match *c {
+        // `f16` and `f128` are stored as their bit patterns; mask off the sign bit.
+        Constant::F16(bits) => bits & !(1 << 15) == 0,
         Constant::F32(f) => f == 0.0,
         Constant::F64(f) => f == 0.0,
+        Constant::F128(bits) => bits & !(1 << 127) == 0,
         _ => false,
     }
 }
