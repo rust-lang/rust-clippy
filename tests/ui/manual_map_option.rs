@@ -239,3 +239,57 @@ fn main() {
         None => None,
     };
 }
+
+fn issue16751(v: Option<usize>) -> Option<usize> {
+    let _ = match v {
+        Some(n) => {
+            if n > 0 {
+                return None;
+            }
+            Some(42)
+        },
+        None => None,
+    };
+
+    let _ = match v {
+        //~^ manual_map
+        Some(n) => {
+            println!("{n}");
+            {
+                println!("{}", n + 1);
+                unsafe { Some(42) }
+            }
+        },
+        None => None,
+    };
+
+    match v {
+        //~^ manual_map
+        Some(n) => {
+            println!("{n}");
+            Some(42)
+        },
+        None => None,
+    }
+}
+
+fn issue16751_lifetime_conflict(mut values: Vec<u32>) -> Option<usize> {
+    match values.first() {
+        Some(_value) => {
+            values.push(1);
+            Some(values.len())
+        },
+        None => None,
+    }
+}
+
+fn issue16751_borrow_ends_before_closure(mut values: Vec<u32>) -> Option<usize> {
+    match values.first().copied() {
+        //~^ manual_map
+        Some(value) => {
+            values.push(value);
+            Some(values.len())
+        },
+        None => None,
+    }
+}
