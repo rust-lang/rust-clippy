@@ -11,6 +11,7 @@ mod derive_after {
     #[cfg(test)]
     mod tests {
         //~^ items_after_test_module
+        #[expect(clippy::test_without_assertions)]
         #[test]
         fn f() {}
     }
@@ -25,6 +26,7 @@ mod derive_and_fn_after {
     #[cfg(test)]
     mod tests {
         //~^ items_after_test_module
+        #[expect(clippy::test_without_assertions)]
         #[test]
         fn f() {}
     }
@@ -41,6 +43,7 @@ mod proc_macro_derive_after {
     #[cfg(test)]
     mod tests {
         //~^ items_after_test_module
+        #[expect(clippy::test_without_assertions)]
         #[test]
         fn f() {}
     }
@@ -55,6 +58,7 @@ mod derive_before {
 
     #[cfg(test)]
     mod tests {
+        #[expect(clippy::test_without_assertions)]
         #[test]
         fn f() {}
     }
@@ -71,6 +75,7 @@ mod derive_and_macro_after {
 
     #[cfg(test)]
     mod tests {
+        #[expect(clippy::test_without_assertions)]
         #[test]
         fn f() {}
     }
