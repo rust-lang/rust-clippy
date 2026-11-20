@@ -5,7 +5,7 @@ use super::NEEDLESS_RANGE_LOOP;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use clippy_utils::ty::has_iter_method;
-use clippy_utils::visitors::is_local_used;
+use clippy_utils::visitors::{is_const_evaluatable, is_local_used};
 use clippy_utils::{SpanlessEq, SpanlessHash, contains_name, higher, is_integer_literal, peel_hir_expr_while, sugg};
 use rustc_ast::ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet, FxIndexMap};
@@ -46,6 +46,7 @@ pub(super) fn check<'tcx>(
             unnamed_indexed_indirectly: false,
             indexed_directly: FxIndexMap::default(),
             unnamed_indexed_directly: false,
+            has_dynamic_indexed_container: false,
             referenced: FxHashSet::default(),
             nonindex: false,
             prefer_mutable: false,
@@ -56,6 +57,7 @@ pub(super) fn check<'tcx>(
         if visitor.indexed_indirectly.is_empty()
             && !visitor.unnamed_indexed_indirectly
             && !visitor.unnamed_indexed_directly
+            && !visitor.has_dynamic_indexed_container
             && let mut indexed_directly_iter = visitor.indexed_directly.into_iter()
             && let Some(((indexed, indexed_extended), (indexed_extent, indexed_span))) = indexed_directly_iter.next()
             && indexed_directly_iter.next().is_none()
@@ -245,6 +247,10 @@ struct VarVisitor<'a, 'tcx> {
     indexed_directly: FxIndexMap<(Symbol, SpanlessExpr<'a, 'tcx>), (Option<region::Scope>, Span)>,
     /// directly indexed literals, like `[1, 2, 3][i]`
     unnamed_indexed_directly: bool,
+    /// Whether the loop variable indexes a container selected by a non-constant expression.
+    /// For example, in `a[sum % 5][i]`, evaluating `a[sum % 5]` once before the loop would change
+    /// the program's semantics.
+    has_dynamic_indexed_container: bool,
     /// Any names that are used outside an index operation.
     /// Used to detect things like `&mut vec` used together with `vec[i]`
     referenced: FxHashSet<Symbol>,
@@ -283,15 +289,19 @@ impl<'tcx> VarVisitor<'_, 'tcx> {
                 None
             }
         });
-        let seqexpr = peel_hir_expr_while(nested_seqexpr, |e| {
-            if let ExprKind::Index(inner, _, _) | ExprKind::Field(inner, _) = e.kind {
+        let seqexpr = peel_hir_expr_while(nested_seqexpr, |e| match e.kind {
+            ExprKind::Index(inner, idx, _) => {
+                if used_cnt != 0 && !is_const_evaluatable(self.cx.tcx, self.cx.typeck_results(), idx) {
+                    self.has_dynamic_indexed_container = true;
+                }
                 Some(inner)
-            } else {
-                None
-            }
+            },
+            ExprKind::Field(inner, _) => Some(inner),
+            _ => None,
         });
 
         match used_cnt {
+            _ if self.has_dynamic_indexed_container => return false,
             0 => return true,
             n if n > 1 => self.nonindex = true, // Optimize code like `a[i][i]`
             _ => {},
