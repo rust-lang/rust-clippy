@@ -10,8 +10,10 @@ use clippy_config::ConfMetadata;
 use clippy_lints::declared_lints::LINTS;
 use clippy_lints::deprecated_lints::{DEPRECATED, DEPRECATED_VERSION, RENAMED};
 use declare_clippy_lint::LintInfo;
-use pulldown_cmark::{Options, Parser, html};
+use pulldown_cmark::{Event, Options, Parser, Tag, TagEnd, TextMergeStream, html};
 use serde::Deserialize;
+use std::io::{Read as _, Write as _, pipe};
+use std::process::Command;
 use test_utils::IS_RUSTC_TEST_SUITE;
 use ui_test::custom_flags::Flag;
 use ui_test::custom_flags::edition::Edition;
@@ -567,6 +569,17 @@ impl DiagnosticCollector {
                 )
                 .collect();
 
+            let mut lints_not_used = vec![];
+            for lint_metadata in &metadata {
+                if !lint_metadata.doctest_triggers_lint() {
+                    lints_not_used.push(lint_metadata.id.clone());
+                }
+            }
+
+            if !lints_not_used.is_empty() {
+                check_doctests(&lints_not_used);
+            }
+
             metadata.sort_unstable_by(|a, b| a.id.cmp(&b.id));
 
             fs::write(
@@ -713,6 +726,72 @@ impl LintMetadata {
             _ => panic!("needs to update this code"),
         }
     }
+
+    /// Runs clippy-driver on the lint's documentation, and return whether the lint triggered.
+    /// Note that this might sometimes fail because the whole snippet fails to build.
+    fn doctest_triggers_lint(&self) -> bool {
+        let parser = Parser::new(&self.docs);
+
+        let events = TextMergeStream::new(parser);
+
+        let mut codeblocks = vec![];
+
+        let mut in_codeblock = false;
+        for event in events {
+            match event {
+                Event::Start(Tag::CodeBlock(_)) => in_codeblock = true,
+                Event::End(TagEnd::CodeBlock) => in_codeblock = false,
+                Event::Text(codeblock) if in_codeblock => codeblocks.push(codeblock),
+                _ => (),
+            }
+        }
+
+        let clippy_driver = PathBuf::from(env!("CARGO_BIN_EXE_clippy-driver"));
+
+        for doctest in &codeblocks {
+            let (driver_reader, mut driver_writer) = pipe().unwrap();
+            let (mut out_reader, out_writer) = pipe().unwrap();
+
+            let target_dir = option_env!("CARGO_TARGET_DIR").unwrap_or("target");
+
+            let mut handle = Command::new(&clippy_driver)
+                .arg("-")
+                .arg(format!("-Dclippy::{}", self.id))
+                .arg(format!("-o{target_dir}"))
+                .arg("-Zwrite_long_types_to_disk=false")
+                .stdin(driver_reader)
+                .stderr(out_writer)
+                .spawn()
+                .unwrap();
+
+            // Append a main function if not already present
+            let doctest_code = if doctest.contains("fn main") {
+                doctest.to_string()
+            } else {
+                format!("fn main() {{ {doctest} }}")
+            };
+
+            // Doctests can have hidden code, sanitize that
+            let doctest_code = doctest_code.replace("# ", "");
+
+            // Write the source code to clippy-driver's stdin
+            driver_writer.write_all(doctest_code.as_bytes()).unwrap();
+
+            drop(driver_writer);
+            handle
+                .wait()
+                .expect("Could not wait on clippy-driver when doing doctests");
+
+            let mut buf = String::new();
+
+            out_reader.read_to_string(&mut buf).unwrap();
+
+            if buf.contains(&self.id.replace('_', "-")) || buf.contains(&self.id) {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 /// Gets all of the `out` dirs in a given Cargo `build-dir/<profile>/build` dir.
@@ -730,4 +809,44 @@ fn discover_out_dirs(dir: &Path) -> Vec<PathBuf> {
         .map(|e| e.path())
         .filter(|path| path.ends_with("out"))
         .collect::<Vec<_>>()
+}
+
+fn check_doctests(lints_not_used: &[String]) {
+    let mut f = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open("tests/doctest.bless")
+        .expect("Couldn't create tests/doctest.bless");
+    if env::var_os("RUSTC_BLESS").is_some_and(|v| v != "0") {
+        f.set_len(0).unwrap();
+        writeln!(
+            &mut f,
+            "// File generated automatically by doctest.rs, used to identify which lints do not (yet) have
+// working doctests. This list MUST NOT get bigger. If the doctest.rs fails unexpectedly is probably
+// because a new lint's documentation does not actually trigger said lint. You should review your
+// documentation to make sure that the example actually triggers the lint.
+
+{lints_not_used:#?}
+"
+        )
+        .unwrap();
+        return;
+    }
+
+    let mut blessed = String::new();
+    f.read_to_string(&mut blessed).unwrap();
+
+    // Go line by line and check if it's the same as expected
+    blessed
+        .lines()
+        .filter(|line| line.ends_with(','))
+        .zip(lints_not_used)
+        .for_each(|(blessed, actual_not_used)| {
+            let blessed = blessed.split('"').nth(1).unwrap();
+            assert!(
+                blessed == actual_not_used,
+                "Blessed doctests differ from actually failing ones: Expected {blessed}, found
+{actual_not_used}"
+            );
+        });
 }
