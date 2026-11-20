@@ -13,6 +13,15 @@ fn main() {
     let one_more_f64_nan = 0.0f64 / 0.0f64;
     //~^ zero_divided_by_zero
 
+    let neg_nan = -0.0 / 0.0;
+    //~^ zero_divided_by_zero
+
+    let other_neg_nan = 0.0 / -0.0;
+    //~^ zero_divided_by_zero
+
+    let both_neg_nan = -0.0f32 / -0.0;
+    //~^ zero_divided_by_zero
+
     let zero = 0.0;
     let other_zero = 0.0;
     let other_nan = zero / other_zero; // fine - this lint doesn't propagate constants.

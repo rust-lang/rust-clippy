@@ -39,9 +39,8 @@ impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
             && let ctxt = expr.span.ctxt()
             && let Some(lhs_value) = ecx.eval_local(left, ctxt)
             && let Some(rhs_value) = ecx.eval_local(right, ctxt)
-            // FIXME(f16_f128): add these types when eq is available on all platforms
-            && (Constant::F32(0.0) == lhs_value || Constant::F64(0.0) == lhs_value)
-            && (Constant::F32(0.0) == rhs_value || Constant::F64(0.0) == rhs_value)
+            && is_float_zero(&lhs_value)
+            && is_float_zero(&rhs_value)
         {
             // since we're about to suggest a use of f32::NAN or f64::NAN,
             // match the precision of the literals that are given.
@@ -58,5 +57,16 @@ impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
                 format!("consider using `{float_type}::NAN` if you would like a constant representing NaN"),
             );
         }
+    }
+}
+
+/// Checks for `0.0` or `-0.0`. Uses float comparison rather than `Constant`'s bitwise `PartialEq`,
+/// which distinguishes between the two.
+fn is_float_zero(c: &Constant) -> bool {
+    // FIXME(f16_f128): add these types when eq is available on all platforms
+    match *c {
+        Constant::F32(f) => f == 0.0,
+        Constant::F64(f) => f == 0.0,
+        _ => false,
     }
 }
