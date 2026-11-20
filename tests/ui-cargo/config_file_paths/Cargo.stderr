@@ -1,0 +1,13 @@
+error: use of a disallowed/placeholder name `selected`
+ --> src/main.rs:4:9
+  |
+4 |     let selected = 0;
+  |         ^^^^^^^^
+  |
+note: the lint level is defined here
+ --> src/main.rs:1:9
+  |
+1 | #![deny(clippy::disallowed_names)]
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `config_file_paths` (bin "config_file_paths") due to 1 previous error
