@@ -35,7 +35,7 @@ fn custom_type_match() {
 
 fn option_match(x: Option<i32>) {
     let _: Option<i32> = x;
-    // Don't trigger, this is the case for manual_map_option
+    // Don't trigger, this is the case for manual_map
     let _: Option<i32> = match x {
         Some(a) => Some(-a),
         None => None,
