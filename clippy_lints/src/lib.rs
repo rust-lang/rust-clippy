@@ -173,6 +173,7 @@ mod init_numbered_fields;
 mod inline_fn_without_body;
 mod inline_trait_bounds;
 mod int_plus_one;
+mod invalid_float_sort_comparator;
 mod item_name_repetitions;
 mod items_after_statements;
 mod items_after_test_module;
@@ -546,6 +547,7 @@ rustc_lint::early_lint_methods!(
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
         DefinitionInModuleRoot: definition_in_module_root::DefinitionInModuleRoot = definition_in_module_root::DefinitionInModuleRoot::default(),
+        InvalidFloatSortComparator: invalid_float_sort_comparator::InvalidFloatSortComparator = invalid_float_sort_comparator::InvalidFloatSortComparator,
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );
