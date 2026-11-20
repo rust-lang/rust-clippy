@@ -1,5 +1,5 @@
 error: `if` expression that could be written as a logical && expression
-  --> tests/ui/ifs_as_logical_ops_unfixable.rs:4:5
+  --> tests/ui/ifs_as_logical_ops_unfixable.rs:5:5
    |
 LL |     if x { if y { z } else { false } } else { false }
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `x && if y { z } else { false }`
@@ -8,7 +8,7 @@ LL |     if x { if y { z } else { false } } else { false }
    = help: to override `-D warnings` add `#[allow(clippy::ifs_as_logical_ops)]`
 
 error: `if` expression that could be written as a logical && expression
-  --> tests/ui/ifs_as_logical_ops_unfixable.rs:4:12
+  --> tests/ui/ifs_as_logical_ops_unfixable.rs:5:12
    |
 LL |     if x { if y { z } else { false } } else { false }
    |            ^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `y && z`
