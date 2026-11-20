@@ -11,15 +11,17 @@ fn valid_float_sort_comparator<T: PartialOrd>(a: &T, b: &T) -> Ordering {
 }
 
 fn main() {
-    // Basic detection: f32
     let mut floats32: [f32; 0] = [];
+    let mut floats64: [f64; 0] = [];
+    let mut integers: [i32; 0] = [];
+
+    // Basic detection: f32
     floats32.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
     //~^ invalid_float_sort_comparator
     floats32.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
     //~^ invalid_float_sort_comparator
 
     // Basic detection: f64
-    let mut floats64: [f64; 0] = [];
     floats64.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
     //~^ invalid_float_sort_comparator
     floats64.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
@@ -32,7 +34,6 @@ fn main() {
     //~^ invalid_float_sort_comparator
 
     // No warning: integer comparison
-    let mut integers: [i32; 0] = [];
     integers.sort_by(invalid_float_sort_comparator);
     integers.sort_unstable_by(invalid_float_sort_comparator);
 

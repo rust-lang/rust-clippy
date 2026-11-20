@@ -547,7 +547,6 @@ rustc_lint::early_lint_methods!(
         EmptyLineAfter: empty_line_after::EmptyLineAfter = empty_line_after::EmptyLineAfter::new(),
         InlineTraitBounds: inline_trait_bounds::InlineTraitBounds = inline_trait_bounds::InlineTraitBounds::default(),
         DefinitionInModuleRoot: definition_in_module_root::DefinitionInModuleRoot = definition_in_module_root::DefinitionInModuleRoot::default(),
-        InvalidFloatSortComparator: invalid_float_sort_comparator::InvalidFloatSortComparator = invalid_float_sort_comparator::InvalidFloatSortComparator,
         // add early passes here, used by `cargo dev new_lint`
     ]]
 );
@@ -876,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        InvalidFloatSortComparator: invalid_float_sort_comparator::InvalidFloatSortComparator = invalid_float_sort_comparator::InvalidFloatSortComparator,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );
