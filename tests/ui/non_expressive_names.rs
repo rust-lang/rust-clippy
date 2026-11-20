@@ -1,6 +1,8 @@
 #![warn(clippy::just_underscores_and_digits)]
 #![expect(non_snake_case)]
 
+//@aux-build:proc_macros.rs
+
 #[derive(Clone, Debug)]
 enum MaybeInst {
     Split,
@@ -58,6 +60,31 @@ impl Bar {
         let __1___2 = 12;
         //~^ just_underscores_and_digits
         let _1_ok = 1;
+    }
+}
+
+fn outer_allow() {
+    #[expect(clippy::just_underscores_and_digits)]
+    let _0 = 0;
+}
+
+#[expect(clippy::just_underscores_and_digits)]
+fn function_allow() {
+    let _0 = 0;
+}
+
+mod inner_allow {
+    #![expect(clippy::just_underscores_and_digits)]
+
+    fn example() {
+        let _0 = 0;
+    }
+}
+
+fn does_not_lint_macro_generated_binding() {
+    proc_macros::with_span! {
+        span
+        let _0 = 0;
     }
 }
 
