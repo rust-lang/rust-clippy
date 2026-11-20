@@ -97,6 +97,18 @@ To deny `clippy::enum_glob_use`, put the following in the `Cargo.toml`:
 [lints.clippy]
 enum_glob_use = "deny"
 ```
+> **Note:**  
+> The `[lints.clippy]` table in `Cargo.toml` can **only** be used to set lint
+> *levels* (`allow`, `warn`, `deny`).  
+>
+> It does **not** support Clippy-specific configuration options (such as
+> `allowed-duplicate-crates`, `disallowed-names`, etc.).  
+> For those, you must still use a separate `clippy.toml` (or `.clippy.toml`)
+> file placed at the root of your project.
+>
+> Although [RFC 3389](https://rust-lang.github.io/rfcs/3389-manifest-lint.html)
+> proposes extending `Cargo.toml` to support full lint configuration, this is
+> **not yet implemented**.
 
 For more details and options, refer to the Cargo documentation.
 
