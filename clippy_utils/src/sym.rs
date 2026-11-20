@@ -124,6 +124,7 @@ generate! {
     Regex,
     RegexBuilder,
     RegexSet,
+    SPACE: " ",
     Saturating,
     SeekFrom,
     SliceIter,
