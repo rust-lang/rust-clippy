@@ -7,3 +7,6 @@ post-pull = [ { cmd = ["cargo", "dev", "sync", "update_nightly"], commit-message
 
 [pull-pr]
 suffix = "r? @ghost\n\nchangelog: none"
+
+[push-pr]
+suffix = "r? Manishearth"
