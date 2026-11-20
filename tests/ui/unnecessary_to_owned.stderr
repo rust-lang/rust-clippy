@@ -604,5 +604,17 @@ LL -     let _ = Vec::new().contains(&"str".to_string());
 LL +     let _ = Vec::new().iter().any(|i: &String| i == "str");
    |
 
-error: aborting due to 87 previous errors
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned.rs:710:18
+   |
+LL |         receiver(&a.to_owned(), &mut s);
+   |                  ^^^^^^^^^^^^^ help: use: `a`
+
+error: unnecessary use of `to_owned`
+  --> tests/ui/unnecessary_to_owned.rs:716:18
+   |
+LL |         receiver(&a.to_owned(), &mut s);
+   |                  ^^^^^^^^^^^^^ help: use: `a`
+
+error: aborting due to 89 previous errors
 
