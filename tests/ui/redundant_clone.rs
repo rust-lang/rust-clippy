@@ -388,3 +388,16 @@ mod issue16096 {
         Some(t)
     }
 }
+
+mod match_guard {
+    use std::collections::HashSet;
+
+    // Without the clone, the first guard would move `id` while the later guard still uses it.
+    fn later_guard_uses_original(kind: &str, id: String, shown: &mut HashSet<String>) {
+        match kind {
+            "a" if shown.insert(id.clone()) => {},
+            "b" if shown.insert(id) => {},
+            _ => {},
+        }
+    }
+}
