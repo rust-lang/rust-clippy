@@ -4,6 +4,7 @@
     clippy::clone_on_copy,
     clippy::empty_loop,
     clippy::redundant_closure,
+    clippy::suspicious_literal_option,
     clippy::useless_asref,
     clippy::useless_vec
 )]
