@@ -27,10 +27,10 @@ pub(super) fn check(cx: &EarlyContext<'_>, span: Span, num_lit: &mut NumericLite
             missing_char = 'f';
         } else {
             let radix = match num_lit.radix {
-                Radix::Binary => 2,
-                Radix::Octal => 8,
-                Radix::Decimal => 10,
-                Radix::Hexadecimal => 16,
+                Radix::Bin => 2,
+                Radix::Oct => 8,
+                Radix::Dec => 10,
+                Radix::Hex => 16,
             };
             if let Ok(int) = u64::from_str_radix(&main_part.replace('_', ""), radix) {
                 missing_char = match (last_group, int) {
