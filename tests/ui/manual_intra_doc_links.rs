@@ -1,0 +1,172 @@
+//@aux-build:external_item.rs
+//@aux-build:external_consts.rs
+
+//! Link with [refdef] and <https://docs.rs/external_item/latest/external_item/index.html>
+//! and [inner link][refdef].
+//!
+//! [refdef]: index.html
+//~^^^ manual_intra_doc_links
+//~^^^^^ manual_intra_doc_links
+//~| manual_intra_doc_links
+
+#![warn(clippy::manual_intra_doc_links)]
+
+pub mod extern_crate {
+    pub(crate) extern crate external_item;
+}
+
+/// Link to [external item](https://docs.rs/external_item/latest/external_item/struct._ExternalStruct.html)
+//~^ manual_intra_doc_links
+pub struct DocsrsLinkExtern;
+
+/// Link to [external item](https://docs.rs/external_item/latest/external_item/index.html)
+//~^ manual_intra_doc_links
+pub struct DocsrsLinkExternIndexHtmlCrate;
+
+/// Link to [external item](https://docs.rs/external_item/latest/external_item/module/index.html)
+//~^ manual_intra_doc_links
+pub struct DocsrsLinkExternIndexHtmlModule;
+
+/// Link to [a crate that isn't a dependency](https://docs.rs/regex/latest/regex/index.html)
+pub struct DocsrsLinkNonDependency;
+
+use external_consts::MAGIC_NUMBER;
+/// Link to [external const](https://docs.rs/external_consts/latest/external_consts/constant.MAGIC_NUMBER.html)
+//~^ manual_intra_doc_links
+pub struct DocsrsLinkUse;
+/// Link to [external const](https://docs.rs/external_consts/latest/external_consts/index.html)
+//~^ manual_intra_doc_links
+pub struct DocsrsLinkUseIndexHtmlCrate;
+/// Link to [external const](https://docs.rs/external_consts/latest/external_consts/module/index.html)
+//~^ manual_intra_doc_links
+pub struct DocsrsLinkUseIndexHtmlModule;
+
+/// Link to [external item](../external_item/struct._ExternalStruct.html)
+//~^ manual_intra_doc_links
+pub struct RelativeLinkExtern;
+/// Link to [external item](../external_item/index.html)
+//~^ manual_intra_doc_links
+pub struct RelativeLinkExternIndexHtmlCrate;
+/// Link to [external item](../external_item/module/index.html)
+//~^ manual_intra_doc_links
+pub struct RelativeLinkExternIndexHtmlModule;
+
+/// Link to [external item](../external_consts/constant.MAGIC_NUMBER.html)
+//~^ manual_intra_doc_links
+pub struct RelativeLinkUse;
+/// Link to [external item](../external_consts/index.html)
+//~^ manual_intra_doc_links
+pub struct RelativeLinkUseIndexHtmlCrate;
+/// Link to [external item](../external_consts/module/index.html)
+//~^ manual_intra_doc_links
+pub struct RelativeLinkUseIndexHtmlModule;
+
+/// Link to [local item](struct.FooBar.html)
+//~^ manual_intra_doc_links
+pub struct RelativeLinkLocalItem;
+
+/// Link to [myself](index.html)
+//~^ manual_intra_doc_links
+pub mod my_mod {
+    /// Link to [local item](struct.FooBar.html)
+    //~^ manual_intra_doc_links
+    pub struct RelativeLinkLocalSubmoduleItem;
+    /// Link to [local item](../struct.FooBar.html)
+    //~^ manual_intra_doc_links
+    pub struct RelativeLinkLocalParentItem;
+    /// Link to [local item](mod_2/struct.FooBar.html)
+    //~^ manual_intra_doc_links
+    pub struct RelativeLinkLocalChildModItem;
+    /// Link to [local item](index.html)
+    //~^ manual_intra_doc_links
+    pub struct RelativeLinkLocalModule;
+    /// Link to [local item](../index.html)
+    //~^ manual_intra_doc_links
+    pub struct RelativeLinkLocalParentCrate;
+    /// Link to [outside the docs](../../index.html)
+    pub struct RelativeLinkLocalRoot;
+
+    pub struct FooBar;
+    pub mod mod_2 {
+        pub struct FooBar;
+    }
+
+    /// Link to [external item](https://docs.rs/external_item/latest/external_item/struct._ExternalStruct.html)
+    //~^ manual_intra_doc_links
+    pub struct DocsrsLinkExtern;
+    /// Link to [external const](https://docs.rs/external_consts/latest/external_consts/constant.MAGIC_NUMBER.html)
+    //~^ manual_intra_doc_links
+    pub struct DocsrsLinkUse;
+    /// Link to [external item](../../external_item/struct._ExternalStruct.html)
+    //~^ manual_intra_doc_links
+    pub struct RelativeLinkExtern;
+    /// Link to [external item](../../external_consts/constant.MAGIC_NUMBER.html)
+    //~^ manual_intra_doc_links
+    pub struct RelativeLinkUse;
+}
+
+pub struct FooBar;
+
+/// Link to [a crate that isn't a dependency](../nonexistant/index.html)
+pub struct RelativeLinkNonDependency;
+
+/// Link to [external item](../constant.MAGIC_NUMBER.html)
+pub struct RelativeLinkOutsideCrate;
+/// Link to [external item](../index.html)
+pub struct RelativeLinkOutsideCrateIndexHtml;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/nightly/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkNightly;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/beta/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkBeta;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/stable/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkStable;
+
+/// Link to [libstd vec](https://doc.rust-lang.org/std/index.html)
+//~^ manual_intra_doc_links
+pub struct StdLinkNoVersion;
+
+extern crate alloc;
+
+/// Link to [liballoc vec](https://doc.rust-lang.org/nightly/alloc/vec/index.html)
+//~^ manual_intra_doc_links
+pub struct AllocLink;
+
+extern crate core;
+
+/// Link to [libcore iterator](https://doc.rust-lang.org/nightly/core/iter/trait.Iterator.html)
+//~^ manual_intra_doc_links
+pub struct CoreLink;
+
+/// Link to [book](https://doc.rust-lang.org/nightly/book/index.html)
+/// not a real intra-doc link.
+pub struct BookLink;
+
+// Only `latest` links work, because Clippy doesn't actually know what version your dependency is.
+/// Link to [external const](https://docs.rs/external_consts/1.0/external_consts/index.html)
+pub struct DocsrsLinkWithExplicitVersionNumber;
+
+/// Similar story with the standard library, because we don't know if the author is
+/// trying to link a specific version of the standard library on purpose.
+///
+/// We sort of have to assume that channel links, like nightly, beta, or stable,
+/// are incidental, because intra-doc links on docs.rs that point at the standard library
+/// will point to nightly, but the docs.rs/std alias points at stable, and the web team
+/// deliberately gives [SEO][] to channel-less std docs. If someone doesn't know what
+/// they're doing, the channel they link to will have as much to do with their desired version
+/// as the [area code][] in their phone number has to do with where they actually are.
+///
+/// [SEO]: https://github.com/rust-lang/rust/issues/9461
+/// [area code]: https://xkcd.com/1129/
+///
+/// But, because the web team's SEO makes it hard to find Rust standard library docs
+/// with explicit version numbers, we can safely assume that anyone who writes links
+/// with an explicit version number knows what they're doing.
+///
+/// Link to [the original standard library](https://doc.rust-lang.org/1.0.0/std/index.html)
+pub struct StdLinkWithExplicitVersionNumber;
