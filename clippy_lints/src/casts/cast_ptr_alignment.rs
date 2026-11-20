@@ -1,6 +1,9 @@
-use clippy_utils::diagnostics::span_lint;
+use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::msrvs::{self, Msrv};
+use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::is_c_void;
 use clippy_utils::{get_parent_expr, is_hir_ty_cfg_dependant, sym};
+use rustc_errors::{Applicability, Diag};
 use rustc_hir::{Expr, ExprKind, GenericArg};
 use rustc_lint::LateContext;
 use rustc_middle::ty::layout::LayoutOf as _;
@@ -8,11 +11,11 @@ use rustc_middle::ty::{self, Ty};
 
 use super::CAST_PTR_ALIGNMENT;
 
-pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, cast_from: Ty<'tcx>, cast_to: Ty<'tcx>) {
-    lint_cast_ptr_alignment(cx, expr, cast_from, cast_to);
+pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, cast_from: Ty<'tcx>, cast_to: Ty<'tcx>, msrv: Msrv) {
+    lint_cast_ptr_alignment(cx, expr, cast_from, cast_to, msrv);
 }
 
-pub(super) fn check_cast_method(cx: &LateContext<'_>, expr: &Expr<'_>) {
+pub(super) fn check_cast_method(cx: &LateContext<'_>, expr: &Expr<'_>, msrv: Msrv) {
     if let ExprKind::MethodCall(method_path, self_arg, [], _) = &expr.kind
         && method_path.ident.name == sym::cast
         && let Some(generic_args) = method_path.args
@@ -21,11 +24,17 @@ pub(super) fn check_cast_method(cx: &LateContext<'_>, expr: &Expr<'_>) {
         && !is_hir_ty_cfg_dependant(cx, cast_to.as_unambig_ty())
     {
         let (cast_from, cast_to) = (cx.typeck_results().expr_ty(self_arg), cx.typeck_results().expr_ty(expr));
-        lint_cast_ptr_alignment(cx, expr, cast_from, cast_to);
+        lint_cast_ptr_alignment(cx, expr, cast_from, cast_to, msrv);
     }
 }
 
-fn lint_cast_ptr_alignment<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, cast_from: Ty<'tcx>, cast_to: Ty<'tcx>) {
+fn lint_cast_ptr_alignment<'tcx>(
+    cx: &LateContext<'tcx>,
+    expr: &Expr<'_>,
+    cast_from: Ty<'tcx>,
+    cast_to: Ty<'tcx>,
+    msrv: Msrv,
+) {
     if let ty::RawPtr(from_ptr_ty, _) = *cast_from.kind()
         && let ty::RawPtr(to_ptr_ty, _) = *cast_to.kind()
         && let Ok(from_layout) = cx.layout_of(from_ptr_ty)
@@ -38,7 +47,7 @@ fn lint_cast_ptr_alignment<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, cast_f
         && !is_used_as_unaligned(cx, expr)
         && !expr.span.in_external_macro(cx.tcx.sess.source_map())
     {
-        span_lint(
+        span_lint_and_then(
             cx,
             CAST_PTR_ALIGNMENT,
             expr.span,
@@ -47,6 +56,7 @@ fn lint_cast_ptr_alignment<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'_>, cast_f
                 from_layout.align.bytes(),
                 to_layout.align.bytes(),
             ),
+            |diag| offer_suggestion(cx, expr, diag, msrv),
         );
     }
 }
@@ -90,5 +100,34 @@ fn is_used_as_unaligned(cx: &LateContext<'_>, e: &Expr<'_>) -> bool {
             }
         },
         _ => false,
+    }
+}
+
+fn offer_suggestion(cx: &LateContext<'_>, expr: &Expr<'_>, diag: &mut Diag<'_>, msrv: Msrv) {
+    if !msrv.meets(cx, msrvs::PTR_TRY_CAST_ALIGNED) {
+        return;
+    }
+
+    match expr.kind {
+        ExprKind::MethodCall(method, ..) => {
+            diag.span_suggestion_verbose(
+                method.ident.span,
+                "try checking the pointer alignment with",
+                "try_cast_aligned",
+                Applicability::MaybeIncorrect,
+            );
+        },
+        ExprKind::Cast(source, _) if let ty::RawPtr(target_ty, _) = cx.typeck_results().expr_ty(expr).kind() => {
+            let source = Sugg::hir(cx, source, "..").maybe_paren();
+            let suggestion = format!("{source}.try_cast_aligned::<{target_ty}>()");
+
+            diag.span_suggestion_verbose(
+                expr.span,
+                "try checking the pointer alignment with",
+                suggestion,
+                Applicability::MaybeIncorrect,
+            );
+        },
+        _ => {},
     }
 }
