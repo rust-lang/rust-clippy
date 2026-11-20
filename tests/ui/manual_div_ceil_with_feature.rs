@@ -113,3 +113,37 @@ fn issue_16219() {
     let z = MyStruct(x);
     let _ = z.next_multiple_of(8) / 8;
 }
+
+fn right_shift(x: i32, small: i8, wide: i128, pointer: isize) {
+    let _ = (x + 1) >> 1;
+    //~^ manual_div_ceil
+    let _ = (x + 7) >> 3;
+    //~^ manual_div_ceil
+    let _ = (7 + x) >> 3;
+    //~^ manual_div_ceil
+    let _ = (x + 7) >> 3_u8;
+    //~^ manual_div_ceil
+    let _: i32 = (-10 + 7) >> 3_u8;
+    //~^ manual_div_ceil
+    let _ = (-10_i32 + 7) >> 3;
+    //~^ manual_div_ceil
+    let _ = (small + 63) >> 6;
+    //~^ manual_div_ceil
+    let _ = (wide + 0x3fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff) >> 126;
+    //~^ manual_div_ceil
+    let _ = (pointer + 7) >> 3;
+    //~^ manual_div_ceil
+
+    // No lint: the positive divisor cannot be represented in the dividend's type.
+    let _ = (small + 127) >> 7;
+    let _ = (wide + 0x7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff) >> 127;
+
+    // No lint: incorrect offset or nonliteral shift.
+    let _ = (x + 6) >> 3;
+    let _ = (x + 7) >> small;
+}
+
+#[clippy::msrv = "1.72"]
+fn right_shift_old_msrv(x: i32) {
+    let _ = (x + 7) >> 3;
+}

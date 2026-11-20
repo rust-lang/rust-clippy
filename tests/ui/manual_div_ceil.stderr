@@ -155,5 +155,59 @@ error: manually reimplementing `div_ceil`
 LL |     let _ = y.next_multiple_of(8) / 8;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `y.div_ceil(8)`
 
-error: aborting due to 24 previous errors
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:160:13
+   |
+LL |     let _ = (x + 1) >> 1;
+   |             ^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(2)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:162:13
+   |
+LL |     let _ = (x + 7) >> 3;
+   |             ^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(8)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:164:13
+   |
+LL |     let _ = (7 + x) >> 3;
+   |             ^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(8)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:166:13
+   |
+LL |     let _ = (x + 7) >> 3_i8;
+   |             ^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(8)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:168:18
+   |
+LL |     let _: u32 = (33 + 7) >> 3_u8;
+   |                  ^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `33_u32.div_ceil(8)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:170:13
+   |
+LL |     let _ = (small + 127) >> 7;
+   |             ^^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `small.div_ceil(128)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:172:13
+   |
+LL |     let _ = (wide + 0x7fff_ffff_ffff_ffff_ffff_ffff_ffff_ffff) >> 127;
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `wide.div_ceil(170141183460469231731687303715884105728)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:174:13
+   |
+LL |     let _ = (pointer + 7) >> 3;
+   |             ^^^^^^^^^^^^^^^^^^ help: consider using `.div_ceil()`: `pointer.div_ceil(8)`
+
+error: manually reimplementing `div_ceil`
+  --> tests/ui/manual_div_ceil.rs:198:13
+   |
+LL |     let _ = (x + 7) >> 3;
+   |             ^^^^^^^^^^^^ help: consider using `.div_ceil()`: `x.div_ceil(8)`
+
+error: aborting due to 33 previous errors
 
