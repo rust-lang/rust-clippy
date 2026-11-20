@@ -1,0 +1,29 @@
+error: method `to_vec` has useless allocation on `Cow::Owned`
+  --> tests/ui/cow_to_owned.rs:26:22
+   |
+LL |     let _a = bytes().to_vec();
+   |                      ^^^^^^ help: try: `into_owned`
+   |
+   = note: `-D clippy::cow-to-owned` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::cow_to_owned)]`
+
+error: method `to_path_buf` has useless allocation on `Cow::Owned`
+  --> tests/ui/cow_to_owned.rs:28:21
+   |
+LL |     let _b = path().to_path_buf();
+   |                     ^^^^^^^^^^^ help: try: `into_owned`
+
+error: method `to_string` has useless allocation on `Cow::Owned`
+  --> tests/ui/cow_to_owned.rs:30:20
+   |
+LL |     let _c = str().to_string();
+   |                    ^^^^^^^^^ help: try: `into_owned`
+
+error: method `to_os_string` has useless allocation on `Cow::Owned`
+  --> tests/ui/cow_to_owned.rs:32:22
+   |
+LL |     let _d = osstr().to_os_string();
+   |                      ^^^^^^^^^^^^ help: try: `into_owned`
+
+error: aborting due to 4 previous errors
+
