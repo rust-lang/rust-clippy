@@ -134,11 +134,18 @@ pub struct DisallowedPath<const REPLACEMENT_ALLOWED: bool = true> {
     /// This could be useful when conditional compilation is used, or when a clippy.toml file is
     /// shared among multiple projects.
     allow_invalid: bool,
+    /// Setting `suppress_in_macros` to true suppresses the lint for calls originating from macros
+    /// defined in external crates.
+    suppress_in_macros: bool,
 }
 
 impl<const REPLACEMENT_ALLOWED: bool> DisallowedPath<REPLACEMENT_ALLOWED> {
     pub fn path(&self) -> &str {
         &self.path.node
+    }
+
+    pub fn suppress_in_macros(&self) -> bool {
+        self.suppress_in_macros
     }
 
     pub fn diag_amendment(&self, span: Span) -> impl FnOnce(&mut Diag<'_>) {
@@ -168,12 +175,14 @@ impl Deserialize for DisallowedPath<false> {
                 reason: None,
                 replacement: None,
                 allow_invalid: false,
+                suppress_in_macros: false,
             })
         } else if let Some(table) = value.as_ref().as_table() {
             deserialize_table!(dcx, table,
                 path("path"): Spanned<String>,
                 reason("reason"): String,
                 allow_invalid("allow-invalid"): bool,
+                suppress_in_macros("suppress-in-macros"): bool,
             );
             let Some(path) = path else {
                 dcx.span_err(value.span(), "missing required field `path`");
@@ -184,6 +193,7 @@ impl Deserialize for DisallowedPath<false> {
                 reason,
                 replacement: None,
                 allow_invalid: allow_invalid.unwrap_or(false),
+                suppress_in_macros: suppress_in_macros.unwrap_or(false),
             })
         } else {
             dcx.span_err(value.span(), "expected either a string or an inline table");
@@ -203,6 +213,7 @@ impl Deserialize for DisallowedPath<true> {
                 reason: None,
                 replacement: None,
                 allow_invalid: false,
+                suppress_in_macros: false,
             })
         } else if let Some(table) = value.as_ref().as_table() {
             deserialize_table!(dcx, table,
@@ -210,6 +221,7 @@ impl Deserialize for DisallowedPath<true> {
                 reason("reason"): String,
                 replacement("replacement"): String,
                 allow_invalid("allow-invalid"): bool,
+                suppress_in_macros("suppress-in-macros"): bool,
             );
             let Some(path) = path else {
                 dcx.span_err(value.span(), "missing required field `path`");
@@ -220,6 +232,7 @@ impl Deserialize for DisallowedPath<true> {
                 reason,
                 replacement,
                 allow_invalid: allow_invalid.unwrap_or(false),
+                suppress_in_macros: suppress_in_macros.unwrap_or(false),
             })
         } else {
             dcx.span_err(value.span(), "expected either a string or an inline table");

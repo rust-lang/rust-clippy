@@ -12,6 +12,13 @@ use std::hint::black_box as renamed;
 
 fn local_fn() {}
 
+macro_rules! local_macro {
+    () => {
+        local_fn();
+        //~^ disallowed_methods
+    };
+}
+
 struct Struct;
 
 impl Struct {
@@ -64,6 +71,8 @@ fn main() {
 
     local_fn();
     //~^ disallowed_methods
+    local_macro!();
+
     local_mod::f();
     //~^ disallowed_methods
     let s = Struct;

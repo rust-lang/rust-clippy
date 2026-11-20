@@ -1,6 +1,7 @@
 use clippy_config::Conf;
 use clippy_config::types::{DisallowedPath, create_disallowed_map};
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::macros::span_is_local;
 use clippy_utils::paths::PathNS;
 use clippy_utils::ty::get_field_def_id_by_name;
 use rustc_data_structures::fx::FxHashMap;
@@ -87,6 +88,8 @@ declare_clippy_lint! {
     ///     # This would normally error if the path is incorrect, but with `allow-invalid` = `true`,
     ///     # it will be silently ignored
     ///     { path = "std::fs::InvalidPath", reason = "use alternative instead", allow-invalid = true },
+    ///     # Suppresses lints for calls coming from macros defined in external crates.
+    ///     { path = "std::env::var", suppress-in-macros = true },
     /// ]
     /// ```
     ///
@@ -238,13 +241,14 @@ impl DisallowedItems {
 
 impl<'tcx> LateLintPass<'tcx> for DisallowedItems {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
-        let (lint, msg, table, id, span) = match &expr.kind {
+        let (lint, msg, table, id, span, is_method) = match &expr.kind {
             ExprKind::Path(path) if let Res::Def(_, id) = cx.qpath_res(path, expr.hir_id) => (
                 DISALLOWED_METHODS,
                 "use of a disallowed method",
                 &self.methods,
                 id,
                 expr.span,
+                true,
             ),
             ExprKind::MethodCall(name, ..) if let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) => {
                 (
@@ -253,6 +257,7 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedItems {
                     &self.methods,
                     id,
                     name.ident.span,
+                    true,
                 )
             },
             // Very round-about way to get the field `DefId` from the expr: first we get its
@@ -268,12 +273,14 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedItems {
                     &self.fields,
                     id,
                     ident.span,
+                    false,
                 )
             },
             _ => return,
         };
         if let Some(&(path, disallowed_path)) = table.get(&id)
             && expr.span.desugaring_kind().is_none()
+            && !(is_method && disallowed_path.suppress_in_macros() && !span_is_local(span))
         {
             span_lint_and_then(
                 cx,
