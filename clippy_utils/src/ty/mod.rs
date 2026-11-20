@@ -23,10 +23,10 @@ use rustc_middle::traits::EvaluationResult;
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
 use rustc_middle::ty::layout::{LayoutError, LayoutOf as _, TyAndLayout};
 use rustc_middle::ty::{
-    self, AdtDef, AliasTy, AssocItem, AssocTag, Binder, BoundRegion, BoundVarIndexKind, CallerBoundsIterator as _,
-    FnSig, GenericArg, GenericArgKind, GenericArgs, IntTy, ProjectionAliasTy, Region, RegionKind, TraitRef, Ty, TyCtxt,
-    TypeSuperVisitable as _, TypeVisitable, TypeVisitableExt as _, TypeVisitor, UintTy, Unnormalized, VariantDef,
-    VariantDiscr,
+    self, AdtDef, AliasTy, AssocItem, AssocTag, Binder, BottomUpFolder, BoundRegion, BoundVarIndexKind,
+    CallerBoundsIterator as _, FnSig, GenericArg, GenericArgKind, GenericArgs, IntTy, ProjectionAliasTy, Region,
+    RegionKind, TraitRef, Ty, TyCtxt, TypeFoldable as _, TypeSuperVisitable as _, TypeVisitable, TypeVisitableExt as _,
+    TypeVisitor, UintTy, Unnormalized, VariantDef, VariantDiscr,
 };
 use rustc_span::symbol::Ident;
 use rustc_span::{DUMMY_SP, Span, Symbol};
@@ -307,6 +307,42 @@ pub fn implements_trait_with_env_from_iter<'tcx>(
     infcx
         .evaluate_obligation(&obligation)
         .is_ok_and(EvaluationResult::must_apply_modulo_regions)
+}
+
+/// Checks whether `ty` satisfies all the bounds of the opaque type `opaque_def_id`, that is,
+/// whether `ty` could be used in place of the opaque type. For example, `u32` satisfies the
+/// bounds of `impl Ord + Copy`, while `String` does not.
+///
+/// The check is done in the typing environment of the lint context, which must be one in
+/// which `ty` is well-formed (e.g., the body defining the opaque type).
+pub fn ty_satisfies_opaque_bounds<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, opaque_def_id: DefId) -> bool {
+    let tcx = cx.tcx;
+    let (infcx, param_env) = tcx.infer_ctxt().build_with_typing_env(cx.typing_env());
+    // `item_bounds` also includes the bounds on associated types, such as
+    // `<Opaque as Iterator>::Item: Copy` for `impl Iterator<Item: Copy>`.
+    tcx.item_bounds(opaque_def_id)
+        .iter_identity()
+        .map(Unnormalized::skip_norm_wip)
+        .all(|clause| {
+            // Replace the opaque type by `ty` in the bound.
+            let clause = clause.fold_with(&mut BottomUpFolder {
+                tcx,
+                ty_op: |t| match *t.kind() {
+                    ty::Alias(
+                        _,
+                        AliasTy {
+                            kind: ty::Opaque { def_id },
+                            ..
+                        },
+                    ) if def_id == opaque_def_id => ty,
+                    _ => t,
+                },
+                lt_op: |r| r,
+                ct_op: |c| c,
+            });
+            let obligation = Obligation::new(tcx, ObligationCause::dummy(), param_env, clause);
+            infcx.predicate_must_hold_modulo_regions(&obligation)
+        })
 }
 
 /// Checks whether this type implements `Drop`.

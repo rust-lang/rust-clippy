@@ -1,0 +1,306 @@
+//@aux-build:proc_macros.rs
+#![warn(clippy::unit_as_impl_trait, clippy::unused_unit)]
+#![allow(
+    clippy::empty_loop,
+    clippy::no_effect,
+    clippy::unnecessary_operation,
+    clippy::unused_async
+)]
+
+extern crate proc_macros;
+use proc_macros::{external, with_span};
+use std::fmt::Debug;
+
+fn sum(v: &[u32]) -> impl Ord {
+    v.iter().sum::<u32>();
+    //~^ unit_as_impl_trait
+}
+
+fn generic<T: Eq>(x: T) -> impl Eq {
+    x;
+    //~^ unit_as_impl_trait
+}
+
+fn multiple_bounds() -> impl Copy + Debug + Default {
+    42u8;
+    //~^ unit_as_impl_trait
+}
+
+fn after_other_statements() -> impl Debug {
+    let x = 1;
+    println!("{x}");
+    x + 1;
+    //~^ unit_as_impl_trait
+}
+
+fn block_like(b: bool) -> impl Debug {
+    //~v unit_as_impl_trait
+    if b {
+        1
+    } else {
+        2
+    };
+}
+
+#[derive(Clone)]
+struct S;
+
+impl S {
+    fn clone(&self) -> impl Clone {
+        S;
+        //~^ unit_as_impl_trait
+    }
+}
+
+trait Tr {
+    fn default_method() -> impl Sized {
+        S;
+        //~^ unit_as_impl_trait
+    }
+}
+
+async fn async_fn() -> impl Copy {
+    42;
+    //~^ unit_as_impl_trait
+}
+
+// The expression type does not satisfy the bounds
+fn not_copy() -> impl Copy {
+    String::new();
+}
+
+fn not_debug() -> impl Debug + Clone {
+    S;
+}
+
+// The expression is already `()`
+fn unit_expr() -> impl Copy {
+    println!("foobar");
+}
+
+fn unit_method() -> impl Eq {
+    [1, 10, 2, 0].sort_unstable();
+}
+
+// The expression never returns
+fn never() -> impl Copy {
+    panic!();
+}
+
+// `let` statements and items are not expressions
+fn let_stmt() -> impl Copy {
+    let _x = 42;
+}
+
+// Recursive call: the `;`-terminated expression type is the opaque type itself, but
+// the body ends with an `if` without `else`, of type `()`
+fn recursive(n: u32) -> impl Copy {
+    //~v unit_as_impl_trait
+    if n > 0 {
+        recursive(n - 1);
+    }
+}
+
+// Bounds with generic arguments, satisfied by `()`
+fn into_option() -> impl Into<Option<()>> {
+    Some(());
+    //~^ unit_as_impl_trait
+}
+
+fn into_option_not_satisfied() -> impl Into<Option<()>> {
+    42u32;
+}
+
+fn partial_eq_unit() -> impl PartialEq<()> {
+    // `u8: PartialEq<()>` does not hold
+    42u8;
+}
+
+// Bounds on associated types
+trait WithAssoc {
+    type Assoc;
+}
+
+impl WithAssoc for () {
+    type Assoc = u8;
+}
+
+impl WithAssoc for u32 {
+    type Assoc = u16;
+}
+
+impl WithAssoc for String {
+    type Assoc = String;
+}
+
+fn assoc_bound_satisfied() -> impl WithAssoc<Assoc: Copy> {
+    42u32;
+    //~^ unit_as_impl_trait
+}
+
+fn assoc_bound_not_satisfied() -> impl WithAssoc<Assoc: Copy> {
+    // `<String as WithAssoc>::Assoc` is `String`, which is not `Copy`
+    String::new();
+}
+
+fn assoc_eq_not_satisfied() -> impl WithAssoc<Assoc = u8> {
+    // `<u32 as WithAssoc>::Assoc` is `u16`, not `u8`
+    42u32;
+}
+
+// Explicit `()` or no `;`
+fn explicit_unit() -> impl Copy {
+    42;
+    ()
+}
+
+fn value() -> impl Copy {
+    42
+}
+
+fn explicit_unit_only() -> impl Copy {
+    ()
+}
+
+// Empty bodies
+fn empty() -> impl Copy {}
+//~^ unit_as_impl_trait
+
+fn empty_multiline() -> impl Copy {
+    //~^ unit_as_impl_trait
+}
+
+fn empty_with_comment() -> impl Copy {
+    //~^ unit_as_impl_trait
+    // Nothing to see here
+}
+
+trait EmptyDefault {
+    fn empty_default() -> impl Sized {}
+    //~^ unit_as_impl_trait
+}
+
+async fn async_empty() -> impl Copy {}
+//~^ unit_as_impl_trait
+
+// Final expression of type `()` without `;`
+fn unit_tail_call() -> impl Eq {
+    [1, 10, 2, 0].sort_unstable()
+    //~^ unit_as_impl_trait
+}
+
+fn unit_tail_block_like(b: bool) -> impl Debug {
+    //~v unit_as_impl_trait
+    if b {
+        println!("foo");
+    } else {
+        println!("bar");
+    }
+}
+
+macro_rules! unit_body {
+    () => {{}};
+}
+
+fn unit_tail_macro() -> impl Copy {
+    unit_body!()
+    //~^ unit_as_impl_trait
+}
+
+fn never_tail() -> impl Copy {
+    panic!()
+}
+
+fn never_tail_loop() -> impl Copy {
+    loop {}
+}
+
+// `unused_unit` must not remove the explicit `()` in an `impl Trait` function,
+// but still applies elsewhere.
+fn unit_in_unit_fn() {
+    println!("foobar");
+    ()
+    //~^ unused_unit
+}
+
+// The body is empty only because of `#[cfg]`, possibly through `#[cfg_attr]`
+fn cfg_removed_stmt() -> impl Copy {
+    #[cfg(any())]
+    return 42;
+}
+
+fn cfg_attr_removed_stmt() -> impl Copy {
+    #[cfg_attr(not(any()), cfg(any()))]
+    return 42;
+}
+
+// `#[cfg]` or `#[cfg_attr]` elsewhere in a non-empty body does not prevent linting
+fn cfg_kept_stmt() -> impl Debug {
+    #[cfg(not(any()))]
+    println!("foobar");
+    42;
+    //~^ unit_as_impl_trait
+}
+
+fn cfg_unit_tail() -> impl Eq {
+    #[cfg(any())]
+    let _x = 42;
+    [1, 10, 2, 0].sort_unstable()
+    //~^ unit_as_impl_trait
+}
+
+fn cfg_attr_stmt() -> impl Copy {
+    #[cfg_attr(any(), allow(unused_variables))]
+    let x = 42;
+    x;
+    //~^ unit_as_impl_trait
+}
+
+// Not an `impl Trait`
+fn unit_ret() {
+    42;
+}
+
+async fn async_unit() {
+    42;
+}
+
+fn closure() {
+    let _ = || {
+        42;
+    };
+}
+
+macro_rules! local_fn {
+    () => {
+        fn from_local_macro() -> impl Copy {
+            42;
+        }
+    };
+}
+local_fn!();
+
+macro_rules! semi {
+    () => {
+        42;
+    };
+}
+
+fn from_macro_stmt() -> impl Copy {
+    semi!();
+}
+
+external! {
+    fn from_external_macro() -> impl Copy {
+        42;
+    }
+}
+
+with_span! {
+    span
+    fn from_proc_macro() -> impl Copy {
+        42;
+    }
+}
+
+fn main() {}

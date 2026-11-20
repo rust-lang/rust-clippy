@@ -1,0 +1,46 @@
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait_unfixable.rs:6:45
+   |
+LL | fn empty_with_inline_comment() -> impl Copy { /* nothing */ }
+   |                                             ^^^^^^^^^^^^^^^^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait_unfixable.rs:6:35
+   |
+LL | fn empty_with_inline_comment() -> impl Copy { /* nothing */ }
+   |                                   ^^^^^^^^^
+   = help: if returning `()` is intentional, return it explicitly
+   = note: `-D clippy::unit-as-impl-trait` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::unit_as_impl_trait)]`
+
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait_unfixable.rs:10:49
+   |
+LL |   fn empty_with_comment_and_spaces() -> impl Copy {
+   |  _________________________________________________^
+LL | |
+LL | |     /* nothing */    }
+   | |______________________^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait_unfixable.rs:10:39
+   |
+LL | fn empty_with_comment_and_spaces() -> impl Copy {
+   |                                       ^^^^^^^^^
+   = help: if returning `()` is intentional, return it explicitly
+
+error: this function implicitly returns `()` through its empty body
+  --> tests/ui/unit_as_impl_trait_unfixable.rs:18:49
+   |
+LL |     fn empty_with_inline_comment() -> impl Copy { /* nothing */ }
+   |                                                 ^^^^^^^^^^^^^^^^^
+   |
+note: `()` satisfies the bounds of the returned type
+  --> tests/ui/unit_as_impl_trait_unfixable.rs:18:39
+   |
+LL |     fn empty_with_inline_comment() -> impl Copy { /* nothing */ }
+   |                                       ^^^^^^^^^
+   = help: if returning `()` is intentional, return it explicitly
+
+error: aborting due to 3 previous errors
+

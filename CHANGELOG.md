@@ -7854,6 +7854,7 @@ Released 2018-09-13
 [`uninit_vec`]: https://clippy.rust-lang.org/main/index.html#uninit_vec
 [`uninlined_format_args`]: https://clippy.rust-lang.org/main/index.html#uninlined_format_args
 [`unit_arg`]: https://clippy.rust-lang.org/main/index.html#unit_arg
+[`unit_as_impl_trait`]: https://clippy.rust-lang.org/main/index.html#unit_as_impl_trait
 [`unit_cmp`]: https://clippy.rust-lang.org/main/index.html#unit_cmp
 [`unit_hash`]: https://clippy.rust-lang.org/main/index.html#unit_hash
 [`unit_return_expecting_ord`]: https://clippy.rust-lang.org/main/index.html#unit_return_expecting_ord

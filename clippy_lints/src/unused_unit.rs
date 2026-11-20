@@ -1,7 +1,9 @@
 use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{SpanExt as _, position_before_rarrow};
 use clippy_utils::{is_never_expr, is_unit_expr};
-use rustc_ast::{Block, StmtKind};
+use rustc_ast::visit::FnKind as AstFnKind;
+use rustc_ast::{Block, NodeId, StmtKind};
+use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
@@ -9,7 +11,7 @@ use rustc_hir::{
     AssocItemConstraintKind, Body, Expr, ExprKind, FnDecl, FnRetTy, GenericArgsParentheses, PolyTraitRef, Term, Ty,
     TyKind,
 };
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, impl_lint_pass};
 use rustc_span::edition::Edition;
 use rustc_span::{BytePos, Pos as _, Span, sym};
 
@@ -38,7 +40,14 @@ declare_clippy_lint! {
     "needless unit expression"
 }
 
-declare_lint_pass!(UnusedUnit => [UNUSED_UNIT]);
+impl_lint_pass!(UnusedUnit => [UNUSED_UNIT]);
+
+#[derive(Default)]
+pub struct UnusedUnit {
+    /// Bodies of functions returning an `impl Trait`, in which a final `()` is
+    /// meaningful (see `unit_as_impl_trait`) and must not be linted.
+    impl_trait_fn_bodies: FxHashSet<NodeId>,
+}
 
 impl<'tcx> LateLintPass<'tcx> for UnusedUnit {
     fn check_fn(
@@ -117,10 +126,21 @@ impl<'tcx> LateLintPass<'tcx> for UnusedUnit {
 }
 
 impl EarlyLintPass for UnusedUnit {
+    fn check_fn(&mut self, _: &EarlyContext<'_>, kind: AstFnKind<'_>, _: Span, _: NodeId) {
+        if let AstFnKind::Fn(_, _, func) = kind
+            && let rustc_ast::FnRetTy::Ty(ret_ty) = &func.sig.decl.output
+            && let rustc_ast::TyKind::ImplTrait(..) = ret_ty.kind
+            && let Some(body) = &func.body
+        {
+            self.impl_trait_fn_bodies.insert(body.id);
+        }
+    }
+
     /// Check for unit expressions in blocks. This is left in the early pass because some macros
     /// expand its inputs as-is, making it invisible to the late pass. See #4076.
     fn check_block(&mut self, cx: &EarlyContext<'_>, block: &Block) {
-        if let Some(stmt) = block.stmts.last()
+        if !self.impl_trait_fn_bodies.contains(&block.id)
+            && let Some(stmt) = block.stmts.last()
             && let StmtKind::Expr(expr) = &stmt.kind
             && let rustc_ast::ExprKind::Tup(inner) = &expr.kind
             && inner.is_empty()
