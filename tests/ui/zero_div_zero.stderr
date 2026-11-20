@@ -56,5 +56,13 @@ LL |     let both_neg_nan = -0.0f32 / -0.0;
    |
    = help: consider using `f32::NAN` if you would like a constant representing NaN
 
-error: aborting due to 7 previous errors
+error: constant division of `0.0` with `0.0` will always result in NaN
+  --> tests/ui/zero_div_zero.rs:25:22
+   |
+LL |     let folded_nan = 0.0 / (2.0 - 2.0);
+   |                      ^^^^^^^^^^^^^^^^^
+   |
+   = help: consider using `f64::NAN` if you would like a constant representing NaN
+
+error: aborting due to 8 previous errors
 

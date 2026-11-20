@@ -22,6 +22,9 @@ fn main() {
     let both_neg_nan = -0.0f32 / -0.0;
     //~^ zero_divided_by_zero
 
+    let folded_nan = 0.0 / (2.0 - 2.0);
+    //~^ zero_divided_by_zero
+
     let zero = 0.0;
     let other_zero = 0.0;
     let other_nan = zero / other_zero; // fine - this lint doesn't propagate constants.
