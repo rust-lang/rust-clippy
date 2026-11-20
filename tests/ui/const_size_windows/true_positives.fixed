@@ -1,0 +1,175 @@
+#![warn(clippy::const_size_windows)]
+
+macro_rules! two {
+    () => {
+        2usize
+    };
+}
+
+const fn get_two() -> usize {
+    2
+}
+
+fn slice_windows_literal_size(slice: &[u8]) {
+    // expected: `slice.array_windows::<2>()`
+    for pair in slice.array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn slice_windows_literal_size_three(slice: &[u8]) {
+    // expected: `slice.array_windows::<3>()`
+    for triplet in slice.array_windows::<3>() {
+        //~^ const_size_windows
+        println!("{} {} {}", triplet[0], triplet[1], triplet[2]);
+    }
+}
+
+fn slice_windows_const_size(slice: &[u8]) {
+    const TWO: usize = 2;
+    // expected: `slice.array_windows::<TWO>()`
+    for pair in slice.array_windows::<TWO>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn slice_windows_param_const_size<const SIZE: usize>(slice: &[u8]) {
+    // expected: `slice.array_windows::<SIZE>()`
+    for window in slice.array_windows::<SIZE>() {
+        //~^ const_size_windows
+        println!("{}", window[0]);
+    }
+}
+
+fn slice_windows_const_fn_size(slice: &[u8]) {
+    // expected: `slice.array_windows::<{ get_two() }>()`
+    for pair in slice.array_windows::<{ get_two() }>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn slice_windows_inline_const_macro_size(slice: &[u8]) {
+    // expected: `slice.array_windows::<{ two!() }>()`
+    for pair in slice.array_windows::<{ two!() }>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn vec_windows_literal_size(vector: Vec<u8>) {
+    // expected: `vector.array_windows::<2>()`
+    for pair in vector.array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn array_windows_literal_size(array: [u8; 3]) {
+    // expected: `array.array_windows::<2>()`
+    for pair in array.array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn array_generic_length_windows_literal_size<const LENGTH: usize>(array: [u8; LENGTH]) {
+    // expected: `array.array_windows::<2>()`
+    for pair in array.array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn inline_vec_windows_literal_size() {
+    // expected: `vec![1, 2, 3].array_windows::<2>()`
+    #[expect(clippy::useless_vec)]
+    for pair in vec![1, 2, 3].array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn inline_array_windows_literal_size() {
+    // expected: `[1, 2, 3].array_windows::<2>()`
+    for pair in [1, 2, 3].array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn inline_slice_windows_literal_size() {
+    // expected: `[1, 2, 3, 4, 5][..=2].array_windows::<2>()`
+    for pair in [1, 2, 3, 4, 5][..=2].array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn into_slice_windows_literal_size<'a>(into_slice: impl Into<&'a [u8]>) {
+    // expected: `into_slice.into().array_windows::<2>()`
+    for pair in into_slice.into().array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn deref_slice_windows_literal_size(deref_slice: impl std::ops::Deref<Target = [u8]>) {
+    // expected: `(*deref_slice).array_windows::<2>()`
+    for pair in (*deref_slice).array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn deref_coerced_slice_windows_literal_size(deref_slice: impl std::ops::Deref<Target = [u8]>) {
+    // expected: `deref_slice.array_windows::<2>()`
+    for pair in deref_slice.array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn shadowed_destruct_variables() {
+    let vec: Vec<u8> = vec![1, 2, 3];
+    let (left, right) = (0, 1);
+    let (x, y) = (0, 1);
+
+    // expected: `vec.array_windows::<2>()`
+    for pair in vec.array_windows::<2>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+pub mod some_module {
+    pub const WINDOW_SIZE: usize = 2;
+}
+
+fn windows_const_mod_path_size(slice: &[u8]) {
+    // expected: `slice.array_windows::<{ some_module::WINDOW_SIZE }>()`
+    for pair in slice.array_windows::<{ some_module::WINDOW_SIZE }>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn windows_const_computed_size(slice: &[u8]) {
+    // expected: `slice.array_windows::<{ 2 + 2 }>()`
+    for pair in slice.array_windows::<{ 2 + 2 }>() {
+        //~^ const_size_windows
+        println!("{} {}", pair[0], pair[1]);
+    }
+}
+
+fn collect_after_windows(slice: &[u8]) {
+    // expected: `slice.array_windows::<2>().collect::<Vec<_>>()`
+    let windows = slice.array_windows::<2>().collect::<Vec<_>>();
+    //~^ const_size_windows
+
+    for pair in windows {
+        println!("{} {}", pair[0], pair[1]);
+    }
+}

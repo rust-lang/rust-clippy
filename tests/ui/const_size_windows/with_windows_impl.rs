@@ -1,0 +1,110 @@
+#![warn(clippy::const_size_windows)]
+
+trait DefinesWindows {
+    fn windows(&self, size: usize) -> impl Iterator<Item = char> {
+        std::iter::repeat_n('🪟', size)
+    }
+}
+
+#[derive(Debug)]
+struct WindowsStub;
+
+impl DefinesWindows for Vec<WindowsStub> {}
+
+mod array_methods_mod {
+    trait InnerDefinesWindows {
+        fn windows(&self, size: usize) -> impl Iterator<Item = char> {
+            std::iter::repeat_n('🪟', size)
+        }
+    }
+    #[derive(Debug)]
+    pub struct WindowsStub;
+    impl InnerDefinesWindows for Vec<WindowsStub> {}
+}
+
+use array_methods_mod::WindowsStub as ModWindowsStub;
+
+fn windows_implemented_by_public_trait(vec: Vec<ModWindowsStub>) {
+    for window in vec.windows(2) {
+        //~^ const_size_windows
+        let window: &[ModWindowsStub] = window;
+        println!("{:#?} {:#?}", window[0], window[1]);
+    }
+}
+
+fn windows_implemented_by_trait_in_mod(vec: Vec<ModWindowsStub>) {
+    for window in vec.windows(2) {
+        //~^ const_size_windows
+        let window: &[ModWindowsStub] = window;
+        println!("{:#?} {:#?}", window[0], window[1]);
+    }
+}
+
+fn windows_implemented_by_nested_trait() {
+    #[derive(Debug)]
+    struct Stub;
+    trait DefinesWindows {
+        fn windows(&self, size: usize) -> impl Iterator<Item = char> {
+            std::iter::repeat_n('🪟', size)
+        }
+    }
+
+    impl DefinesWindows for Vec<Stub> {}
+
+    let vec = vec![Stub, Stub, Stub];
+    for emoji in vec.windows(2) {
+        let emoji: char = emoji;
+        println!("{emoji:#?}");
+    }
+}
+
+fn windows_implemented_by_public_trait_with_macro() {
+    for emoji in vec![WindowsStub, WindowsStub, WindowsStub].windows(2) {
+        let emoji: char = emoji;
+        println!("{emoji:#?}");
+    }
+}
+
+fn windows_implemented_by_trait_borrowed(vec: &Vec<WindowsStub>) {
+    for emoji in vec.windows(2) {
+        let emoji: char = emoji;
+        println!("{emoji:#?}");
+    }
+}
+
+fn windows_implemented_by_trait_dereferenced(vec: &Vec<WindowsStub>) {
+    for emoji in (*vec).windows(2) {
+        let emoji: char = emoji;
+        println!("{emoji:#?}");
+    }
+}
+
+fn windows_implemented_by_trait_with_ref() {
+    #[derive(Debug)]
+    struct Stub;
+    impl DefinesWindows for &Vec<Stub> {}
+
+    let vec = vec![Stub, Stub, Stub];
+    for emoji in (&vec).windows(2) {
+        let emoji: char = emoji;
+        println!("{emoji:#?}");
+    }
+}
+
+fn windows_implemented_by_trait_with_deref(derefs_into_windows_impl: impl std::ops::Deref<Target = Vec<WindowsStub>>) {
+    for emoji in (*derefs_into_windows_impl).windows(2) {
+        let emoji: char = emoji;
+        println!("{emoji:#?}");
+    }
+}
+
+fn windows_implemented_by_trait_with_deref_coercion(
+    derefs_into_windows_impl: impl std::ops::Deref<Target = Vec<WindowsStub>>,
+) {
+    for emoji in derefs_into_windows_impl.windows(2) {
+        let emoji: char = emoji;
+        println!("{emoji:#?}");
+    }
+}
+
+fn main() {}
