@@ -200,18 +200,20 @@ declare_clippy_lint! {
     /// Checks for `Rc<T>` and `Arc<T>` when `T` is a mutable buffer type such as `String` or `Vec`.
     ///
     /// ### Why restrict this?
-    /// Expressions such as `Rc<String>` usually have no advantage over `Rc<str>`, since
-    /// it is larger and involves an extra level of indirection, and doesn't implement `Borrow<str>`.
-    ///
-    /// While mutating a buffer type would still be possible with `Rc::get_mut()`, it only
-    /// works if there are no additional references yet, which usually defeats the purpose of
-    /// enclosing it in a shared ownership type. Instead, additionally wrapping the inner
-    /// type with an interior mutable container (such as `RefCell` or `Mutex`) would normally
-    /// be used.
+    /// `Rc<str>` can use less memory than `Rc<String>` because the string data is stored in the same
+    /// allocation as the reference counts. `Rc<String>` stores the `String` separately, requiring
+    /// another allocation and an extra level of indirection. The same applies to the other buffer
+    /// types handled by this lint and to `Arc`.
     ///
     /// ### Known problems
-    /// This pattern can be desirable to avoid the overhead of a `RefCell` or `Mutex` for
-    /// cases where mutation only happens before there are any additional references.
+    /// Constructing the unsized form from an existing owned buffer requires a new allocation and
+    /// copying the buffer contents. This can be significant for large buffers or when many `Rc`s or
+    /// `Arc`s are constructed.
+    ///
+    /// Unsized buffer types cannot perform mutations that change the buffer length. Length-preserving
+    /// mutations are still possible through `Rc::get_mut` or `Rc::make_mut`; for example,
+    /// `str::make_ascii_uppercase` works with `Rc<str>`. Keeping the owned buffer type can therefore
+    /// be useful when length-changing mutations are needed.
     ///
     /// ### Example
     /// ```rust,ignore
