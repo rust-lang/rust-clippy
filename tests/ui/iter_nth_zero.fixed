@@ -55,16 +55,16 @@ impl Issue18074 {
     }
 }
 
-trait Bar {
-    fn baz() -> Option<i32> {
+trait LintTraitItem {
+    fn lint_trait_item() -> Option<i32> {
         vec![1].into_iter().next()
         //~^ iter_nth_zero
     }
 }
 
-struct Baz;
+struct LintClosure;
 
-impl Baz {
+impl LintClosure {
     fn in_closure() -> Option<i32> {
         let f = || vec![1].into_iter().next();
         //~^ iter_nth_zero
@@ -72,7 +72,7 @@ impl Baz {
     }
 }
 
-impl Default for Baz {
+impl Default for LintClosure {
     fn default() -> Self {
         let _ = vec![1].into_iter().next();
         //~^ iter_nth_zero

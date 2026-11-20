@@ -11,9 +11,9 @@ use rustc_span::sym;
 use super::ITER_NTH_ZERO;
 
 pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, recv: &hir::Expr<'_>, arg: &hir::Expr<'_>) {
-    let def_id = cx.tcx.hir_get_parent_item(expr.hir_id).to_def_id();
     if cx.ty_based_def(expr).opt_parent(cx).is_diag_item(cx, sym::Iterator)
         && let Some(Constant::Int(0)) = ConstEvalCtxt::new(cx).eval_local(arg, expr.span.ctxt())
+        && let def_id = cx.tcx.hir_get_parent_item(expr.hir_id).to_def_id()
         && !cx
             .tcx
             .trait_item_of(def_id)
