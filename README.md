@@ -18,16 +18,21 @@ You can choose how much Clippy is supposed to ~~annoy~~ help you by changing the
 | `clippy::complexity`  | code that does something simple but in a complex way                                | **warn**      |
 | `clippy::perf`        | code that can be written to run faster                                              | **warn**      |
 | `clippy::pedantic`    | lints which are rather strict or have occasional false positives                    | allow         |
+| `clippy::cargo`       | lints for the Cargo manifest                                                        | allow         |
 | `clippy::restriction` | lints which prevent the use of language and library features[^restrict]             | allow         |
-| `clippy::nursery`     | new lints that are still under development                                          | allow         |
-| `clippy::cargo`       | lints for the cargo manifest                                                        | allow         |
+| `clippy::nursery`     | new lints that are still under development and often have false positives           | allow         |
 
-More to come, please [file an issue](https://github.com/rust-lang/rust-clippy/issues) if you have ideas!
+Note these reasons why some categories are allow-by-default, and you may not wish to enable them:
 
-The `restriction` category should, *emphatically*, not be enabled as a whole. The contained
-lints may lint against perfectly reasonable code, may not have an alternative suggestion,
-and may contradict any other lints (including other categories). Lints should be considered
-on a case-by-case basis before enabling.
+* **The `restriction` category should not be enabled as a whole.** The contained lints may lint
+  against perfectly reasonable code, and may contradict other lints (including other categories).
+  These lints should be considered on a case-by-case basis before enabling; enabling a `restriction`
+  lint is choosing to program in a restricted subset of Rust for a special purpose.[^restrict]
+
+* The `nursery` category contains lints which are not yet ready to be in another category.
+  If you enable this whole category, be prepared for false positives or incorrect suggestions.
+
+Please [file an issue](https://github.com/rust-lang/rust-clippy/issues) if you have ideas for more lints!
 
 [^restrict]: Some use cases for `restriction` lints include:
     - Strict coding styles (e.g. [`clippy::else_if_without_else`]).
