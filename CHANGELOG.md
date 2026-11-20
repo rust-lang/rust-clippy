@@ -8027,6 +8027,7 @@ Released 2018-09-13
 [`excessive-nesting-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#excessive-nesting-threshold
 [`future-size-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#future-size-threshold
 [`ignore-interior-mutability`]: https://doc.rust-lang.org/clippy/lint_configuration.html#ignore-interior-mutability
+[`ignore-single-line-closures`]: https://doc.rust-lang.org/clippy/lint_configuration.html#ignore-single-line-closures
 [`inherent-impl-lint-scope`]: https://doc.rust-lang.org/clippy/lint_configuration.html#inherent-impl-lint-scope
 [`large-error-ignored`]: https://doc.rust-lang.org/clippy/lint_configuration.html#large-error-ignored
 [`large-error-threshold`]: https://doc.rust-lang.org/clippy/lint_configuration.html#large-error-threshold

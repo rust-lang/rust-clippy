@@ -583,7 +583,7 @@ rustc_lint::late_lint_methods!(
         UninitVec: uninit_vec::UninitVec = uninit_vec::UninitVec,
         UnitReturnExpectingOrd: unit_return_expecting_ord::UnitReturnExpectingOrd = unit_return_expecting_ord::UnitReturnExpectingOrd,
         StringAdd: strings::StringAdd = strings::StringAdd,
-        ImplicitReturn: implicit_return::ImplicitReturn = implicit_return::ImplicitReturn,
+        ImplicitReturn: implicit_return::ImplicitReturn = implicit_return::ImplicitReturn::new(conf),
         ImplicitSaturatingSub: implicit_saturating_sub::ImplicitSaturatingSub = implicit_saturating_sub::ImplicitSaturatingSub::new(conf),
         DefaultNumericFallback: default_numeric_fallback::DefaultNumericFallback = default_numeric_fallback::DefaultNumericFallback,
         NonOctalUnixPermissions: non_octal_unix_permissions::NonOctalUnixPermissions = non_octal_unix_permissions::NonOctalUnixPermissions,

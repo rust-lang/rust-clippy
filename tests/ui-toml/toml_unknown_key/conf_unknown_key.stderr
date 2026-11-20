@@ -59,6 +59,7 @@ LL | foobar = 42
            excessive-nesting-threshold
            future-size-threshold
            ignore-interior-mutability
+           ignore-single-line-closures
            inherent-impl-lint-scope
            large-error-ignored
            large-error-threshold

@@ -594,6 +594,9 @@ define_Conf! {
     /// A list of paths to types that should be treated as if they do not contain interior mutability
     #[lints(borrow_interior_mutable_const, declare_interior_mutable_const, ifs_same_cond, mutable_key_type)]
     ignore_interior_mutability("ignore-interior-mutability"): Vec<String> = DEFAULT_IGNORE_INTERIOR_MUTABILITY,
+    /// Whether to ignore single line closures when linting for missing return statements
+    #[lints(implicit_return)]
+    ignore_single_line_closures("ignore-single-line-closures"): bool = false,
     /// Sets the scope ("crate", "file", or "module") in which duplicate inherent `impl` blocks for the same type are linted.
     #[lints(multiple_inherent_impl)]
     inherent_impl_lint_scope("inherent-impl-lint-scope"): InherentImplLintScope = InherentImplLintScope::Crate,

@@ -136,7 +136,40 @@ LL |     return m!(true, false)
    |     ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:108:13
+  --> tests/ui/implicit_return.rs:106:25
+   |
+LL |     let _ = (|x: usize| x * 2);
+   |                         ^^^^^
+   |
+help: add `return` as shown
+   |
+LL |     let _ = (|x: usize| return x * 2);
+   |                         ++++++
+
+error: missing `return` statement
+  --> tests/ui/implicit_return.rs:109:38
+   |
+LL |     let _ = [1, 2, 3].iter().map(|x| x * 2);
+   |                                      ^^^^^
+   |
+help: add `return` as shown
+   |
+LL |     let _ = [1, 2, 3].iter().map(|x| return x * 2);
+   |                                      ++++++
+
+error: missing `return` statement
+  --> tests/ui/implicit_return.rs:112:38
+   |
+LL |     let _ = [1, 2, 3].iter().map(|x| x * 2);
+   |                                      ^^^^^
+   |
+help: add `return` as shown
+   |
+LL |     let _ = [1, 2, 3].iter().map(|x| return x * 2);
+   |                                      ++++++
+
+error: missing `return` statement
+  --> tests/ui/implicit_return.rs:119:13
    |
 LL |             break true;
    |             ^^^^^^^^^^
@@ -148,7 +181,7 @@ LL +             return true;
    |
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:114:17
+  --> tests/ui/implicit_return.rs:125:17
    |
 LL |                 break 'outer false;
    |                 ^^^^^^^^^^^^^^^^^^
@@ -160,7 +193,7 @@ LL +                 return false;
    |
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:130:5
+  --> tests/ui/implicit_return.rs:141:5
    |
 LL | /     loop {
 LL | |         m!(true);
@@ -173,7 +206,7 @@ LL |     return loop {
    |     ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:145:5
+  --> tests/ui/implicit_return.rs:156:5
    |
 LL |     true
    |     ^^^^
@@ -184,7 +217,7 @@ LL |     return true
    |     ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:170:22
+  --> tests/ui/implicit_return.rs:181:22
    |
 LL |     let _ = async || 0;
    |                      ^
@@ -195,7 +228,7 @@ LL |     let _ = async || return 0;
    |                      ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:173:31
+  --> tests/ui/implicit_return.rs:184:31
    |
 LL |     let _ = async || -> i32 { 0 };
    |                               ^
@@ -206,7 +239,7 @@ LL |     let _ = async || -> i32 { return 0 };
    |                               ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:175:28
+  --> tests/ui/implicit_return.rs:186:28
    |
 LL |     let _ = async |a: i32| a;
    |                            ^
@@ -217,7 +250,7 @@ LL |     let _ = async |a: i32| return a;
    |                            ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:178:30
+  --> tests/ui/implicit_return.rs:189:30
    |
 LL |     let _ = async |a: i32| { a };
    |                              ^
@@ -228,7 +261,7 @@ LL |     let _ = async |a: i32| { return a };
    |                              ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:187:22
+  --> tests/ui/implicit_return.rs:198:22
    |
 LL |     let _ = async || foo().await;
    |                      ^^^^^
@@ -239,7 +272,7 @@ LL |     let _ = async || return foo().await;
    |                      ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:191:9
+  --> tests/ui/implicit_return.rs:202:9
    |
 LL |         foo().await
    |         ^^^^^
@@ -250,7 +283,7 @@ LL |         return foo().await
    |         ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:195:24
+  --> tests/ui/implicit_return.rs:206:24
    |
 LL |     let _ = async || { foo().await };
    |                        ^^^^^
@@ -261,7 +294,7 @@ LL |     let _ = async || { return foo().await };
    |                        ++++++
 
 error: missing `return` statement
-  --> tests/ui/implicit_return.rs:197:32
+  --> tests/ui/implicit_return.rs:208:32
    |
 LL |     let _ = async || -> bool { foo().await };
    |                                ^^^^^
@@ -271,5 +304,5 @@ help: add `return` as shown
 LL |     let _ = async || -> bool { return foo().await };
    |                                ++++++
 
-error: aborting due to 24 previous errors
+error: aborting due to 27 previous errors
 

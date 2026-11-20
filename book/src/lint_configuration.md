@@ -747,6 +747,16 @@ A list of paths to types that should be treated as if they do not contain interi
 * [`mutable_key_type`](https://clippy.rust-lang.org/main/index.html#mutable_key_type)
 
 
+## `ignore-single-line-closures`
+Whether to ignore single line closures when linting for missing return statements
+
+**Default Value:** `false`
+
+---
+**Affected lints:**
+* [`implicit_return`](https://clippy.rust-lang.org/main/index.html#implicit_return)
+
+
 ## `inherent-impl-lint-scope`
 Sets the scope ("crate", "file", or "module") in which duplicate inherent `impl` blocks for the same type are linted.
 
