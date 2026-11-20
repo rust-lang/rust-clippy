@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::{span_lint_and_sugg, span_lint_and_then};
 use clippy_utils::source::snippet_block_with_applicability;
-use clippy_utils::{contains_return, higher, is_from_proc_macro, leaks_droppable_temporary};
+use clippy_utils::{contains_return, higher, is_from_proc_macro, leaks_droppable_temporary, span_has_balanced_delims};
 use rustc_errors::Applicability;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, MatchSource, Node};
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
@@ -113,7 +113,10 @@ impl<'tcx> LateLintPass<'tcx> for BlocksInConditions {
                     }
                 } else {
                     let span = block.expr.as_ref().map_or_else(|| block.stmts[0].span, |e| e.span);
-                    if span.from_expansion() || is_from_proc_macro(cx, cond) {
+                    if span.from_expansion()
+                        || is_from_proc_macro(cx, cond)
+                        || !span_has_balanced_delims(cx, expr.span.with_hi(cond.span.hi()))
+                    {
                         return;
                     }
 

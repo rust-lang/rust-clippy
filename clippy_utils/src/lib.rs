@@ -2892,6 +2892,34 @@ pub fn span_contains_non_whitespace<'sm>(sm: impl HasSourceMap<'sm>, span: Span,
     })
 }
 
+/// Checks whether every `(`, `[` and `{` in the span is closed by its matching delimiter inside
+/// the span, and every closing delimiter is opened inside it. Returns `false` if the source text
+/// is unavailable.
+///
+/// A span built from the span of a macro argument can end inside the macro call, e.g. `v).iter()`
+/// for `id!(v).iter()`. Replacing such a span breaks the macro call.
+pub fn span_has_balanced_delims<'sm>(sm: impl HasSourceMap<'sm>, span: Span) -> bool {
+    span.check_text(sm, |snippet| {
+        let mut open = Vec::new();
+        for token in tokenize(snippet, FrontmatterAllowed::No) {
+            let expected = match token.kind {
+                TokenKind::OpenParen | TokenKind::OpenBracket | TokenKind::OpenBrace => {
+                    open.push(token.kind);
+                    continue;
+                },
+                TokenKind::CloseParen => TokenKind::OpenParen,
+                TokenKind::CloseBracket => TokenKind::OpenBracket,
+                TokenKind::CloseBrace => TokenKind::OpenBrace,
+                _ => continue,
+            };
+            if open.pop() != Some(expected) {
+                return false;
+            }
+        }
+        open.is_empty()
+    })
+}
+
 /// Returns all the comments a given span contains
 ///
 /// Comments are returned wrapped with their relevant delimiters
