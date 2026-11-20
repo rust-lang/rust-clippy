@@ -7771,6 +7771,7 @@ Released 2018-09-13
 [`stable_sort_primitive`]: https://clippy.rust-lang.org/main/index.html#stable_sort_primitive
 [`std_instead_of_alloc`]: https://clippy.rust-lang.org/main/index.html#std_instead_of_alloc
 [`std_instead_of_core`]: https://clippy.rust-lang.org/main/index.html#std_instead_of_core
+[`str_parse_infer_to_i32`]: https://clippy.rust-lang.org/main/index.html#str_parse_infer_to_i32
 [`str_split_at_newline`]: https://clippy.rust-lang.org/main/index.html#str_split_at_newline
 [`str_to_string`]: https://clippy.rust-lang.org/main/index.html#str_to_string
 [`string_add`]: https://clippy.rust-lang.org/main/index.html#string_add
