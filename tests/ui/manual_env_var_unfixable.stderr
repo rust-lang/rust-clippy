@@ -1,0 +1,63 @@
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:15:29
+   |
+LL |       let _: Option<String> = env::vars()
+   |  _____________________________^
+LL | |
+LL | |         .find(|(k, v)| k == might_have_side_effects())
+LL | |         .map(|(k, v)| v);
+   | |________________________^ help: replace with: `std::env::var(might_have_side_effects()).ok()`
+   |
+   = note: `-D clippy::manual-env-var` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_env_var)]`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:19:29
+   |
+LL |     let _: Option<String> = env::vars().find(|(k, v)| k == might_have_side_effects()).map(|e| e.1);
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).ok()`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:21:29
+   |
+LL |     let _: Option<String> = env::vars().find(|e| e.0 == might_have_side_effects()).map(|e| e.1);
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).ok()`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:23:29
+   |
+LL |     let _: Option<String> = env::vars().find_map(|(k, v)| if k == might_have_side_effects() { Some(v) } else { None });
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).ok()`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:25:29
+   |
+LL |     let _: Option<String> = env::vars().find_map(|(k, v)| if k == might_have_side_effects() { Some(v) } else { None });
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).ok()`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:27:19
+   |
+LL |     let _: bool = env::vars().any(|(k, v)| k == might_have_side_effects());
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).is_ok()`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:29:19
+   |
+LL |     let _: bool = env::vars().any(|(k, v)| might_have_side_effects() == k);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).is_ok()`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:31:19
+   |
+LL |     let _: bool = env::vars().any(|e| e.0 == might_have_side_effects());
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).is_ok()`
+
+error: avoid using `env::vars()` to find individual values
+  --> tests/ui/manual_env_var_unfixable.rs:33:19
+   |
+LL |     let _: bool = env::vars().any(|e| might_have_side_effects() == e.0);
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `std::env::var(might_have_side_effects()).is_ok()`
+
+error: aborting due to 9 previous errors
+
