@@ -726,7 +726,7 @@ impl LintMetadata {
             _ => panic!("needs to update this code"),
         }
     }
-    
+
     /// Runs clippy-driver on the lint's documentation, and return whether the lint triggered.
     /// Note that this might sometimes fail because the whole snippet fails to build.
     fn doctest_triggers_lint(&self) -> bool {
