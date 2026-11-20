@@ -1,0 +1,29 @@
+error: this `repeat_n().collect::<Vec>()` can be written more concisely
+  --> tests/ui/manual_vec.rs:6:13
+   |
+LL |     let _ = std::iter::repeat_n("abc", 3).collect::<Vec<_>>();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use:: `vec!["abc"; 3]`
+   |
+   = note: `-D clippy::manual-vec` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_vec)]`
+
+error: this `repeat_n().collect::<Vec>()` can be written more concisely
+  --> tests/ui/manual_vec.rs:8:13
+   |
+LL |     let _ = std::iter::repeat_n(some_elem(), some_count()).collect::<Vec<_>>();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use:: `vec![some_elem(); some_count()]`
+
+error: this `repeat_n().collect::<Vec>()` can be written more concisely
+  --> tests/ui/manual_vec.rs:10:13
+   |
+LL |     let _ = std::iter::repeat_n("0451", some_count()).collect::<Vec<_>>();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use:: `vec!["0451"; some_count()]`
+
+error: this `repeat_n().collect::<Vec>()` can be written more concisely
+  --> tests/ui/manual_vec.rs:12:23
+   |
+LL |     let _: Vec<i32> = std::iter::repeat_n(some_elem(), 11).collect();
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use:: `vec![some_elem(); 11]`
+
+error: aborting due to 4 previous errors
+
