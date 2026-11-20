@@ -1,4 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_then;
+use clippy_utils::is_def_id_trait_method;
 use clippy_utils::source::{SpanExt as _, position_before_rarrow, snippet_block};
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
@@ -64,6 +65,8 @@ impl<'tcx> LateLintPass<'tcx> for ManualAsyncFn {
                 Node::ImplItem(impl_item) => Some(impl_item.vis_span()),
                 _ => None,
             }
+            && !is_def_id_trait_method(cx, fn_def_id)
+            && (!has_extra_trait_bounds(opaque) || decl.inputs.is_empty())
             && !span.from_expansion()
         {
             let header_span = span.with_hi(ret_ty.span.hi());
@@ -186,4 +189,14 @@ fn suggested_ret(cx: &LateContext<'_>, output: &Ty<'_>) -> Option<(&'static str,
         let sugg = "return the output of the future directly";
         output.span.get_text(cx).map(|src| (sugg, format!(" -> {src}")))
     }
+}
+
+/// Should not lint when functions have extra opaques like `Future<Output = /* output */> + Send`.
+fn has_extra_trait_bounds(opaque: &OpaqueTy<'_>) -> bool {
+    opaque
+        .bounds
+        .iter()
+        .filter(|b| matches!(b, GenericBound::Trait(_)))
+        .count()
+        > 1
 }

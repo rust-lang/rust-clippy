@@ -178,4 +178,53 @@ issue_12407! {
     fn foo() = non_async();
 }
 
+mod issue_12664 {
+    // Should not lint trait items, or functions with parameters whose return type has extra trait bounds.
+    use std::future::Future;
+    use std::rc::Rc;
+
+    trait Request {
+        fn get_body(self) -> impl Future<Output = Vec<u8>> + Send;
+        fn should_not_lint_in_trait_item(self) -> impl Future<Output = Vec<u8>>;
+    }
+
+    struct MyRequest {
+        _things: Rc<u8>,
+        body: Vec<u8>,
+    }
+
+    impl Request for MyRequest {
+        fn get_body(self) -> impl Future<Output = Vec<u8>> + Send {
+            async { self.body }
+        }
+
+        fn should_not_lint_in_trait_item(self) -> impl Future<Output = Vec<u8>> {
+            async { self.body }
+        }
+    }
+
+    // Should not lint function with extra opaque.
+    impl MyRequest {
+        fn should_not_lint(self) -> impl Future<Output = Vec<u8>> + Send {
+            async { self.body }
+        }
+    }
+
+    impl MyRequest {
+        fn should_lint(self) -> impl Future<Output = Vec<u8>> {
+            //~^ manual_async_fn
+            async { self.body }
+        }
+    }
+
+    fn function_have_extra_opaque(_things: Rc<u8>) -> impl Future<Output = Vec<u8>> + Send + Sync {
+        async { vec![0_u8, 1_u8] }
+    }
+
+    fn function_without_parameter() -> impl Future<Output = Vec<u8>> + Sync {
+        //~^ manual_async_fn
+        async { vec![0_u8, 1_u8] }
+    }
+}
+
 fn main() {}
