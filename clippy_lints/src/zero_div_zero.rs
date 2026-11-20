@@ -1,5 +1,6 @@
 use clippy_utils::consts::{ConstEvalCtxt, Constant};
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_sugg;
+use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 
@@ -40,13 +41,22 @@ impl<'tcx> LateLintPass<'tcx> for ZeroDiv {
             && is_float_zero(&rhs_value)
         {
             let float_type = cx.typeck_results().expr_ty(expr);
-            span_lint_and_help(
+            // Rust leaves the sign and payload of a NaN produced by arithmetic unspecified, and
+            // `NAN` is one of the permitted results, so the replacement preserves semantics. Inside
+            // a macro the expression may be instantiated at other types, so don't apply it blindly.
+            let applicability = if expr.span.from_expansion() {
+                Applicability::MaybeIncorrect
+            } else {
+                Applicability::MachineApplicable
+            };
+            span_lint_and_sugg(
                 cx,
                 ZERO_DIVIDED_BY_ZERO,
                 expr.span,
                 "constant division of `0.0` with `0.0` will always result in NaN",
-                None,
-                format!("consider using `{float_type}::NAN` if you would like a constant representing NaN"),
+                "use the constant instead",
+                format!("{float_type}::NAN"),
+                applicability,
             );
         }
     }
