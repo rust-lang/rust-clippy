@@ -53,6 +53,7 @@ declare_clippy_lint! {
     suspicious,
     "floating-point sorting comparator may violate total ordering"
 }
+
 declare_lint_pass!(InvalidFloatSortComparator => [INVALID_FLOAT_SORT_COMPARATOR]);
 
 impl<'tcx> LateLintPass<'tcx> for InvalidFloatSortComparator {
