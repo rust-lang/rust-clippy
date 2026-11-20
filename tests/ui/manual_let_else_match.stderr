@@ -181,5 +181,58 @@ LL | |             _ => return,
 LL | |         };
    | |__________^ help: consider writing: `let A { a: first_arg, .. } = a else { return };`
 
-error: aborting due to 18 previous errors
+error: this could be rewritten as `let...else`
+  --> tests/ui/manual_let_else_match.rs:285:5
+   |
+LL | /     let (object_pair, contact) = match tuple {
+LL | |
+LL | |         constraint @ (_, Variant::Bar(_)) => constraint,
+LL | |         _ => return,
+LL | |     };
+   | |______^ help: consider writing: `let (object_pair, contact @ Variant::Bar(_)) = tuple else { return };`
+
+error: this could be rewritten as `let...else`
+  --> tests/ui/manual_let_else_match.rs:291:5
+   |
+LL | /     let [first, contact] = match array {
+LL | |
+LL | |         constraint @ [_, Variant::Bar(_)] => constraint,
+LL | |         _ => return,
+LL | |     };
+   | |______^ help: consider writing: `let [first, contact @ Variant::Bar(_)] = array else { return };`
+
+error: this could be rewritten as `let...else`
+  --> tests/ui/manual_let_else_match.rs:297:5
+   |
+LL | /     let Constraint { object_pair, contact } = match constraint {
+LL | |
+LL | |         constraint @ Constraint {
+LL | |             contact: Variant::Bar(_),
+...  |
+LL | |         _ => return,
+LL | |     };
+   | |______^ help: consider writing: `let Constraint { contact: contact @ Variant::Bar(_), object_pair } = constraint else { return };`
+
+error: this could be rewritten as `let...else`
+  --> tests/ui/manual_let_else_match.rs:306:5
+   |
+LL | /     let TupleConstraint(object_pair, contact) = match tuple_constraint {
+LL | |
+LL | |         constraint @ TupleConstraint(_, Variant::Bar(_)) => constraint,
+LL | |         _ => return,
+LL | |     };
+   | |______^ help: consider writing: `let TupleConstraint(object_pair, contact @ Variant::Bar(_)) = tuple_constraint else { return };`
+
+error: this could be rewritten as `let...else`
+  --> tests/ui/manual_let_else_match.rs:312:5
+   |
+LL | /     let NestedConstraint {
+LL | |         values: (object_pair, contact),
+LL | |     } = match nested_constraint {
+...  |
+LL | |         _ => return,
+LL | |     };
+   | |______^ help: consider writing: `let NestedConstraint { values: (object_pair, contact @ Variant::Bar(_)) } = nested_constraint else { return };`
+
+error: aborting due to 23 previous errors
 

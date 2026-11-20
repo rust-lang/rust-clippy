@@ -263,3 +263,71 @@ mod issue16433 {
         };
     }
 }
+
+struct Constraint {
+    object_pair: u32,
+    contact: Variant,
+}
+
+struct TupleConstraint(u32, Variant);
+
+struct NestedConstraint {
+    values: (u32, Variant),
+}
+
+fn issue17285(
+    tuple: (u32, Variant),
+    array: [Variant; 2],
+    constraint: Constraint,
+    tuple_constraint: TupleConstraint,
+    nested_constraint: NestedConstraint,
+) {
+    let (object_pair, contact) = match tuple {
+        //~^ manual_let_else
+        constraint @ (_, Variant::Bar(_)) => constraint,
+        _ => return,
+    };
+
+    let [first, contact] = match array {
+        //~^ manual_let_else
+        constraint @ [_, Variant::Bar(_)] => constraint,
+        _ => return,
+    };
+
+    let Constraint { object_pair, contact } = match constraint {
+        //~^ manual_let_else
+        constraint @ Constraint {
+            contact: Variant::Bar(_),
+            ..
+        } => constraint,
+        _ => return,
+    };
+
+    let TupleConstraint(object_pair, contact) = match tuple_constraint {
+        //~^ manual_let_else
+        constraint @ TupleConstraint(_, Variant::Bar(_)) => constraint,
+        _ => return,
+    };
+
+    let NestedConstraint {
+        values: (object_pair, contact),
+    } = match nested_constraint {
+        //~^^^ manual_let_else
+        constraint @ NestedConstraint {
+            values: (_, Variant::Bar(_)),
+        } => constraint,
+        _ => return,
+    };
+}
+
+fn issue17285_unsupported(tuple: (u32, Variant), array: [Variant; 3]) {
+    let (object_pair, contact) = match tuple {
+        constraint @ ((_, Variant::Bar(_)) | (_, Variant::Baz(_))) => constraint,
+        _ => return,
+    };
+
+    let [first, middle @ .., last] = match array {
+        constraint @ [_, .., Variant::Bar(_)] => constraint,
+        _ => return,
+    };
+}
