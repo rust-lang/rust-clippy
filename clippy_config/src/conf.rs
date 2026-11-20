@@ -79,6 +79,7 @@ macro_rules! define_Conf {
             $(#[doc = $doc:literal])*
             $(#[default_text = $default_text:literal])?
             $(#[rename = $new_name:ident])?
+            $(#[schema_type = $schema_ty:literal])?
             $(#[lints($($for_lints:ident),* $(,)?)])?
             // The type must exist for regular fields and must not exist for deprecated ones.
             $name:ident($name_str:literal) $(: $ty:ty $(= $default:expr)?)?,
@@ -113,9 +114,17 @@ macro_rules! define_Conf {
         }
 
         /// Clippy lint configuration
+        #[cfg_attr(feature = "jsonschema", derive(schemars::JsonSchema))]
+        #[cfg_attr(feature = "jsonschema", schemars(title = "Clippy configuration", deny_unknown_fields))]
         pub struct Conf {
             // TODO: emit documentation
-            $($(pub $name: $ty,)?)*
+            $(
+                $(#[cfg_attr(feature = "jsonschema", schemars(with = $schema_ty))])?
+                $(
+                    #[cfg_attr(feature = "jsonschema", schemars(rename = $name_str))]
+                    pub $name: $ty,
+                )?
+            )*
         }
 
         impl Default for Conf {
@@ -127,6 +136,12 @@ macro_rules! define_Conf {
         }
 
         impl Conf {
+            /// Generate the Draft 7 JSON Schema for a Clippy configuration file.
+            #[cfg(feature = "jsonschema")]
+            pub fn schema_json() -> String {
+                crate::schema::schema_json::<Self>(Self::get_metadata())
+            }
+
             pub fn get_metadata() -> Vec<ConfMetadata> {
                 vec![$(
                     ConfMetadata {
@@ -234,6 +249,7 @@ macro_rules! define_Conf {
 
 define_Conf! {
     /// Which crates to allow absolute paths from
+    #[schema_type = "crate::schema::UniqueArray<String>"]
     #[lints(absolute_paths)]
     absolute_paths_allowed_crates("absolute-paths-allowed-crates"): FxHashSet<Symbol>,
     /// The maximum number of segments a path can have before being linted, anything above this will
@@ -319,11 +335,13 @@ define_Conf! {
     #[lints(path_ends_with_ext)]
     allowed_dotfiles("allowed-dotfiles"): Vec<String>,
     /// A list of crate names to allow duplicates of
+    #[schema_type = "crate::schema::UniqueArray<String>"]
     #[lints(multiple_crate_versions)]
     allowed_duplicate_crates("allowed-duplicate-crates"): FxHashSet<String>,
     /// Allowed names below the minimum allowed characters. The value `".."` can be used as part of
     /// the list to indicate that the configured values should be appended to the default
     /// configuration of Clippy. By default, any configuration will replace the default value.
+    #[schema_type = "crate::schema::UniqueArray<String>"]
     #[lints(min_ident_chars)]
     allowed_idents_below_min_chars("allowed-idents-below-min-chars"): FxHashSet<String> = DEFAULT_ALLOWED_IDENTS_BELOW_MIN_CHARS,
     /// List of prefixes to allow when determining whether an item's name ends with the module's name.
@@ -361,6 +379,7 @@ define_Conf! {
     /// 1. This configuration has no effects if used with `warn_on_all_wildcard_imports = true`.
     /// 2. Paths with any segment that containing the word 'prelude'
     /// are already allowed by default.
+    #[schema_type = "crate::schema::UniqueArray<String>"]
     #[lints(wildcard_imports)]
     allowed_wildcard_imports("allowed-wildcard-imports"): FxHashSet<String>,
     /// Suppress checking of the passed type names in all types of operations.
@@ -552,6 +571,7 @@ define_Conf! {
     /// default configuration of Clippy. By default, any configuration will replace the default value. For example:
     /// * `doc-valid-idents = ["ClipPy"]` would replace the default list with `["ClipPy"]`.
     /// * `doc-valid-idents = ["ClipPy", ".."]` would append `ClipPy` to the default list.
+    #[schema_type = "crate::schema::UniqueArray<String>"]
     #[lints(doc_markdown)]
     doc_valid_idents("doc-valid-idents"): FxHashSet<String> = DEFAULT_DOC_VALID_IDENTS,
     /// Whether to apply the raw pointer heuristic to determine if a type is `Send`.
@@ -653,6 +673,7 @@ define_Conf! {
     #[lints(missing_docs_in_private_items)]
     missing_docs_in_crate_items("missing-docs-in-crate-items"): bool = false,
     /// The named groupings of different source item kinds within modules.
+    #[schema_type = "Vec<(String, Vec<crate::types::SourceItemOrderingModuleItemKind>)>"]
     #[lints(arbitrary_source_item_ordering)]
     module_item_order_groupings("module-item-order-groupings"): SourceItemOrderingModuleItemGroupings,
     /// Whether the items within module groups should be ordered alphabetically or not.
@@ -663,6 +684,7 @@ define_Conf! {
     module_items_ordered_within_groupings("module-items-ordered-within-groupings"): SourceItemOrderingWithinModuleItemGroupings,
     /// The minimum rust version that the project supports. Defaults to the `rust-version` field in `Cargo.toml`
     #[default_text = "current version"]
+    #[schema_type = "String"]
     #[lints(
         allow_attributes,
         allow_attributes_without_reason,

@@ -10,12 +10,21 @@ publish = false
 arrayvec = { version = "0.7", default-features = false }
 clippy_utils = { path = "../clippy_utils" }
 itertools = "0.15"
+schemars = { version = "1.2.3", optional = true }
+serde_json = { version = "1.0.122", optional = true }
 
 [dependencies.toml]
 version = "1.1"
 default-features = false
 # preserve_order keeps diagnostic output in file order
 features = ["parse", "preserve_order"]
+
+[features]
+jsonschema = ["dep:schemars", "dep:serde_json"]
+
+[[example]]
+name = "print_schema"
+required-features = ["jsonschema"]
 
 [dev-dependencies]
 walkdir = "2.3"

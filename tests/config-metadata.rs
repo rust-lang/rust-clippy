@@ -81,3 +81,18 @@ fn changelog() {
         }
     }
 }
+
+#[test]
+fn json_schema() {
+    let path = "util/gh-pages/clippy.schema.json";
+    let current = fs::read_to_string(path).unwrap_or_default();
+    let expected = Conf::schema_json();
+
+    if current != expected {
+        if env::var_os("RUSTC_BLESS").is_some_and(|v| v != "0") {
+            fs::write(path, expected).unwrap();
+        } else {
+            panic!("`{path}` is out of date, run `cargo bless --test config-metadata` to update it");
+        }
+    }
+}
