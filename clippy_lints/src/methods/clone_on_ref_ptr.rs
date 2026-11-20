@@ -3,7 +3,7 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::peel_and_count_ty_refs;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::LateContext;
+use rustc_lint::{LateContext, std_or_core};
 use rustc_middle::ty::{self, IsSuggestable as _};
 use rustc_span::symbol::sym;
 
@@ -16,11 +16,16 @@ pub(super) fn check(cx: &LateContext<'_>, expr: &hir::Expr<'_>, receiver: &hir::
     if let ty::Adt(adt, subst) = receiver_ty_peeled.kind()
         && let Some(name) = cx.tcx.get_diagnostic_name(adt.did())
     {
+        let top_crate = match std_or_core(cx) {
+            Some("std") => "std",
+            Some("core") => "alloc",
+            _ => return,
+        };
         let caller_type = match name {
-            sym::Rc => "std::rc::Rc",
-            sym::Arc => "std::sync::Arc",
-            sym::RcWeak => "std::rc::Weak",
-            sym::ArcWeak => "std::sync::Weak",
+            sym::Rc => format!("{top_crate}::rc::Rc"),
+            sym::Arc => format!("{top_crate}::sync::Arc"),
+            sym::RcWeak => format!("{top_crate}::rc::Weak"),
+            sym::ArcWeak => format!("{top_crate}::sync::Weak"),
             _ => return,
         };
         span_lint_and_then(
