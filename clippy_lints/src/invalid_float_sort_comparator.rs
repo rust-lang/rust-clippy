@@ -1,5 +1,5 @@
 use clippy_utils::diagnostics::span_lint_and_help;
-use clippy_utils::res::{MaybeDef, MaybeQPath, MaybeResPath, MaybeTypeckRes};
+use clippy_utils::res::{MaybeDef as _, MaybeQPath as _, MaybeResPath as _, MaybeTypeckRes as _};
 use clippy_utils::ty::adt_and_variant_of_res;
 use clippy_utils::{peel_blocks, sym};
 use rustc_hir::def::{DefKind, Res};
