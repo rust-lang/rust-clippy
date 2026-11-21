@@ -7362,6 +7362,7 @@ Released 2018-09-13
 [`iter_skip_zero`]: https://clippy.rust-lang.org/main/index.html#iter_skip_zero
 [`iter_with_drain`]: https://clippy.rust-lang.org/main/index.html#iter_with_drain
 [`iter_without_into_iter`]: https://clippy.rust-lang.org/main/index.html#iter_without_into_iter
+[`iterator_step_by_one`]: https://clippy.rust-lang.org/main/index.html#iterator_step_by_one
 [`iterator_step_by_zero`]: https://clippy.rust-lang.org/main/index.html#iterator_step_by_zero
 [`join_absolute_paths`]: https://clippy.rust-lang.org/main/index.html#join_absolute_paths
 [`just_underscores_and_digits`]: https://clippy.rust-lang.org/main/index.html#just_underscores_and_digits

@@ -15,7 +15,7 @@ fn main() {
     y.step_by(0);
 
     // No warning for non-zero step
-    let _ = (0..1).step_by(1);
+    let _ = (0..1).step_by(2);
 
     let _ = (1..).step_by(0);
     //~^ iterator_step_by_zero
