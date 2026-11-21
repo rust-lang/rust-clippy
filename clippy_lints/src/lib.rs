@@ -173,6 +173,7 @@ mod init_numbered_fields;
 mod inline_fn_without_body;
 mod inline_trait_bounds;
 mod int_plus_one;
+mod invalid_float_sort_comparator;
 mod item_name_repetitions;
 mod items_after_statements;
 mod items_after_test_module;
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        InvalidFloatSortComparator: invalid_float_sort_comparator::InvalidFloatSortComparator = invalid_float_sort_comparator::InvalidFloatSortComparator,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

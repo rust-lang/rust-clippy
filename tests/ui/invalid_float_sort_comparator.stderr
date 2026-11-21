@@ -1,0 +1,52 @@
+error: this sort comparator treats NaN as equal to every value
+  --> tests/ui/invalid_float_sort_comparator.rs:19:22
+   |
+LL |     floats32.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `total_cmp` for a total order, or `expect` if the values cannot be NaN
+   = note: `-D clippy::invalid-float-sort-comparator` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::invalid_float_sort_comparator)]`
+
+error: this sort comparator treats NaN as equal to every value
+  --> tests/ui/invalid_float_sort_comparator.rs:21:31
+   |
+LL |     floats32.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `total_cmp` for a total order, or `expect` if the values cannot be NaN
+
+error: this sort comparator treats NaN as equal to every value
+  --> tests/ui/invalid_float_sort_comparator.rs:25:22
+   |
+LL |     floats64.sort_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `total_cmp` for a total order, or `expect` if the values cannot be NaN
+
+error: this sort comparator treats NaN as equal to every value
+  --> tests/ui/invalid_float_sort_comparator.rs:27:31
+   |
+LL |     floats64.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap_or(Ordering::Equal));
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `total_cmp` for a total order, or `expect` if the values cannot be NaN
+
+error: this sort comparator treats NaN as equal to every value
+  --> tests/ui/invalid_float_sort_comparator.rs:31:22
+   |
+LL |     floats32.sort_by(invalid_float_sort_comparator);
+   |                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `total_cmp` for a total order, or `expect` if the values cannot be NaN
+
+error: this sort comparator treats NaN as equal to every value
+  --> tests/ui/invalid_float_sort_comparator.rs:33:31
+   |
+LL |     floats64.sort_unstable_by(invalid_float_sort_comparator);
+   |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: use `total_cmp` for a total order, or `expect` if the values cannot be NaN
+
+error: aborting due to 6 previous errors
+
