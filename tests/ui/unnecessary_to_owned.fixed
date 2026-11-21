@@ -699,3 +699,27 @@ fn vec_contains_cloned() {
     let _ = Vec::new().iter().any(|i: &String| i == "str");
     //~^ unnecessary_to_owned
 }
+
+mod issue18106 {
+    use std::path::{Path, PathBuf};
+
+    fn to_owned_str(names: &[String], name: &str) -> bool {
+        names.iter().any(|i| i == name)
+        //~^ unnecessary_to_owned
+    }
+
+    fn string_from(names: &[String], name: &str) -> bool {
+        names.iter().any(|i| i == name)
+        //~^ unnecessary_to_owned
+    }
+
+    fn to_path_buf(paths: &[PathBuf], path: &Path) -> bool {
+        paths.iter().any(|i| i == path)
+        //~^ unnecessary_to_owned
+    }
+
+    fn to_vec(vecs: &[Vec<u8>], bytes: &[u8]) -> bool {
+        vecs.iter().any(|i| i == bytes)
+        //~^ unnecessary_to_owned
+    }
+}

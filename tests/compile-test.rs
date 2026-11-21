@@ -480,7 +480,10 @@ fn ui_cargo_toml_metadata() {
             .and_then(|x| x.get_ref().as_bool())
             .unwrap_or(true);
         assert!(
-            !publish || publish_exceptions.contains(&path.parent().unwrap().to_path_buf()),
+            !publish
+                || publish_exceptions
+                    .iter()
+                    .any(|i: &std::path::PathBuf| i == path.parent().unwrap()),
             "`{}` lacks `publish = false`",
             path.display(),
         );

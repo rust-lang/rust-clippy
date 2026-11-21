@@ -604,5 +604,53 @@ LL -     let _ = Vec::new().contains(&"str".to_string());
 LL +     let _ = Vec::new().iter().any(|i: &String| i == "str");
    |
 
-error: aborting due to 87 previous errors
+error: unnecessary use of `.to_owned()`
+  --> tests/ui/unnecessary_to_owned.rs:707:15
+   |
+LL |         names.contains(&name.to_owned())
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use an iterator instead of `.contains(_)` to avoid cloning via `.to_owned()`
+   |
+LL -         names.contains(&name.to_owned())
+LL +         names.iter().any(|i| i == name)
+   |
+
+error: unnecessary use of `String::from`
+  --> tests/ui/unnecessary_to_owned.rs:712:15
+   |
+LL |         names.contains(&String::from(name))
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use an iterator instead of `.contains(_)` to avoid cloning via `String::from`
+   |
+LL -         names.contains(&String::from(name))
+LL +         names.iter().any(|i| i == name)
+   |
+
+error: unnecessary use of `.to_path_buf()`
+  --> tests/ui/unnecessary_to_owned.rs:717:15
+   |
+LL |         paths.contains(&path.to_path_buf())
+   |               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use an iterator instead of `.contains(_)` to avoid cloning via `.to_path_buf()`
+   |
+LL -         paths.contains(&path.to_path_buf())
+LL +         paths.iter().any(|i| i == path)
+   |
+
+error: unnecessary use of `.to_vec()`
+  --> tests/ui/unnecessary_to_owned.rs:722:14
+   |
+LL |         vecs.contains(&bytes.to_vec())
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: use an iterator instead of `.contains(_)` to avoid cloning via `.to_vec()`
+   |
+LL -         vecs.contains(&bytes.to_vec())
+LL +         vecs.iter().any(|i| i == bytes)
+   |
+
+error: aborting due to 91 previous errors
 
