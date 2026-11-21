@@ -31,5 +31,17 @@ error: accessing first element with `non_primitives.get(0)`
 LL |     let _ = non_primitives.get(0);
    |             ^^^^^^^^^^^^^^^^^^^^^ help: try: `non_primitives.first()`
 
-error: aborting due to 5 previous errors
+error: accessing first element with `mutable_vec.get_mut(0)`
+  --> tests/ui/get_first.rs:56:17
+   |
+LL |     let first = mutable_vec.get_mut(0);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^ help: try: `mutable_vec.first_mut()`
+
+error: accessing first element with `mutable_vecdeque.get_mut(0)`
+  --> tests/ui/get_first.rs:60:17
+   |
+LL |     let first = mutable_vecdeque.get_mut(0);
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: try: `mutable_vecdeque.front_mut()`
+
+error: aborting due to 7 previous errors
 
