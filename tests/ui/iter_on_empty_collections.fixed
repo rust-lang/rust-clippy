@@ -83,4 +83,14 @@ mod custom_option {
     }
 }
 
+mod issue18083 {
+
+    fn test<T>() {
+        std::iter::empty::<T>();
+        //~^ iter_on_empty_collections
+        std::iter::empty::<()>();
+        //~^ iter_on_empty_collections
+    }
+}
+
 fn main() {}
