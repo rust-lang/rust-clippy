@@ -42,6 +42,7 @@ declare_clippy_lint! {
     /// If the collection is guaranteed not to contain NaNs, use expect instead
     /// to make that assumption explicit:
     /// ```no_run
+    /// let mut values = vec![1.0_f64, 2.0];
     /// values.sort_by(|a, b| a.partial_cmp(b).expect("values must not contain NaNs"));
     /// ```
     ///
