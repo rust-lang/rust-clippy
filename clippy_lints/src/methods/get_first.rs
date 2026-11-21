@@ -16,6 +16,7 @@ pub(super) fn check<'tcx>(
     expr: &'tcx hir::Expr<'_>,
     recv: &'tcx hir::Expr<'_>,
     arg: &'tcx hir::Expr<'_>,
+    is_mut: bool,
 ) {
     if let Some(method_id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
         && let Some(impl_id) = cx.tcx.impl_of_assoc(method_id)
@@ -25,6 +26,7 @@ pub(super) fn check<'tcx>(
             ..
         }) = arg.kind
     {
+        let suffix = if is_mut { "_mut" } else { "" };
         if identity.is_slice() {
             let mut app = Applicability::MachineApplicable;
             let slice_name = snippet_with_applicability(cx, recv.span, "..", &mut app);
@@ -32,9 +34,9 @@ pub(super) fn check<'tcx>(
                 cx,
                 GET_FIRST,
                 expr.span,
-                format!("accessing first element with `{slice_name}.get(0)`"),
+                format!("accessing first element with `{slice_name}.get{suffix}(0)`"),
                 "try",
-                format!("{slice_name}.first()"),
+                format!("{slice_name}.first{suffix}()"),
                 app,
             );
         } else if identity.is_diag_item(cx, sym::VecDeque) {
@@ -44,9 +46,9 @@ pub(super) fn check<'tcx>(
                 cx,
                 GET_FIRST,
                 expr.span,
-                format!("accessing first element with `{slice_name}.get(0)`"),
+                format!("accessing first element with `{slice_name}.get{suffix}(0)`"),
                 "try",
-                format!("{slice_name}.front()"),
+                format!("{slice_name}.front{suffix}()"),
                 app,
             );
         }
