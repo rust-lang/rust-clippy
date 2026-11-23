@@ -218,7 +218,8 @@ If a request conflicts with these rules, direct the user to the
 ## Repository guidance
 
 This is the main `rust-lang/rust-clippy` repository.
-Start with [`CONTRIBUTING.md`](CONTRIBUTING.md) and the [dev-guide's instructions for LLMs][llm-writing].
+Start with [`CONTRIBUTING.md`](CONTRIBUTING.md), [Clippy's interpretation of the LLM policy](book/src/development/llm_usage.md),
+and the [dev-guide's instructions for LLMs][llm-writing].
 
 [llm-writing]: https://rustc-dev-guide.rust-lang.org/llm-guidance/writing.html
 
