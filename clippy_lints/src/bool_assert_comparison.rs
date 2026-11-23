@@ -1,15 +1,16 @@
 use clippy_utils::diagnostics::span_lint_and_then;
-use clippy_utils::macros::{find_assert_eq_args, root_macro_call_first_node};
+use clippy_utils::macros::{find_assert_eq_args, find_assert_matches_args, root_macro_call_first_node};
 use clippy_utils::source::walk_span_to_context;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::sym;
 use clippy_utils::ty::{implements_trait, is_copy};
 use rustc_ast::ast::LitKind;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, Lit};
+use rustc_hir::{Expr, ExprKind, Lit, PatExpr, PatExprKind, PatKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
 use rustc_middle::ty::{self, Ty, Unnormalized};
 use rustc_span::symbol::Ident;
+use rustc_span::{ExpnId, Span};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -71,35 +72,68 @@ fn is_impl_not_trait_with_bool_out<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -
         })
 }
 
+fn eq_args<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>, expn: ExpnId) -> Option<(Span, bool, &'a Expr<'a>)> {
+    let (a, b, _) = find_assert_eq_args(cx, expr, expn)?;
+
+    let a_span = a.span.source_callsite();
+    let b_span = b.span.source_callsite();
+
+    match (extract_bool_lit(a), extract_bool_lit(b)) {
+        // assert_eq!(true/false, b)
+        //            ^^^^^^^^^^^^
+        (Some(bool_value), None) => Some((a_span.until(b_span), bool_value, b)),
+        // assert_eq!(a, true/false)
+        //             ^^^^^^^^^^^^
+        (None, Some(bool_value)) => Some((b_span.with_lo(a_span.hi()), bool_value, a)),
+        // If there are two boolean arguments, we definitely don't understand
+        // what's going on, so better leave things as is...
+        //
+        // Or there is simply no boolean and then we can leave things as is!
+        _ => None,
+    }
+}
+
+fn matches_args<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>, expn: ExpnId) -> Option<(Span, bool, &'a Expr<'a>)> {
+    let (scrutinee, arm, _) = find_assert_matches_args(cx, expr, expn)?;
+    if let PatKind::Expr(PatExpr {
+        kind:
+            PatExprKind::Lit {
+                lit: Lit {
+                    node: LitKind::Bool(bool_value),
+                    ..
+                },
+                negated: false,
+            },
+        ..
+    }) = arm.pat.kind
+        && arm.guard.is_none()
+        && !arm.pat.span.from_expansion()
+    {
+        // assert_matches!(a, true/false)
+        //                  ^^^^^^^^^^^^
+        let lit_span = arm.pat.span.with_lo(scrutinee.span.source_callsite().hi());
+        Some((lit_span, *bool_value, scrutinee))
+    } else {
+        None
+    }
+}
+
 impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         let Some(macro_call) = root_macro_call_first_node(cx, expr) else {
             return;
         };
-        let eq_macro = match cx.tcx.get_diagnostic_name(macro_call.def_id) {
-            Some(sym::assert_eq_macro | sym::debug_assert_eq_macro) => true,
-            Some(sym::assert_ne_macro | sym::debug_assert_ne_macro) => false,
+        let (eq_macro, args) = match cx.tcx.get_diagnostic_name(macro_call.def_id) {
+            Some(sym::assert_eq_macro | sym::debug_assert_eq_macro) => (true, eq_args(cx, expr, macro_call.expn)),
+            Some(sym::assert_ne_macro | sym::debug_assert_ne_macro) => (false, eq_args(cx, expr, macro_call.expn)),
+            Some(sym::assert_matches_macro | sym::debug_assert_matches_macro) => {
+                (true, matches_args(cx, expr, macro_call.expn))
+            },
             _ => return,
         };
-        let Some((a, b, _)) = find_assert_eq_args(cx, expr, macro_call.expn) else {
+
+        let Some((lit_span, bool_value, non_lit_expr)) = args else {
             return;
-        };
-
-        let a_span = a.span.source_callsite();
-        let b_span = b.span.source_callsite();
-
-        let (lit_span, bool_value, non_lit_expr) = match (extract_bool_lit(a), extract_bool_lit(b)) {
-            // assert_eq!(true/false, b)
-            //            ^^^^^^^^^^^^
-            (Some(bool_value), None) => (a_span.until(b_span), bool_value, b),
-            // assert_eq!(a, true/false)
-            //             ^^^^^^^^^^^^
-            (None, Some(bool_value)) => (b_span.with_lo(a_span.hi()), bool_value, a),
-            // If there are two boolean arguments, we definitely don't understand
-            // what's going on, so better leave things as is...
-            //
-            // Or there is simply no boolean and then we can leave things as is!
-            _ => return,
         };
 
         let non_lit_ty = cx.typeck_results().expr_ty(non_lit_expr);
@@ -119,7 +153,8 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
 
         let macro_name = cx.tcx.item_name(macro_call.def_id);
         let macro_name = macro_name.as_str();
-        let non_eq_mac = &macro_name[..macro_name.len() - 3];
+        // `assert_eq` -> `assert`, `debug_assert_matches` -> `debug_assert`, etc.
+        let assert_mac = macro_name.rsplit_once('_').map_or(macro_name, |(prefix, _)| prefix);
         span_lint_and_then(
             cx,
             BOOL_ASSERT_COMPARISON,
@@ -130,7 +165,7 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                 // ^^^^^^^^^
                 let name_span = cx.sess().source_map().span_until_char(macro_call.span, '!');
 
-                let mut suggestions = vec![(name_span, non_eq_mac.to_string()), (lit_span, String::new())];
+                let mut suggestions = vec![(name_span, assert_mac.to_string()), (lit_span, String::new())];
 
                 let mut applicability = Applicability::MachineApplicable;
                 let sugg = Sugg::hir_with_context(cx, non_lit_expr, macro_call.span.ctxt(), "..", &mut applicability);
@@ -146,7 +181,7 @@ impl<'tcx> LateLintPass<'tcx> for BoolAssertComparison {
                 suggestions.push((non_lit_expr_span, sugg.to_string()));
 
                 diag.multipart_suggestion(
-                    format!("replace it with `{non_eq_mac}!(..)`"),
+                    format!("replace it with `{assert_mac}!(..)`"),
                     suggestions,
                     applicability,
                 );
