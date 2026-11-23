@@ -1,10 +1,10 @@
 //@only-target: x86_64
-#![warn(clippy::call_missing_target_feature)]
+#![warn(clippy::unchecked_target_features)]
 #![allow(clippy::missing_safety_doc)]
 
 pub fn test_f() {
     unsafe { f() };
-    //~^ call_missing_target_feature
+    //~^ unchecked_target_features
 }
 
 pub(crate) fn test_g() {

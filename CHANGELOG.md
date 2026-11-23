@@ -7089,7 +7089,6 @@ Released 2018-09-13
 [`byte_char_slices`]: https://clippy.rust-lang.org/main/index.html#byte_char_slices
 [`bytes_count_to_len`]: https://clippy.rust-lang.org/main/index.html#bytes_count_to_len
 [`bytes_nth`]: https://clippy.rust-lang.org/main/index.html#bytes_nth
-[`call_missing_target_feature`]: https://clippy.rust-lang.org/main/index.html#call_missing_target_feature
 [`cargo_common_metadata`]: https://clippy.rust-lang.org/main/index.html#cargo_common_metadata
 [`case_sensitive_file_extension_comparisons`]: https://clippy.rust-lang.org/main/index.html#case_sensitive_file_extension_comparisons
 [`cast_abs_to_unsigned`]: https://clippy.rust-lang.org/main/index.html#cast_abs_to_unsigned
@@ -7843,6 +7842,7 @@ Released 2018-09-13
 [`type_repetition_in_bounds`]: https://clippy.rust-lang.org/main/index.html#type_repetition_in_bounds
 [`unbuffered_bytes`]: https://clippy.rust-lang.org/main/index.html#unbuffered_bytes
 [`unchecked_duration_subtraction`]: https://clippy.rust-lang.org/main/index.html#unchecked_duration_subtraction
+[`unchecked_target_features`]: https://clippy.rust-lang.org/main/index.html#unchecked_target_features
 [`unchecked_time_subtraction`]: https://clippy.rust-lang.org/main/index.html#unchecked_time_subtraction
 [`unconditional_recursion`]: https://clippy.rust-lang.org/main/index.html#unconditional_recursion
 [`undocumented_may_panic_call`]: https://clippy.rust-lang.org/main/index.html#undocumented_may_panic_call

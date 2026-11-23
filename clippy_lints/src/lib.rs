@@ -84,7 +84,6 @@ mod borrow_deref_ref;
 mod box_default;
 mod bufreader_stdin;
 mod byte_char_slices;
-mod call_missing_target_feature;
 mod cargo;
 mod casts;
 mod cfg_not_test;
@@ -370,6 +369,7 @@ mod transmute;
 mod try_from_instead_of_from_str;
 mod tuple_array_conversions;
 mod types;
+mod unchecked_target_features;
 mod unconditional_recursion;
 mod undocumented_may_panic_call;
 mod undocumented_unsafe_blocks;
@@ -698,7 +698,7 @@ rustc_lint::late_lint_methods!(
         FloatingPointArithmetic: floating_point_arithmetic::FloatingPointArithmetic = floating_point_arithmetic::FloatingPointArithmetic::new(conf),
         AsConversions: as_conversions::AsConversions = as_conversions::AsConversions,
         LetUnderscore: let_underscore::LetUnderscore = let_underscore::LetUnderscore,
-        CallMissingTargetFeature: call_missing_target_feature::CallMissingTargetFeature = call_missing_target_feature::CallMissingTargetFeature,
+        UncheckedTargetFeatures: unchecked_target_features::UncheckedTargetFeatures = unchecked_target_features::UncheckedTargetFeatures,
         ExcessiveBools: excessive_bools::ExcessiveBools = excessive_bools::ExcessiveBools::new(conf),
         WildcardImports: wildcard_imports::WildcardImports = wildcard_imports::WildcardImports::new(conf),
         RedundantPubCrate: redundant_pub_crate::RedundantPubCrate = <redundant_pub_crate::RedundantPubCrate>::default(),

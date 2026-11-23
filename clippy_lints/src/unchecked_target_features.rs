@@ -29,15 +29,15 @@ declare_clippy_lint! {
     ///     // g does not enable the target features f requires
     /// }
     /// ```
-    #[clippy::version = "1.97.0"]
-    pub CALL_MISSING_TARGET_FEATURE,
-    restriction,
+    #[clippy::version = "1.102.0"]
+    pub UNCHECKED_TARGET_FEATURES,
+    nursery,
     "call requires target features that the surrounding function does not enable"
 }
 
-declare_lint_pass!(CallMissingTargetFeature => [CALL_MISSING_TARGET_FEATURE]);
+declare_lint_pass!(UncheckedTargetFeatures => [UNCHECKED_TARGET_FEATURES]);
 
-impl<'tcx> LateLintPass<'tcx> for CallMissingTargetFeature {
+impl<'tcx> LateLintPass<'tcx> for UncheckedTargetFeatures {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -123,7 +123,7 @@ fn check_target_feature_call(
 
         span_lint_hir_and_then(
             cx,
-            CALL_MISSING_TARGET_FEATURE,
+            UNCHECKED_TARGET_FEATURES,
             hir_id,
             span,
             "this call requires target features that the surrounding function does not enable",

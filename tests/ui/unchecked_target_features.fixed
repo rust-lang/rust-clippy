@@ -1,11 +1,11 @@
 //@only-target: x86_64
-#![warn(clippy::call_missing_target_feature)]
+#![warn(clippy::unchecked_target_features)]
 #![allow(clippy::missing_safety_doc)]
 
 #[target_feature(enable = "avx2")]
 pub unsafe fn test_f() {
     unsafe { f() };
-    //~^ call_missing_target_feature
+    //~^ unchecked_target_features
 }
 
 #[target_feature(enable = "avx2,pclmulqdq")]
