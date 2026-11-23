@@ -265,16 +265,19 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByRefMut<'tcx> {
             for input in unused {
                 // If the argument is never used mutably, we emit the warning.
                 let sp = input.span;
-                if let rustc_hir::TyKind::Ref(_, inner_ty, _) = input.kind {
-                    let Some(after_mut_span) = cx.tcx.sess.source_map().span_extend_to_prev_str(
-                        inner_ty.span.shrink_to_lo(),
-                        "mut",
-                        true,
-                        true,
-                    ) else {
-                        return;
-                    };
-                    let mut_span = after_mut_span.with_lo(after_mut_span.lo() - BytePos(3));
+                if let rustc_hir::TyKind::Ref(lifetime, _, _) = input.kind {
+                    let before_mut_span =
+                        cx.tcx
+                            .sess
+                            .source_map()
+                            .span_extend_to_next_char(lifetime.ident.span, 'm', true);
+                    let mut_span = Span::new(
+                        before_mut_span.hi(),
+                        before_mut_span.hi() + BytePos(3),
+                        before_mut_span.ctxt(),
+                        before_mut_span.parent(),
+                    );
+                    let mut_extended_span = cx.tcx.sess.source_map().span_extend_while_whitespace(mut_span);
                     let is_cfged = is_cfged.get_or_insert_with(|| inherits_cfg(cx.tcx, *fn_def_id));
                     span_lint_hir_and_then(
                         cx,
@@ -284,7 +287,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByRefMut<'tcx> {
                         "this parameter is a mutable reference but is not used mutably",
                         |diag| {
                             diag.span_suggestion(
-                                mut_span,
+                                mut_extended_span,
                                 "consider removing this `mut`",
                                 "",
                                 Applicability::Unspecified,
