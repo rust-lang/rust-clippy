@@ -4,7 +4,7 @@ error: this call requires target features that the surrounding function does not
 LL |     unsafe { f() };
    |              ^^^ this function call requires target features to be enabled
    |
-   = note: `-D clippy::call-missing-target-feature` implied by `-D warnings`
+   = note: `-D clippy::unchecked-target-features` implied by `-D warnings`
    = help: to override `-D warnings` add `#[allow(clippy::unchecked_target_features)]`
 help: add the missing target features to the surrounding function
    |
