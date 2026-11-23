@@ -162,6 +162,7 @@ generate! {
     as_str,
     assert_failed,
     assert_matches,
+    assert_matches_failed,
     author,
     back,
     binary_heap_pop_if,
