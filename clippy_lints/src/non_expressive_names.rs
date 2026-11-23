@@ -396,7 +396,6 @@ impl EarlyLintPass for NonExpressiveNames {
             && !pat.span.from_expansion()
             && !ident.span.from_expansion()
             && name.chars().all(|c| c.is_ascii_digit() || c == '_')
-            // TODO: We should use `is_from_proc_macro` instead.
             && ident.span.check_text(cx, |src| src == name)
         {
             span_lint(
