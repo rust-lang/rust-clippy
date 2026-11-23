@@ -225,3 +225,28 @@ and the [dev-guide's instructions for LLMs][llm-writing].
 
 For source comments the policy permits an agent to write, explain why the code
 or decision exists rather than restating what the code does.
+
+### Task-specific documentation
+
+Read the documentation for the task before choosing commands or changing code.
+Use the checked-in [Clippy development guide](book/src/development/README.md) and [book contents](book/src/SUMMARY.md)
+to find topics not listed below.
+These routes do not override the LLM policy or the restrictions above.
+
+- Build, run tests, format, or use development commands: [Basics](book/src/development/basics.md).
+- Add a lint or understand the lint-development workflow: [Adding Lints](book/src/development/adding_lints.md).
+  This also covers MSRV handling, debugging, and adding lint configuration.
+- Define or register a lint, or choose its pass: [Defining Lints](book/src/development/defining_lints.md)
+  and [Lint Passes](book/src/development/lint_passes.md).
+- Add regression coverage or work with UI output, configuration tests, Cargo lints, or rustfix:
+  [Writing Tests](book/src/development/writing_tests.md).
+- Review diagnostics, suggestions, applicability, or source snippets: [Emitting Lints](book/src/development/emitting_lints.md).
+- Find helpers for lint logic: [Common Tools](book/src/development/common_tools_writing_lints.md).
+  For specific checks, see [Type Checking](book/src/development/type_checking.md),
+  [Trait Checking](book/src/development/trait_checking.md), and [Method Checking](book/src/development/method_checking.md).
+- Handle macro-generated code or expansion-related false positives: [Macro Expansions](book/src/development/macro_expansions.md).
+- Check lint behavior across real crates: [lintcheck](lintcheck/README.md).
+  Lintcheck is not sandboxed; only check trusted crates or sandbox it manually.
+- Work on the book: [The Clippy Book](book/src/development/infrastructure/book.md).
+- Work on synchronization, releases, or changelogs: [Infrastructure](book/src/development/infrastructure/README.md)
+  and the [infrastructure chapters in the book contents](book/src/SUMMARY.md#summary).
