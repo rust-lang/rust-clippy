@@ -61,4 +61,22 @@ impl Bar {
     }
 }
 
+fn outer_allow() {
+    #[allow(clippy::just_underscores_and_digits)]
+    let _0 = 0;
+}
+
+#[allow(clippy::just_underscores_and_digits)]
+fn function_allow() {
+    let _0 = 0;
+}
+
+mod inner_allow {
+    #![allow(clippy::just_underscores_and_digits)]
+
+    fn example() {
+        let _0 = 0;
+    }
+}
+
 fn main() {}
