@@ -128,3 +128,12 @@ mod issue17110 {
         }
     }
 }
+
+mod issue18084 {
+    fn impl_trait_test<T: Iterator<Item = impl Clone>>(_x: T) {}
+
+    fn impl_trait_mixed_test<T: Iterator<Item = impl Clone>, U>(_x: T, _y: U) where U: Clone {}
+    //~^ inline_trait_bounds
+
+    fn impl_trait_nested_test<T: Iterator<Item = Vec<impl Clone>>>(_x: T) {}
+}

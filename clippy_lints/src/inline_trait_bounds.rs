@@ -2,8 +2,8 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use clippy_utils::sym;
 use rustc_ast::ast::{Fn, FnRetTy, GenericParam, GenericParamKind};
-use rustc_ast::visit::{FnCtxt, FnKind};
-use rustc_ast::{HasAttrs as _, NodeId};
+use rustc_ast::visit::{BoundKind, FnCtxt, FnKind, Visitor, walk_ty};
+use rustc_ast::{HasAttrs as _, NodeId, Ty, TyKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
 use rustc_span::Span;
@@ -90,7 +90,9 @@ fn lint_fn(cx: &EarlyContext<'_>, f: &Fn) {
         .params
         .iter()
         .filter(|param| {
-            !param.bounds.is_empty() && matches!(param.kind, GenericParamKind::Lifetime | GenericParamKind::Type { .. })
+            !param.bounds.is_empty()
+                && matches!(param.kind, GenericParamKind::Lifetime | GenericParamKind::Type { .. })
+                && !has_impl_trait(param)
         })
         .collect();
     if offenders.is_empty() {
@@ -160,4 +162,30 @@ fn build_predicate_text(cx: &EarlyContext<'_>, param: &GenericParam) -> String {
     let rhs = snippet(cx, bounds_span, "..");
 
     format!("{lhs}: {rhs}")
+}
+
+// `impl Trait` not allowed in `where` clauses, params with those bounds can't be moved
+fn has_impl_trait(param: &GenericParam) -> bool {
+    struct Finder {
+        found: bool,
+    }
+
+    impl<'ast> Visitor<'ast> for Finder {
+        fn visit_ty(&mut self, ty: &'ast Ty) {
+            if let TyKind::ImplTrait(..) = ty.kind {
+                self.found = true;
+            }
+            // walk into nested types to look for things like `Vec<impl Trait>`
+            walk_ty(self, ty);
+        }
+    }
+
+    let mut finder = Finder { found: false };
+
+    // look for things like `T: Iterator<Item = impl Debug>`
+    for bound in &param.bounds {
+        finder.visit_param_bound(bound, BoundKind::Bound);
+    }
+
+    finder.found
 }

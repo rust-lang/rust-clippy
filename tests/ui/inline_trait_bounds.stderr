@@ -170,5 +170,17 @@ LL -         fn with_default_value_but_not_auto_derived<T: Clone = u32>(x: T) ->
 LL +         fn with_default_value_but_not_auto_derived<T = u32>(x: T) -> T where T: Clone {
    |
 
-error: aborting due to 14 previous errors
+error: inline trait bounds used
+  --> tests/ui/inline_trait_bounds.rs:135:29
+   |
+LL |     fn impl_trait_mixed_test<T: Iterator<Item = impl Clone>, U: Clone>(_x: T, _y: U) {}
+   |                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: move bounds to a `where` clause
+   |
+LL -     fn impl_trait_mixed_test<T: Iterator<Item = impl Clone>, U: Clone>(_x: T, _y: U) {}
+LL +     fn impl_trait_mixed_test<T: Iterator<Item = impl Clone>, U>(_x: T, _y: U) where U: Clone {}
+   |
+
+error: aborting due to 15 previous errors
 
