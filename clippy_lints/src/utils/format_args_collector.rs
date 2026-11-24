@@ -8,7 +8,6 @@ use rustc_span::source_map::SourceMap;
 use rustc_span::{Span, SpanData};
 use std::mem;
 
-
 impl FormatArgsCollector {
     pub fn new(storage: FormatArgsStorage) -> Self {
         Self {

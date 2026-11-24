@@ -176,7 +176,6 @@ declare_clippy_pass!(
     REF_BINDING_TO_REFERENCE,
 ]);
 
-
 #[derive(Debug)]
 struct StateData<'tcx> {
     first_expr: &'tcx Expr<'tcx>,

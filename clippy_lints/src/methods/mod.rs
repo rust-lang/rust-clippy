@@ -5080,7 +5080,6 @@ declare_clippy_lint! {
 }
 
 declare_clippy_pass!(
-    #[expect(clippy::struct_excessive_bools)]
     Methods {
         avoid_breaking_exported_api: bool,
         msrv: Msrv,

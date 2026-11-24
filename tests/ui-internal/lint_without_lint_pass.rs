@@ -44,7 +44,6 @@ impl LintPass for Pass {
 
 declare_lint_pass!(Pass2 => [TEST_LINT_REGISTERED]);
 
-pub struct Pass3;
 declare_lint_pass!(Pass3 => [TEST_LINT_REGISTERED_ONLY_IMPL]);
 
 fn main() {}

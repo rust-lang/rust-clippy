@@ -19,11 +19,7 @@ declare_lint! {
     ""
 }
 
-struct Pass {
-    msrv: MsrvStack,
-}
-
-declare_clippy_pass!(Pass => [TEST_LINT]);
+declare_clippy_pass!(Pass { msrv: MsrvStack } => [TEST_LINT]);
 
 impl EarlyLintPass for Pass {
     //~^ missing_msrv_attr_impl

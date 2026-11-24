@@ -111,7 +111,6 @@ declare_clippy_pass!(
     bindings: Vec<(FxHashMap<Symbol, Vec<ItemLocalId>>, LocalDefId)>,
 } => [SHADOW_REUSE, SHADOW_SAME, SHADOW_UNRELATED]);
 
-
 impl<'tcx> LateLintPass<'tcx> for Shadow {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {
         let PatKind::Binding(_, id, ident, _) = pat.kind else {

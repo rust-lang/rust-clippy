@@ -46,7 +46,6 @@ declare_clippy_pass!(FormatPushString  {
     format_args: FormatArgsStorage,
 } => [FORMAT_PUSH_STRING]);
 
-
 enum FormatSearchResults {
     /// The expression is itself a `format!()` invocation -- we can make a suggestion to replace it
     Direct(Span),
