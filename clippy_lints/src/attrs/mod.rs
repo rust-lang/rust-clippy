@@ -20,7 +20,7 @@ use clippy_utils::msrvs::{self, Msrv, MsrvStack};
 use clippy_utils::{check_clippy_attr, is_from_proc_macro};
 use rustc_ast::{self as ast, AttrArgs, AttrKind, Attribute, MetaItemInner, MetaItemKind};
 use rustc_hir::{ImplItem, ImplItemKind, Item, ItemKind, TraitFn, TraitItem, TraitItemKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext as _};
 use rustc_span::sym;
 use utils::is_lint_level;
 
@@ -557,21 +557,27 @@ declare_clippy_lint! {
     "use of lint attributes on `extern crate` items"
 }
 
-impl_lint_pass!(Attributes => [
+declare_clippy_pass!(Attributes {
+    msrv: Msrv,
+} => [
     DEPRECATED_ATTRIBUTES_WITHOUT_NOTE,
     DEPRECATED_ATTRIBUTES_WITHOUT_SINCE,
     INLINE_ALWAYS,
     REPR_PACKED_WITHOUT_ABI,
 ]);
 
-impl_lint_pass!(EarlyAttributes => [
+declare_clippy_pass!(EarlyAttributes {
+    msrv: MsrvStack,
+} => [
     DEPRECATED_CFG_ATTR,
     DEPRECATED_CLIPPY_CFG_ATTR,
     NON_MINIMAL_CFG,
     UNNECESSARY_CLIPPY_CFG,
 ]);
 
-impl_lint_pass!(PostExpansionEarlyAttributes => [
+declare_clippy_pass!(PostExpansionEarlyAttributes {
+    msrv: MsrvStack,
+} => [
     ALLOW_ATTRIBUTES,
     ALLOW_ATTRIBUTES_WITHOUT_REASON,
     BLANKET_CLIPPY_RESTRICTION_LINTS,
@@ -582,10 +588,6 @@ impl_lint_pass!(PostExpansionEarlyAttributes => [
     SHOULD_PANIC_WITHOUT_EXPECT,
     USELESS_ATTRIBUTE,
 ]);
-
-pub struct Attributes {
-    msrv: Msrv,
-}
 
 impl Attributes {
     pub fn new(conf: &'static Conf) -> Self {
@@ -625,10 +627,6 @@ impl<'tcx> LateLintPass<'tcx> for Attributes {
     }
 }
 
-pub struct EarlyAttributes {
-    msrv: MsrvStack,
-}
-
 impl EarlyAttributes {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv.into() }
@@ -643,10 +641,6 @@ impl EarlyLintPass for EarlyAttributes {
     }
 
     extract_msrv_attr!();
-}
-
-pub struct PostExpansionEarlyAttributes {
-    msrv: MsrvStack,
 }
 
 impl PostExpansionEarlyAttributes {

@@ -11,7 +11,7 @@ use rustc_hir::def_id::{DefId, LocalDefId};
 use rustc_hir::{Body, Expr, ExprKind, Mutability, Path, QPath};
 use rustc_index::bit_set::DenseBitSet;
 use rustc_infer::infer::TyCtxtInferExt as _;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::{Rvalue, StatementKind};
 use rustc_middle::ty::{
     self, CallerBoundsIterator as _, ClauseKind, EarlyBinder, FnSig, GenericArg, GenericArgKind, ParamTy,
@@ -57,11 +57,7 @@ declare_clippy_lint! {
     "taking a reference that is going to be automatically dereferenced"
 }
 
-impl_lint_pass!(NeedlessBorrowsForGenericArgs<'_> => [
-    NEEDLESS_BORROWS_FOR_GENERIC_ARGS,
-]);
-
-pub struct NeedlessBorrowsForGenericArgs<'tcx> {
+declare_clippy_pass!(NeedlessBorrowsForGenericArgs<'tcx> {
     /// Stack of (body owner, `PossibleBorrowerMap`) pairs. Used by
     /// [`needless_borrow_count`] to determine when a borrowed expression can instead
     /// be moved.
@@ -69,7 +65,10 @@ pub struct NeedlessBorrowsForGenericArgs<'tcx> {
 
     // `IntoIterator` for arrays requires Rust 1.53.
     msrv: Msrv,
-}
+} => [
+    NEEDLESS_BORROWS_FOR_GENERIC_ARGS,
+]);
+
 impl NeedlessBorrowsForGenericArgs<'_> {
     pub fn new(conf: &'static Conf) -> Self {
         Self {

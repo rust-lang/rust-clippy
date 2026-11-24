@@ -13,7 +13,7 @@ use rustc_errors::Applicability;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr, walk_fn};
 use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Node, UnOp};
 use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, Place, PlaceWithHirId};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::hir::nested_filter;
 use rustc_middle::hir::place::ProjectionKind;
 use rustc_middle::mir::FakeReadCause;
@@ -79,11 +79,9 @@ declare_clippy_lint! {
     "checks for calls of `unwrap[_err]()` that cannot fail"
 }
 
-impl_lint_pass!(Unwrap => [PANICKING_UNWRAP, UNNECESSARY_UNWRAP]);
-
-pub(crate) struct Unwrap {
+declare_clippy_pass!(Unwrap {
     msrv: Msrv,
-}
+} => [PANICKING_UNWRAP, UNNECESSARY_UNWRAP]);
 
 impl Unwrap {
     pub fn new(conf: &'static Conf) -> Self {

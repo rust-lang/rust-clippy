@@ -17,7 +17,7 @@ use rustc_hir::{
     Body, FnDecl, FnRetTy, GenericArg, ImplItem, ImplItemKind, Item, ItemKind, LetStmt, QPath, TraitFn, TraitItem,
     TraitItemKind, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -390,7 +390,11 @@ declare_clippy_lint! {
     "usage of `Vec<Box<T>>` where T: Sized, vector elements are already on the heap"
 }
 
-impl_lint_pass!(Types => [
+declare_clippy_pass!(Types {
+    vec_box_size_threshold: u64,
+    type_complexity_threshold: u64,
+    avoid_breaking_exported_api: bool,
+} => [
     BORROWED_BOX,
     BOX_COLLECTION,
     LINKEDLIST,
@@ -402,12 +406,6 @@ impl_lint_pass!(Types => [
     TYPE_COMPLEXITY,
     VEC_BOX,
 ]);
-
-pub struct Types {
-    vec_box_size_threshold: u64,
-    type_complexity_threshold: u64,
-    avoid_breaking_exported_api: bool,
-}
 
 impl<'tcx> LateLintPass<'tcx> for Types {
     fn check_fn(

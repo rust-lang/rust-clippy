@@ -8,20 +8,18 @@ use clippy_utils::{expr_or_init, is_from_proc_macro, is_lint_allowed, peel_hir_e
 use rustc_ast as ast;
 use rustc_data_structures::fx::{FxHashMap, FxHashSet};
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty, UintTy};
 use rustc_span::{Span, Symbol};
 
-pub struct ArithmeticSideEffects {
+declare_clippy_pass!(ArithmeticSideEffects {
     allowed_binary: FxHashMap<&'static str, FxHashSet<&'static str>>,
     allowed_unary: FxHashSet<&'static str>,
     // Used to check whether expressions are constants, such as in enum discriminants and consts
     const_span: Option<Span>,
     disallowed_int_methods: FxHashSet<Symbol>,
     expr_span: Option<Span>,
-}
-
-impl_lint_pass!(ArithmeticSideEffects => [ARITHMETIC_SIDE_EFFECTS]);
+} => [ARITHMETIC_SIDE_EFFECTS]);
 
 impl ArithmeticSideEffects {
     pub fn new(conf: &'static Conf) -> Self {

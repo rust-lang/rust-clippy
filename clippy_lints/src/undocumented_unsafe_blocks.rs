@@ -11,7 +11,7 @@ use hir::HirId;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, Block, BlockCheckMode, FnSig, Impl, ItemKind, Node, UnsafeSource};
 use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::{BytePos, Pos as _, RelativeBytePos, Span, SyntaxContext};
 
 declare_clippy_lint! {
@@ -92,15 +92,13 @@ declare_clippy_lint! {
     "annotating safe code with a safety comment"
 }
 
-impl_lint_pass!(UndocumentedUnsafeBlocks => [
+declare_clippy_pass!(UndocumentedUnsafeBlocks {
+    accept_comment_above_statement: bool,
+    accept_comment_above_attributes: bool,
+} => [
     UNDOCUMENTED_UNSAFE_BLOCKS,
     UNNECESSARY_SAFETY_COMMENT,
 ]);
-
-pub struct UndocumentedUnsafeBlocks {
-    accept_comment_above_statement: bool,
-    accept_comment_above_attributes: bool,
-}
 
 impl UndocumentedUnsafeBlocks {
     pub fn new(conf: &'static Conf) -> Self {

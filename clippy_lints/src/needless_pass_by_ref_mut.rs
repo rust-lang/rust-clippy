@@ -12,7 +12,7 @@ use rustc_hir::{
     PatKind,
 };
 use rustc_hir_typeck::expr_use_visitor as euv;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty::{self, Ty, TyCtxt, UpvarId, UpvarPath};
 use rustc_span::def_id::LocalDefId;
@@ -48,13 +48,11 @@ declare_clippy_lint! {
     "using a `&mut` argument when it's not mutated"
 }
 
-impl_lint_pass!(NeedlessPassByRefMut<'_> => [NEEDLESS_PASS_BY_REF_MUT]);
-
-pub struct NeedlessPassByRefMut<'tcx> {
+declare_clippy_pass!(NeedlessPassByRefMut<'tcx> {
     avoid_breaking_exported_api: bool,
     used_fn_def_ids: FxHashSet<LocalDefId>,
     fn_def_ids_to_maybe_unused_mut: FxIndexMap<LocalDefId, Vec<rustc_hir::Ty<'tcx>>>,
-}
+} => [NEEDLESS_PASS_BY_REF_MUT]);
 
 impl NeedlessPassByRefMut<'_> {
     pub fn new(conf: &'static Conf) -> Self {

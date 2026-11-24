@@ -17,7 +17,7 @@ use rustc_hir::{
     self as hir, AmbigArg, BindingMode, Body, BodyId, BorrowKind, Expr, ExprKind, HirId, Item, MatchSource, Mutability,
     Node, OwnerId, Pat, PatKind, Path, QPath, TyKind, UnOp,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, AutoBorrow, AutoBorrowMutability};
 use rustc_middle::ty::{self, AssocTag, Ty, TyCtxt, TypeVisitableExt as _, TypeckResults, Unnormalized};
 use rustc_span::{Span, Symbol, SyntaxContext};
@@ -143,15 +143,9 @@ declare_clippy_lint! {
     "`ref` binding to a reference"
 }
 
-impl_lint_pass!(Dereferencing<'_> => [
-    EXPLICIT_AUTO_DEREF,
-    EXPLICIT_DEREF_METHODS,
-    NEEDLESS_BORROW,
-    REF_BINDING_TO_REFERENCE,
-]);
-
-#[derive(Default)]
-pub struct Dereferencing<'tcx> {
+declare_clippy_pass!(
+    #[derive(Default)]
+    Dereferencing<'tcx> {
     state: Option<(State, StateData<'tcx>)>,
 
     // While parsing a `deref` method call in ufcs form, the path to the function is itself an
@@ -175,7 +169,13 @@ pub struct Dereferencing<'tcx> {
     /// The outermost `impl Deref` we're currently in. While we're in one,
     /// `explicit_deref_methods` is deactivated
     outermost_deref_impl: Option<OwnerId>,
-}
+} => [
+    EXPLICIT_AUTO_DEREF,
+    EXPLICIT_DEREF_METHODS,
+    NEEDLESS_BORROW,
+    REF_BINDING_TO_REFERENCE,
+]);
+
 
 #[derive(Debug)]
 struct StateData<'tcx> {

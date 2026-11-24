@@ -11,7 +11,7 @@ use rustc_hir::{
     Block, Body, BodyOwnerKind, Expr, ExprKind, HirId, ItemLocalId, LetExpr, LocalSource, Node, Pat, PatKind, QPath,
     UnOp,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
@@ -105,12 +105,12 @@ declare_clippy_lint! {
     "rebinding a name without even using the original value"
 }
 
-impl_lint_pass!(Shadow => [SHADOW_REUSE, SHADOW_SAME, SHADOW_UNRELATED]);
-
+declare_clippy_pass!(
 #[derive(Default)]
-pub(crate) struct Shadow {
+        Shadow {
     bindings: Vec<(FxHashMap<Symbol, Vec<ItemLocalId>>, LocalDefId)>,
-}
+} => [SHADOW_REUSE, SHADOW_SAME, SHADOW_UNRELATED]);
+
 
 impl<'tcx> LateLintPass<'tcx> for Shadow {
     fn check_pat(&mut self, cx: &LateContext<'tcx>, pat: &'tcx Pat<'_>) {

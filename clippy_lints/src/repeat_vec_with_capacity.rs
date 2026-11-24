@@ -8,12 +8,8 @@ use clippy_utils::source::snippet;
 use clippy_utils::{expr_or_init, fn_def_id, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass, std_or_core};
+use rustc_lint::{LateContext, LateLintPass, std_or_core};
 use rustc_span::Span;
-
-pub struct RepeatVecWithCapacity {
-    msrv: Msrv,
-}
 
 impl RepeatVecWithCapacity {
     pub fn new(conf: &'static Conf) -> Self {
@@ -59,7 +55,9 @@ declare_clippy_lint! {
     "repeating a `Vec::with_capacity` expression which does not retain capacity"
 }
 
-impl_lint_pass!(RepeatVecWithCapacity => [REPEAT_VEC_WITH_CAPACITY]);
+declare_clippy_pass!(RepeatVecWithCapacity {
+    msrv: Msrv,
+} => [REPEAT_VEC_WITH_CAPACITY]);
 
 fn emit_lint(cx: &LateContext<'_>, span: Span, kind: &str, note: &'static str, sugg_msg: &'static str, sugg: String) {
     span_lint_and_then(

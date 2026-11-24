@@ -11,7 +11,7 @@ use rustc_hir::{
     BinOpKind, BlockCheckMode, Expr, ExprKind, HirId, HirIdMap, ItemKind, LocalSource, Node, PatKind, Stmt, StmtKind,
     StructTailExpr, UnsafeSource, is_range_literal,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Span;
 use std::ops::Deref;
 
@@ -72,17 +72,15 @@ declare_clippy_lint! {
     "outer expressions with no effect"
 }
 
-impl_lint_pass!(NoEffect => [
+declare_clippy_pass!(#[derive(Default)]
+NoEffect {
+    underscore_bindings: HirIdMap<Span>,
+    local_bindings: Vec<Vec<HirId>>,
+}=> [
     NO_EFFECT,
     NO_EFFECT_UNDERSCORE_BINDING,
     UNNECESSARY_OPERATION,
 ]);
-
-#[derive(Default)]
-pub struct NoEffect {
-    underscore_bindings: HirIdMap<Span>,
-    local_bindings: Vec<Vec<HirId>>,
-}
 
 impl<'tcx> LateLintPass<'tcx> for NoEffect {
     fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'_>) {

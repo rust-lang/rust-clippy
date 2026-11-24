@@ -9,7 +9,7 @@ use rustc_hir::def::Res::Def;
 use rustc_hir::def::{CtorOf, DefKind};
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{Expr, ExprKind, Item, ItemKind, Node, Pat, PatKind, Path, QPath, Variant, VariantData};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, TyCtxt};
 use rustc_span::{BytePos, Span};
 
@@ -76,7 +76,12 @@ declare_clippy_lint! {
     "finds struct declarations with empty brackets"
 }
 
-impl_lint_pass!(EmptyWithBrackets => [
+declare_clippy_pass!(
+    #[derive(Default)]
+    EmptyWithBrackets {
+    // Value holds `Usage::Used` if the empty tuple variant was used as a function
+    empty_tuple_enum_variants: FxIndexMap<LocalDefId, Usage>,
+} => [
     EMPTY_ENUM_VARIANTS_WITH_BRACKETS,
     EMPTY_STRUCTS_WITH_BRACKETS,
 ]);
@@ -86,12 +91,6 @@ enum Usage {
     Unused { redundant_use_sites: Vec<Span> },
     Used,
     NoDefinition { redundant_use_sites: Vec<Span> },
-}
-
-#[derive(Default)]
-pub struct EmptyWithBrackets {
-    // Value holds `Usage::Used` if the empty tuple variant was used as a function
-    empty_tuple_enum_variants: FxIndexMap<LocalDefId, Usage>,
 }
 
 impl LateLintPass<'_> for EmptyWithBrackets {

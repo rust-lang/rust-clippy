@@ -20,7 +20,7 @@ use clippy_utils::msrvs::Msrv;
 use clippy_utils::sugg::Sugg;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::symbol::sym;
 
@@ -466,7 +466,9 @@ declare_clippy_lint! {
     "transmutes that are confusing at best, undefined behavior at worst and always useless"
 }
 
-impl_lint_pass!(Transmute => [
+declare_clippy_pass!(Transmute {
+    msrv: Msrv,
+} => [
     CROSSPOINTER_TRANSMUTE,
     EAGER_TRANSMUTE,
     MISSING_TRANSMUTE_ANNOTATIONS,
@@ -486,9 +488,6 @@ impl_lint_pass!(Transmute => [
 
 // FIXME: Merge this lint with USELESS_TRANSMUTE once that is out of the nursery.
 
-pub struct Transmute {
-    msrv: Msrv,
-}
 impl Transmute {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv.into() }

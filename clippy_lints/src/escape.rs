@@ -4,17 +4,13 @@ use rustc_abi::ExternAbi;
 use rustc_hir::def::DefKind;
 use rustc_hir::{Body, FnDecl, HirId, HirIdSet, PatKind, intravisit};
 use rustc_hir_typeck::expr_use_visitor::{Delegate, ExprUseVisitor, PlaceBase, PlaceWithHirId};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_middle::ty::{self, TraitRef, Ty};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 use rustc_span::symbol::kw;
-
-pub struct BoxedLocal {
-    too_large_for_stack: u64,
-}
 
 impl BoxedLocal {
     pub fn new(conf: &'static Conf) -> Self {
@@ -49,7 +45,9 @@ declare_clippy_lint! {
     "using `Box<T>` where unnecessary"
 }
 
-impl_lint_pass!(BoxedLocal => [BOXED_LOCAL]);
+declare_clippy_pass!(BoxedLocal {
+    too_large_for_stack: u64,
+} => [BOXED_LOCAL]);
 
 /// Whether `ty` is a `Box<T>` where `T` is not a trait object and is small enough to live on the
 /// stack (large types are boxed to avoid stack overflows).

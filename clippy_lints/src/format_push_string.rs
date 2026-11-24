@@ -6,7 +6,7 @@ use clippy_utils::sym;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{AssignOpKind, Expr, ExprKind, MatchSource};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass, std_or_core};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, std_or_core};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -42,11 +42,10 @@ declare_clippy_lint! {
     "`format!(..)` appended to existing `String`"
 }
 
-impl_lint_pass!(FormatPushString => [FORMAT_PUSH_STRING]);
-
-pub(crate) struct FormatPushString {
+declare_clippy_pass!(FormatPushString  {
     format_args: FormatArgsStorage,
-}
+} => [FORMAT_PUSH_STRING]);
+
 
 enum FormatSearchResults {
     /// The expression is itself a `format!()` invocation -- we can make a suggestion to replace it

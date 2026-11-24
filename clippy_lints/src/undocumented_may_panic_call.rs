@@ -6,7 +6,7 @@ use clippy_utils::{get_clippy_attr, is_from_proc_macro, sym};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir as hir;
 use rustc_hir::def_id::DefId;
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Pos as _;
 
@@ -63,11 +63,9 @@ declare_clippy_lint! {
     "missing `// Panic:` documentation on calls to functions that may panic"
 }
 
-impl_lint_pass!(UndocumentedMayPanicCall => [UNDOCUMENTED_MAY_PANIC_CALL]);
-
-pub struct UndocumentedMayPanicCall {
+declare_clippy_pass!(UndocumentedMayPanicCall {
     may_panic_def_ids: FxHashSet<DefId>,
-}
+}=> [UNDOCUMENTED_MAY_PANIC_CALL]);
 
 impl UndocumentedMayPanicCall {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

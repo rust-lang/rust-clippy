@@ -269,7 +269,7 @@ impl<'cx> ParseCxImpl<'cx> {
                 "declare_lint_pass" | "impl_lint_pass" => {
                     let mut has_lt = false;
                     let mut lints: &mut [_] = &mut [];
-                    if let Err(expected) =  cursor
+                    if let Err(expected) = cursor
                         .match_all(&[OpenParen, CaptureDocLines, CaptureIdent], &mut captures)
                         .and_then(|()| cursor.opt_match_all(&[Lt, CaptureLifetime, Gt], &mut captures[2..]))
                         .and_then(|res| {

@@ -15,7 +15,7 @@ use clippy_utils::paths::{PathNS, lookup_path_str};
 use rustc_ast::{self as ast, visit};
 use rustc_hir as hir;
 use rustc_hir::intravisit;
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 use rustc_span::def_id::{DefIdSet, LocalDefId};
@@ -502,7 +502,17 @@ declare_clippy_lint! {
     "functions with too many lines"
 }
 
-impl_lint_pass!(Functions => [
+declare_clippy_pass!(Functions {
+    too_many_arguments_threshold: u64,
+    too_many_lines_threshold: u64,
+    large_error_threshold: u64,
+    large_error_ignored: DefIdSet,
+    avoid_breaking_exported_api: bool,
+    /// A set of resolved `def_id` of traits that are configured to allow
+    /// function params renaming.
+    trait_ids: DefIdSet,
+    msrv: Msrv,
+} => [
     DOUBLE_MUST_USE,
     IMPL_TRAIT_IN_PARAMS,
     MISNAMED_GETTERS,
@@ -524,18 +534,6 @@ impl EarlyLintPass for EarlyFunctions {
     fn check_fn(&mut self, cx: &EarlyContext<'_>, fn_kind: visit::FnKind<'_>, _: Span, _: ast::NodeId) {
         duplicate_underscore_argument::check(cx, fn_kind);
     }
-}
-
-pub struct Functions {
-    too_many_arguments_threshold: u64,
-    too_many_lines_threshold: u64,
-    large_error_threshold: u64,
-    large_error_ignored: DefIdSet,
-    avoid_breaking_exported_api: bool,
-    /// A set of resolved `def_id` of traits that are configured to allow
-    /// function params renaming.
-    trait_ids: DefIdSet,
-    msrv: Msrv,
 }
 
 impl Functions {

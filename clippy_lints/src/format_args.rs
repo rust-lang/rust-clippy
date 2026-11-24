@@ -25,7 +25,7 @@ use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_errors::SuggestionStyle::{CompletelyHidden, ShowCode};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
 use rustc_middle::ty::{self, GenericArg, TraitRef, Ty, TyCtxt, Unnormalized, Upcast as _};
 use rustc_span::edition::Edition::Edition2021;
@@ -302,7 +302,16 @@ declare_clippy_lint! {
     "redundant reference in format args causes double reference"
 }
 
-impl_lint_pass!(FormatArgs<'_> => [
+declare_clippy_pass!(
+#[expect(clippy::struct_field_names)]
+    FormatArgs<'tcx> {
+    format_args: FormatArgsStorage,
+    msrv: Msrv,
+    ignore_mixed: bool,
+    ty_msrv_map: FxHashMap<Ty<'tcx>, Option<RustcVersion>>,
+    has_derived_debug: FxHashMap<Ty<'tcx>, bool>,
+    has_pointer_format: FxHashMap<Ty<'tcx>, bool>,
+} => [
     FORMAT_IN_FORMAT_ARGS,
     POINTER_FORMAT,
     TO_STRING_IN_FORMAT_ARGS,
@@ -312,16 +321,6 @@ impl_lint_pass!(FormatArgs<'_> => [
     UNUSED_FORMAT_SPECS,
     USELESS_BORROWS_IN_FORMATTING,
 ]);
-
-#[expect(clippy::struct_field_names)]
-pub struct FormatArgs<'tcx> {
-    format_args: FormatArgsStorage,
-    msrv: Msrv,
-    ignore_mixed: bool,
-    ty_msrv_map: FxHashMap<Ty<'tcx>, Option<RustcVersion>>,
-    has_derived_debug: FxHashMap<Ty<'tcx>, bool>,
-    has_pointer_format: FxHashMap<Ty<'tcx>, bool>,
-}
 
 impl<'tcx> FormatArgs<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, conf: &'static Conf, format_args: FormatArgsStorage) -> Self {

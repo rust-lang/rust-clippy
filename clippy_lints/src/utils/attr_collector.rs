@@ -2,16 +2,11 @@ use std::mem;
 use std::sync::{Arc, OnceLock};
 
 use rustc_ast::{Attribute, Crate};
-use rustc_lint::{EarlyContext, EarlyLintPass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::Span;
 
 #[derive(Clone, Default)]
 pub struct AttrStorage(pub Arc<OnceLock<Vec<Span>>>);
-
-pub struct AttrCollector {
-    storage: AttrStorage,
-    attrs: Vec<Span>,
-}
 
 impl AttrCollector {
     pub fn new(storage: AttrStorage) -> Self {
@@ -22,7 +17,10 @@ impl AttrCollector {
     }
 }
 
-impl_lint_pass!(AttrCollector => []);
+declare_clippy_pass!(AttrCollector {
+    storage: AttrStorage,
+    attrs: Vec<Span>,
+} => []);
 
 impl EarlyLintPass for AttrCollector {
     fn check_attribute(&mut self, _cx: &EarlyContext<'_>, attr: &Attribute) {

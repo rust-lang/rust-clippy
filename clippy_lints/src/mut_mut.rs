@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::walk_span_to_context;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, AmbigArg, BorrowKind, Expr, ExprKind, HirId, Mutability, TyKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::ExpnKind;
 
@@ -37,12 +37,11 @@ declare_clippy_lint! {
     "usage of double mut-refs, e.g., `&mut &mut ...`"
 }
 
-impl_lint_pass!(MutMut => [MUT_MUT]);
-
-#[derive(Default)]
-pub(crate) struct MutMut {
+declare_clippy_pass!(
+    #[derive(Default)]
+    MutMut {
     skip_id: Option<HirId>,
-}
+} => [MUT_MUT]);
 
 impl<'tcx> LateLintPass<'tcx> for MutMut {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

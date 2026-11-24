@@ -8,7 +8,7 @@ use rustc_ast::token::CommentKind;
 use rustc_ast::{AssocItemKind, AttrKind, AttrStyle, Attribute, Crate, Item, ItemKind, ModKind, NodeId};
 use rustc_errors::{Applicability, Diag, SuggestionStyle};
 use rustc_lexer::TokenKind;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::{BytePos, ExpnKind, Ident, InnerSpan, Span, Symbol, kw, sym};
 
 declare_clippy_lint! {
@@ -87,7 +87,9 @@ declare_clippy_lint! {
     "empty line after outer attribute"
 }
 
-impl_lint_pass!(EmptyLineAfter => [
+declare_clippy_pass!(EmptyLineAfter {
+    items: Vec<ItemInfo>,
+} => [
     EMPTY_LINE_AFTER_DOC_COMMENTS,
     EMPTY_LINE_AFTER_OUTER_ATTR,
 ]);
@@ -132,10 +134,6 @@ impl ItemInfo {
             mod_items,
         }
     }
-}
-
-pub struct EmptyLineAfter {
-    items: Vec<ItemInfo>,
 }
 
 impl EmptyLineAfter {

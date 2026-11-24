@@ -2,7 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::ty::InteriorMut;
 use clippy_utils::{if_sequence, is_else_clause, is_lint_allowed};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 
 mod branches_sharing_code;
@@ -164,16 +164,14 @@ declare_clippy_lint! {
     "consecutive `if`s with the same function call"
 }
 
-impl_lint_pass!(CopyAndPaste<'_> => [
+declare_clippy_pass!(CopyAndPaste<'tcx> {
+    interior_mut: InteriorMut<'tcx>,
+} => [
     BRANCHES_SHARING_CODE,
     IFS_SAME_COND,
     IF_SAME_THEN_ELSE,
     SAME_FUNCTIONS_IN_IF_CONDITION,
 ]);
-
-pub struct CopyAndPaste<'tcx> {
-    interior_mut: InteriorMut<'tcx>,
-}
 
 impl<'tcx> CopyAndPaste<'tcx> {
     pub fn new(tcx: TyCtxt<'tcx>, conf: &'static Conf) -> Self {

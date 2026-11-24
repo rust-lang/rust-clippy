@@ -10,7 +10,7 @@ use rustc_hir::{
     BindingMode, Block, Expr, ExprKind, HirId, HirIdMap, HirIdSet, LetStmt, LocalSource, MatchSource, Node, Pat,
     PatKind, Stmt, StmtKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use std::borrow::Cow;
 
@@ -63,12 +63,10 @@ declare_clippy_lint! {
     "late initializations that can be replaced by a `let` statement with an initializer"
 }
 
-impl_lint_pass!(NeedlessLateInit<'_> => [NEEDLESS_LATE_INIT]);
-
-pub struct NeedlessLateInit<'tcx> {
+declare_clippy_pass!(NeedlessLateInit<'tcx> {
     check_grouped_late_init: bool,
     grouped_late_inits: Vec<(HirId, HirIdMap<GroupedLateInit<'tcx>>)>,
-}
+} => [NEEDLESS_LATE_INIT]);
 
 impl<'tcx> NeedlessLateInit<'tcx> {
     pub fn new(conf: &'static Conf) -> Self {

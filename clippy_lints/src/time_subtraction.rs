@@ -9,7 +9,7 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::sym;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 use rustc_span::SyntaxContext;
 
@@ -72,14 +72,12 @@ declare_clippy_lint! {
     "finds unchecked subtraction involving 'Duration' or 'Instant'"
 }
 
-impl_lint_pass!(UncheckedTimeSubtraction => [
+declare_clippy_pass!(UncheckedTimeSubtraction {
+    msrv: Msrv,
+}=> [
     MANUAL_INSTANT_ELAPSED,
     UNCHECKED_TIME_SUBTRACTION,
 ]);
-
-pub struct UncheckedTimeSubtraction {
-    msrv: Msrv,
-}
 
 impl UncheckedTimeSubtraction {
     pub fn new(conf: &'static Conf) -> Self {

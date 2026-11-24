@@ -13,37 +13,10 @@ use clippy_utils::visitors::for_each_local_use_after_expr;
 use clippy_utils::{VEC_METHODS_SHADOWING_SLICE_METHODS, get_parent_expr, higher, is_in_test, span_contains_comment};
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, HirId, LetStmt, Mutability, Node, Pat, PatKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_span::{DesugaringKind, OrdSpan, Span};
-
-pub struct UselessVec {
-    too_large_for_stack: u64,
-    msrv: Msrv,
-    /// Maps from a `vec![]` source callsite invocation span to the "state" (i.e., whether we can
-    /// emit a warning there or not).
-    ///
-    /// The purpose of this is to buffer lints up until `check_crate_post` so that we can cancel a
-    /// lint while visiting, because a `vec![]` invocation span can appear multiple times when
-    /// it is passed as a macro argument, once in a context that doesn't require a `Vec<_>` and
-    /// another time that does. Consider:
-    /// ```
-    /// macro_rules! m {
-    ///     ($v:expr) => {
-    ///         let a = $v;
-    ///         $v.push(3);
-    ///     }
-    /// }
-    /// m!(vec![1, 2]);
-    /// ```
-    /// The macro invocation expands to two `vec![1, 2]` invocations. If we eagerly suggest changing
-    /// the first `vec![1, 2]` (which is shared with the other expn) to an array which indeed would
-    /// work, we get a false positive warning on the `$v.push(3)` which really requires `$v` to
-    /// be a vector.
-    span_to_state: BTreeMap<OrdSpan, VecState>,
-    allow_in_test: bool,
-}
 
 impl UselessVec {
     pub fn new(conf: &'static Conf) -> Self {
@@ -82,7 +55,32 @@ declare_clippy_lint! {
     "useless `vec!`"
 }
 
-impl_lint_pass!(UselessVec => [USELESS_VEC]);
+declare_clippy_pass!(UselessVec {
+    too_large_for_stack: u64,
+    msrv: Msrv,
+    /// Maps from a `vec![]` source callsite invocation span to the "state" (i.e., whether we can
+    /// emit a warning there or not).
+    ///
+    /// The purpose of this is to buffer lints up until `check_crate_post` so that we can cancel a
+    /// lint while visiting, because a `vec![]` invocation span can appear multiple times when
+    /// it is passed as a macro argument, once in a context that doesn't require a `Vec<_>` and
+    /// another time that does. Consider:
+    /// ```
+    /// macro_rules! m {
+    ///     ($v:expr) => {
+    ///         let a = $v;
+    ///         $v.push(3);
+    ///     }
+    /// }
+    /// m!(vec![1, 2]);
+    /// ```
+    /// The macro invocation expands to two `vec![1, 2]` invocations. If we eagerly suggest changing
+    /// the first `vec![1, 2]` (which is shared with the other expn) to an array which indeed would
+    /// work, we get a false positive warning on the `$v.push(3)` which really requires `$v` to
+    /// be a vector.
+    span_to_state: BTreeMap<OrdSpan, VecState>,
+    allow_in_test: bool,
+} => [USELESS_VEC]);
 
 /// The "state" of a `vec![]` invocation, indicating whether it can or cannot be changed.
 enum VecState {

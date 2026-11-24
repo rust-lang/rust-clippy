@@ -7,7 +7,7 @@ use clippy_utils::numeric_literal::NumericLiteral;
 use clippy_utils::source::SpanExt as _;
 use rustc_ast::ast::{Expr, ExprKind, LitKind};
 use rustc_ast::token;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -145,7 +145,10 @@ declare_clippy_lint! {
     "binary or hex literals that aren't grouped by four"
 }
 
-impl_lint_pass!(Literals => [
+declare_clippy_pass!(Literals {
+    literal_representation_threshold: u64,
+    unreadable_literal_lint_fractions: bool,
+} => [
     DECIMAL_LITERAL_REPRESENTATION,
     INCONSISTENT_DIGIT_GROUPING,
     LARGE_DIGIT_GROUPS,
@@ -153,11 +156,6 @@ impl_lint_pass!(Literals => [
     UNREADABLE_LITERAL,
     UNUSUAL_BYTE_GROUPINGS,
 ]);
-
-pub struct Literals {
-    literal_representation_threshold: u64,
-    unreadable_literal_lint_fractions: bool,
-}
 
 impl EarlyLintPass for Literals {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

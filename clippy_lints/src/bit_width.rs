@@ -5,7 +5,7 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::{is_from_proc_macro, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::{self, Ty};
 
 declare_clippy_lint! {
@@ -55,7 +55,12 @@ declare_clippy_lint! {
     "type mismatch in bit width calculation"
 }
 
-impl_lint_pass!(ManualBitWidth => [MANUAL_BIT_WIDTH, MISMATCHED_BIT_WIDTH_TYPE]);
+declare_clippy_pass!(ManualBitWidth {
+    msrv: Msrv,
+} => [
+    MANUAL_BIT_WIDTH,
+    MISMATCHED_BIT_WIDTH_TYPE,
+]);
 
 #[derive(Clone, Copy, PartialEq)]
 enum IntKind<'a> {
@@ -84,10 +89,6 @@ impl IntKind<'_> {
             Self::NonZeroU(_) => ".bit_width().get()",
         }
     }
-}
-
-pub struct ManualBitWidth {
-    msrv: Msrv,
 }
 
 impl ManualBitWidth {

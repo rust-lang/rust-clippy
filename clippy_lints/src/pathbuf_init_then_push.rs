@@ -6,7 +6,7 @@ use rustc_ast::{LitKind, StrStyle};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BindingMode, Block, Expr, ExprKind, HirId, LetStmt, PatKind, QPath, Stmt, StmtKind, TyKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
@@ -41,12 +41,11 @@ declare_clippy_lint! {
     "`push` immediately after `PathBuf` creation"
 }
 
-impl_lint_pass!(PathbufThenPush<'_> => [PATHBUF_INIT_THEN_PUSH]);
-
+declare_clippy_pass!(
 #[derive(Default)]
-pub struct PathbufThenPush<'tcx> {
+PathbufThenPush<'tcx> {
     searcher: Option<PathbufPushSearcher<'tcx>>,
-}
+} => [PATHBUF_INIT_THEN_PUSH]);
 
 struct PathbufPushSearcher<'tcx> {
     local_id: HirId,

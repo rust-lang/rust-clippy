@@ -19,7 +19,7 @@ use rustc_hir::{
     PolyTraitRef, PredicateOrigin, TraitFn, TraitItem, TraitItemKind, TraitRef, Ty, TyKind, WhereBoundPredicate,
     WherePredicate, WherePredicateKind,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::hir::nested_filter as middle_nested_filter;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
@@ -124,15 +124,13 @@ declare_clippy_lint! {
      would allow omitting them"
 }
 
-impl_lint_pass!(Lifetimes => [
+declare_clippy_pass!(Lifetimes {
+    msrv: Msrv,
+} => [
     ELIDABLE_LIFETIME_NAMES,
     EXTRA_UNUSED_LIFETIMES,
     NEEDLESS_LIFETIMES,
 ]);
-
-pub struct Lifetimes {
-    msrv: Msrv,
-}
 
 impl Lifetimes {
     pub fn new(conf: &'static Conf) -> Self {

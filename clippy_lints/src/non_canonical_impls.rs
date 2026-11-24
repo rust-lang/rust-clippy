@@ -7,7 +7,7 @@ use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Block, Body, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, Stmt, StmtKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass, std_or_core};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, std_or_core};
 use rustc_middle::ty::{TyCtxt, TypeckResults};
 use rustc_span::sym;
 use rustc_span::symbol::kw;
@@ -111,22 +111,20 @@ declare_clippy_lint! {
     "non-canonical implementation of `PartialOrd` on an `Ord` type"
 }
 
-impl_lint_pass!(NonCanonicalImpls => [
-    NON_CANONICAL_CLONE_IMPL,
-    NON_CANONICAL_PARTIAL_ORD_IMPL,
-]);
-
-#[expect(
+declare_clippy_pass!(#[expect(
     clippy::struct_field_names,
     reason = "`_trait` suffix is meaningful on its own, \
               and creating an inner `StoredTraits` struct would just add a level of indirection"
 )]
-pub(crate) struct NonCanonicalImpls {
+NonCanonicalImpls {
     partial_ord_trait: Option<DefId>,
     ord_trait: Option<DefId>,
     clone_trait: Option<DefId>,
     copy_trait: Option<DefId>,
-}
+} => [
+    NON_CANONICAL_CLONE_IMPL,
+    NON_CANONICAL_PARTIAL_ORD_IMPL,
+]);
 
 impl NonCanonicalImpls {
     pub(crate) fn new(tcx: TyCtxt<'_>) -> Self {
