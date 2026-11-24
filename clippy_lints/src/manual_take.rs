@@ -6,7 +6,7 @@ use clippy_utils::source::snippet_with_context;
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass, std_or_core};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, std_or_core};
 
 declare_clippy_lint! {
     /// ### What it does

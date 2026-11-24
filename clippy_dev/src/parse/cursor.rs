@@ -327,25 +327,6 @@ impl<'txt> Cursor<'txt> {
         }
     }
 
-    pub fn capture_up_to(&mut self, token: TokenKind) -> Result<Capture, &'static str> {
-        let starting_pos = self.pos;
-
-        loop {
-            match self.next_token.kind {
-                TokenKind::Eof => return Err("could not find token"),
-                t if t == token => {
-                    let res = Capture {
-                        pos: self.pos,
-                        len: self.pos - starting_pos,
-                    };
-                    self.step();
-                    return Ok(res);
-                },
-                _ => self.step(),
-            }
-        }
-    }
-
     /// Consumes and captures the text of a path without any internal whitespace. Returns
     /// `Err` if the path ends with `::`, and `None` if no path component exists at the
     /// current position.

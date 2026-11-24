@@ -6,7 +6,7 @@ use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet_with_context;
 use rustc_errors::Applicability;
 use rustc_hir::{BorrowKind, Expr, ExprKind, Mutability, UnOp};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass, std_or_core};
+use rustc_lint::{LateContext, LateLintPass, std_or_core};
 use rustc_span::{Span, SyntaxContext, sym};
 
 declare_clippy_lint! {

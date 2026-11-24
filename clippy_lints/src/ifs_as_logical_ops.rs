@@ -6,7 +6,7 @@ use clippy_utils::{is_else_clause, peel_blocks};
 use rustc_ast::LitKind;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -42,7 +42,7 @@ declare_clippy_lint! {
     "`if` conditions that can be rewritten as logical operators"
 }
 
-declare_lint_pass!(IfsAsLogicalOps => [IFS_AS_LOGICAL_OPS]);
+declare_clippy_pass!(IfsAsLogicalOps => [IFS_AS_LOGICAL_OPS]);
 
 impl<'tcx> LateLintPass<'tcx> for IfsAsLogicalOps {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'tcx>) {

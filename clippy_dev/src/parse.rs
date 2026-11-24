@@ -7,7 +7,6 @@ use core::fmt::{self, Display};
 use core::range::Range;
 use rustc_arena::{DroplessArena, TypedArena};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_lexer::TokenKind;
 use std::collections::hash_map::{Entry, VacantEntry};
 use std::{fs, path};
 
@@ -267,31 +266,15 @@ impl<'cx> ParseCxImpl<'cx> {
                     }
                 },
                 // FIXME: We should handle declare_clippy_pass here.
-                "declare_lint_pass" => {
+                "declare_lint_pass" | "impl_lint_pass" => {
                     let mut has_lt = false;
                     let mut lints: &mut [_] = &mut [];
-                    if let Err(expected) = cursor
-                        .match_all(&[OpenParen, CaptureDocLines], &mut captures)
-                        .and_then(|()| match cursor.match_all(&[CaptureIdent], &mut captures[1..]) {
-                            Ok(s) => Ok(s),
-                            Err(_) => {
-                                cursor.capture_up_to(TokenKind::CloseBracket).unwrap();
-                                cursor.match_all(&[CaptureIdent], &mut captures[1..])
-                            },
-                        })
+                    if let Err(expected) =  cursor
+                        .match_all(&[OpenParen, CaptureDocLines, CaptureIdent], &mut captures)
                         .and_then(|()| cursor.opt_match_all(&[Lt, CaptureLifetime, Gt], &mut captures[2..]))
                         .and_then(|res| {
                             has_lt = res;
-                            match cursor.match_all(&[FatArrow, OpenBracket], &mut []) {
-                                Ok(no_config) => Ok(no_config),
-                                Err(_) => match cursor.match_all(&[OpenBrace], &mut []) {
-                                    Ok(_) => {
-                                        cursor.capture_up_to(TokenKind::CloseBrace).unwrap();
-                                        cursor.match_all(&[FatArrow, OpenBracket], &mut [])
-                                    },
-                                    Err(err) => Err(err),
-                                },
-                            }
+                            cursor.match_all(&[FatArrow, OpenBracket], &mut [])
                         })
                         .and_then(|()| {
                             cursor.capture_list(&mut self.str_list_buf, self.arena, |cursor| {
