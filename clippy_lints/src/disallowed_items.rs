@@ -246,7 +246,9 @@ impl<'tcx> LateLintPass<'tcx> for DisallowedItems {
                 id,
                 expr.span,
             ),
-            ExprKind::MethodCall(name, ..) if let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id) => {
+            ExprKind::MethodCall(name, ..) if let Some(id) = cx.typeck_results().type_dependent_def_id(expr.hir_id)
+                && !name.ident.span.from_expansion() =>
+            {
                 (
                     DISALLOWED_METHODS,
                     "use of a disallowed method",

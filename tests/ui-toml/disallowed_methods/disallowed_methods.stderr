@@ -1,0 +1,12 @@
+error: use of a disallowed method `std::result::Result::ok`
+  --> tests/ui-toml/disallowed_methods/disallowed_methods.rs:16:15
+   |
+LL |     let _ = r.ok();
+   |               ^^
+   |
+   = note: carry the error instead
+   = note: `-D clippy::disallowed-methods` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::disallowed_methods)]`
+
+error: aborting due to 1 previous error
+

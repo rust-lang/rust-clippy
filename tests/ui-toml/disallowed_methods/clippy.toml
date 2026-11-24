@@ -1,0 +1,3 @@
+disallowed-methods = [
+    { path = "std::result::Result::ok", reason = "carry the error instead" },
+]
