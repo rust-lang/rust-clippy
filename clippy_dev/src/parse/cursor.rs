@@ -329,7 +329,7 @@ impl<'txt> Cursor<'txt> {
 
     pub fn capture_up_to(&mut self, token: TokenKind) -> Result<Capture, &'static str> {
         let starting_pos = self.pos;
-        
+
         loop {
             match self.next_token.kind {
                 TokenKind::Eof => return Err("could not find token"),

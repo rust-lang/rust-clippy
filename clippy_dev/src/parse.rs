@@ -266,7 +266,8 @@ impl<'cx> ParseCxImpl<'cx> {
                         });
                     }
                 },
-                "declare_clippy_pass" => {
+                // FIXME: We should handle declare_clippy_pass here.
+                "declare_lint_pass" => {
                     let mut has_lt = false;
                     let mut lints: &mut [_] = &mut [];
                     if let Err(expected) = cursor
