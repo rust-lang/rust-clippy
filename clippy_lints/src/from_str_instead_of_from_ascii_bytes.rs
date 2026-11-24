@@ -5,6 +5,7 @@ use clippy_utils::sym;
 use rustc_hir::{Expr, ExprKind, QPath, Ty};
 use rustc_lint::{Applicability, LateContext, LateLintPass, declare_lint_pass};
 use rustc_middle::ty;
+use rustc_span::symbol::Symbol;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -44,54 +45,54 @@ impl<'tcx> LateLintPass<'tcx> for FromStrInsteadOfFromAsciiBytes {
             && let ExprKind::Path(QPath::TypeRelative(ty, path_segment)) = func.kind
             && is_integer_or_nonzero_integer(cx, ty)
             && let Some(true) = args.first().map(|arg| is_str(cx, arg))
+            && let Some((replacement, help)) = suggestion(cx, ty, path_segment.ident.name, args)
         {
-            let (replacement, msg, help) = match path_segment.ident.name {
-                sym::from_ascii_bytes_radix => {
-                    if args.get(1).is_none() {
-                        return;
-                    }
-
-                    let ty_snippet = if let ty::Adt(..) = cx.typeck_results().node_type(ty.hir_id).kind() {
-                        format!("<{}>", snippet(cx, ty.span, ".."))
-                    } else {
-                        format!("{}", snippet(cx, ty.span, ".."))
-                    };
-
-                    (
-                        format!(
-                            "{}::from_str_radix({}, {})",
-                            ty_snippet,
-                            snippet(cx, args[0].span, ".."),
-                            snippet(cx, args[1].span, "..")
-                        ),
-                        "`from_ascii_bytes_radix` is used with str",
-                        "use `from_str_radix` instead",
-                    )
-                },
-                sym::from_ascii_bytes => (
-                    format!(
-                        "{}.parse::<{}>()",
-                        snippet(cx, args[0].span, ".."),
-                        snippet(cx, ty.span, "..")
-                    ),
-                    "`from_ascii_bytes` is used with str",
-                    "use `parse` method instead",
-                ),
-                _ => {
-                    return;
-                },
-            };
-
             span_lint_and_sugg(
                 cx,
                 FROM_STR_INSTEAD_OF_FROM_ASCII_BYTES,
                 expr.span,
-                msg,
+                format!("`{}` is used with str", path_segment.ident.name),
                 help,
                 replacement,
                 Applicability::MachineApplicable,
             );
         }
+    }
+}
+
+fn suggestion(
+    cx: &LateContext<'_>,
+    ty: &'_ Ty<'_>,
+    path_segment_name: Symbol,
+    args: &'_ [Expr<'_>],
+) -> Option<(String, &'static str)> {
+    match path_segment_name {
+        sym::from_ascii_bytes_radix => {
+            let ty_snippet = if let ty::Adt(..) = cx.typeck_results().node_type(ty.hir_id).kind() {
+                format!("<{}>", snippet(cx, ty.span, ".."))
+            } else {
+                format!("{}", snippet(cx, ty.span, ".."))
+            };
+
+            Some((
+                format!(
+                    "{}::from_str_radix({}, {})",
+                    ty_snippet,
+                    snippet(cx, args.first()?.span, ".."),
+                    snippet(cx, args.get(1)?.span, "..")
+                ),
+                "use `from_str_radix` instead",
+            ))
+        },
+        sym::from_ascii_bytes => Some((
+            format!(
+                "{}.parse::<{}>()",
+                snippet(cx, args.first()?.span, ".."),
+                snippet(cx, ty.span, "..")
+            ),
+            "use `parse` method instead",
+        )),
+        _ => None,
     }
 }
 
