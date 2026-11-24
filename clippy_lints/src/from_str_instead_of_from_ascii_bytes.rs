@@ -19,8 +19,6 @@ declare_clippy_lint! {
     ///
     /// ### Example
     /// ```no_run
-    /// #![feature(int_from_ascii)]
-    ///
     /// let decimal = u32::from_ascii_bytes("123");
     /// let hex = u32::from_ascii_bytes_radix("ff", 16);
     /// ```
