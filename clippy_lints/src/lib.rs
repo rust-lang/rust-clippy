@@ -50,14 +50,6 @@ extern crate clippy_utils;
 #[macro_use]
 extern crate declare_clippy_lint;
 
-mod utils;
-
-mod combined_early_pass;
-mod combined_late_pass;
-
-pub mod declared_lints;
-pub mod deprecated_lints;
-
 // begin lints modules, do not remove this comment, it's used in `update_lints`
 mod absolute_paths;
 mod almost_complete_range;
@@ -417,13 +409,20 @@ mod zero_sized_map_values;
 mod zombie_processes;
 // end lints modules, do not remove this comment, it's used in `update_lints`
 
-use std::process::ExitCode;
+mod utils;
+
+mod combined_early_pass;
+mod combined_late_pass;
+
+pub mod declared_lints;
+pub mod deprecated_lints;
 
 use clippy_config::{Conf, sanitize_explanation};
 use clippy_utils::macros::FormatArgsStorage;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_lint::is_lint_pass_required;
 use rustc_middle::ty::TyCtxt;
+use std::process::ExitCode;
 use utils::attr_collector::AttrStorage;
 
 pub fn explain(name: &str) -> ExitCode {
