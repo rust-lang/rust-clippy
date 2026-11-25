@@ -7,6 +7,7 @@ use rustc_ast::{HasAttrs as _, NodeId, Ty, TyKind};
 use rustc_errors::Applicability;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
 use rustc_span::Span;
+use std::ops::ControlFlow;
 
 declare_clippy_lint! {
     /// ### What it does
@@ -166,26 +167,23 @@ fn build_predicate_text(cx: &EarlyContext<'_>, param: &GenericParam) -> String {
 
 // `impl Trait` not allowed in `where` clauses, params with those bounds can't be moved
 fn has_impl_trait(param: &GenericParam) -> bool {
-    struct Finder {
-        found: bool,
-    }
+    struct Finder;
 
     impl<'ast> Visitor<'ast> for Finder {
-        fn visit_ty(&mut self, ty: &'ast Ty) {
+        type Result = ControlFlow<()>;
+
+        fn visit_ty(&mut self, ty: &'ast Ty) -> Self::Result {
             if let TyKind::ImplTrait(..) = ty.kind {
-                self.found = true;
+                return ControlFlow::Break(());
             }
             // walk into nested types to look for things like `Vec<impl Trait>`
-            walk_ty(self, ty);
+            walk_ty(self, ty)
         }
     }
 
-    let mut finder = Finder { found: false };
-
     // look for things like `T: Iterator<Item = impl Debug>`
-    for bound in &param.bounds {
-        finder.visit_param_bound(bound, BoundKind::Bound);
-    }
-
-    finder.found
+    param
+        .bounds
+        .iter()
+        .any(|b| Finder.visit_param_bound(b, BoundKind::Bound).is_break())
 }
