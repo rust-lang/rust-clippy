@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{FnDecl, FnRetTy, ImplItemKind, Item, ItemKind, Node, TraitItem, TraitItemKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_span::Symbol;
 
@@ -39,12 +39,10 @@ declare_clippy_lint! {
     "Needlessly returning a Box"
 }
 
-impl_lint_pass!(UnnecessaryBoxReturns => [UNNECESSARY_BOX_RETURNS]);
-
-pub struct UnnecessaryBoxReturns {
+declare_clippy_pass!(UnnecessaryBoxReturns { 
     avoid_breaking_exported_api: bool,
     maximum_size: u64,
-}
+ } => [UNNECESSARY_BOX_RETURNS]);
 
 impl UnnecessaryBoxReturns {
     pub fn new(conf: &'static Conf) -> Self {

@@ -6,7 +6,7 @@ use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::sym::PhantomPinned;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_hir::{FieldDef, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -43,11 +43,9 @@ declare_clippy_lint! {
     "struct field prefixed with underscore and marked public"
 }
 
-impl_lint_pass!(PubUnderscoreFields => [PUB_UNDERSCORE_FIELDS]);
-
-pub struct PubUnderscoreFields {
+declare_clippy_pass!(PubUnderscoreFields { 
     behavior: PubUnderscoreFieldsBehaviour,
-}
+ } => [PUB_UNDERSCORE_FIELDS]);
 impl PubUnderscoreFields {
     pub fn new(conf: &'static Conf) -> Self {
         Self {

@@ -3,7 +3,7 @@ use clippy_utils::source::snippet;
 use clippy_utils::sym;
 use rustc_ast::ast::{Expr, ExprKind, MethodCall};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::Symbol;
 
 declare_clippy_lint! {
@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "Uselessly rounding a whole number floating-point literal"
 }
 
-declare_lint_pass!(UnusedRounding => [UNUSED_ROUNDING]);
+declare_clippy_pass!(UnusedRounding => [UNUSED_ROUNDING]);
 
 fn is_useless_rounding(cx: &EarlyContext<'_>, expr: &Expr) -> Option<(Symbol, String)> {
     if let ExprKind::MethodCall(MethodCall {

@@ -4,7 +4,7 @@ use clippy_utils::source::snippet;
 use clippy_utils::ty::is_copy;
 use clippy_utils::{get_parent_expr, is_mutable};
 use rustc_hir::{Expr, ExprField, ExprKind, Path, QPath, StructTailExpr, UnOp};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{DesugaringKind, Ident};
 
 declare_clippy_lint! {
@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "struct built from a base that can be written mode concisely"
 }
 
-declare_lint_pass!(UnnecessaryStruct => [UNNECESSARY_STRUCT_INITIALIZATION]);
+declare_clippy_pass!(UnnecessaryStruct => [UNNECESSARY_STRUCT_INITIALIZATION]);
 
 impl LateLintPass<'_> for UnnecessaryStruct {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

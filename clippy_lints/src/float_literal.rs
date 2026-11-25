@@ -4,7 +4,7 @@ use clippy_utils::{ExprUseNode, get_expr_use_site, numeric_literal};
 use rustc_ast::ast::{LitFloatType, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, FloatTy};
 use std::fmt;
 
@@ -60,11 +60,9 @@ declare_clippy_lint! {
     "lossy whole number float literals"
 }
 
-impl_lint_pass!(FloatLiteral => [EXCESSIVE_PRECISION, LOSSY_FLOAT_LITERAL]);
-
-pub struct FloatLiteral {
+declare_clippy_pass!(FloatLiteral { 
     const_literal_digits_threshold: u32,
-}
+ } => [EXCESSIVE_PRECISION, LOSSY_FLOAT_LITERAL]);
 
 impl FloatLiteral {
     pub fn new(conf: &'static Conf) -> Self {

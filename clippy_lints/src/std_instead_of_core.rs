@@ -8,7 +8,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Namespace, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Block, Body, HirId, Item, ItemKind, Path, PathSegment, UseKind, UseTree};
-use rustc_lint::{LateContext, LateLintPass, Lint, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, Lint, LintContext as _};
 use rustc_span::symbol::kw;
 use rustc_span::{Ident, Span, Symbol, sym};
 
@@ -87,20 +87,18 @@ declare_clippy_lint! {
     "type is imported from std when available in core"
 }
 
-impl_lint_pass!(StdReexports => [
-    ALLOC_INSTEAD_OF_CORE,
-    STD_INSTEAD_OF_ALLOC,
-    STD_INSTEAD_OF_CORE,
-]);
-
-pub struct StdReexports {
+declare_clippy_pass!(StdReexports {
     lint_points: Option<(Span, Vec<LintPoint>)>,
     msrv: Msrv,
     /// Imports are handled manually, as they are a tree, not a linear path.
     /// If one element in a nested import wants to change the shared start of the import,
     /// but another element does not, then we shouldn't emit a suggestion.
     in_import: bool,
-}
+} => [
+    ALLOC_INSTEAD_OF_CORE,
+    STD_INSTEAD_OF_ALLOC,
+    STD_INSTEAD_OF_CORE,
+]);
 
 impl StdReexports {
     pub fn new(conf: &'static Conf) -> Self {

@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::ty::ty_from_hir_ty;
 use rustc_hir::{self as hir, AmbigArg, HirId, ItemKind, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_middle::ty::{self, TypeVisitableExt as _};
 use rustc_span::sym;
@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "usage of map with zero-sized value type"
 }
 
-declare_lint_pass!(ZeroSizedMapValues => [ZERO_SIZED_MAP_VALUES]);
+declare_clippy_pass!(ZeroSizedMapValues => [ZERO_SIZED_MAP_VALUES]);
 
 impl LateLintPass<'_> for ZeroSizedMapValues {
     fn check_ty<'tcx>(&mut self, cx: &LateContext<'tcx>, hir_ty: &hir::Ty<'tcx, AmbigArg>) {

@@ -6,7 +6,7 @@ use rustc_attr_ir::find_attr;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_expr, walk_stmt};
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, HirId, Stmt, UnsafeSource};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::{OrdSpan, Span, SyntaxContext};
 use std::collections::BTreeMap;
 use std::collections::btree_map::Entry;
@@ -83,15 +83,7 @@ declare_clippy_lint! {
     "expanding macro metavariables in an unsafe block"
 }
 
-impl_lint_pass!(ExprMetavarsInUnsafe => [MACRO_METAVARS_IN_UNSAFE]);
-
-#[derive(Clone, Debug)]
-pub enum MetavarState {
-    ReferencedInUnsafe { unsafe_blocks: Vec<HirId> },
-    ReferencedInSafe,
-}
-
-pub struct ExprMetavarsInUnsafe {
+declare_clippy_pass!(ExprMetavarsInUnsafe {
     warn_unsafe_macro_metavars_in_private_macros: bool,
     /// A metavariable can be expanded more than once, potentially across multiple bodies, so it
     /// requires some state kept across HIR nodes to make it possible to delay a warning
@@ -107,6 +99,12 @@ pub struct ExprMetavarsInUnsafe {
     /// }
     /// ```
     metavar_expns: BTreeMap<OrdSpan, MetavarState>,
+} => [MACRO_METAVARS_IN_UNSAFE]);
+
+#[derive(Clone, Debug)]
+pub enum MetavarState {
+    ReferencedInUnsafe { unsafe_blocks: Vec<HirId> },
+    ReferencedInSafe,
 }
 
 impl ExprMetavarsInUnsafe {

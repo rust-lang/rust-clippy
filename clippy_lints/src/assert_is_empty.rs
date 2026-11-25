@@ -10,7 +10,7 @@ use clippy_utils::{is_in_const_context, sym};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::{self, IsSuggestable as _, Ty};
 use rustc_span::Span;
 
@@ -74,11 +74,9 @@ declare_clippy_lint! {
     "asserting on emptiness without showing the asserted value on failure"
 }
 
-impl_lint_pass!(AssertIsEmpty => [ASSERT_IS_EMPTY]);
-
-pub struct AssertIsEmpty {
+declare_clippy_pass!(AssertIsEmpty {
     msrv: Msrv,
-}
+} => [ASSERT_IS_EMPTY]);
 
 impl AssertIsEmpty {
     pub fn new(conf: &Conf) -> Self {

@@ -32,7 +32,7 @@ use clippy_utils::{
 };
 use rustc_hir::{Arm, Expr, ExprKind, LetStmt, MatchSource, Pat, PatKind};
 use rustc_lexer::{TokenKind, is_whitespace};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -1006,7 +1006,10 @@ declare_clippy_lint! {
     "a wildcard pattern used with others patterns in same match arm"
 }
 
-impl_lint_pass!(Matches => [
+declare_clippy_pass!(Matches {
+    msrv: Msrv,
+    infallible_destructuring_match_linted: bool,
+} => [
     COLLAPSIBLE_MATCH,
     INFALLIBLE_DESTRUCTURING_MATCH,
     MANUAL_FILTER,
@@ -1035,11 +1038,6 @@ impl_lint_pass!(Matches => [
     WILDCARD_ENUM_MATCH_ARM,
     WILDCARD_IN_OR_PATTERNS,
 ]);
-
-pub struct Matches {
-    msrv: Msrv,
-    infallible_destructuring_match_linted: bool,
-}
 
 impl Matches {
     pub fn new(conf: &'static Conf) -> Self {

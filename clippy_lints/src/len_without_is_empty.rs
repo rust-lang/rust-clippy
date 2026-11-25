@@ -8,7 +8,7 @@ use rustc_hir::{
     FnRetTy, GenericArg, GenericBound, HirId, ImplItem, ImplItemKind, ImplicitSelfKind, Item, ItemKind, Mutability,
     Node, OpaqueTyOrigin, PathSegment, PrimTy, QPath, TraitItemId, TyKind,
 };
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, FnSig, Ty};
 use rustc_span::symbol::kw;
 use rustc_span::{Ident, Span, Symbol};
@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "traits or impls with a public `len` method but no corresponding `is_empty` method"
 }
 
-declare_lint_pass!(LenWithoutIsEmpty => [LEN_WITHOUT_IS_EMPTY]);
+declare_clippy_pass!(LenWithoutIsEmpty => [LEN_WITHOUT_IS_EMPTY]);
 
 impl<'tcx> LateLintPass<'tcx> for LenWithoutIsEmpty {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'_>) {

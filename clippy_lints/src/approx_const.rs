@@ -4,7 +4,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use rustc_ast::ast::{FloatTy, LitFloatType, LitKind};
 use rustc_attr_ir::RustcVersion;
 use rustc_hir::{HirId, Lit};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, symbol};
 use std::f64::consts as f64;
 
@@ -39,8 +39,6 @@ declare_clippy_lint! {
     "the approximate of a known float constant (in `std::fXX::consts`)"
 }
 
-impl_lint_pass!(ApproxConstant => [APPROX_CONSTANT]);
-
 // Tuples are of the form (constant, name, min_digits, msrv)
 const KNOWN_CONSTS: [(f64, &str, usize, Option<RustcVersion>); 21] = [
     (f64::E, "E", 4, None),
@@ -66,9 +64,9 @@ const KNOWN_CONSTS: [(f64, &str, usize, Option<RustcVersion>); 21] = [
     (f64::GOLDEN_RATIO, "GOLDEN_RATIO", 5, Some(msrvs::GOLDEN_RATIO)),
 ];
 
-pub struct ApproxConstant {
+declare_clippy_pass!(ApproxConstant { 
     msrv: Msrv,
-}
+ } => [APPROX_CONSTANT]);
 
 impl ApproxConstant {
     pub fn new(conf: &'static Conf) -> Self {

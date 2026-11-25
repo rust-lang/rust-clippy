@@ -14,7 +14,7 @@ use rustc_ast::ast::RangeLimits;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, HirId, Node};
-use rustc_lint::{LateContext, LateLintPass, Lint, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, Lint};
 use rustc_middle::ty::{self, CallerBoundsIterator as _, ClauseKind, ClausePolarity, GenericArgKind, Ty};
 use rustc_span::{DesugaringKind, Span, Spanned, SyntaxContext};
 use std::cmp::Ordering;
@@ -167,16 +167,14 @@ declare_clippy_lint! {
     "reversing the limits of range expressions, resulting in empty ranges"
 }
 
-impl_lint_pass!(Ranges => [
+declare_clippy_pass!(Ranges  {
+    msrv: Msrv,
+} => [
     MANUAL_RANGE_CONTAINS,
     RANGE_MINUS_ONE,
     RANGE_PLUS_ONE,
     REVERSED_EMPTY_RANGES,
 ]);
-
-pub struct Ranges {
-    msrv: Msrv,
-}
 
 impl Ranges {
     pub fn new(conf: &'static Conf) -> Self {

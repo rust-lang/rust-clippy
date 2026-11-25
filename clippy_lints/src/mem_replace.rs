@@ -10,7 +10,7 @@ use clippy_utils::{
 };
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass, std_or_core};
+use rustc_lint::{LateContext, LateLintPass, std_or_core};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -123,7 +123,9 @@ declare_clippy_lint! {
     "`mem::replace(&mut _, mem::uninitialized())` or `mem::replace(&mut _, mem::zeroed())`"
 }
 
-impl_lint_pass!(MemReplace => [
+declare_clippy_pass!(MemReplace {
+    msrv: Msrv,
+} => [
     MEM_REPLACE_OPTION_WITH_NONE,
     MEM_REPLACE_OPTION_WITH_SOME,
     MEM_REPLACE_WITH_DEFAULT,
@@ -283,10 +285,6 @@ fn check_replace_with_default(
     } else {
         false
     }
-}
-
-pub struct MemReplace {
-    msrv: Msrv,
 }
 
 impl MemReplace {

@@ -31,7 +31,7 @@ use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{higher, sym};
 use rustc_ast::Label;
 use rustc_hir::{Expr, ExprKind, LoopSource, Pat};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use utils::{IncrementVisitor, InitializeVisitor, make_iterator_snippet};
 
@@ -814,7 +814,10 @@ declare_clippy_lint! {
     "using a `while let` loop instead of a for loop on an iterator"
 }
 
-impl_lint_pass!(Loops => [
+declare_clippy_pass!(Loops {
+    msrv: Msrv,
+    enforce_iter_loop_reborrow: bool,
+} => [
     CHAR_INDICES_AS_BYTE_INDICES,
     EMPTY_LOOP,
     EXPLICIT_COUNTER_LOOP,
@@ -842,10 +845,6 @@ impl_lint_pass!(Loops => [
     WHILE_LET_ON_ITERATOR,
 ]);
 
-pub struct Loops {
-    msrv: Msrv,
-    enforce_iter_loop_reborrow: bool,
-}
 impl Loops {
     pub fn new(conf: &'static Conf) -> Self {
         Self {

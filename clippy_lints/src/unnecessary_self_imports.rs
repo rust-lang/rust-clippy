@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_ast::{Item, ItemKind, UseTree, UseTreeKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::symbol::kw;
 
 declare_clippy_lint! {
@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "imports ending in `::{self}`, which can be omitted"
 }
 
-declare_lint_pass!(UnnecessarySelfImports => [UNNECESSARY_SELF_IMPORTS]);
+declare_clippy_pass!(UnnecessarySelfImports => [UNNECESSARY_SELF_IMPORTS]);
 
 impl EarlyLintPass for UnnecessarySelfImports {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

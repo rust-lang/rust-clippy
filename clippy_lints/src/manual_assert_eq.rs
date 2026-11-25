@@ -6,7 +6,7 @@ use clippy_utils::ty::{deref_chain, implements_trait};
 use clippy_utils::{is_in_const_context, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::{self, Ty};
 
 declare_clippy_lint! {
@@ -43,7 +43,7 @@ declare_clippy_lint! {
     "checks for assertions consisting of an (in)equality check"
 }
 
-declare_lint_pass!(ManualAssertEq => [MANUAL_ASSERT_EQ]);
+declare_clippy_pass!(ManualAssertEq => [MANUAL_ASSERT_EQ]);
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum EqKind {

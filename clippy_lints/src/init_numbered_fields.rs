@@ -3,7 +3,7 @@ use clippy_utils::source::{snippet_with_applicability, snippet_with_context};
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::{Expr, ExprKind, StructTailExpr};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::SyntaxContext;
 use std::borrow::Cow;
 
@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "numbered fields in tuple struct initializer"
 }
 
-declare_lint_pass!(NumberedFields => [INIT_NUMBERED_FIELDS]);
+declare_clippy_pass!(NumberedFields => [INIT_NUMBERED_FIELDS]);
 
 impl<'tcx> LateLintPass<'tcx> for NumberedFields {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

@@ -4,7 +4,7 @@ use clippy_utils::source::{indent_of, snippet_block, snippet_with_context};
 use rustc_ast::Label;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, Expr, ExprKind, HirId, LoopSource, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::{ExpnKind, Span};
 
 declare_clippy_lint! {
@@ -127,7 +127,7 @@ declare_clippy_lint! {
     "`continue` statements that can be replaced by a rearrangement of code"
 }
 
-declare_lint_pass!(NeedlessContinue => [NEEDLESS_CONTINUE]);
+declare_clippy_pass!(NeedlessContinue => [NEEDLESS_CONTINUE]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessContinue {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

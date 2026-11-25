@@ -6,7 +6,7 @@ use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::HirIdSet;
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::AssocKind;
 use rustc_span::sym;
 
@@ -49,12 +49,11 @@ declare_clippy_lint! {
     "`pub fn new() -> Self` method without `Default` implementation"
 }
 
-impl_lint_pass!(NewWithoutDefault => [NEW_WITHOUT_DEFAULT]);
-
-#[derive(Clone, Default)]
-pub struct NewWithoutDefault {
+declare_clippy_pass!(
+    #[derive(Clone, Default)]
+    NewWithoutDefault { 
     impling_types: Option<HirIdSet>,
-}
+ } => [NEW_WITHOUT_DEFAULT]);
 
 impl<'tcx> LateLintPass<'tcx> for NewWithoutDefault {
     #[expect(clippy::too_many_lines)]

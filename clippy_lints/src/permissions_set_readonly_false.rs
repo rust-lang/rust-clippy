@@ -3,7 +3,7 @@ use clippy_utils::res::MaybeDef as _;
 use clippy_utils::sym;
 use rustc_ast::ast::LitKind;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -26,7 +26,7 @@ declare_clippy_lint! {
     "Checks for calls to `std::fs::Permissions.set_readonly` with argument `false`"
 }
 
-declare_lint_pass!(PermissionsSetReadonlyFalse => [
+declare_clippy_pass!(PermissionsSetReadonlyFalse => [
     PERMISSIONS_SET_READONLY_FALSE,
 ]);
 

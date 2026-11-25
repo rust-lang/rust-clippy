@@ -8,8 +8,8 @@ extern crate rustc_hir;
 #[macro_use]
 extern crate rustc_lint;
 extern crate rustc_middle;
-use clippy_utils::extract_msrv_attr;
 use clippy_utils::msrvs::MsrvStack;
+use clippy_utils::{declare_clippy_pass, extract_msrv_attr};
 use rustc_hir::Expr;
 use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};
 
@@ -19,11 +19,7 @@ declare_lint! {
     ""
 }
 
-struct Pass {
-    msrv: MsrvStack,
-}
-
-impl_lint_pass!(Pass => [TEST_LINT]);
+declare_clippy_pass!(Pass { msrv: MsrvStack } => [TEST_LINT]);
 
 impl EarlyLintPass for Pass {
     //~^ missing_msrv_attr_impl

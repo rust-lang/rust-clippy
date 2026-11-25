@@ -6,7 +6,7 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::{as_some_pattern, is_none_pattern, msrvs, peel_hir_expr_refs, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Arm, Expr, ExprKind, Pat, PatKind, QPath, is_range_literal};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, Symbol};
 
 declare_clippy_lint! {
@@ -39,11 +39,9 @@ declare_clippy_lint! {
     "manual `Option::as_slice`"
 }
 
-impl_lint_pass!(ManualOptionAsSlice => [MANUAL_OPTION_AS_SLICE]);
-
-pub struct ManualOptionAsSlice {
+declare_clippy_pass!(ManualOptionAsSlice { 
     msrv: Msrv,
-}
+ } => [MANUAL_OPTION_AS_SLICE]);
 
 impl ManualOptionAsSlice {
     pub fn new(conf: &Conf) -> Self {

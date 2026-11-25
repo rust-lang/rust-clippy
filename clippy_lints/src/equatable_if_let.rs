@@ -4,7 +4,7 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::ty::implements_trait;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, Pat, PatKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::Ty;
 
 declare_clippy_lint! {
@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "using pattern matching instead of equality"
 }
 
-declare_lint_pass!(PatternEquality => [EQUATABLE_IF_LET]);
+declare_clippy_pass!(PatternEquality => [EQUATABLE_IF_LET]);
 
 /// detects if pattern matches just one thing
 fn is_unary_pattern(pat: &Pat<'_>) -> bool {

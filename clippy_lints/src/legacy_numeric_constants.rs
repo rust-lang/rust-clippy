@@ -6,7 +6,7 @@ use clippy_utils::{is_from_proc_macro, sym};
 use hir::def_id::DefId;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, ExprKind, Item, ItemKind, QPath, UseKind, UseTree};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Symbol;
 use rustc_span::symbol::kw;
 
@@ -33,11 +33,9 @@ declare_clippy_lint! {
     "checks for usage of legacy std numeric constants and methods"
 }
 
-impl_lint_pass!(LegacyNumericConstants => [LEGACY_NUMERIC_CONSTANTS]);
-
-pub struct LegacyNumericConstants {
+declare_clippy_pass!(LegacyNumericConstants { 
     msrv: Msrv,
-}
+ } => [LEGACY_NUMERIC_CONSTANTS]);
 
 impl LegacyNumericConstants {
     pub fn new(conf: &'static Conf) -> Self {

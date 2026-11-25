@@ -2,7 +2,7 @@ use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint;
 use rustc_ast::ast;
 use rustc_data_structures::fx::FxHashSet;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use unicode_script::{Script, UnicodeScript as _};
 
 declare_clippy_lint! {
@@ -44,11 +44,9 @@ declare_clippy_lint! {
     "usage of non-allowed Unicode scripts"
 }
 
-impl_lint_pass!(DisallowedScriptIdents => [DISALLOWED_SCRIPT_IDENTS]);
-
-pub struct DisallowedScriptIdents {
+declare_clippy_pass!(DisallowedScriptIdents { 
     whitelist: FxHashSet<Script>,
-}
+ } => [DISALLOWED_SCRIPT_IDENTS]);
 
 impl DisallowedScriptIdents {
     pub fn new(conf: &'static Conf) -> Self {

@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_ast::ast::{Item, ItemKind, VisibilityKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "restricts the usage of `pub use`"
 }
 
-declare_lint_pass!(PubUse => [PUB_USE]);
+declare_clippy_pass!(PubUse => [PUB_USE]);
 
 impl EarlyLintPass for PubUse {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::{indent_of, snippet};
 use rustc_errors::Applicability;
 use rustc_hir::{BlockCheckMode, Expr, ExprKind, LoopSource};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::edition::Edition;
 
 declare_clippy_lint! {
@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "warns when the scrutinee is wrapped in a block in older editions"
 }
 
-declare_lint_pass!(BlockScrutinee => [BLOCK_SCRUTINEE]);
+declare_clippy_pass!(BlockScrutinee => [BLOCK_SCRUTINEE]);
 
 impl<'tcx> LateLintPass<'tcx> for BlockScrutinee {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

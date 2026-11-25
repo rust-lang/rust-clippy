@@ -14,7 +14,7 @@ use rustc_hir::{
     AmbigArg, BoundPolarity, GenericBound, Generics, Item, ItemKind, Node, Path, PathSegment, PredicateOrigin, QPath,
     TraitBoundModifiers, TraitItem, TraitRef, Ty, TyKind, WherePredicateKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, SyntaxContext};
 
 declare_clippy_lint! {
@@ -86,15 +86,13 @@ declare_clippy_lint! {
     "types are repeated unnecessarily in trait bounds, use `+` instead of using `T: _, T: _`"
 }
 
-impl_lint_pass!(TraitBounds => [
+declare_clippy_pass!(TraitBounds {
+    max_trait_bounds: u64,
+    msrv: Msrv,
+} => [
     TRAIT_DUPLICATION_IN_BOUNDS,
     TYPE_REPETITION_IN_BOUNDS,
 ]);
-
-pub struct TraitBounds {
-    max_trait_bounds: u64,
-    msrv: Msrv,
-}
 
 impl TraitBounds {
     pub fn new(conf: &'static Conf) -> Self {

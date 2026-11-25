@@ -3,7 +3,7 @@ use clippy_utils::sugg::{self, Sugg};
 use clippy_utils::sym;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_middle::ty::{self, ExistentialPredicate, Ty, TyCtxt};
 
@@ -46,7 +46,7 @@ declare_clippy_lint! {
     "coercing to `&dyn Any` when dereferencing could produce a `dyn Any` without coercion is usually not intended"
 }
 
-declare_lint_pass!(CoerceContainerToAny => [COERCE_CONTAINER_TO_ANY]);
+declare_clippy_pass!(CoerceContainerToAny => [COERCE_CONTAINER_TO_ANY]);
 
 impl<'tcx> LateLintPass<'tcx> for CoerceContainerToAny {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

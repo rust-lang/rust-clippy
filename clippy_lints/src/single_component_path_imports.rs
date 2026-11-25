@@ -3,7 +3,7 @@ use rustc_ast::node_id::{NodeId, NodeMap};
 use rustc_ast::visit::{Visitor, walk_expr};
 use rustc_ast::{Crate, Expr, ExprKind, Item, ItemKind, MacroDef, ModKind, Ty, TyKind, UseTreeKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::edition::Edition;
 use rustc_span::symbol::kw;
 use rustc_span::{Span, Symbol};
@@ -36,13 +36,12 @@ declare_clippy_lint! {
     "imports with single component path are redundant"
 }
 
-impl_lint_pass!(SingleComponentPathImports => [SINGLE_COMPONENT_PATH_IMPORTS]);
-
-#[derive(Default)]
-pub struct SingleComponentPathImports {
+declare_clippy_pass!(
+    #[derive(Default)]
+    SingleComponentPathImports { 
     /// Buffer found usages to emit when visiting that item so that `#[allow]` works as expected
     found: NodeMap<Vec<SingleUse>>,
-}
+ } => [SINGLE_COMPONENT_PATH_IMPORTS]);
 
 struct SingleUse {
     name: Symbol,

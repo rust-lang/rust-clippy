@@ -3,7 +3,7 @@ use clippy_utils::is_from_proc_macro;
 use clippy_utils::res::MaybeDef as _;
 use clippy_utils::ty::implements_trait;
 use rustc_hir::{Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_middle::ty::GenericArgKind;
 use rustc_middle::ty::print::with_forced_trimmed_paths;
@@ -39,7 +39,7 @@ declare_clippy_lint! {
     "using `Arc` with a type that does not implement `Send` and `Sync`"
 }
 
-declare_lint_pass!(ArcWithNonSendSync => [ARC_WITH_NON_SEND_SYNC]);
+declare_clippy_pass!(ArcWithNonSendSync => [ARC_WITH_NON_SEND_SYNC]);
 
 impl<'tcx> LateLintPass<'tcx> for ArcWithNonSendSync {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

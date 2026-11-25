@@ -5,7 +5,7 @@ use clippy_utils::ty::{deref_chain, get_adt_inherent_method};
 use clippy_utils::{higher, is_from_proc_macro, is_in_test, sym};
 use rustc_ast::ast::RangeLimits;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 
 declare_clippy_lint! {
@@ -91,12 +91,10 @@ declare_clippy_lint! {
     "out of bounds constant indexing"
 }
 
-impl_lint_pass!(IndexingSlicing => [INDEXING_SLICING, OUT_OF_BOUNDS_INDEXING]);
-
-pub struct IndexingSlicing {
+declare_clippy_pass!(IndexingSlicing { 
     allow_indexing_slicing_in_tests: bool,
     suppress_restriction_lint_in_const: bool,
-}
+ } => [INDEXING_SLICING, OUT_OF_BOUNDS_INDEXING]);
 
 impl IndexingSlicing {
     pub fn new(conf: &'static Conf) -> Self {

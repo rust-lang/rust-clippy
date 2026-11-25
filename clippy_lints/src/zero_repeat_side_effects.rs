@@ -5,7 +5,7 @@ use rustc_ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{ConstArgKind, Expr, ExprKind, LetStmt, LocalSource, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{IsSuggestable as _, Ty};
 use rustc_span::Span;
 
@@ -41,7 +41,7 @@ declare_clippy_lint! {
     "usage of zero-sized initializations of arrays or vecs causing side effects"
 }
 
-declare_lint_pass!(ZeroRepeatSideEffects => [ZERO_REPEAT_SIDE_EFFECTS]);
+declare_clippy_pass!(ZeroRepeatSideEffects => [ZERO_REPEAT_SIDE_EFFECTS]);
 
 impl LateLintPass<'_> for ZeroRepeatSideEffects {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

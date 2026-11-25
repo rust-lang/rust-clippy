@@ -5,7 +5,7 @@ use clippy_utils::source::{indent_of, snippet};
 use clippy_utils::{last_path_segment, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, QPath, TyKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::{Span, Symbol};
 
@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "initializing reference-counted pointer in `vec![elem; len]`"
 }
 
-declare_lint_pass!(RcCloneInVecInit => [RC_CLONE_IN_VEC_INIT]);
+declare_clippy_pass!(RcCloneInVecInit => [RC_CLONE_IN_VEC_INIT]);
 
 impl LateLintPass<'_> for RcCloneInVecInit {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::macros::span_is_local;
 use rustc_hir::{Expr, ExprKind, MatchSource};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -28,7 +28,7 @@ declare_clippy_lint! {
     "checks if the `?` operator is used"
 }
 
-declare_lint_pass!(QuestionMarkUsed => [QUESTION_MARK_USED]);
+declare_clippy_pass!(QuestionMarkUsed => [QUESTION_MARK_USED]);
 
 impl<'tcx> LateLintPass<'tcx> for QuestionMarkUsed {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

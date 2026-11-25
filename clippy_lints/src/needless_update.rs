@@ -1,6 +1,6 @@
 use clippy_utils::diagnostics::span_lint;
 use rustc_hir::{Expr, ExprKind, StructTailExpr};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "using `Foo { ..base }` when there are no missing fields"
 }
 
-declare_lint_pass!(NeedlessUpdate => [NEEDLESS_UPDATE]);
+declare_clippy_pass!(NeedlessUpdate => [NEEDLESS_UPDATE]);
 
 impl<'tcx> LateLintPass<'tcx> for NeedlessUpdate {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

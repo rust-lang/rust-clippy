@@ -3,7 +3,7 @@ use rustc_ast::ast::{AttrKind, Attribute, Item, ItemKind};
 use rustc_ast::token::{Token, TokenKind};
 use rustc_ast::tokenstream::{TokenStream, TokenTree};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::symbol::sym;
 use rustc_span::{Span, kw};
 
@@ -49,7 +49,7 @@ declare_clippy_lint! {
     "using `crate` in a macro definition"
 }
 
-declare_lint_pass!(CrateInMacroDef => [CRATE_IN_MACRO_DEF]);
+declare_clippy_pass!(CrateInMacroDef => [CRATE_IN_MACRO_DEF]);
 
 impl EarlyLintPass for CrateInMacroDef {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {

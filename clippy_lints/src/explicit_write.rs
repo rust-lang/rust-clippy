@@ -6,7 +6,7 @@ use clippy_utils::{is_expn_of, is_in_test, sym};
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{BindingMode, Block, BlockCheckMode, Expr, ExprKind, Node, PatKind, QPath, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::ExpnId;
 
 declare_clippy_lint! {
@@ -38,11 +38,9 @@ declare_clippy_lint! {
     "using the `write!()` family of functions instead of the `print!()` family of functions, when using the latter would work"
 }
 
-impl_lint_pass!(ExplicitWrite => [EXPLICIT_WRITE]);
-
-pub struct ExplicitWrite {
+declare_clippy_pass!(ExplicitWrite { 
     format_args: FormatArgsStorage,
-}
+ } => [EXPLICIT_WRITE]);
 
 impl ExplicitWrite {
     pub fn new(format_args: FormatArgsStorage) -> Self {

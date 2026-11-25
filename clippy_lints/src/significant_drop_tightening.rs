@@ -8,7 +8,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{self as hir, HirId};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{GenericArgKind, Ty, Unnormalized};
 use rustc_span::symbol::Ident;
 use rustc_span::{DUMMY_SP, Span};
@@ -53,14 +53,15 @@ declare_clippy_lint! {
     "Searches for elements marked with `#[clippy::has_significant_drop]` that could be early dropped but are in fact dropped at the end of their scopes"
 }
 
-impl_lint_pass!(SignificantDropTightening<'_> => [SIGNIFICANT_DROP_TIGHTENING]);
-
-#[derive(Default)]
-pub struct SignificantDropTightening<'tcx> {
+declare_clippy_pass!(
+    #[derive(Default)]
+    SignificantDropTightening<'tcx> {
     apas: FxIndexMap<HirId, AuxParamsAttr>,
     /// Auxiliary structure used to avoid having to verify the same type multiple times.
     type_cache: FxHashMap<Ty<'tcx>, bool>,
-}
+} => [
+    SIGNIFICANT_DROP_TIGHTENING,
+]);
 
 impl<'tcx> LateLintPass<'tcx> for SignificantDropTightening<'tcx> {
     fn check_fn(

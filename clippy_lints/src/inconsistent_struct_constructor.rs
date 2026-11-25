@@ -6,7 +6,7 @@ use rustc_attr_ir::find_attr;
 use rustc_data_structures::fx::FxHashMap;
 use rustc_errors::Applicability;
 use rustc_hir::{self as hir, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
 use rustc_span::symbol::Symbol;
@@ -64,13 +64,11 @@ declare_clippy_lint! {
     "the order of the field init is inconsistent with the order in the struct definition"
 }
 
-impl_lint_pass!(InconsistentStructConstructor => [
+declare_clippy_pass!(InconsistentStructConstructor {
+    check_inconsistent_struct_field_initializers: bool,
+} => [
     INCONSISTENT_STRUCT_CONSTRUCTOR,
 ]);
-
-pub struct InconsistentStructConstructor {
-    check_inconsistent_struct_field_initializers: bool,
-}
 
 impl InconsistentStructConstructor {
     pub fn new(conf: &'static Conf) -> Self {

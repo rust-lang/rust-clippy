@@ -4,7 +4,7 @@ use clippy_utils::source::{SpanExt as _, snippet_opt};
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_ast::token::LitKind;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::{BytePos, Pos as _, Span};
 use std::iter::once;
 use std::ops::ControlFlow;
@@ -55,11 +55,9 @@ declare_clippy_lint! {
     "suggests using a string literal when a raw string literal is unnecessary"
 }
 
-impl_lint_pass!(RawStrings => [NEEDLESS_RAW_STRINGS, NEEDLESS_RAW_STRING_HASHES]);
-
-pub struct RawStrings {
+declare_clippy_pass!(RawStrings { 
     pub allow_one_hash_in_raw_strings: bool,
-}
+ } => [NEEDLESS_RAW_STRINGS, NEEDLESS_RAW_STRING_HASHES]);
 
 impl RawStrings {
     pub fn new(conf: &'static Conf) -> Self {

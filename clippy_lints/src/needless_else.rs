@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint_and_sugg;
 use clippy_utils::source::{IntoSpan as _, SpanExt as _};
 use rustc_ast::ast::{Expr, ExprKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "empty else branch"
 }
 
-declare_lint_pass!(NeedlessElse => [NEEDLESS_ELSE]);
+declare_clippy_pass!(NeedlessElse => [NEEDLESS_ELSE]);
 
 impl EarlyLintPass for NeedlessElse {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

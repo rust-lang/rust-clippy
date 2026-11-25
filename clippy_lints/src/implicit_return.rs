@@ -6,7 +6,7 @@ use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Block, Body, Expr, ExprKind, FnDecl, FnRetTy, HirId};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, SyntaxContext};
 
@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "use a return statement like `return expr` instead of an expression"
 }
 
-declare_lint_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
+declare_clippy_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
 
 fn lint_return(cx: &LateContext<'_>, emission_place: HirId, span: Span) {
     span_lint_hir_and_then(

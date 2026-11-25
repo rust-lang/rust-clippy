@@ -3,17 +3,10 @@ use clippy_utils::source::{SpanExt as _, walk_span_to_context};
 use rustc_ast::{Crate, Expr, ExprKind, FormatArgs};
 use rustc_data_structures::fx::FxHashMap;
 use rustc_lexer::{FrontmatterAllowed, TokenKind, tokenize};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::source_map::SourceMap;
 use rustc_span::{Span, SpanData};
 use std::mem;
-
-/// Populates [`FormatArgsStorage`] with AST [`FormatArgs`] nodes
-pub struct FormatArgsCollector {
-    format_args: FxHashMap<Span, FormatArgs>,
-    parent_spans: Vec<SpanData>,
-    storage: FormatArgsStorage,
-}
 
 impl FormatArgsCollector {
     pub fn new(storage: FormatArgsStorage) -> Self {
@@ -25,7 +18,13 @@ impl FormatArgsCollector {
     }
 }
 
-impl_lint_pass!(FormatArgsCollector => []);
+declare_clippy_pass!(
+    /// Populates [`FormatArgsStorage`] with AST [`FormatArgs`] nodes
+    FormatArgsCollector {
+    format_args: FxHashMap<Span, FormatArgs>,
+    parent_spans: Vec<SpanData>,
+    storage: FormatArgsStorage,
+} => []);
 
 impl EarlyLintPass for FormatArgsCollector {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

@@ -5,7 +5,7 @@ use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{self as hir, Body, ExprKind, FnDecl};
 use rustc_lexer::is_ident;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, Symbol, edition};
 use std::borrow::Cow;
@@ -56,7 +56,7 @@ declare_clippy_lint! {
     "redundant `test_` prefix in test function name"
 }
 
-declare_lint_pass!(RedundantTestPrefix => [REDUNDANT_TEST_PREFIX]);
+declare_clippy_pass!(RedundantTestPrefix => [REDUNDANT_TEST_PREFIX]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantTestPrefix {
     fn check_fn(

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_then;
 use rustc_attr_ir::{ReprAttr, find_attr};
 use rustc_hir::{HirId, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_middle::ty::{self, FieldDef};
 
@@ -48,7 +48,7 @@ declare_clippy_lint! {
     "unions without a `#[repr(C)]` attribute"
 }
 
-declare_lint_pass!(DefaultUnionRepresentation => [DEFAULT_UNION_REPRESENTATION]);
+declare_clippy_pass!(DefaultUnionRepresentation => [DEFAULT_UNION_REPRESENTATION]);
 
 impl<'tcx> LateLintPass<'tcx> for DefaultUnionRepresentation {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

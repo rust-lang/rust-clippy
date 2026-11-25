@@ -5,7 +5,7 @@ use rustc_hir::def::Res;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, ExprKind, FnDecl, FnRetTy};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, sym};
 
 declare_clippy_lint! {
@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "Checks for functions with method calls to `.map(_)` on an arg of type `Option` as the outermost expression."
 }
 
-declare_lint_pass!(SingleOptionMap => [SINGLE_OPTION_MAP]);
+declare_clippy_pass!(SingleOptionMap => [SINGLE_OPTION_MAP]);
 
 impl<'tcx> LateLintPass<'tcx> for SingleOptionMap {
     fn check_fn(

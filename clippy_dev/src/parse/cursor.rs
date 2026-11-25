@@ -120,7 +120,7 @@ impl Capture {
 
 /// A unidirectional cursor over a token stream that is lexed on demand.
 pub struct Cursor<'txt> {
-    next_token: Token,
+    pub next_token: Token,
     pos: u32,
     inner: lex::Cursor<'txt>,
     text: &'txt str,

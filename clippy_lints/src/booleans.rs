@@ -12,7 +12,7 @@ use rustc_attr_ir::RustcVersion;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::{FnKind, Visitor, walk_expr};
 use rustc_hir::{BinOpKind, Body, Expr, ExprKind, FnDecl, UnOp};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, Symbol, SyntaxContext};
 use std::fmt::Write as _;
@@ -77,8 +77,6 @@ declare_clippy_lint! {
     "boolean expressions that contain terminals which can be eliminated"
 }
 
-impl_lint_pass!(NonminimalBool => [NONMINIMAL_BOOL, OVERLY_COMPLEX_BOOL_EXPR]);
-
 // For each pairs, both orders are considered.
 const METHODS_WITH_NEGATION: [(Option<RustcVersion>, Symbol, Symbol); 3] = [
     (None, sym::is_some, sym::is_none),
@@ -86,9 +84,9 @@ const METHODS_WITH_NEGATION: [(Option<RustcVersion>, Symbol, Symbol); 3] = [
     (Some(msrvs::IS_NONE_OR), sym::is_some_and, sym::is_none_or),
 ];
 
-pub struct NonminimalBool {
+declare_clippy_pass!(NonminimalBool {
     msrv: Msrv,
-}
+ } => [NONMINIMAL_BOOL, OVERLY_COMPLEX_BOOL_EXPR]);
 
 impl NonminimalBool {
     pub fn new(conf: &'static Conf) -> Self {

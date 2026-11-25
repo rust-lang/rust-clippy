@@ -5,7 +5,7 @@ use clippy_utils::source::snippet_opt;
 use clippy_utils::sym;
 use rustc_ast::{AttrArgs, AttrKind, Attribute, LitKind};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -37,11 +37,9 @@ declare_clippy_lint! {
     "including a large file"
 }
 
-impl_lint_pass!(LargeIncludeFile => [LARGE_INCLUDE_FILE]);
-
-pub struct LargeIncludeFile {
+declare_clippy_pass!(LargeIncludeFile { 
     max_file_size: u64,
-}
+ } => [LARGE_INCLUDE_FILE]);
 
 impl LargeIncludeFile {
     pub fn new(conf: &'static Conf) -> Self {

@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::return_ty;
 use clippy_utils::ty::contains_adt_constructor;
 use rustc_hir::{Impl, ImplItem, ImplItemKind, ItemKind, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "method should not have the same name as the type it is implemented for"
 }
 
-declare_lint_pass!(SelfNamedConstructors => [SELF_NAMED_CONSTRUCTORS]);
+declare_clippy_pass!(SelfNamedConstructors => [SELF_NAMED_CONSTRUCTORS]);
 
 impl<'tcx> LateLintPass<'tcx> for SelfNamedConstructors {
     fn check_impl_item(&mut self, cx: &LateContext<'tcx>, impl_item: &'tcx ImplItem<'_>) {

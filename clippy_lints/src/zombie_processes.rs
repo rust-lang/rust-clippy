@@ -8,7 +8,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{Visitor, walk_block, walk_expr};
 use rustc_hir::{Expr, ExprKind, HirId, LetStmt, Node, PatKind, Stmt, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter;
 use rustc_span::Span;
 use std::ops::ControlFlow;
@@ -54,7 +54,7 @@ declare_clippy_lint! {
     "not waiting on a spawned child process"
 }
 
-declare_lint_pass!(ZombieProcesses => [ZOMBIE_PROCESSES]);
+declare_clippy_pass!(ZombieProcesses => [ZOMBIE_PROCESSES]);
 
 impl<'tcx> LateLintPass<'tcx> for ZombieProcesses {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

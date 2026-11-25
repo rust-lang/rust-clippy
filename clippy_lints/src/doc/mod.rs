@@ -9,7 +9,7 @@ use rustc_attr_ir::Attribute;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_errors::Applicability;
 use rustc_hir::{FieldDef, ImplItemKind, ItemKind, Node, Safety, TraitItemKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, LintContext as _};
 use rustc_resolve::rustdoc::pulldown_cmark::Event::{
     Code, DisplayMath, End, FootnoteReference, HardBreak, Html, InlineHtml, InlineMath, Rule, SoftBreak, Start,
     TaskListMarker, Text,
@@ -716,7 +716,10 @@ declare_clippy_lint! {
     "`pub fn` or `pub trait` with `# Safety` docs"
 }
 
-impl_lint_pass!(Documentation => [
+declare_clippy_pass!(Documentation {
+    valid_idents: &'static FxHashSet<String>,
+    check_private_items: bool,
+} => [
     DOC_BROKEN_LINK,
     DOC_COMMENT_DOUBLE_SPACE_LINEBREAKS,
     DOC_INCLUDE_WITHOUT_CFG,
@@ -738,11 +741,6 @@ impl_lint_pass!(Documentation => [
     TOO_LONG_FIRST_DOC_PARAGRAPH,
     UNNECESSARY_SAFETY_DOC,
 ]);
-
-pub struct Documentation {
-    valid_idents: &'static FxHashSet<String>,
-    check_private_items: bool,
-}
 
 impl Documentation {
     pub fn new(conf: &'static Conf) -> Self {

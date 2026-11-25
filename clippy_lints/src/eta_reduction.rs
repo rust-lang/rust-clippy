@@ -8,7 +8,7 @@ use rustc_attr_ir::find_attr;
 use rustc_errors::Applicability;
 use rustc_hir::{BindingMode, Expr, ExprKind, FnRetTy, GenericArgs, Param, PatKind, QPath, Safety, TyKind};
 use rustc_infer::infer::TyCtxtInferExt as _;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, DerefAdjustKind};
 use rustc_middle::ty::{
     self, Binder, ClosureKind, FnSig, GenericArg, GenericArgKind, List, Region, Ty, TypeVisitableExt as _,
@@ -65,7 +65,7 @@ declare_clippy_lint! {
     "redundant closures for method calls"
 }
 
-declare_lint_pass!(EtaReduction => [
+declare_clippy_pass!(EtaReduction => [
     REDUNDANT_CLOSURE,
     REDUNDANT_CLOSURE_FOR_METHOD_CALLS,
 ]);

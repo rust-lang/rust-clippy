@@ -10,7 +10,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::is_lint_allowed;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::CRATE_HIR_ID;
-use rustc_lint::{LateContext, LateLintPass, Lint, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, Lint};
 use rustc_span::DUMMY_SP;
 
 declare_clippy_lint! {
@@ -210,7 +210,10 @@ declare_clippy_lint! {
     "wildcard dependencies being used"
 }
 
-impl_lint_pass!(Cargo => [
+declare_clippy_pass!(Cargo {
+    allowed_duplicate_crates: &'static FxHashSet<String>,
+    ignore_publish: bool,
+} => [
     CARGO_COMMON_METADATA,
     LINT_GROUPS_PRIORITY,
     MULTIPLE_CRATE_VERSIONS,
@@ -218,11 +221,6 @@ impl_lint_pass!(Cargo => [
     REDUNDANT_FEATURE_NAMES,
     WILDCARD_DEPENDENCIES,
 ]);
-
-pub struct Cargo {
-    allowed_duplicate_crates: &'static FxHashSet<String>,
-    ignore_publish: bool,
-}
 
 impl Cargo {
     pub fn new(conf: &'static Conf) -> Self {

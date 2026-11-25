@@ -8,7 +8,7 @@ use clippy_utils::visitors::is_expr_unsafe;
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Block, BlockCheckMode, Expr, ExprKind, Node, UnsafeSource};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -36,11 +36,9 @@ declare_clippy_lint! {
     "checks for uses of `NonNull::new_unchecked` with `Box::into_raw`"
 }
 
-impl_lint_pass!(NonnullUncheckedOnBoxPtr => [NONNULL_UNCHECKED_ON_BOX_PTR]);
-
-pub struct NonnullUncheckedOnBoxPtr {
+declare_clippy_pass!(NonnullUncheckedOnBoxPtr { 
     msrv: Msrv,
-}
+ } => [NONNULL_UNCHECKED_ON_BOX_PTR]);
 
 impl NonnullUncheckedOnBoxPtr {
     pub fn new(conf: &Conf) -> Self {

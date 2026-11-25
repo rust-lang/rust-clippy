@@ -3,7 +3,7 @@ use clippy_utils::is_from_proc_macro;
 use clippy_utils::source::{IntoSpan as _, SpanExt as _};
 use rustc_ast::{Local, TyKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -24,7 +24,7 @@ declare_clippy_lint! {
     "unneeded underscore type (`_`) in a variable declaration"
 }
 
-declare_lint_pass!(UnderscoreTyped => [LET_WITH_TYPE_UNDERSCORE]);
+declare_clippy_pass!(UnderscoreTyped => [LET_WITH_TYPE_UNDERSCORE]);
 
 impl EarlyLintPass for UnderscoreTyped {
     fn check_local(&mut self, cx: &EarlyContext<'_>, local: &Local) {

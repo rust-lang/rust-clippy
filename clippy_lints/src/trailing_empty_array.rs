@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::{has_repr_attr, is_in_test};
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -33,7 +33,7 @@ declare_clippy_lint! {
     "struct with a trailing zero-sized array but without `#[repr(C)]` or another `repr` attribute"
 }
 
-declare_lint_pass!(TrailingEmptyArray => [TRAILING_EMPTY_ARRAY]);
+declare_clippy_pass!(TrailingEmptyArray => [TRAILING_EMPTY_ARRAY]);
 
 impl<'tcx> LateLintPass<'tcx> for TrailingEmptyArray {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

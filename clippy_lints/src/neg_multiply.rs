@@ -6,7 +6,7 @@ use clippy_utils::sugg::has_enclosing_paren;
 use rustc_ast::util::parser::ExprPrecedence;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "multiplying integers by `-1`"
 }
 
-declare_lint_pass!(NegMultiply => [NEG_MULTIPLY]);
+declare_clippy_pass!(NegMultiply => [NEG_MULTIPLY]);
 
 fn is_in_parens_with_postfix(cx: &LateContext<'_>, mul_expr: &Expr<'_>) -> bool {
     if let Some(parent) = get_parent_expr(cx, mul_expr) {

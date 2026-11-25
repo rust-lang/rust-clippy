@@ -5,7 +5,7 @@ use hir::ExprKind;
 use hir::def::Res;
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::sym;
 
@@ -45,7 +45,7 @@ declare_clippy_lint! {
     "unit structs can be constructed without calling `default`"
 }
 
-declare_lint_pass!(DefaultConstructedUnitStructs => [
+declare_clippy_pass!(DefaultConstructedUnitStructs => [
     DEFAULT_CONSTRUCTED_UNIT_STRUCTS,
 ]);
 

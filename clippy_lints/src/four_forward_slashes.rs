@@ -5,7 +5,7 @@ use rustc_ast::AttrStyle;
 use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_errors::Applicability;
 use rustc_hir::Item;
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -37,7 +37,7 @@ declare_clippy_lint! {
     "comments with 4 forward slashes (`////`) likely intended to be doc comments (`///`)"
 }
 
-declare_lint_pass!(FourForwardSlashes => [FOUR_FORWARD_SLASHES]);
+declare_clippy_pass!(FourForwardSlashes => [FOUR_FORWARD_SLASHES]);
 
 impl<'tcx> LateLintPass<'tcx> for FourForwardSlashes {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

@@ -8,7 +8,7 @@ use clippy_utils::usage::local_used_after_expr;
 use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::{Expr, ExprKind, Node};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 
 declare_clippy_lint! {
@@ -44,7 +44,7 @@ declare_clippy_lint! {
     "`assert!(r.is_ok())` or `assert!(r.is_err())` gives worse panic messages than directly calling `r.unwrap()` or `r.unwrap_err()`"
 }
 
-declare_lint_pass!(AssertionsOnResultStates => [ASSERTIONS_ON_RESULT_STATES]);
+declare_clippy_pass!(AssertionsOnResultStates => [ASSERTIONS_ON_RESULT_STATES]);
 
 impl<'tcx> LateLintPass<'tcx> for AssertionsOnResultStates {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, e: &'tcx Expr<'_>) {

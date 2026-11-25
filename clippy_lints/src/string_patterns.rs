@@ -13,7 +13,7 @@ use itertools::Itertools as _;
 use rustc_ast::{BinOpKind, LitKind};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind, PatExprKind, PatKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::{Span, Symbol};
 
@@ -71,14 +71,12 @@ declare_clippy_lint! {
     "using a single-character str where a char could be used, e.g., `_.split(\"x\")`"
 }
 
-impl_lint_pass!(StringPatterns => [
+declare_clippy_pass!(StringPatterns  {
+    msrv: Msrv,
+} => [
     MANUAL_PATTERN_CHAR_COMPARISON,
     SINGLE_CHAR_PATTERN,
 ]);
-
-pub struct StringPatterns {
-    msrv: Msrv,
-}
 
 impl StringPatterns {
     pub fn new(conf: &'static Conf) -> Self {

@@ -1,7 +1,7 @@
 use clippy_utils::diagnostics::span_lint_and_help;
 use clippy_utils::is_direct_expn_of;
 use rustc_ast::ast::{Expr, ExprKind, MethodCall};
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::sym;
 
 declare_clippy_lint! {
@@ -30,7 +30,7 @@ declare_clippy_lint! {
     "using `option_env!(...).unwrap()` to get environment variable"
 }
 
-declare_lint_pass!(OptionEnvUnwrap => [OPTION_ENV_UNWRAP]);
+declare_clippy_pass!(OptionEnvUnwrap => [OPTION_ENV_UNWRAP]);
 
 impl EarlyLintPass for OptionEnvUnwrap {
     fn check_expr(&mut self, cx: &EarlyContext<'_>, expr: &Expr) {

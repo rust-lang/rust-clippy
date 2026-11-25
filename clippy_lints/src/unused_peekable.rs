@@ -5,7 +5,7 @@ use clippy_utils::{fn_def_id, peel_ref_operators, sym};
 use rustc_ast::Mutability;
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{Block, Expr, ExprKind, HirId, LetStmt, Node, PatKind, PathSegment, StmtKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::hir::nested_filter::OnlyBodies;
 use std::ops::ControlFlow;
 
@@ -42,7 +42,7 @@ declare_clippy_lint! {
     "creating a peekable iterator without using any of its methods"
 }
 
-declare_lint_pass!(UnusedPeekable => [UNUSED_PEEKABLE]);
+declare_clippy_pass!(UnusedPeekable => [UNUSED_PEEKABLE]);
 
 impl<'tcx> LateLintPass<'tcx> for UnusedPeekable {
     fn check_block(&mut self, cx: &LateContext<'tcx>, block: &Block<'tcx>) {

@@ -4,7 +4,7 @@ use clippy_utils::ty::implements_trait;
 use clippy_utils::{desugar_await, peel_blocks};
 use rustc_errors::Applicability;
 use rustc_hir::{Closure, ClosureKind, CoroutineDesugaring, CoroutineKind, CoroutineSource, Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::UpvarCapture;
 
 declare_clippy_lint! {
@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "`async { future.await }` can be replaced by `future`"
 }
 
-declare_lint_pass!(RedundantAsyncBlock => [REDUNDANT_ASYNC_BLOCK]);
+declare_clippy_pass!(RedundantAsyncBlock => [REDUNDANT_ASYNC_BLOCK]);
 
 impl<'tcx> LateLintPass<'tcx> for RedundantAsyncBlock {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::sym;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::SyntaxContext;
 use std::cmp::Ordering::{Equal, Greater, Less};
 
@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "`min(_, max(_, _))` (or vice versa) with bounds clamping the result to a constant"
 }
 
-declare_lint_pass!(MinMaxPass => [MIN_MAX]);
+declare_clippy_pass!(MinMaxPass => [MIN_MAX]);
 
 impl<'tcx> LateLintPass<'tcx> for MinMaxPass {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {

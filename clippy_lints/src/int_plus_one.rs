@@ -4,7 +4,7 @@ use rustc_ast::ast::{BinOpKind, Expr, ExprKind, LitKind, UnOp};
 use rustc_ast::util::parser::AssocOp;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "instead of using `x >= y + 1`, use `x > y`"
 }
 
-declare_lint_pass!(IntPlusOne => [INT_PLUS_ONE]);
+declare_clippy_pass!(IntPlusOne => [INT_PLUS_ONE]);
 
 // cases:
 // LeOrGe::Ge

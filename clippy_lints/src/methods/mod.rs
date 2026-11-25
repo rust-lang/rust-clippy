@@ -168,7 +168,7 @@ use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty::TraitRef;
 use rustc_span::{Span, Symbol};
 
@@ -5079,7 +5079,20 @@ declare_clippy_lint! {
     "Check for offset calculations on raw pointers to zero-sized types"
 }
 
-impl_lint_pass!(Methods => [
+declare_clippy_pass!(
+    Methods {
+        avoid_breaking_exported_api: bool,
+        msrv: Msrv,
+        allow_expect_in_tests: bool,
+        allow_unwrap_in_tests: bool,
+        allow_expect_in_consts: bool,
+        allow_unwrap_in_consts: bool,
+        allowed_dotfiles: FxHashSet<&'static str>,
+        format_args: FormatArgsStorage,
+        allow_unwrap_types: Vec<String>,
+        unwrap_allowed_ids: FxHashSet<rustc_hir::def_id::DefId>,
+        unwrap_allowed_aliases: Vec<rustc_hir::def_id::DefId>,
+    } => [
     BIND_INSTEAD_OF_MAP,
     BYTES_COUNT_TO_LEN,
     BYTES_NTH,
@@ -5245,21 +5258,6 @@ impl_lint_pass!(Methods => [
     WRONG_SELF_CONVENTION,
     ZST_OFFSET,
 ]);
-
-#[expect(clippy::struct_excessive_bools)]
-pub struct Methods {
-    avoid_breaking_exported_api: bool,
-    msrv: Msrv,
-    allow_expect_in_tests: bool,
-    allow_unwrap_in_tests: bool,
-    allow_expect_in_consts: bool,
-    allow_unwrap_in_consts: bool,
-    allowed_dotfiles: FxHashSet<&'static str>,
-    format_args: FormatArgsStorage,
-    allow_unwrap_types: Vec<String>,
-    unwrap_allowed_ids: FxHashSet<rustc_hir::def_id::DefId>,
-    unwrap_allowed_aliases: Vec<rustc_hir::def_id::DefId>,
-}
 
 impl Methods {
     pub fn new(conf: &'static Conf, format_args: FormatArgsStorage) -> Self {

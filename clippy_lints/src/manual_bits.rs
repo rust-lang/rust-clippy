@@ -7,7 +7,7 @@ use rustc_ast::ast::LitKind;
 use rustc_data_structures::packed::Pu128;
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, GenericArg, QPath};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 
@@ -33,11 +33,9 @@ declare_clippy_lint! {
     "manual implementation of `size_of::<T>() * 8` can be simplified with `T::BITS`"
 }
 
-impl_lint_pass!(ManualBits => [MANUAL_BITS]);
-
-pub struct ManualBits {
+declare_clippy_pass!(ManualBits { 
     msrv: Msrv,
-}
+ } => [MANUAL_BITS]);
 
 impl ManualBits {
     pub fn new(conf: &'static Conf) -> Self {

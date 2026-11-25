@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint_hir_and_then;
 use core::mem::replace;
 use rustc_errors::Applicability;
 use rustc_hir::{HirId, Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_span::symbol::Ident;
 
 declare_clippy_lint! {
@@ -38,12 +38,10 @@ declare_clippy_lint! {
     "capitalized acronyms are against the naming convention"
 }
 
-impl_lint_pass!(UpperCaseAcronyms => [UPPER_CASE_ACRONYMS]);
-
-pub struct UpperCaseAcronyms {
+declare_clippy_pass!(UpperCaseAcronyms { 
     avoid_breaking_exported_api: bool,
     upper_case_acronyms_aggressive: bool,
-}
+ } => [UPPER_CASE_ACRONYMS]);
 
 impl UpperCaseAcronyms {
     pub fn new(conf: &'static Conf) -> Self {

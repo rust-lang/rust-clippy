@@ -31,7 +31,7 @@ use clippy_config::Conf;
 use clippy_utils::is_hir_ty_cfg_dependant;
 use clippy_utils::msrvs::{self, Msrv};
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -845,7 +845,9 @@ declare_clippy_lint! {
     "using `0 as *{const, mut} T`"
 }
 
-impl_lint_pass!(Casts => [
+declare_clippy_pass!(Casts {
+    msrv: Msrv,
+} => [
     AS_POINTER_UNDERSCORE,
     AS_PTR_CAST_MUT,
     AS_UNDERSCORE,
@@ -875,10 +877,6 @@ impl_lint_pass!(Casts => [
     UNNECESSARY_CAST,
     ZERO_PTR,
 ]);
-
-pub struct Casts {
-    msrv: Msrv,
-}
 
 impl Casts {
     pub fn new(conf: &'static Conf) -> Self {

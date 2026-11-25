@@ -33,7 +33,7 @@ pub(crate) mod arithmetic_side_effects;
 use clippy_config::Conf;
 use clippy_utils::msrvs::Msrv;
 use rustc_hir::{Body, Expr, ExprKind, UnOp};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -1024,7 +1024,12 @@ declare_clippy_lint! {
     "expressions where a bit mask is less readable than the corresponding method call"
 }
 
-impl_lint_pass!(Operators => [
+declare_clippy_pass!(Operators {
+    arithmetic_context: numeric_arithmetic::Context,
+    verbose_bit_mask_threshold: u64,
+    modulo_arithmetic_allow_comparison_to_zero: bool,
+    msrv: Msrv,
+} => [
     ABSURD_EXTREME_COMPARISONS,
     ARITHMETIC_SIDE_EFFECTS,
     ASSIGN_OP_PATTERN,
@@ -1059,13 +1064,6 @@ impl_lint_pass!(Operators => [
     SELF_ASSIGNMENT,
     VERBOSE_BIT_MASK,
 ]);
-
-pub struct Operators {
-    arithmetic_context: numeric_arithmetic::Context,
-    verbose_bit_mask_threshold: u64,
-    modulo_arithmetic_allow_comparison_to_zero: bool,
-    msrv: Msrv,
-}
 
 impl Operators {
     pub fn new(conf: &'static Conf) -> Self {

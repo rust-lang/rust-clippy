@@ -30,7 +30,7 @@ use rustc_hir::{
     ConstArgKind, ConstItemRhs, Expr, ExprKind, ImplItem, ImplItemKind, Item, ItemKind, Node, StructTailExpr,
     TraitItem, TraitItemKind, UnOp,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::mir::{ConstValue, UnevaluatedConst};
 use rustc_middle::ty::adjustment::{Adjust, Adjustment, DerefAdjustKind};
 use rustc_middle::ty::{
@@ -158,7 +158,12 @@ declare_clippy_lint! {
     "declaring `const` with interior mutability"
 }
 
-impl_lint_pass!(NonCopyConst<'_> => [
+declare_clippy_pass!(NonCopyConst<'tcx> {
+    ignore_tys: DefIdSet,
+    // Cache checked types. We can recurse through a type multiple times so this
+    // can be hit quite frequently.
+    freeze_tys: FxHashMap<Ty<'tcx>, IsFreeze>,
+} => [
     BORROW_INTERIOR_MUTABLE_CONST,
     DECLARE_INTERIOR_MUTABLE_CONST,
 ]);
@@ -251,13 +256,6 @@ impl<'tcx> BorrowSource<'tcx> {
         };
         Self { expr, cause }
     }
-}
-
-pub struct NonCopyConst<'tcx> {
-    ignore_tys: DefIdSet,
-    // Cache checked types. We can recurse through a type multiple times so this
-    // can be hit quite frequently.
-    freeze_tys: FxHashMap<Ty<'tcx>, IsFreeze>,
 }
 
 impl<'tcx> NonCopyConst<'tcx> {

@@ -5,7 +5,7 @@ use clippy_utils::{eq_expr_value, higher, sym};
 use core::ops::ControlFlow;
 use rustc_errors::Diag;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::SyntaxContext;
 use rustc_span::edition::Edition::Edition2024;
 
@@ -47,7 +47,7 @@ declare_clippy_lint! {
     "locking a `Mutex` in an `if let` block can cause deadlocks"
 }
 
-declare_lint_pass!(IfLetMutex => [IF_LET_MUTEX]);
+declare_clippy_pass!(IfLetMutex => [IF_LET_MUTEX]);
 
 impl<'tcx> LateLintPass<'tcx> for IfLetMutex {
     fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {

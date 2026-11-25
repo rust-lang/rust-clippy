@@ -2,7 +2,7 @@ use clippy_utils::ast_utils::is_cfg_test;
 use clippy_utils::diagnostics::span_lint_and_then;
 use clippy_utils::source::snippet;
 use rustc_ast::ast::{self, Inline, ItemKind, ModKind};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::def_id::LOCAL_CRATE;
 use rustc_span::{FileName, Ident, SourceFile, Span, SyntaxContext, sym};
 use std::path::{Component, Path, PathBuf};
@@ -98,7 +98,13 @@ declare_clippy_lint! {
     "checks that module layout is consistent"
 }
 
-impl_lint_pass!(ModStyle => [
+declare_clippy_pass!(
+    #[derive(Default)]
+    ModStyle {
+    working_dir: Option<PathBuf>,
+    regular_mod_stack: Vec<ModState>,
+    inline_mod_stack: Vec<ModState>,
+} => [
     INLINE_MODULES,
     MOD_MODULE_FILES,
     SELF_NAMED_MODULE_FILES,
@@ -111,13 +117,6 @@ pub struct ModState {
     contains_external: bool,
     has_path_attr: bool,
     is_cfg_test: bool,
-}
-
-#[derive(Default)]
-pub struct ModStyle {
-    working_dir: Option<PathBuf>,
-    regular_mod_stack: Vec<ModState>,
-    inline_mod_stack: Vec<ModState>,
 }
 
 impl ModStyle {

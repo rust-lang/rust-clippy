@@ -4,7 +4,7 @@ use clippy_utils::str_utils::{camel_case_split, count_match_end, count_match_sta
 use clippy_utils::{is_bool, is_from_proc_macro};
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::{Body, EnumDef, FieldDef, Item, ItemKind, QPath, TyKind, UseKind, UseTree, Variant, VariantData};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::symbol::{Ident, Symbol};
 
 declare_clippy_lint! {
@@ -155,14 +155,7 @@ declare_clippy_lint! {
     "structs where all fields share a prefix/postfix or contain the name of the struct"
 }
 
-impl_lint_pass!(ItemNameRepetitions => [
-    ENUM_VARIANT_NAMES,
-    MODULE_INCEPTION,
-    MODULE_NAME_REPETITIONS,
-    STRUCT_FIELD_NAMES,
-]);
-
-pub struct ItemNameRepetitions {
+declare_clippy_pass!(ItemNameRepetitions {
     /// The module path the lint pass is in.
     modules: Vec<ModInfo>,
     enum_threshold: u64,
@@ -171,7 +164,12 @@ pub struct ItemNameRepetitions {
     allow_exact_repetitions: bool,
     allow_private_module_inception: bool,
     allowed_prefixes: FxHashSet<String>,
-}
+} => [
+    ENUM_VARIANT_NAMES,
+    MODULE_INCEPTION,
+    MODULE_NAME_REPETITIONS,
+    STRUCT_FIELD_NAMES,
+]);
 
 struct ModInfo {
     name: Symbol,

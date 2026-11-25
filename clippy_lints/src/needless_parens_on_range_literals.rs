@@ -5,7 +5,7 @@ use clippy_utils::source::{snippet, snippet_with_applicability};
 use rustc_ast::ast;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
   /// ### What it does
@@ -37,7 +37,7 @@ declare_clippy_lint! {
   "needless parenthesis on range literals can be removed"
 }
 
-declare_lint_pass!(NeedlessParensOnRangeLiterals => [
+declare_clippy_pass!(NeedlessParensOnRangeLiterals => [
     NEEDLESS_PARENS_ON_RANGE_LITERALS,
 ]);
 

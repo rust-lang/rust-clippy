@@ -5,7 +5,7 @@ use clippy_utils::{paths, peel_blocks, sym};
 use hir::{ExprKind, HirId, PatKind};
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -53,7 +53,7 @@ declare_clippy_lint! {
     "unused written/read amount"
 }
 
-declare_lint_pass!(UnusedIoAmount => [UNUSED_IO_AMOUNT]);
+declare_clippy_pass!(UnusedIoAmount => [UNUSED_IO_AMOUNT]);
 
 #[derive(Copy, Clone)]
 enum IoOp {

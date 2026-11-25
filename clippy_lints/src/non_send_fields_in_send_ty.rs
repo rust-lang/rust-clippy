@@ -7,7 +7,7 @@ use rustc_ast::ImplPolarity;
 use rustc_attr_ir::LangItem;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{FieldDef, Item, ItemKind, Node};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, GenericArgKind, Ty};
 use rustc_span::sym;
 
@@ -54,11 +54,9 @@ declare_clippy_lint! {
     "there is a field that is not safe to be sent to another thread in a `Send` struct"
 }
 
-impl_lint_pass!(NonSendFieldInSendTy => [NON_SEND_FIELDS_IN_SEND_TY]);
-
-pub struct NonSendFieldInSendTy {
+declare_clippy_pass!(NonSendFieldInSendTy { 
     enable_raw_pointer_heuristic: bool,
-}
+ } => [NON_SEND_FIELDS_IN_SEND_TY]);
 
 impl NonSendFieldInSendTy {
     pub fn new(conf: &'static Conf) -> Self {

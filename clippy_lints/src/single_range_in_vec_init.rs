@@ -7,7 +7,7 @@ use clippy_utils::{is_no_std_crate, sym};
 use rustc_ast::{LitIntType, LitKind, RangeLimits, UintTy};
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use std::fmt::{self, Display, Formatter};
 
 declare_clippy_lint! {
@@ -36,7 +36,7 @@ declare_clippy_lint! {
     "checks for initialization of `Vec` or arrays which consist of a single range"
 }
 
-declare_lint_pass!(SingleRangeInVecInit => [SINGLE_RANGE_IN_VEC_INIT]);
+declare_clippy_pass!(SingleRangeInVecInit => [SINGLE_RANGE_IN_VEC_INIT]);
 
 enum SuggestedType {
     Vec,

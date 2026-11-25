@@ -104,27 +104,12 @@ pub struct Lint<'cx> {
     pub data: LintData<'cx>,
 }
 
-#[derive(Clone, Copy)]
-pub enum LintPassMac {
-    Declare,
-    Impl,
-}
-impl LintPassMac {
-    pub fn name(self) -> &'static str {
-        match self {
-            Self::Declare => "declare_lint_pass",
-            Self::Impl => "impl_lint_pass",
-        }
-    }
-}
-
 pub struct LintPass<'cx> {
     /// The raw text of the documentation comments. May include leading/trailing
     /// whitespace and empty lines.
     pub docs: &'cx str,
     pub name: &'cx str,
     pub lt: Option<&'cx str>,
-    pub mac: LintPassMac,
     pub decl_sp: Span<'cx>,
     pub lints: &'cx mut [&'cx str],
 }
@@ -280,7 +265,8 @@ impl<'cx> ParseCxImpl<'cx> {
                         });
                     }
                 },
-                mac @ ("declare_lint_pass" | "impl_lint_pass") => {
+                // FIXME: We should handle declare_clippy_pass here.
+                "declare_lint_pass" | "impl_lint_pass" => {
                     let mut has_lt = false;
                     let mut lints: &mut [_] = &mut [];
                     if let Err(expected) = cursor
@@ -306,11 +292,6 @@ impl<'cx> ParseCxImpl<'cx> {
                             docs: cursor.get_text(captures[0]),
                             name: cursor.get_text(captures[1]),
                             lt: has_lt.then(|| cursor.get_text(captures[2])),
-                            mac: if matches!(mac, "declare_lint_pass") {
-                                LintPassMac::Declare
-                            } else {
-                                LintPassMac::Impl
-                            },
                             decl_sp: Span::new(file, mac_name.pos..cursor.pos()),
                             lints,
                         });

@@ -12,7 +12,7 @@ use rustc_errors::Applicability;
 use rustc_hir as hir;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{BindingMode, Body, FnDecl, Impl, ItemKind, Mutability, Node, PatKind};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::adjustment::{Adjust, PointerCoercion};
 use rustc_middle::ty::layout::LayoutOf as _;
 use rustc_middle::ty::{self, BoundVarIndexKind, RegionKind, TyCtxt};
@@ -101,16 +101,14 @@ declare_clippy_lint! {
     "functions taking small copyable arguments by reference"
 }
 
-impl_lint_pass!(PassByRefOrValue => [
-    LARGE_TYPES_PASSED_BY_VALUE,
-    TRIVIALLY_COPY_PASS_BY_REF,
-]);
-
-pub struct PassByRefOrValue {
+declare_clippy_pass!(PassByRefOrValue {
     ref_min_size: u64,
     value_max_size: u64,
     avoid_breaking_exported_api: bool,
-}
+} => [
+    LARGE_TYPES_PASSED_BY_VALUE,
+    TRIVIALLY_COPY_PASS_BY_REF,
+]);
 
 impl PassByRefOrValue {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

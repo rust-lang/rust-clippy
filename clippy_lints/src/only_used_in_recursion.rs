@@ -9,7 +9,7 @@ use rustc_hir::{
     Body, Expr, ExprKind, HirId, HirIdMap, ImplItem, ImplItemImplKind, ImplItemKind, Node, PatKind, TraitItem,
     TraitItemKind,
 };
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{self, ConstKind, GenericArgKind, GenericArgs};
 use rustc_span::Span;
 use rustc_span::symbol::{Ident, kw};
@@ -164,7 +164,13 @@ declare_clippy_lint! {
     "self receiver only used to recursively call method can be removed"
 }
 
-impl_lint_pass!(OnlyUsedInRecursion => [
+declare_clippy_pass!(
+    #[derive(Default)]
+    OnlyUsedInRecursion {
+    /// Track the top-level body entered. Needed to delay reporting when entering nested bodies.
+    entered_body: Option<HirId>,
+    params: Params,
+} => [
     ONLY_USED_IN_RECURSION,
     SELF_ONLY_USED_IN_RECURSION,
 ]);
@@ -295,13 +301,6 @@ impl Params {
             false
         }
     }
-}
-
-#[derive(Default)]
-pub struct OnlyUsedInRecursion {
-    /// Track the top-level body entered. Needed to delay reporting when entering nested bodies.
-    entered_body: Option<HirId>,
-    params: Params,
 }
 
 impl<'tcx> LateLintPass<'tcx> for OnlyUsedInRecursion {

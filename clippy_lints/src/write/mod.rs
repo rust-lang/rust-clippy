@@ -3,7 +3,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::macros::{FormatArgsStorage, root_macro_call_first_node};
 use clippy_utils::{is_in_test, sym};
 use rustc_hir::{Expr, Impl, Item, ItemKind, OwnerId};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 
 mod empty_string;
 mod literal;
@@ -236,7 +236,12 @@ declare_clippy_lint! {
     "using `writeln!(buf, \"\")` with an empty string"
 }
 
-impl_lint_pass!(Write => [
+declare_clippy_pass!(Write {
+    format_args: FormatArgsStorage,
+    // The outermost `impl Debug` we're currently in. While we're in one, `USE_DEBUG` is deactivated
+    outermost_debug_impl: Option<OwnerId>,
+    allow_print_in_tests: bool,
+} => [
     PRINTLN_EMPTY_STRING,
     PRINT_LITERAL,
     PRINT_STDERR,
@@ -247,13 +252,6 @@ impl_lint_pass!(Write => [
     WRITE_LITERAL,
     WRITE_WITH_NEWLINE,
 ]);
-
-pub struct Write {
-    format_args: FormatArgsStorage,
-    // The outermost `impl Debug` we're currently in. While we're in one, `USE_DEBUG` is deactivated
-    outermost_debug_impl: Option<OwnerId>,
-    allow_print_in_tests: bool,
-}
 
 impl Write {
     pub fn new(conf: &'static Conf, format_args: FormatArgsStorage) -> Self {

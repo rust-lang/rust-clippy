@@ -12,7 +12,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def::Res;
 use rustc_hir::intravisit::{Visitor, walk_expr, walk_pat};
 use rustc_hir::{BinOpKind, BorrowKind, Expr, ExprKind, Node, PatKind};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _};
 use rustc_middle::ty;
 use rustc_span::{Spanned, Symbol, SyntaxContext};
 use std::iter;
@@ -48,11 +48,9 @@ declare_clippy_lint! {
     "suggests using `strip_{prefix,suffix}` over `str::{starts,ends}_with` and slicing"
 }
 
-impl_lint_pass!(ManualStrip => [MANUAL_STRIP]);
-
-pub struct ManualStrip {
+declare_clippy_pass!(ManualStrip { 
     msrv: Msrv,
-}
+ } => [MANUAL_STRIP]);
 
 impl ManualStrip {
     pub fn new(conf: &'static Conf) -> Self {

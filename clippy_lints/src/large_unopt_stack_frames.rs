@@ -9,7 +9,7 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Constness, FnDecl};
 use rustc_lexer::is_ident;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, SyntaxContext};
 
 declare_clippy_lint! {
@@ -105,12 +105,10 @@ declare_clippy_lint! {
     "checks for functions that allocate a lot of stack space"
 }
 
-impl_lint_pass!(LargeUnoptStackFrames => [LARGE_UNOPT_STACK_FRAMES]);
-
-pub struct LargeUnoptStackFrames {
+declare_clippy_pass!(LargeUnoptStackFrames {
     maximum_allowed_size: u64,
     allow_large_stack_frames_in_tests: bool,
-}
+ } => [LARGE_UNOPT_STACK_FRAMES]);
 
 impl LargeUnoptStackFrames {
     pub fn new(conf: &'static Conf) -> Self {

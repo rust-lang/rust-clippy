@@ -4,7 +4,7 @@ use clippy_utils::{fn_def_id, is_integer_literal, last_path_segment, span_contai
 use rustc_attr_ir::lang_items::LangItem;
 use rustc_errors::Applicability;
 use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 
 declare_clippy_lint! {
@@ -32,7 +32,7 @@ declare_clippy_lint! {
     "calling `with_capacity(0)` which is equivalent to `new()`"
 }
 
-declare_lint_pass!(WithCapacityZero => [WITH_CAPACITY_ZERO]);
+declare_clippy_pass!(WithCapacityZero => [WITH_CAPACITY_ZERO]);
 
 fn is_target_type(cx: &LateContext<'_>, ty: Ty<'_>) -> bool {
     let ty = ty.peel_refs();

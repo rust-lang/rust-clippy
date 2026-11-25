@@ -4,7 +4,7 @@ use clippy_utils::msrvs::{self, MsrvStack};
 use clippy_utils::source::{trim_span, walk_span_to_context};
 use rustc_ast::ast::{Expr, ExprKind, LitKind, Pat, PatKind, RangeEnd, RangeLimits};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -28,11 +28,10 @@ declare_clippy_lint! {
     "almost complete range"
 }
 
-impl_lint_pass!(AlmostCompleteRange => [ALMOST_COMPLETE_RANGE]);
-
-pub struct AlmostCompleteRange {
+declare_clippy_pass!(AlmostCompleteRange { 
     msrv: MsrvStack,
-}
+ } => [ALMOST_COMPLETE_RANGE]);
+
 impl AlmostCompleteRange {
     pub fn new(conf: &'static Conf) -> Self {
         Self { msrv: conf.msrv.into() }

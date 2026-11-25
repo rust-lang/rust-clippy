@@ -2,7 +2,7 @@ use clippy_utils::diagnostics::span_lint;
 use clippy_utils::sym;
 use rustc_errors::MultiSpan;
 use rustc_hir::{Item, ItemKind};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::AssocTag;
 
 declare_clippy_lint! {
@@ -40,7 +40,7 @@ declare_clippy_lint! {
     "TryFrom with infallible Error type"
 }
 
-declare_lint_pass!(InfallibleTryFrom => [INFALLIBLE_TRY_FROM]);
+declare_clippy_pass!(InfallibleTryFrom => [INFALLIBLE_TRY_FROM]);
 
 impl<'tcx> LateLintPass<'tcx> for InfallibleTryFrom {
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {

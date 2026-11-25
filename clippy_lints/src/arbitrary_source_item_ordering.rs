@@ -10,7 +10,7 @@ use rustc_attr_ir::{Attribute, AttributeKind};
 use rustc_hir::{
     FieldDef, ImplItemId, IsAuto, Item, ItemKind, Mod, OwnerId, QPath, TraitItemId, TyKind, Variant, VariantData,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_middle::ty::{AssocKind, TyCtxt};
 use rustc_span::def_id::LocalModId;
 use rustc_span::{Ident, Symbol, bug};
@@ -163,11 +163,9 @@ declare_clippy_lint! {
     "arbitrary source item ordering"
 }
 
-impl_lint_pass!(ArbitrarySourceItemOrdering => [ARBITRARY_SOURCE_ITEM_ORDERING]);
-
-#[derive(Debug)]
-#[expect(clippy::struct_excessive_bools, reason = "Bools are cached feature flags")]
-pub struct ArbitrarySourceItemOrdering {
+declare_clippy_pass!(
+    #[derive(Debug)]
+    ArbitrarySourceItemOrdering { 
     assoc_types_order: SourceItemOrderingTraitAssocItemKinds,
     enable_ordering_for_enum: bool,
     enable_ordering_for_impl: bool,
@@ -177,7 +175,7 @@ pub struct ArbitrarySourceItemOrdering {
     module_item_order_groupings: SourceItemOrderingModuleItemGroupings,
     module_items_ordered_within_groupings: SourceItemOrderingWithinModuleItemGroupings,
     trait_impl_item_order: TraitImplItemOrder,
-}
+ } => [ARBITRARY_SOURCE_ITEM_ORDERING]);
 
 impl ArbitrarySourceItemOrdering {
     pub fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

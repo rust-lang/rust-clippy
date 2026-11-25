@@ -5,7 +5,7 @@ use rustc_ast::ast::{Fn, FnRetTy, GenericParam, GenericParamKind};
 use rustc_ast::visit::{FnCtxt, FnKind};
 use rustc_ast::{HasAttrs as _, NodeId};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::Span;
 
 declare_clippy_lint! {
@@ -37,13 +37,12 @@ declare_clippy_lint! {
     "enforce that `where` bounds are used for all trait bounds"
 }
 
-impl_lint_pass!(InlineTraitBounds => [INLINE_TRAIT_BOUNDS]);
-
-#[derive(Default)]
-pub struct InlineTraitBounds {
+declare_clippy_pass!(
+    #[derive(Default)]
+    InlineTraitBounds { 
     /// The top-level item onto which `#[automatically_derived]` has been encountered
     automatically_derived_at: Option<NodeId>,
-}
+ } => [INLINE_TRAIT_BOUNDS]);
 
 impl EarlyLintPass for InlineTraitBounds {
     fn check_item(&mut self, _: &EarlyContext<'_>, item: &rustc_ast::Item) {

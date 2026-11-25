@@ -9,7 +9,7 @@ use rustc_hir::{
     AssocItemConstraintKind, Body, Expr, ExprKind, FnDecl, FnRetTy, GenericArgsParentheses, PolyTraitRef, Term, Ty,
     TyKind,
 };
-use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LateContext, LateLintPass};
 use rustc_span::edition::Edition;
 use rustc_span::{BytePos, Pos as _, Span, sym};
 
@@ -38,7 +38,7 @@ declare_clippy_lint! {
     "needless unit expression"
 }
 
-declare_lint_pass!(UnusedUnit => [UNUSED_UNIT]);
+declare_clippy_pass!(UnusedUnit => [UNUSED_UNIT]);
 
 impl<'tcx> LateLintPass<'tcx> for UnusedUnit {
     fn check_fn(

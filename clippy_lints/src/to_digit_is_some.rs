@@ -6,7 +6,7 @@ use clippy_utils::source::snippet_with_applicability;
 use clippy_utils::{is_in_const_context, sym};
 use rustc_errors::Applicability;
 use rustc_hir as hir;
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 
 declare_clippy_lint! {
     /// ### What it does
@@ -34,11 +34,9 @@ declare_clippy_lint! {
     "`char.is_digit()` is clearer"
 }
 
-impl_lint_pass!(ToDigitIsSome => [TO_DIGIT_IS_SOME]);
-
-pub(crate) struct ToDigitIsSome {
+declare_clippy_pass!(ToDigitIsSome {
     msrv: Msrv,
-}
+} => [TO_DIGIT_IS_SOME]);
 
 impl ToDigitIsSome {
     pub(crate) fn new(conf: &'static Conf) -> Self {

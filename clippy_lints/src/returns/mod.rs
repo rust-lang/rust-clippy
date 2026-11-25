@@ -1,6 +1,6 @@
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Block, Body, FnDecl, Stmt};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -114,7 +114,7 @@ declare_clippy_lint! {
     "using a return statement like `return Err(expr)?;` where removing it would suffice"
 }
 
-declare_lint_pass!(Return => [
+declare_clippy_pass!(Return => [
     LET_AND_RETURN,
     NEEDLESS_RETURN,
     NEEDLESS_RETURN_WITH_QUESTION_MARK,

@@ -6,7 +6,7 @@ use clippy_utils::ty::ty_from_hir_ty;
 use clippy_utils::{SpanlessEq, is_in_const_context, is_integer_literal, sym};
 use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::SyntaxContext;
 
@@ -34,11 +34,9 @@ declare_clippy_lint! {
     "manually reimplementing `is_power_of_two`"
 }
 
-impl_lint_pass!(ManualIsPowerOfTwo => [MANUAL_IS_POWER_OF_TWO]);
-
-pub struct ManualIsPowerOfTwo {
+declare_clippy_pass!(ManualIsPowerOfTwo { 
     msrv: Msrv,
-}
+ } => [MANUAL_IS_POWER_OF_TWO]);
 
 impl ManualIsPowerOfTwo {
     pub fn new(conf: &'static Conf) -> Self {

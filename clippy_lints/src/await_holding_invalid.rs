@@ -6,7 +6,7 @@ use clippy_utils::sym;
 use rustc_hir as hir;
 use rustc_hir::def::DefKind;
 use rustc_hir::def_id::{DefId, DefIdMap};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::CoroutineLayout;
 use rustc_middle::ty::TyCtxt;
 use rustc_span::Span;
@@ -172,15 +172,13 @@ declare_clippy_lint! {
     "inside an async function, holding a `RefCell` ref while calling `await`"
 }
 
-impl_lint_pass!(AwaitHolding => [
+declare_clippy_pass!(AwaitHolding  {
+    def_ids: DefIdMap<(&'static str, &'static DisallowedPathWithoutReplacement)>,
+} => [
     AWAIT_HOLDING_INVALID_TYPE,
     AWAIT_HOLDING_LOCK,
     AWAIT_HOLDING_REFCELL_REF,
 ]);
-
-pub struct AwaitHolding {
-    def_ids: DefIdMap<(&'static str, &'static DisallowedPathWithoutReplacement)>,
-}
 
 impl AwaitHolding {
     pub(crate) fn new(tcx: TyCtxt<'_>, conf: &'static Conf) -> Self {

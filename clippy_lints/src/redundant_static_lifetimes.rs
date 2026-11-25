@@ -4,7 +4,7 @@ use clippy_utils::msrvs::{self, MsrvStack};
 use clippy_utils::source::snippet;
 use rustc_ast::ast::{ConstItem, Item, ItemKind, StaticItem, Ty, TyKind};
 use rustc_errors::Applicability;
-use rustc_lint::{EarlyContext, EarlyLintPass, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::symbol::kw;
 
 declare_clippy_lint! {
@@ -33,11 +33,9 @@ declare_clippy_lint! {
     "Using explicit `'static` lifetime for constants or statics when elision rules would allow omitting them."
 }
 
-impl_lint_pass!(RedundantStaticLifetimes => [REDUNDANT_STATIC_LIFETIMES]);
-
-pub struct RedundantStaticLifetimes {
+declare_clippy_pass!(RedundantStaticLifetimes { 
     msrv: MsrvStack,
-}
+ } => [REDUNDANT_STATIC_LIFETIMES]);
 
 impl RedundantStaticLifetimes {
     pub fn new(conf: &'static Conf) -> Self {

@@ -10,7 +10,7 @@ use rustc_errors::Applicability;
 use rustc_hir::def_id::CRATE_DEF_ID;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{self as hir, Body, Constness, FnDecl, GenericParamKind, OwnerId};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
@@ -73,11 +73,9 @@ declare_clippy_lint! {
     "Lint functions definitions that could be made `const fn`"
 }
 
-impl_lint_pass!(MissingConstForFn => [MISSING_CONST_FOR_FN]);
-
-pub struct MissingConstForFn {
+declare_clippy_pass!(MissingConstForFn { 
     msrv: Msrv,
-}
+ } => [MISSING_CONST_FOR_FN]);
 
 impl MissingConstForFn {
     pub fn new(conf: &'static Conf) -> Self {

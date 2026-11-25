@@ -4,7 +4,7 @@ use clippy_utils::{get_parent_as_impl, has_repr_attr, is_bool};
 use rustc_abi::ExternAbi;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, FnDecl, Item, ItemKind, TraitFn, TraitItem, TraitItemKind, Ty};
-use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use rustc_span::def_id::LocalDefId;
 
@@ -103,15 +103,13 @@ declare_clippy_lint! {
     "using too many bools in a struct"
 }
 
-impl_lint_pass!(ExcessiveBools => [
+declare_clippy_pass!(ExcessiveBools {
+    max_struct_bools: u64,
+    max_fn_params_bools: u64,
+} => [
     FN_PARAMS_EXCESSIVE_BOOLS,
     STRUCT_EXCESSIVE_BOOLS,
 ]);
-
-pub struct ExcessiveBools {
-    max_struct_bools: u64,
-    max_fn_params_bools: u64,
-}
 
 impl ExcessiveBools {
     pub fn new(conf: &'static Conf) -> Self {

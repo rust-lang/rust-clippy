@@ -4,7 +4,7 @@ use clippy_utils::sym;
 use clippy_utils::ty::is_c_void;
 use rustc_hir::def_id::DefId;
 use rustc_hir::{Expr, ExprKind, QPath};
-use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty;
 
 declare_clippy_lint! {
@@ -35,7 +35,7 @@ declare_clippy_lint! {
     "creating a `Box` from a void raw pointer"
 }
 
-declare_lint_pass!(FromRawWithVoidPtr => [FROM_RAW_WITH_VOID_PTR]);
+declare_clippy_pass!(FromRawWithVoidPtr => [FROM_RAW_WITH_VOID_PTR]);
 
 impl LateLintPass<'_> for FromRawWithVoidPtr {
     fn check_expr(&mut self, cx: &LateContext<'_>, expr: &Expr<'_>) {

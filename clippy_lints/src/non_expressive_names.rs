@@ -4,7 +4,7 @@ use rustc_ast::ast::{
     self, Arm, AssocItem, AssocItemKind, Attribute, Block, FnDecl, Item, ItemKind, Local, Pat, PatKind,
 };
 use rustc_ast::visit::{Visitor, walk_block, walk_expr, walk_pat};
-use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _, impl_lint_pass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext as _};
 use rustc_span::symbol::{Ident, Symbol};
 use rustc_span::{Span, sym};
 use std::cmp::Ordering;
@@ -82,15 +82,13 @@ declare_clippy_lint! {
     "similarly named items and bindings"
 }
 
-impl_lint_pass!(NonExpressiveNames => [
+declare_clippy_pass!(NonExpressiveNames {
+    pub single_char_binding_names_threshold: u64,
+} => [
     JUST_UNDERSCORES_AND_DIGITS,
     MANY_SINGLE_CHAR_NAMES,
     SIMILAR_NAMES,
 ]);
-
-pub struct NonExpressiveNames {
-    pub single_char_binding_names_threshold: u64,
-}
 
 impl NonExpressiveNames {
     pub fn new(conf: &'static Conf) -> Self {
