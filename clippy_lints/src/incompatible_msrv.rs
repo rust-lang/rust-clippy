@@ -188,7 +188,7 @@ impl IncompatibleMsrv {
                     return;
                 },
                 // All other expansions share the target's MSRV.
-                // FIXME(@Jarcho): What should we do about version dependant macros from external crates?
+                // FIXME(@Jarcho): What should we do about version dependent macros from external crates?
                 _ => {},
             }
         }
