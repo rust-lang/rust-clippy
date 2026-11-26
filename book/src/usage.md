@@ -38,7 +38,7 @@ You can configure lint levels on the command line by adding
 cargo clippy -- -Aclippy::style -Wclippy::box_default -Dclippy::perf
 ```
 
-#### Elevating warning to errors
+#### Elevating warnings to errors
 
 For [CI] all warnings can be elevated to errors which will in turn fail
 the build and cause Clippy to exit with a code other than `0`.
@@ -102,9 +102,9 @@ positives, you're still welcome to report them to us for future improvements.
 ##### `clippy::restriction`
 
 The second group is the `restriction` group. This group contains lints that
-"restrict" the language in some way. For example the `clippy::unwrap` lint from
-this group won't allow you to use `.unwrap()` in your code. You may want to look
-through the lints in this group and enable the ones that fit your need.
+"restrict" the language in some way. For example, the `clippy::unwrap_used` lint
+from this group won't allow you to use `.unwrap()` in your code. You may want to
+look through the lints in this group and enable the ones that fit your needs.
 
 > [!NOTE]
 > You shouldn't enable the whole lint group, but cherry-pick lints from

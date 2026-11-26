@@ -264,7 +264,7 @@ Examples:
   changelog: none
   ```
 
-Note this it is fine for a PR to include multiple `changelog` entries, e.g.:
+Note that it is fine for a PR to include multiple `changelog` entries, e.g.:
 ```
 changelog: Something 1
 changelog: Something 2
