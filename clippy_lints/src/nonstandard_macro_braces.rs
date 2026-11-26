@@ -19,7 +19,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     /// Having non-conventional braces on well-stablished macros can be confusing
-    /// when debugging, and they bring incosistencies with the rest of the ecosystem.
+    /// when debugging, and they bring inconsistencies with the rest of the ecosystem.
     ///
     /// ### Example
     /// ```no_run

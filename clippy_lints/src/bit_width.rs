@@ -36,7 +36,7 @@ declare_clippy_lint! {
     /// Checks for usage of `T::BITS - x.leading_zeros()` where T and x are of different types.
     ///
     /// ### Why is this bad?
-    /// Substracting `leading_zeros` from the number of bits of another type might be
+    /// Subtracting `leading_zeros` from the number of bits of another type might be
     /// a buggy implementation of the `bit_width` method.
     ///
     /// ### Example

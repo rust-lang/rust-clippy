@@ -56,7 +56,7 @@ pub(super) fn check<'tcx>(
                 .any(|param| !matches!(param.pat.kind, hir::PatKind::Binding(..) | hir::PatKind::Wild))
             {
                 // If the closure parameters have a pattern,
-                // it might be required for type inferrence.
+                // it might be required for type inference.
                 applicability = Applicability::MaybeIncorrect;
             }
             let (ascription, turbofish) = match fn_decl.output {

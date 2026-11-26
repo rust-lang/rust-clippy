@@ -38,7 +38,7 @@ declare_clippy_lint! {
     ///     }
     /// }
     /// ```
-    /// Instead, operate on each primtive field individually:
+    /// Instead, operate on each primitive field individually:
     /// ```no_run
     /// struct MyDevice {
     ///     addr: usize,

@@ -148,7 +148,7 @@ impl<'tcx> LateLintPass<'tcx> for FloatLiteral {
                     )
                 {
                     // If a big enough number of digits is specified and it's a constant
-                    // we assume the user is definining a constant, and excessive precision is ok
+                    // we assume the user is defining a constant, and excessive precision is ok
                     return;
                 }
                 span_lint_and_then(

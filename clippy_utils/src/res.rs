@@ -101,7 +101,7 @@ type QPathId<'tcx> = (&'tcx QPath<'tcx>, HirId);
 /// A HIR node which might be a `QPath`.
 pub trait MaybeQPath<'a>: Copy {
     /// If this node is a path gets both the contained path and the `HirId` to
-    /// use for type dependant lookup.
+    /// use for type dependent lookup.
     fn opt_qpath(self) -> Option<QPathId<'a>>;
 
     /// If this is a path gets its resolution. Returns `Res::Err` otherwise.

@@ -2190,7 +2190,7 @@ pub fn is_slice_of_primitives(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<S
 /// Returns a list of groups where elements in each group are equal according to `eq`
 ///
 /// - Within each group the elements are sorted by the order they appear in `exprs`
-/// - The groups themselves are sorted by their first element's appearence in `exprs`
+/// - The groups themselves are sorted by their first element's appearance in `exprs`
 ///
 /// Given functions `eq` and `hash` such that `eq(a, b) == true`
 /// implies `hash(a) == hash(b)`
@@ -2494,7 +2494,7 @@ pub enum DefinedTy<'tcx> {
     },
 }
 
-/// The location that recives the value of an expression.
+/// The location that receives the value of an expression.
 pub struct ExprUseSite<'tcx> {
     /// The parent node which consumes the value.
     pub node: Node<'tcx>,
@@ -3709,7 +3709,7 @@ pub fn can_use_if_let_chains(cx: &LateContext<'_>, msrv: Msrv) -> bool {
 }
 
 /// Returns an iterator over successive parent nodes paired with the ID of the node which
-/// immediatly preceeded them.
+/// immediately preceded them.
 #[inline]
 pub fn hir_parent_with_src_iter(tcx: TyCtxt<'_>, mut id: HirId) -> impl Iterator<Item = (Node<'_>, HirId)> {
     tcx.hir_parent_id_iter(id)

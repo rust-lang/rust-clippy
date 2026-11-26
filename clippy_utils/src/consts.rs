@@ -588,7 +588,7 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
         }
     }
 
-    /// Attempts to evaluate the expression and returns both the value and whether it's dependant on
+    /// Attempts to evaluate the expression and returns both the value and whether it's dependent on
     /// other items.
     pub fn eval_with_source(&self, e: &Expr<'_>, ctxt: SyntaxContext) -> Option<(Constant, ConstantSource)> {
         self.source.set(ConstantSource::Local);
@@ -614,8 +614,8 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
     ///
     /// The context argument is the context used to view the evaluated expression. e.g. when
     /// evaluating the argument in `f(m!(1))` the context of the call expression should be used.
-    /// This is need so the const evaluator can see the `m` macro and marke the evaluation as
-    /// non-local independant of what the macro expands to.
+    /// This is needed so the const evaluator can see the `m` macro and mark the evaluation as
+    /// non-local independent of what the macro expands to.
     pub fn eval_local(&self, e: &Expr<'_>, ctxt: SyntaxContext) -> Option<Constant> {
         match self.eval_with_source(e, ctxt) {
             Some((x, ConstantSource::Local)) => Some(x),
@@ -627,8 +627,8 @@ impl<'tcx> ConstEvalCtxt<'tcx> {
     ///
     /// The context argument is the context used to view the evaluated expression. e.g. when
     /// evaluating the argument in `f(m!(1))` the context of the call expression should be used.
-    /// This is need so the const evaluator can see the `m` macro and marke the evaluation as
-    /// non-local independant of what the macro expands to.
+    /// This is needed so the const evaluator can see the `m` macro and mark the evaluation as
+    /// non-local independent of what the macro expands to.
     pub fn eval_full_int(&self, e: &Expr<'_>, ctxt: SyntaxContext) -> Option<FullInt> {
         match self.eval_with_source(e, ctxt) {
             Some((x, ConstantSource::Local)) => x.int_value(self.tcx, self.typeck.expr_ty(e)),
@@ -1220,8 +1220,8 @@ fn field_of_struct<'tcx>(
 /// If `expr` evaluates to an integer constant, return its value.
 ///
 /// The context argument is the context used to view the evaluated expression. e.g. when evaluating
-/// the argument in `f(m!(1))` the context of the call expression should be used. This is need so
-/// the const evaluator can see the `m` macro and marke the evaluation as non-local independant of
+/// the argument in `f(m!(1))` the context of the call expression should be used. This is needed so
+/// the const evaluator can see the `m` macro and mark the evaluation as non-local independent of
 /// what the macro expands to.
 pub fn integer_const(cx: &LateContext<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> Option<u128> {
     if let Some(Constant::Int(value)) = ConstEvalCtxt::new(cx).eval_local(expr, ctxt) {
@@ -1234,8 +1234,8 @@ pub fn integer_const(cx: &LateContext<'_>, expr: &Expr<'_>, ctxt: SyntaxContext)
 /// Check if `expr` evaluates to an integer constant of 0.
 ///
 /// The context argument is the context used to view the evaluated expression. e.g. when evaluating
-/// the argument in `f(m!(1))` the context of the call expression should be used. This is need so
-/// the const evaluator can see the `m` macro and marke the evaluation as non-local independant of
+/// the argument in `f(m!(1))` the context of the call expression should be used. This is needed so
+/// the const evaluator can see the `m` macro and mark the evaluation as non-local independent of
 /// what the macro expands to.
 #[inline]
 pub fn is_zero_integer_const(cx: &LateContext<'_>, expr: &Expr<'_>, ctxt: SyntaxContext) -> bool {
