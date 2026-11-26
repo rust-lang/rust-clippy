@@ -1,7 +1,8 @@
 use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
+use clippy_utils::source::{HasSourceMap as _, snippet_opt};
 use clippy_utils::visitors::for_each_expr;
-use clippy_utils::{inherits_cfg, is_from_proc_macro, is_self, requires_exact_signature};
+use clippy_utils::{inherits_cfg, is_from_proc_macro, is_self, requires_exact_signature, tokenize_with_text};
 use core::ops::ControlFlow;
 use rustc_abi::ExternAbi;
 use rustc_data_structures::fx::{FxHashSet, FxIndexMap, FxIndexSet};
@@ -12,6 +13,7 @@ use rustc_hir::{
     PatKind,
 };
 use rustc_hir_typeck::expr_use_visitor as euv;
+use rustc_lexer::TokenKind;
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_middle::mir::FakeReadCause;
 use rustc_middle::ty::{self, Ty, TyCtxt, UpvarId, UpvarPath};
@@ -265,17 +267,19 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessPassByRefMut<'tcx> {
             for input in unused {
                 // If the argument is never used mutably, we emit the warning.
                 let sp = input.span;
-                if let rustc_hir::TyKind::Ref(lifetime, _, _) = input.kind {
-                    let before_mut_span =
-                        cx.tcx
-                            .sess
-                            .source_map()
-                            .span_extend_to_next_char(lifetime.ident.span, 'm', true);
+                if let rustc_hir::TyKind::Ref(_, _, _) = input.kind
+                    && let Some(input_snippet) = snippet_opt(cx.tcx.sess.source_map(), sp)
+                {
+                    let Some((_, _, pos)) = tokenize_with_text(&input_snippet)
+                        .find(|(kind, text, _)| *kind == TokenKind::Ident && *text == "mut")
+                    else {
+                        return;
+                    };
                     let mut_span = Span::new(
-                        before_mut_span.hi(),
-                        before_mut_span.hi() + BytePos(3),
-                        before_mut_span.ctxt(),
-                        before_mut_span.parent(),
+                        sp.lo() + BytePos(u32::try_from(pos.start).unwrap()),
+                        sp.lo() + BytePos(u32::try_from(pos.end).unwrap()),
+                        sp.ctxt(),
+                        sp.parent(),
                     );
                     let mut_extended_span = cx.tcx.sess.source_map().span_extend_while_whitespace(mut_span);
                     let is_cfged = is_cfged.get_or_insert_with(|| inherits_cfg(cx.tcx, *fn_def_id));

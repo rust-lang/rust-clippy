@@ -379,6 +379,9 @@ fn _fn_with_ret(x: &mut unsafe extern "C" fn() -> (i32)) {}
 #[rustfmt::skip]
 fn _fn_without_whitespace(x: &mut(i32)) {}
 //~^ needless_pass_by_ref_mut
+#[rustfmt::skip]
+fn _fn_with_comment(x: &/* mut comment */ mut (i32)) {}
+//~^ needless_pass_by_ref_mut
 
 fn main() {
     let mut u = 0;

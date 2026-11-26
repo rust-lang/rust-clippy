@@ -285,5 +285,13 @@ LL | fn _fn_without_whitespace(x: &mut(i32)) {}
    |                               |
    |                               help: consider removing this `mut`
 
-error: aborting due to 35 previous errors
+error: this parameter is a mutable reference but is not used mutably
+  --> tests/ui/needless_pass_by_ref_mut.rs:383:24
+   |
+LL | fn _fn_with_comment(x: &/* mut comment */ mut (i32)) {}
+   |                        ^^^^^^^^^^^^^^^^^^^----^^^^^
+   |                                           |
+   |                                           help: consider removing this `mut`
+
+error: aborting due to 36 previous errors
 
