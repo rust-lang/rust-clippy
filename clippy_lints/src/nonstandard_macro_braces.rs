@@ -18,7 +18,7 @@ declare_clippy_lint! {
     /// Checks that common macros are used with consistent bracing.
     ///
     /// ### Why is this bad?
-    /// Having non-conventional braces on well-stablished macros can be confusing
+    /// Having non-conventional braces on well-established macros can be confusing
     /// when debugging, and they bring inconsistencies with the rest of the ecosystem.
     ///
     /// ### Example
