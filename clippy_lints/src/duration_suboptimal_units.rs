@@ -160,9 +160,9 @@ struct Unit {
     /// The increase factor over the previous (smaller) unit
     factor: u16,
 
-    /// In what rustc version stable support for this constructor was added.
-    /// We do not need to track the version stable support in const contexts was added, as the const
-    /// stabilization was done in an ascending order of the time unites, so it's always valid to
+    /// In which rustc version stable support for this constructor was added.
+    /// We do not need to track the version when stable support in const contexts was added, as the
+    /// const stabilization was done in ascending order of time units, so it's always valid to
     /// promote a const constructor.
     stable_since: Option<RustcVersion>,
 }

@@ -125,7 +125,7 @@ fn read_le_ge<'tcx>(
 }
 
 impl<'a> Conversion<'a> {
-    /// Combine multiple conversions if the are compatible
+    /// Combine multiple conversions if they are compatible.
     pub fn combine(self, other: Self, cx: &LateContext<'_>, ctxt: SyntaxContext) -> Option<Conversion<'a>> {
         if self.is_compatible(&other, cx, ctxt) {
             // Prefer a Conversion that contains a type-constraint

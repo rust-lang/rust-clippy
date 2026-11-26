@@ -33,8 +33,8 @@ towards this.
 # Explanation
 
 This section will explain the things that should be done in 2021. It is
-important to note, that this document focuses on the "What?", not the "How?".
-The later will be addressed in follow-up tracking issue, with an assigned team
+important to note that this document focuses on the "What?", not the "How?".
+The latter will be addressed in a follow-up tracking issue, with an assigned team
 member.
 
 The following is split up in two major sections. The first section covers the
