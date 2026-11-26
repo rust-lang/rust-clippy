@@ -71,3 +71,35 @@ impl Calculator {
         //~^ non_zero_suggestions
     }
 }
+
+// #18135: don't lint calls to functions or methods other than `From::from`
+fn dont_lint_non_from_calls() {
+    fn from(v: u32) -> u64 {
+        v as u64
+    }
+    fn widen(v: u32) -> u64 {
+        v as u64
+    }
+    trait Widen<T> {
+        fn my_widen(v: T) -> Self;
+    }
+    impl Widen<u32> for u64 {
+        fn my_widen(v: u32) -> Self {
+            v as u64
+        }
+    }
+
+    let x: u64 = 100;
+    let y = NonZeroU32::new(10).unwrap();
+
+    // Non-`From::from` free function
+    let _ = widen(y.get());
+    let _ = x / widen(y.get());
+
+    // Named `from`, but not `From::from`
+    let _ = x / from(y.get());
+
+    // Non-`From::from` trait method
+    let _ = u64::my_widen(y.get());
+    let _ = x / u64::my_widen(y.get());
+}

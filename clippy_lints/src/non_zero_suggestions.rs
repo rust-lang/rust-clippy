@@ -78,8 +78,8 @@ fn check_non_zero_conversion(cx: &LateContext<'_>, expr: &Expr<'_>, applicabilit
         && let Some(def_id) = cx.qpath_res(qpath, func.hir_id).opt_def_id()
         && let ExprKind::MethodCall(rcv_path, receiver, [], _) = &arg.kind
         && rcv_path.ident.name == sym::get
+        && cx.tcx.is_diagnostic_item(sym::from_fn, def_id)
     {
-        let fn_name = cx.tcx.item_name(def_id);
         let target_ty = cx.typeck_results().expr_ty(expr);
         let receiver_ty = cx.typeck_results().expr_ty(receiver);
 
@@ -90,7 +90,7 @@ fn check_non_zero_conversion(cx: &LateContext<'_>, expr: &Expr<'_>, applicabilit
             && let Some(target_non_zero_type) = get_target_non_zero_type(target_ty)
         {
             let arg_snippet = get_arg_snippet(cx, arg, rcv_path);
-            suggest_non_zero_conversion(cx, expr, fn_name, target_non_zero_type, &arg_snippet, applicability);
+            suggest_non_zero_conversion(cx, expr, target_non_zero_type, &arg_snippet, applicability);
         }
     }
 }
@@ -107,17 +107,16 @@ fn get_arg_snippet(cx: &LateContext<'_>, arg: &Expr<'_>, rcv_path: &rustc_hir::P
 fn suggest_non_zero_conversion(
     cx: &LateContext<'_>,
     expr: &Expr<'_>,
-    fn_name: rustc_span::Symbol,
     target_non_zero_type: &str,
     arg_snippet: &str,
     applicability: Applicability,
 ) {
-    let suggestion = format!("{target_non_zero_type}::{fn_name}({arg_snippet})");
+    let suggestion = format!("{target_non_zero_type}::from({arg_snippet})");
     span_lint_and_sugg(
         cx,
         NON_ZERO_SUGGESTIONS,
         expr.span,
-        format!("consider using `{target_non_zero_type}::{fn_name}()` for more efficient and type-safe conversion"),
+        format!("consider using `{target_non_zero_type}::from()` for more efficient and type-safe conversion"),
         "replace with",
         suggestion,
         applicability,
