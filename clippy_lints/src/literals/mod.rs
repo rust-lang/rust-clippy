@@ -79,7 +79,7 @@ declare_clippy_lint! {
 
 declare_clippy_lint! {
     /// ### What it does
-    /// Warns for mistyped suffix in literals
+    /// Warns for mistyped suffixes in literals
     ///
     /// ### Why is this bad?
     /// This is most probably a typo
@@ -91,7 +91,7 @@ declare_clippy_lint! {
     /// ### Example
     /// ```ignore
     /// `2_32` => `2_i32`
-    /// `250_8 => `250_u8`
+    /// `250_8` => `250_u8`
     /// ```
     #[clippy::version = "1.30.0"]
     pub MISTYPED_LITERAL_SUFFIXES,

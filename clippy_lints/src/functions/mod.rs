@@ -104,7 +104,7 @@ declare_clippy_lint! {
 declare_clippy_lint! {
     /// ### What it does
     /// Checks for getter methods that return a field that doesn't correspond
-    /// to the name of the method, when there is a field's whose name matches that of the method.
+    /// to the name of the method, when there is a field whose name matches that of the method.
     ///
     /// ### Why is this bad?
     /// It is most likely that such a method is a bug caused by a typo or by copy-pasting.
