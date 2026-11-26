@@ -3,9 +3,10 @@ use clippy_utils::source::snippet_with_context;
 use clippy_utils::sugg::Sugg;
 use clippy_utils::{
     SpanlessEq, get_parent_expr, higher, is_block_like, is_else_clause, is_parent_stmt, is_receiver_of_method_call,
-    peel_blocks, peel_blocks_with_stmt, span_contains_comment,
+    peel_blocks, peel_blocks_with_stmt, span_contains_cfg, span_contains_comment,
 };
 use rustc_ast::ast::LitKind;
+use rustc_attr_ir::find_attr;
 use rustc_errors::Applicability;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
@@ -131,6 +132,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
                 r#else: Some(else_expr),
             }) = higher::If::hir(e)
             && !span_contains_comment(cx, e.span)
+            && !span_contains_cfg(cx, e.span)
         {
             let reduce = |ret, not| {
                 span_lint_and_then(
@@ -234,6 +236,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
             && let [.., last_stmt] = block.stmts
             && let StmtKind::Semi(if_expr) | StmtKind::Expr(if_expr) = last_stmt.kind
             && !if_expr.span.from_expansion()
+            && !find_attr!(cx.tcx, if_expr.hir_id, CfgTrace(..))
             && let Some(higher::If {
                 cond,
                 then,
@@ -264,7 +267,7 @@ impl<'tcx> LateLintPass<'tcx> for NeedlessBool {
             }
 
             let span = if_expr.span.to(tail.span);
-            if span_contains_comment(cx, span) {
+            if span_contains_comment(cx, span) || span_contains_cfg(cx, span) {
                 return;
             }
 

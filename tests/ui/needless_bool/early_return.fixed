@@ -99,4 +99,25 @@ fn multi_if_different_values(x: bool, y: bool) -> bool {
     false
 }
 
+// Do NOT lint: the guard is `cfg`-gated, so the result depends on the target platform.
+fn issue18053(errno: u32) -> bool {
+    #[cfg(unix)]
+    if errno == 42 {
+        return true;
+    }
+    false
+}
+
+// Do NOT lint: the guard is `cfg`-gated, so the result depends on the target platform.
+fn issue18053_internal(errno: u32) -> bool {
+    if errno == 42 {
+        #[cfg(any())]
+        if errno_is_ignored() {
+            return false;
+        }
+        return true;
+    }
+    false
+}
+
 fn main() {}

@@ -60,3 +60,17 @@ fn wrongly_unmangled_macros(must_keep: fn(usize, usize) -> bool, x: usize, y: us
     dot_0!(skip) = !invoke!(must_keep, x, y);
     //~^^^^^ needless_bool_assign
 }
+
+// Do NOT lint: a branch contains `cfg`-gated code that can change the assigned value.
+fn issue18053(errno: u32, retry: &mut bool) {
+    if errno == 42 {
+        #[cfg(any())]
+        if errno_is_ignored() {
+            *retry = false;
+            return;
+        }
+        *retry = true;
+    } else {
+        *retry = false;
+    }
+}
