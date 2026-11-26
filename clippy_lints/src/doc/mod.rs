@@ -107,7 +107,7 @@ declare_clippy_lint! {
     ///
     /// ### Why restrict this?
     /// These files are not useful for compilation but will still be included.
-    /// Also, if any of these non-source code file is updated, it will trigger a
+    /// Also, if any of these non-source code files is updated, it will trigger a
     /// recompilation.
     ///
     /// ### Known problems
@@ -140,7 +140,7 @@ declare_clippy_lint! {
     ///
     /// ### Why is this bad?
     ///
-    /// This is easy to write but hard to read. Lazy continuations makes
+    /// This is easy to write but hard to read. Lazy continuations make
     /// unintended markers hard to see, and make it harder to deduce the
     /// document's intended structure.
     ///
