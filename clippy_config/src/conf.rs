@@ -592,7 +592,12 @@ define_Conf! {
     #[lints(large_futures)]
     future_size_threshold("future-size-threshold"): u64 = 16 * 1024,
     /// A list of paths to types that should be treated as if they do not contain interior mutability
-    #[lints(borrow_interior_mutable_const, declare_interior_mutable_const, ifs_same_cond, mutable_key_type)]
+    #[lints(
+        borrow_interior_mutable_const,
+        declare_interior_mutable_const,
+        ifs_same_cond,
+        mutable_key_type,
+    )]
     ignore_interior_mutability("ignore-interior-mutability"): Vec<String> = DEFAULT_IGNORE_INTERIOR_MUTABILITY,
     /// Sets the scope ("crate", "file", or "module") in which duplicate inherent `impl` blocks for the same type are linted.
     #[lints(multiple_inherent_impl)]
@@ -624,7 +629,7 @@ define_Conf! {
     /// The maximum size of a file included via `include_bytes!()` or `include_str!()`, in bytes
     #[lints(large_include_file)]
     max_include_file_size("max-include-file-size"): u64 = 1_000_000,
-    /// The maximum number of bool fields a struct can have
+    /// The maximum number of bool fields a struct can have. Use `0` to lint on any struct with a bool field.
     #[lints(struct_excessive_bools)]
     max_struct_bools("max-struct-bools"): u64 = 3,
     /// When Clippy suggests using a slice pattern, this is the maximum number of elements allowed in

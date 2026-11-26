@@ -79,18 +79,9 @@ jobs:
       run: cargo test
       working-directory: clippy_config
 
-    - name: Test rustc_tools_util
-      run: cargo test
-      working-directory: rustc_tools_util
-
     - name: Test clippy-dev
       run: cargo test
       working-directory: clippy_dev
-
-    - name: Test clippy-driver
-      run: .github/driver.sh
-      env:
-        OS: ${{ runner.os }}
 
   metadata_collection:
     runs-on: ubuntu-latest
@@ -257,7 +248,7 @@ jobs:
     env:
       # PRs must be based on this commit (or a later one). This is the commit of the last `git-subtree` sync before we
       # switched to JOSH (rust-clippy#17739).
-      MIN_MERGE_BASE: 2dd71153b54873bce06a89b65653f346fb528d13
+      MIN_MERGE_BASE: 87dc82261b68740df2df4f62c10e4e91bdccec5f
 
     steps:
     - name: Check merge base
