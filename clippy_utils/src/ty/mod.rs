@@ -324,7 +324,7 @@ pub fn opt_must_use_path<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>) -> Option<M
     // certain types are visibly uninhabited from the module containing the expression.
     // `cx.last_node_with_lint_attrs` is initialized to the crate/module `hir_id` when linting
     // a new crate/module. If it is overridden, it is with an `hir_id` pertaining to the same
-    // create/module. We can use this in a dummy expression instead of asking all callers
+    // crate/module. We can use this in a dummy expression instead of asking all callers
     // to provide a local `hir_id` which would not add more information.
     let dummy_expr = Expr {
         hir_id: cx.last_node_with_lint_attrs,
