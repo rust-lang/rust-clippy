@@ -1,0 +1,26 @@
+name: Publish Clippy try builds to S3
+
+on:
+  push:
+    branches:
+      - automation/bors/try
+
+permissions: {}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # to assume aws role for S3 writes
+    if: github.repository == 'rust-lang/rust-clippy'
+    steps:
+    - name: assume aws role
+      uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+      with:
+        role-to-assume: arn:aws:iam::890664054962:role/clippy-ci--rust-lang--clippy-prod
+        aws-region: us-west-1
+    - name: write
+      run: |
+        echo $GITHUB_RUN_ID > to-upload
+        echo $GITHUB_SHA >> to-upload
+        aws s3 cp ./to-upload s3://rust-lang-ci2/clippy-builds/$GITHUB_SHA/uploaded-file
