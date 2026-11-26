@@ -20,7 +20,7 @@ declare_clippy_lint! {
     /// ### Why is this bad?
     ///
     /// `FromStr` is the idiomatic trait for parsing a string and should be preferred over `TryFrom`
-    /// when doing so. Implementing `FromStr` allows the the use of `str::parse` to make the intent
+    /// when doing so. Implementing `FromStr` allows the use of `str::parse` to make the intent
     /// of the conversion clearer at the conversion site.
     ///
     /// ### Known problems
