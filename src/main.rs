@@ -50,8 +50,9 @@ fn main() -> ExitCode {
         cfg_select! {
             // Unlike unix platforms, Windows uses the full 32-bits for exit codes.
             windows => {
-                use std::os::windows::process::ExitCodeExt;
-                ExitCode::from_raw(code as u32)
+                #[expect(clippy::useless_attribute, clippy::items_after_statements)]
+                use std::os::windows::process::ExitCodeExt as _;
+                ExitCode::from_raw(code.cast_unsigned())
             },
             _ =>
             {
