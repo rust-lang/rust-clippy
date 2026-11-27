@@ -129,3 +129,9 @@ fn issue17602() {
     use std::ops::Bound::Unbounded;
     //~^ std_instead_of_core
 }
+
+#[rustfmt::skip]
+fn issue18081_compatible_macro() {
+    use std::{assert, future::Future};
+    //~^ std_instead_of_core
+}

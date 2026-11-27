@@ -121,5 +121,11 @@ error: used import from `std` instead of `core`
 LL |     use std::ops::Bound::Unbounded;
    |         ^^^ help: consider importing the item from `core`: `core`
 
-error: aborting due to 19 previous errors
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core.rs:135:9
+   |
+LL |     use std::{assert, future::Future};
+   |         ^^^ help: consider importing the item from `core`: `core`
+
+error: aborting due to 20 previous errors
 

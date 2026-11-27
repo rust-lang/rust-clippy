@@ -23,3 +23,28 @@ fn pr16964() {
         ffi::OsString,
     };
 }
+
+#[rustfmt::skip]
+fn issue18081() {
+    use std::{future::Future, sync::Mutex};
+    //~^ std_instead_of_core
+    use std::{future::Future as _, io::ErrorKind};
+    //~^ std_instead_of_core
+    use std::{future::Future as _, println};
+    //~^ std_instead_of_core
+    use std::{future::Future as _, format};
+    //~^ std_instead_of_core
+    use std::{format as format2, future::Future as _};
+    //~^ std_instead_of_core
+    use std::{future::Future as _, fs::*};
+    //~^ std_instead_of_core
+    use std::{future::Future as _, fs::{}};
+    //~^ std_instead_of_core
+}
+
+#[clippy::msrv = "1.76"]
+#[rustfmt::skip]
+fn issue18081_msrv() {
+    use std::{fmt::Debug, net::IpAddr};
+    //~^ std_instead_of_core
+}

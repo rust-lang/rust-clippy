@@ -121,13 +121,13 @@ impl StdReexports {
     }
 
     fn walk_import<'tcx>(&mut self, cx: &LateContext<'tcx>, tree: &UseTree<'tcx>, prefix: &[PathSegment<'tcx>]) {
+        let segments: Vec<_> = prefix
+            .iter()
+            .copied()
+            .chain(tree.prefix.segments.iter().copied())
+            .collect();
         match tree.kind {
             UseKind::Single(_) => {
-                let segments: Vec<_> = prefix
-                    .iter()
-                    .copied()
-                    .chain(tree.prefix.segments.iter().copied())
-                    .collect();
                 for res in tree.prefix.res.present_items() {
                     self.check_path_segments(
                         cx,
@@ -139,13 +139,16 @@ impl StdReexports {
                     );
                 }
             },
-            UseKind::Glob => {},
+            UseKind::Glob | UseKind::Nested { items: [] } => {
+                if let Some((Res::Def(DefKind::Mod, crate_def_id), ident)) = get_first_segment(&segments)
+                    && crate_def_id.is_crate_root()
+                    && !tree.prefix.span.in_external_macro(cx.sess().source_map())
+                    && !is_from_proc_macro(cx, &ident)
+                {
+                    self.lint_if_finish(cx, ident.span, LintPoint::Conflict);
+                }
+            },
             UseKind::Nested { items } => {
-                let segments: Vec<_> = prefix
-                    .iter()
-                    .copied()
-                    .chain(tree.prefix.segments.iter().copied())
-                    .collect();
                 for (nested, _, _) in items {
                     self.walk_import(cx, nested, &segments);
                 }
@@ -154,16 +157,18 @@ impl StdReexports {
     }
 
     fn check_path_segments(&mut self, cx: &LateContext<'_>, path: &Path<'_>) {
-        if let Res::Def(def_kind, def_id) = path.res
-            && !matches!(def_kind, DefKind::Macro(_))
-            && let Some((res, ident)) = get_first_segment(path.segments)
+        if let Some((res, ident)) = get_first_segment(path.segments)
             && let Res::Def(DefKind::Mod, crate_def_id) = res
             && crate_def_id.is_crate_root()
-            && is_stable(cx, def_id, self.msrv)
             && !path.span.in_external_macro(cx.sess().source_map())
             && !is_from_proc_macro(cx, &ident)
             && let Some(last_segment) = path.segments.last()
         {
+            let Res::Def(def_kind, def_id) = path.res else {
+                self.lint_if_finish(cx, ident.span, LintPoint::Conflict);
+                return;
+            };
+
             let (lint, used_mod, replace_with) = match ident.name {
                 sym::std => match cx.tcx.crate_name(def_id.krate) {
                     sym::core => (STD_INSTEAD_OF_CORE, "std", "core"),
@@ -183,16 +188,18 @@ impl StdReexports {
             // Only the crate name is replaced, so the rest of the path has to name the same item in
             // the target crate. `std::collections::Bound` for instance reaches `core::ops::Bound`
             // through a legacy re-export, and `core::collections` does not exist.
-            if !resolves_in(cx, path, def_kind, def_id, replace_with) {
+            if !is_stable(cx, def_id, self.msrv) || !resolves_in(cx, path, def_kind, def_id, replace_with) {
                 self.lint_if_finish(cx, ident.span, LintPoint::Conflict);
                 return;
             }
 
-            self.lint_if_finish(
-                cx,
-                ident.span,
-                LintPoint::Available(last_segment.ident.span, lint, used_mod, replace_with),
-            );
+            let lint_point = if matches!(def_kind, DefKind::Macro(_)) {
+                LintPoint::Compatible(replace_with)
+            } else {
+                LintPoint::Available(last_segment.ident.span, lint, used_mod, replace_with)
+            };
+
+            self.lint_if_finish(cx, ident.span, lint_point);
         }
     }
 }
@@ -200,6 +207,7 @@ impl StdReexports {
 #[derive(Debug)]
 enum LintPoint {
     Available(Span, &'static Lint, &'static str, &'static str),
+    Compatible(&'static str),
     Conflict,
 }
 
@@ -245,13 +253,19 @@ fn emit_lints(cx: &LateContext<'_>, lint_points: Option<(Span, Vec<LintPoint>)>)
     };
 
     let mut lint: Option<(&'static Lint, &'static str, &'static str)> = None;
+    let mut target_crate: Option<&'static str> = None;
     let mut has_conflict = false;
     for lint_point in &lint_points {
         match lint_point {
             LintPoint::Available(_, l, used_mod, replace_with)
-                if lint.is_none_or(|(prev_l, ..)| l.name == prev_l.name) =>
+                if lint.is_none_or(|(prev_l, ..)| l.name == prev_l.name)
+                    && target_crate.is_none_or(|prev| prev == *replace_with) =>
             {
                 lint = Some((l, used_mod, replace_with));
+                target_crate = Some(replace_with);
+            },
+            LintPoint::Compatible(replace_with) if target_crate.is_none_or(|prev| prev == *replace_with) => {
+                target_crate = Some(replace_with);
             },
             _ => {
                 has_conflict = true;

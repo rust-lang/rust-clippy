@@ -42,5 +42,69 @@ LL |         collections::BTreeSet,
    |
    = help: consider importing the item from `alloc`
 
-error: aborting due to 5 previous errors
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:29:23
+   |
+LL |     use std::{future::Future, sync::Mutex};
+   |                       ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:31:23
+   |
+LL |     use std::{future::Future as _, io::ErrorKind};
+   |                       ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:33:23
+   |
+LL |     use std::{future::Future as _, println};
+   |                       ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:35:23
+   |
+LL |     use std::{future::Future as _, format};
+   |                       ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:37:42
+   |
+LL |     use std::{format as format2, future::Future as _};
+   |                                          ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:39:23
+   |
+LL |     use std::{future::Future as _, fs::*};
+   |                       ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:41:23
+   |
+LL |     use std::{future::Future as _, fs::{}};
+   |                       ^^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: used import from `std` instead of `core`
+  --> tests/ui/std_instead_of_core_unfixable.rs:48:20
+   |
+LL |     use std::{fmt::Debug, net::IpAddr};
+   |                    ^^^^^
+   |
+   = help: consider importing the item from `core`
+
+error: aborting due to 13 previous errors
 
