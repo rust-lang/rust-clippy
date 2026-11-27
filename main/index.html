@@ -11859,10 +11859,10 @@ suggests usage of the <code>env!</code> macro.</p>
 at run-time if the environment variable doesn’t exist, whereas <code>env!</code>
 catches it at compile-time.</p>
 <h3>Example</h3>
-<pre><code class="language-rust">let _ = option_env!("HOME").unwrap();
+<pre><code class="language-rust">let _ = option_env!("CARGO").unwrap();
 </code></pre>
 <p>Is better expressed as:</p>
-<pre><code class="language-rust">let _ = env!("HOME");
+<pre><code class="language-rust">let _ = env!("CARGO");
 </code></pre>
 </div><div class="lint-additional-info"><div>Applicability: <span class="label applicability applicability-Unspecified">Unspecified</span><a href="https://doc.rust-lang.org/nightly/nightly-rustc/rustc_lint_defs/enum.Applicability.html#variants">(?)</a></div><div>Added in: <span class="label label-version">1.43.0</span></div><a href="https://github.com/rust-lang/rust-clippy/issues?q=is%3Aissue+option_env_unwrap">Related Issues</a><a href="https://github.com/rust-lang/rust-clippy/blob/HEAD/clippy_lints/src/option_env_unwrap.rs#L7">View Source</a></div></div></article><article id="option_filter_map"><input id="label-option_filter_map" type="checkbox"><label for="label-option_filter_map"><h2 class="lint-title"><div class="panel-title-name" id="lint-option_filter_map">option_filter_map
 <a href="#option_filter_map" class="anchor label">&para;</a> <a href="" class="copy-to-clipboard anchor label">&#128203;</a></div><span class="label lint-group group-complexity">complexity</span> <span class="label lint-level level-warn">warn</span> <span class="label doc-folding"></span></h2></label><div class="lint-docs"><div class="lint-doc-md"><h3>What it does</h3>
