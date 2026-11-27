@@ -176,6 +176,39 @@ fn issue14440(opt: Option<i32>) {
     //~^ manual_filter
     opt.filter(|&x| unsafe { f(x as u32) });
     //~^ manual_filter
+    opt.filter(|&x| {
+        //~^ manual_filter
+        println!("{x}");
+        unsafe { f(x as u32) }
+    });
+}
+
+fn issue16751(v: Option<u32>) -> Option<u32> {
+    let _ = match v {
+        Some(n) => {
+            if n > 0 {
+                return None;
+            }
+            if n == 0 { Some(n) } else { None }
+        },
+        None => None,
+    };
+
+    let _ = v.filter(|&n| {
+            println!("{n}");
+            {
+                println!("{}", n + 1);
+                unsafe { n > 0 }
+            }
+        });
+
+    unsafe fn f(x: u32) -> bool {
+        true
+    }
+    v.filter(|&n| {
+            println!("{n}");
+            unsafe { f(n) }
+        })
 }
 
 fn issue_17804() {
@@ -229,4 +262,23 @@ fn issue_17804() {
     let mut inner = Inner(0);
     Some(&mut inner).filter(|x| x.peek());
     //~^ manual_filter
+}
+
+fn issue16776(v: Option<usize>) -> Option<usize> {
+    let _ = v.and_then(|n| if n > 10 { Some(42) } else { None });
+
+    v.and_then(|n| {
+            println!("n: {n}");
+            if n > 10 { Some(n + 1) } else { None }
+        })
+}
+
+fn issue16776_lifetime_conflict(mut values: Vec<u32>) -> Option<usize> {
+    match values.first() {
+        Some(_value) => {
+            values.push(1);
+            if values.len() > 1 { Some(values.len()) } else { None }
+        },
+        None => None,
+    }
 }
