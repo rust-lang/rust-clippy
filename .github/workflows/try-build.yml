@@ -1,0 +1,80 @@
+# Build a distribution of Clippy and publish it to S3.
+# It can be used for running rustc-perf benchmarks.
+name: Try build
+
+on:
+  push:
+    branches:
+      - automation/bors/try
+
+permissions: { }
+
+jobs:
+  dist:
+    name: Build and publish Clippy
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # to assume aws role for S3 writes
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          path: clippy
+      - name: Figure out rustc commit
+        id: rustc_commit
+        run: |
+          cd clippy
+          nightly_date=$(cat rust-toolchain.toml | grep -m 1 ^channel | sed 's/.*nightly-\([0-9-]*\)"/\1/')
+          nightly_sha=$(curl https://static.rust-lang.org/dist/$nightly_date/channel-rust-nightly-git-commit-hash.txt)
+          echo "sha=${nightly_sha}" >> "$GITHUB_OUTPUT"
+      - name: Checkout rustc
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: rust-lang/rust
+          ref: ${{ steps.rustc_commit.outputs.sha }}
+          persist-credentials: false
+          # Bootstrap needs the parent commit to figure out some git metadata.
+          fetch-depth: 2
+          path: rustc
+      - name: Build Clippy
+        run: |
+          cd rustc
+          # Remove its Clippy source code
+          rm -rf src/tools/clippy
+
+          # Symlink Clippy to the current CI SHA
+          ln -s $(realpath ../clippy) src/tools/clippy
+
+          # Enable LTO to better optimize Clippy.
+          # Download LLVM to avoid building it.
+          # They are only used so that Clippy has something to link against when it is built .
+          ./configure \
+            --set rust.lto=thin \
+            --set llvm.download-ci-llvm=true \
+            --dist-compression-formats=xz
+
+          # Build the Clippy dist component
+          ./x dist clippy
+
+          ls -lha build/dist
+        env:
+          RUSTC_COMMIT: ${{ steps.rustc_commit.outputs.sha }}
+      - name: Assume AWS role
+        uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd # v6.3.0
+        if: github.repository == 'rust-lang/rust-clippy'
+        with:
+          role-to-assume: arn:aws:iam::890664054962:role/clippy-ci--rust-lang--clippy-prod
+          aws-region: us-west-1
+      - name: Publish archive to S3
+        run: |
+          mkdir to-upload
+          mv rustc/build/dist/clippy-*.tar.xz to-upload/clippy-x86_64-unknown-linux-gnu.tar.xz
+          # We store the rustc SHA that this Clippy is based upon, to allow rustc-perf to download the correct
+          # rustc toolchain.
+          echo "${RUSTC_COMMIT}" > to-upload/rustc-commit.txt
+
+          aws s3 cp --recursive ./to-upload s3://rust-lang-ci2/clippy-builds/"${GITHUB_SHA}"/
+        env:
+          RUSTC_COMMIT: ${{ steps.rustc_commit.outputs.sha }}
