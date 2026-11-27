@@ -251,3 +251,16 @@ fn wrongly_unmangled_macros() {
     };
     //~^^^^^ needless_bool
 }
+
+// Do NOT lint: a branch contains `cfg`-gated code that can change the result.
+fn issue18053(errno: u32) -> bool {
+    if errno == 42 {
+        #[cfg(any())]
+        if errno_is_ignored() {
+            return false;
+        }
+        true
+    } else {
+        false
+    }
+}
