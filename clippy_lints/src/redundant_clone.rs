@@ -11,6 +11,7 @@ use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Body, Constness, ExprKind, FnDecl, def_id};
 use rustc_lint::{LateContext, LateLintPass, declare_lint_pass};
 use rustc_middle::mir;
+use rustc_middle::mir::visit::Visitor;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{BytePos, Span};
@@ -407,8 +408,14 @@ fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>,
             statement_index: mir.basic_blocks[bb].statements.len(),
         },
     ) {
+        let cloned_use_loc = if cloned_use_locs.is_empty() && is_local_moved(mir, cloned) {
+            MirLocalUsage::Unknown
+        } else {
+            cloned_use_locs.first().copied().into()
+        };
+
         CloneUsage {
-            cloned_use_loc: cloned_use_locs.first().copied().into(),
+            cloned_use_loc,
             cloned_consume_or_mutate_loc: cloned_consume_or_mutate_locs.first().copied(),
             // Consider non-temporary clones consumed.
             // TODO: Actually check for mutation of non-temporaries.
@@ -422,4 +429,29 @@ fn visit_clone_usage(cloned: mir::Local, clone: mir::Local, mir: &mir::Body<'_>,
             clone_consumed_or_mutated: true,
         }
     }
+}
+
+struct MoveFinder {
+    local: mir::Local,
+    is_moved: bool,
+}
+
+impl Visitor<'_> for MoveFinder {
+    fn visit_local(&mut self, local: mir::Local, ctx: mir::visit::PlaceContext, _: mir::Location) {
+        if local == self.local
+            && matches!(
+                ctx,
+                mir::visit::PlaceContext::NonMutatingUse(mir::visit::NonMutatingUseContext::Move)
+            )
+        {
+            self.is_moved = true;
+        }
+    }
+}
+
+/// This scans the whole body for any move of `local`, which may cause false negatives.
+fn is_local_moved(mir: &mir::Body<'_>, local: mir::Local) -> bool {
+    let mut v = MoveFinder { local, is_moved: false };
+    v.visit_body(mir);
+    v.is_moved
 }

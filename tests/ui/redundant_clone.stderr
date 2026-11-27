@@ -109,18 +109,6 @@ LL |     let _t = tup.0.clone();
    |              ^^^^^
 
 error: redundant clone
-  --> tests/ui/redundant_clone.rs:85:25
-   |
-LL |     if b { (a.clone(), a.clone()) } else { (Alpha, a) }
-   |                         ^^^^^^^^ help: remove this
-   |
-note: this value is dropped without further use
-  --> tests/ui/redundant_clone.rs:85:24
-   |
-LL |     if b { (a.clone(), a.clone()) } else { (Alpha, a) }
-   |                        ^
-
-error: redundant clone
   --> tests/ui/redundant_clone.rs:143:15
    |
 LL |     let _s = s.clone();
@@ -288,5 +276,5 @@ note: this value is dropped without further use
 LL |         let t = s.clone();
    |                 ^
 
-error: aborting due to 24 previous errors
+error: aborting due to 23 previous errors
 
