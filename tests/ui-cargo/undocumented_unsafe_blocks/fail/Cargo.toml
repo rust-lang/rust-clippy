@@ -1,4 +1,4 @@
-# Reproducing #14553 requires the `# Safety` comment to be in the first line of 
+# Reproducing #14553 requires the `# Safety` comment to be in the first line of
 # the file. Since `unnecessary_safety_comment` is not enabled by default, we
 # will set it up here.
 
@@ -10,3 +10,5 @@ version = "0.1.0"
 
 [lints.clippy]
 unnecessary_safety_comment = "deny"
+
+[workspace]

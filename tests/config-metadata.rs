@@ -1,8 +1,6 @@
 #![feature(rustc_private)]
 #![allow(unused_extern_crates)]
 
-extern crate rustc_driver;
-
 use clippy_config::{Conf, ConfMetadata};
 use itertools::Itertools as _;
 use regex::Regex;

@@ -1,5 +1,8 @@
 #![feature(macro_metavar_expr_concat, rustc_private)]
 
+#[expect(unused_extern_crates, reason = "required to link to rustc crates using `cargo test`")]
+extern crate rustc_driver;
+
 // Needed by `declare_clippy_lint!`.
 pub extern crate rustc_lint;
 

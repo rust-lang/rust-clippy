@@ -5,8 +5,6 @@
     // and on rustc internal lints
     rustc::internal)]
 
-// FIXME: switch to something more ergonomic here, once available.
-// (Currently there is no way to opt into sysroot crates without `extern crate`.)
 extern crate rustc_driver;
 extern crate rustc_interface;
 extern crate rustc_session;
