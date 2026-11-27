@@ -148,11 +148,6 @@ error: casting function pointer `f` to `usize`
    |
 LL |     f as usize
    |     ^^^^^^^^^^
-   |
-help: did you mean to invoke the function?
-   |
-LL |     f() as usize
-   |      ++
 
 error: casting function pointer `T::static_method` to `usize`
   --> tests/ui/fn_to_numeric_cast_any.rs:72:5
@@ -170,11 +165,172 @@ error: casting function pointer `(clos as fn(u32) -> u32)` to `usize`
    |
 LL |     let _ = (clos as fn(u32) -> u32) as usize;
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting function pointer `unit_fn` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:168:51
+   |
+LL |         assert_eq!(unit_fn as *const u8 as usize, unit_fn as usize);
+   |                                                   ^^^^^^^^^^^^^^^^
+
+error: casting function pointer `ret_string` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:171:17
+   |
+LL |         let _ = ret_string as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^
+
+error: casting function pointer `ret_fat_ptr` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:173:17
+   |
+LL |         let _ = ret_fat_ptr as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^
+
+error: casting function pointer `unsafe_fn` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:175:17
+   |
+LL |         let _ = unsafe_fn as usize;
+   |                 ^^^^^^^^^^^^^^^^^^
+
+error: casting function pointer `ret_drop_enum` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:177:17
+   |
+LL |         let _ = ret_drop_enum as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting function pointer `ret_tuple_empty_enum` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:179:17
+   |
+LL |         let _ = ret_tuple_empty_enum as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: casting function pointer `T::make` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:181:17
+   |
+LL |         let _ = T::make as usize;
+   |                 ^^^^^^^^^^^^^^^^
+
+error: casting function pointer `ret_bool` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:185:17
+   |
+LL |         let _ = ret_bool as usize;
+   |                 ^^^^^^^^^^^^^^^^^
    |
 help: did you mean to invoke the function?
    |
-LL |     let _ = (clos as fn(u32) -> u32)() as usize;
-   |                                     ++
+LL |         let _ = ret_bool() as usize;
+   |                         ++
 
-error: aborting due to 16 previous errors
+error: casting function pointer `ret_char` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:187:17
+   |
+LL |         let _ = ret_char as usize;
+   |                 ^^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL |         let _ = ret_char() as usize;
+   |                         ++
+
+error: casting function pointer `ret_f32` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:189:17
+   |
+LL |         let _ = ret_f32 as usize;
+   |                 ^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL |         let _ = ret_f32() as usize;
+   |                        ++
+
+error: casting function pointer `ret_thin_ptr` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:191:17
+   |
+LL |         let _ = ret_thin_ptr as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL |         let _ = ret_thin_ptr() as usize;
+   |                             ++
+
+error: casting function pointer `ret_unit_enum` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:193:17
+   |
+LL |         let _ = ret_unit_enum as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL |         let _ = ret_unit_enum() as usize;
+   |                              ++
+
+error: casting function pointer `<() as Assoc>::make` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:195:17
+   |
+LL |         let _ = <() as Assoc>::make as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL |         let _ = <() as Assoc>::make() as usize;
+   |                                    ++
+
+error: casting function pointer `*r` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:197:17
+   |
+LL |         let _ = *r as usize;
+   |                 ^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL -         let _ = *r as usize;
+LL +         let _ = (*r)() as usize;
+   |
+
+error: casting function pointer `h.f` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:199:17
+   |
+LL |         let _ = h.f as usize;
+   |                 ^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL -         let _ = h.f as usize;
+LL +         let _ = (h.f)() as usize;
+   |
+
+error: casting function pointer `(clos as fn() -> u32)` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:203:17
+   |
+LL |         let _ = (clos as fn() -> u32) as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL |         let _ = (clos as fn() -> u32)() as usize;
+   |                                      ++
+
+error: casting function pointer `get_field!(h)` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:211:17
+   |
+LL |         let _ = get_field!(h) as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL |         let _ = get_field!(h)() as usize;
+   |                              ++
+
+error: casting function pointer `get_fn().await` to `usize`
+  --> tests/ui/fn_to_numeric_cast_any.rs:220:17
+   |
+LL |         let _ = get_fn().await as usize;
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: did you mean to invoke the function?
+   |
+LL -         let _ = get_fn().await as usize;
+LL +         let _ = (get_fn().await)() as usize;
+   |
+
+error: aborting due to 34 previous errors
 
