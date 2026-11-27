@@ -78,6 +78,7 @@ This lint has been nominated for inclusion.
 
 [A FCP topic has been created on Zulip]({zulip_topic_url}).
 """
+github_body_link_text = "There's an FCP associated with this pull request."
 # Zulip polls may not be preceded by any other text and pings & short links inside
 # the title of a poll don't get recognized. Therefore we need to send two messages.
 message_on_add = [
