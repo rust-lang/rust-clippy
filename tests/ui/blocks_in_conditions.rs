@@ -171,4 +171,18 @@ fn issue_15112() {
     }
 }
 
+fn dont_cut_through_macro_call() {
+    macro_rules! id {
+        ($e:expr) => {
+            $e
+        };
+    }
+
+    // #18006: the condition is a macro argument, so a suggestion would cut through `id!(..)`
+    if id!({
+        let x = 1;
+        x > 0
+    }) {}
+}
+
 fn main() {}
