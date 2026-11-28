@@ -7331,6 +7331,7 @@ Released 2018-09-13
 [`into_iter_on_ref`]: https://clippy.rust-lang.org/main/index.html#into_iter_on_ref
 [`into_iter_without_iter`]: https://clippy.rust-lang.org/main/index.html#into_iter_without_iter
 [`invalid_atomic_ordering`]: https://clippy.rust-lang.org/main/index.html#invalid_atomic_ordering
+[`invalid_float_sort_comparator`]: https://clippy.rust-lang.org/main/index.html#invalid_float_sort_comparator
 [`invalid_null_ptr_usage`]: https://clippy.rust-lang.org/main/index.html#invalid_null_ptr_usage
 [`invalid_ref`]: https://clippy.rust-lang.org/main/index.html#invalid_ref
 [`invalid_regex`]: https://clippy.rust-lang.org/main/index.html#invalid_regex
