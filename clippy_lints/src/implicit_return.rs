@@ -1,3 +1,4 @@
+use clippy_config::Conf;
 use clippy_utils::diagnostics::span_lint_hir_and_then;
 use clippy_utils::source::{snippet_with_applicability, snippet_with_context, walk_span_to_context};
 use clippy_utils::visitors::for_each_expr_without_closures;
@@ -6,7 +7,7 @@ use core::ops::ControlFlow;
 use rustc_errors::Applicability;
 use rustc_hir::intravisit::FnKind;
 use rustc_hir::{Block, Body, Expr, ExprKind, FnDecl, FnRetTy, HirId};
-use rustc_lint::{LateContext, LateLintPass, LintContext as _, declare_lint_pass};
+use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_span::def_id::LocalDefId;
 use rustc_span::{Span, SyntaxContext};
 
@@ -40,7 +41,19 @@ declare_clippy_lint! {
     "use a return statement like `return expr` instead of an expression"
 }
 
-declare_lint_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
+impl_lint_pass!(ImplicitReturn => [IMPLICIT_RETURN]);
+
+pub struct ImplicitReturn {
+    ignore_single_line_closures: bool,
+}
+
+impl ImplicitReturn {
+    pub fn new(conf: &'static Conf) -> Self {
+        Self {
+            ignore_single_line_closures: conf.ignore_single_line_closures,
+        }
+    }
+}
 
 fn lint_return(cx: &LateContext<'_>, emission_place: HirId, span: Span) {
     span_lint_hir_and_then(
@@ -97,6 +110,16 @@ impl LintLocation {
 // Gets the call site if the span is in a child context. Otherwise returns `None`.
 fn get_call_site(span: Span, ctxt: SyntaxContext) -> Option<Span> {
     (span.ctxt() != ctxt).then(|| walk_span_to_context(span, ctxt).unwrap_or(span))
+}
+
+fn extract_expr<'tcx>(cx: &LateContext<'tcx>, kind: FnKind<'tcx>, body: &'tcx Body<'_>) -> Option<&'tcx Expr<'tcx>> {
+    if kind.asyncness().is_async() {
+        get_async_fn_body(cx.tcx, body)
+    } else if let Some(expr) = get_async_closure_expr(cx.tcx, body.value) {
+        Some(expr)
+    } else {
+        Some(body.value)
+    }
 }
 
 fn lint_implicit_returns(
@@ -227,32 +250,18 @@ impl<'tcx> LateLintPass<'tcx> for ImplicitReturn {
         span: Span,
         _: LocalDefId,
     ) {
-        if (!matches!(kind, FnKind::Closure) && matches!(decl.output, FnRetTy::DefaultReturn(_)))
-            || span.ctxt() != body.value.span.ctxt()
-            || span.in_external_macro(cx.sess().source_map())
+        if let is_closure = matches!(kind, FnKind::Closure)
+            && (is_closure || !matches!(decl.output, FnRetTy::DefaultReturn(_)))
+            && span.ctxt() == body.value.span.ctxt()
+            && !span.in_external_macro(cx.sess().source_map())
+            && !(self.ignore_single_line_closures && is_closure && !cx.sess().source_map().is_multiline(span))
+            && let res_ty = cx.typeck_results().expr_ty(body.value)
+            && !res_ty.is_unit()
+            && !res_ty.is_never()
+            && let Some(expr) = extract_expr(cx, kind, body)
+            && !is_from_proc_macro(cx, expr)
         {
-            return;
+            lint_implicit_returns(cx, expr, expr.span.ctxt(), None);
         }
-
-        let res_ty = cx.typeck_results().expr_ty(body.value);
-        if res_ty.is_unit() || res_ty.is_never() {
-            return;
-        }
-
-        let expr = if kind.asyncness().is_async() {
-            match get_async_fn_body(cx.tcx, body) {
-                Some(e) => e,
-                None => return,
-            }
-        } else if let Some(expr) = get_async_closure_expr(cx.tcx, body.value) {
-            expr
-        } else {
-            body.value
-        };
-
-        if is_from_proc_macro(cx, expr) {
-            return;
-        }
-        lint_implicit_returns(cx, expr, expr.span.ctxt(), None);
     }
 }

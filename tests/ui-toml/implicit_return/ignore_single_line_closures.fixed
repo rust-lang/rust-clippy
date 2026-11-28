@@ -1,0 +1,38 @@
+#![warn(clippy::implicit_return)]
+#![allow(clippy::needless_return)]
+
+fn main() {}
+
+fn test_single_line_closure() {
+    // allowed under ignore-single-line-closures
+    let _ = |x: usize| x * 2;
+
+    // allowed under ignore-single-line-closures
+    let _ = [1, 2, 3].iter().map(|x| x * 2);
+
+    // allowed under ignore-single-line-closures
+    #[rustfmt::skip]
+    let _ = [1, 2, 3].iter().map(
+        |x| x * 2,
+    );
+
+    #[rustfmt::skip]
+    let _ = [1, 2, 3].iter().map(|x| 
+        return x * 2, 
+        //~^ implicit_return
+    );
+}
+
+fn test_single_line_async_closure() {
+    let _ = async || 0;
+    let _ = async || -> i32 { 0 };
+    let _ = async |a: i32| a;
+
+    #[rustfmt::skip]
+    let _ = async |a: i32| { a };
+
+    let _ = async |a: i32| {
+        return a
+        //~^ implicit_return
+    };
+}

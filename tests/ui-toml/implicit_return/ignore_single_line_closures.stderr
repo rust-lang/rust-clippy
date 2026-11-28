@@ -1,0 +1,26 @@
+error: missing `return` statement
+  --> tests/ui-toml/implicit_return/ignore_single_line_closures.rs:21:9
+   |
+LL |         x * 2, 
+   |         ^^^^^
+   |
+   = note: `-D clippy::implicit-return` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::implicit_return)]`
+help: add `return` as shown
+   |
+LL |         return x * 2, 
+   |         ++++++
+
+error: missing `return` statement
+  --> tests/ui-toml/implicit_return/ignore_single_line_closures.rs:35:9
+   |
+LL |         a
+   |         ^
+   |
+help: add `return` as shown
+   |
+LL |         return a
+   |         ++++++
+
+error: aborting due to 2 previous errors
+

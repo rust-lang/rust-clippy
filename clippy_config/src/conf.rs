@@ -599,6 +599,9 @@ define_Conf! {
         mutable_key_type,
     )]
     ignore_interior_mutability("ignore-interior-mutability"): Vec<String> = DEFAULT_IGNORE_INTERIOR_MUTABILITY,
+    /// Whether to ignore single line closures when linting for missing return statements
+    #[lints(implicit_return)]
+    ignore_single_line_closures("ignore-single-line-closures"): bool = false,
     /// Sets the scope ("crate", "file", or "module") in which duplicate inherent `impl` blocks for the same type are linted.
     #[lints(multiple_inherent_impl)]
     inherent_impl_lint_scope("inherent-impl-lint-scope"): InherentImplLintScope = InherentImplLintScope::Crate,

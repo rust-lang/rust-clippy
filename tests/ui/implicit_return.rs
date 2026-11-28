@@ -102,6 +102,17 @@ fn macro_branch_test() -> bool {
     //~^ implicit_return
 }
 
+fn test_single_line_closure() {
+    let _ = (|x: usize| x * 2);
+    //~^ implicit_return
+
+    let _ = [1, 2, 3].iter().map(|x| x * 2);
+    //~^ implicit_return
+
+    let _ = [1, 2, 3].iter().map(|x| x * 2);
+    //~^ implicit_return
+}
+
 fn loop_test() -> bool {
     'outer: loop {
         if true {
