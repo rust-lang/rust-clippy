@@ -754,6 +754,7 @@ define_Conf! {
         unnested_or_patterns,
         unused_trait_names,
         use_self,
+        zero_divided_by_zero,
         zero_ptr,
     )]
     msrv("msrv"): Option<RustcVersion>,

@@ -1031,6 +1031,7 @@ The minimum rust version that the project supports. Defaults to the `rust-versio
 * [`unnested_or_patterns`](https://clippy.rust-lang.org/main/index.html#unnested_or_patterns)
 * [`unused_trait_names`](https://clippy.rust-lang.org/main/index.html#unused_trait_names)
 * [`use_self`](https://clippy.rust-lang.org/main/index.html#use_self)
+* [`zero_divided_by_zero`](https://clippy.rust-lang.org/main/index.html#zero_divided_by_zero)
 * [`zero_ptr`](https://clippy.rust-lang.org/main/index.html#zero_ptr)
 
 

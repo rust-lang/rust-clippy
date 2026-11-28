@@ -611,7 +611,7 @@ rustc_lint::late_lint_methods!(
         Lifetimes: lifetimes::Lifetimes = lifetimes::Lifetimes::new(conf),
         HashMapPass: entry::HashMapPass = entry::HashMapPass,
         MinMaxPass: minmax::MinMaxPass = minmax::MinMaxPass,
-        ZeroDiv: zero_div_zero::ZeroDiv = zero_div_zero::ZeroDiv,
+        ZeroDiv: zero_div_zero::ZeroDiv = zero_div_zero::ZeroDiv::new(conf),
         Mutex: mutex_atomic::Mutex = mutex_atomic::Mutex,
         NeedlessUpdate: needless_update::NeedlessUpdate = needless_update::NeedlessUpdate,
         NeedlessBorrowedRef: needless_borrowed_ref::NeedlessBorrowedRef = needless_borrowed_ref::NeedlessBorrowedRef,
