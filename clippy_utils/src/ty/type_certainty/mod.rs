@@ -3,7 +3,9 @@ use rustc_ast::{LitFloatType, LitIntType, LitKind};
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::DefId;
 use rustc_hir::intravisit::{InferKind, Visitor, walk_qpath, walk_ty};
-use rustc_hir::{self as hir, AmbigArg, Expr, ExprKind, GenericArgs, HirId, Node, Param, PathSegment, QPath, TyKind};
+use rustc_hir::{
+    self as hir, AmbigArg, Expr, ExprKind, GenericArgs, HirId, Node, Param, PatKind, PathSegment, QPath, TyKind,
+};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{self, AdtDef, GenericArgKind, Ty};
 use rustc_span::Span;
@@ -215,6 +217,88 @@ fn param_certainty(cx: &LateContext<'_>, param: &Param<'_>) -> Certainty {
         .map_or(Certainty::Uncertain, |(_, ty)| type_certainty(cx, ty).clear_def_id())
 }
 
+fn path_segment_local_certainty(cx: &LateContext<'_>, resolves_to_type: bool, hir_id: HirId) -> Certainty {
+    // `hir_id` is a binding `Pat`. Walk up to the `Param`/`LetStmt`, recording tuple indices, then follow
+    // them down the initializer, e.g. `3_u32` for `a` in `let (a, b) = (3_u32, 5)`.
+    let mut child_id = hir_id;
+    let mut path = Vec::new(); // (index, from_start)
+    let mut is_valid_path = true;
+    let mut node = cx.tcx.parent_hir_node(hir_id);
+    for (parent_id, parent) in cx.tcx.hir_parent_iter(hir_id) {
+        match parent {
+            Node::Pat(pat) => {
+                if is_valid_path
+                    && let PatKind::Tuple(pats, dotdot) = pat.kind
+                    && let Some(i) = pats.iter().position(|n| n.hir_id == child_id)
+                {
+                    // if position is after '..', index is calculated from the end
+                    let (index, from_start) = if let Some(d) = dotdot.as_opt_usize()
+                        && i >= d
+                    {
+                        (pats.len() - i, false)
+                    } else {
+                        (i, true)
+                    };
+
+                    path.push((index, from_start));
+                    child_id = parent_id;
+                } else {
+                    is_valid_path = false;
+                }
+            },
+            Node::PatField(..) => {},
+            _ => {
+                node = parent;
+                break;
+            },
+        }
+    }
+
+    if !is_valid_path {
+        return Certainty::Uncertain;
+    }
+
+    match node {
+        Node::Param(param) => param_certainty(cx, param),
+        // A local's type is certain if its type annotation is certain or it has an initializer whose
+        // type is certain.
+        Node::LetStmt(local) => {
+            let lhs = local.ty.map_or(Certainty::Uncertain, |ty| type_certainty(cx, ty));
+            let rhs = local.init.map_or(Certainty::Uncertain, |init| {
+                let mut target = init;
+                while let Some((index, from_start)) = path.pop() {
+                    if let ExprKind::Tup(exprs) = target.kind {
+                        let normalized_index = if from_start {
+                            Some(index)
+                        } else {
+                            exprs.len().checked_sub(index)
+                        };
+                        if let Some(i) = normalized_index
+                            && let Some(expr) = exprs.get(i)
+                        {
+                            target = expr;
+                        } else {
+                            target = init;
+                            break;
+                        }
+                    } else {
+                        target = init;
+                        break;
+                    }
+                }
+                expr_type_certainty(cx, target, false)
+            });
+            let certainty = lhs.join(rhs);
+            if resolves_to_type {
+                certainty
+            } else {
+                certainty.clear_def_id()
+            }
+        },
+        _ => Certainty::Uncertain,
+    }
+}
+
 fn path_segment_certainty(
     cx: &LateContext<'_>,
     parent_certainty: Certainty,
@@ -265,27 +349,7 @@ fn path_segment_certainty(
             Certainty::Certain(None)
         },
 
-        // `get_parent` because `hir_id` refers to a `Pat`, and we're interested in the node containing the `Pat`.
-        Res::Local(hir_id) => match cx.tcx.parent_hir_node(hir_id) {
-            // A parameter's type is not always certain, as it may come from an untyped closure definition,
-            // or from a wildcard in a typed closure definition.
-            Node::Param(param) => param_certainty(cx, param),
-            // A local's type is certain if its type annotation is certain or it has an initializer whose
-            // type is certain.
-            Node::LetStmt(local) => {
-                let lhs = local.ty.map_or(Certainty::Uncertain, |ty| type_certainty(cx, ty));
-                let rhs = local
-                    .init
-                    .map_or(Certainty::Uncertain, |init| expr_type_certainty(cx, init, false));
-                let certainty = lhs.join(rhs);
-                if resolves_to_type {
-                    certainty
-                } else {
-                    certainty.clear_def_id()
-                }
-            },
-            _ => Certainty::Uncertain,
-        },
+        Res::Local(hir_id) => path_segment_local_certainty(cx, resolves_to_type, hir_id),
 
         _ => Certainty::Uncertain,
     };

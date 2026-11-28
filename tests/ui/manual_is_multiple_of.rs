@@ -127,3 +127,20 @@ fn issue16537(v: u64) {
     let _ = v % 2 > 0;
     let _ = 0 < v % 2;
 }
+
+fn issue18110() {
+    let (a, b) = (1_u32, 2);
+    let (c, (d, e)) = (3_u32, (4, 5)); // nesting
+    let (f, .., g) = (6_u32, 7, 8); // certain type before ..
+    let (h, .., i) = (9, 10, 11_u32); // certain type after ..
+
+    let _ = a % b == 0; //~ manual_is_multiple_of
+    let _ = c % d == 0; //~ manual_is_multiple_of
+    let _ = f % g == 0; //~ manual_is_multiple_of
+    let _ = i % h == 0; //~ manual_is_multiple_of
+
+    let _ = b % a == 0;
+    let _ = d % e == 0;
+    let _ = g % f == 0;
+    let _ = h % i == 0;
+}

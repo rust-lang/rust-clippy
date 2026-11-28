@@ -73,5 +73,29 @@ error: manual implementation of `.is_multiple_of()`
 LL |     if dot_0!(a) % dot_0!(b) == 0 {
    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: replace with: `dot_0!(a).is_multiple_of(dot_0!(b))`
 
-error: aborting due to 12 previous errors
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:137:13
+   |
+LL |     let _ = a % b == 0;
+   |             ^^^^^^^^^^ help: replace with: `a.is_multiple_of(b)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:138:13
+   |
+LL |     let _ = c % d == 0;
+   |             ^^^^^^^^^^ help: replace with: `c.is_multiple_of(d)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:139:13
+   |
+LL |     let _ = f % g == 0;
+   |             ^^^^^^^^^^ help: replace with: `f.is_multiple_of(g)`
+
+error: manual implementation of `.is_multiple_of()`
+  --> tests/ui/manual_is_multiple_of.rs:140:13
+   |
+LL |     let _ = i % h == 0;
+   |             ^^^^^^^^^^ help: replace with: `i.is_multiple_of(h)`
+
+error: aborting due to 16 previous errors
 
