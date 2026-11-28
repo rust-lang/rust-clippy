@@ -39,59 +39,73 @@ pub fn check<'tcx>(
     if sym::contains == method_name
         && let [arg] = args
         && let ExprKind::AddrOf(BorrowKind::Ref, Mutability::Not, item) = arg.kind
-        && let ExprKind::MethodCall(str_method, str_receiver, [], str_span) = item.kind
-        && str_method.ident.name == sym::to_string
+        && let Some((desc, str_receiver, tail)) = as_owned_conversion(cx, item)
         && call_span.ctxt() == str_receiver.span.ctxt()
-        && str_receiver.span.ctxt() == str_span.ctxt()
+        && str_receiver.span.ctxt() == tail.ctxt()
         && !call_span.from_expansion()
         && !str_receiver.span.from_expansion()
     {
         let res = cx.typeck_results();
-        let recv = match res.expr_ty(receiver).peel_refs().kind() {
-            ty::Adt(def, _args) => cx
-                .tcx
-                .get_diagnostic_name(def.did())
-                .is_some_and(|s| s == rustc_span::sym::Vec || s == sym::VecDeque),
-            ty::Array(..) | ty::Slice(_) => true,
-            _ => false,
+        let elem_ty = match res.expr_ty(receiver).peel_refs().kind() {
+            ty::Adt(def, args)
+                if cx
+                    .tcx
+                    .get_diagnostic_name(def.did())
+                    .is_some_and(|s| s == rustc_span::sym::Vec || s == sym::VecDeque) =>
+            {
+                Some(args.type_at(0))
+            },
+            ty::Array(ty, _) | ty::Slice(ty) => Some(*ty),
+            _ => None,
         };
 
-        if recv && res.expr_ty(str_receiver).is_imm_ref_str() {
+        if let Some(elem_ty) = elem_ty
+            && let ty::Ref(_, recv_ty, Mutability::Not) = *res.expr_ty(str_receiver).kind()
+            && type_can_be_converted(cx, elem_ty, &[recv_ty.into()])
+        {
             let receiver_snippet = if let Some(i) = rustc_span::sym::ascii_letter_digit('i') {
                 let name = if clippy_utils::contains_name(i, str_receiver, cx) {
                     "j"
                 } else {
                     "i"
                 };
+
+                let ty_str = if elem_ty.is_lang_item(cx, LangItem::String) {
+                    "String".to_string()
+                } else {
+                    elem_ty.to_string()
+                };
                 Some(if expr_type_is_certain(cx, receiver) {
                     format!("iter().any(|{name}| {name} == ")
                 } else {
-                    format!("iter().any(|{name}: &String| {name} == ")
+                    format!("iter().any(|{name}: &{ty_str}| {name} == ")
                 })
             } else {
                 None
             };
+
             span_lint_hir_and_then(
                 cx,
                 UNNECESSARY_TO_OWNED,
                 expr.hir_id,
                 call_span,
-                "unnecessary use of `.to_string()`",
+                format!("unnecessary use of `{desc}`"),
                 |diag| {
                     if let Some(receiver_snippet) = receiver_snippet {
-                        // vec.contains(           elem.to_string())
-                        //     ^^^^^^^^^               ^^^^^^^^^^^^
+                        // vec.contains(           elem.method()) / vec.contains(&String::from(elem))
+
+                        //     ^^^^^^^^^               ^^^^^^^^^
                         //    "iter().any(|i| i =="    ""
                         diag.multipart_suggestion(
-                            "use an iterator instead of `.contains(_)` to avoid cloning via `.to_string()`",
+                            format!("use an iterator instead of `.contains(_)` to avoid cloning via `{desc}`"),
                             vec![
                                 (call_span.with_hi(str_receiver.span.lo()), receiver_snippet),
-                                (str_span.with_lo(str_receiver.span.hi()), String::new()),
+                                (tail, String::new()),
                             ],
                             Applicability::MachineApplicable,
                         );
                     } else {
-                        diag.note("Use `.iter().any(|i| i == _)` instead of `.contains(&_.tostring()) ");
+                        diag.note("Use `.iter().any(|i| i == _)` instead of `.contains(_) here");
                     }
                 },
             );
@@ -820,4 +834,36 @@ fn check_borrow_predicate<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
     {
         check_if_applicable_to_argument(cx, &arg);
     }
+}
+
+/// Returns true if type implements [`PartialEq`]
+fn type_can_be_converted<'tcx>(cx: &LateContext<'tcx>, ty: Ty<'tcx>, args: &[GenericArg<'tcx>]) -> bool {
+    cx.tcx
+        .get_diagnostic_item(sym::PartialEq)
+        .is_some_and(|def_id| implements_trait(cx, ty, def_id, args))
+}
+
+/// Matches `x.to_string()`, `x.to_owned()`, `x.to_path_buf()`, `x.to_vec()` and `String::from(x)`.
+/// Returns (description of the call, converted expression `x`, span to delete after `x`).
+fn as_owned_conversion<'a, 'b>(cx: &LateContext<'_>, expr: &'a Expr<'b>) -> Option<(String, &'a Expr<'b>, Span)> {
+    match expr.kind {
+        ExprKind::MethodCall(m, recv, [], span)
+            if matches!(
+                m.ident.name,
+                sym::to_string | sym::to_owned | sym::to_path_buf | sym::to_vec
+            ) =>
+        {
+            Some((format!(".{}()", m.ident.name), recv, span.with_lo(recv.span.hi())))
+        },
+        // `String::from(x)`: the span to delete is the closing `)`
+        ExprKind::Call(_, [inner]) if is_string_from(cx, expr) => {
+            Some(("String::from".to_string(), inner, expr.span.with_lo(inner.span.hi())))
+        },
+        _ => None,
+    }
+}
+
+fn is_string_from(cx: &LateContext<'_>, call: &Expr<'_>) -> bool {
+    fn_def_id(cx, call).is_some_and(|did| cx.tcx.is_diagnostic_item(sym::from_fn, did))
+        && cx.typeck_results().expr_ty(call).is_lang_item(cx, LangItem::String)
 }
