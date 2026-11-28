@@ -1,4 +1,5 @@
 #![warn(clippy::ifs_as_logical_ops)]
+#![allow(clippy::collapsible_if)]
 //@no-rustfix
 fn unfixable_example(x: bool, y: bool, z: bool) -> bool {
     if x { if y { z } else { false } } else { false }

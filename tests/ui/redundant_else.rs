@@ -2,7 +2,7 @@
 
 #![warn(clippy::redundant_else)]
 #![expect(clippy::unnecessary_operation)]
-
+#![allow(clippy::collapsible_if)]
 extern crate proc_macros;
 use proc_macros::{external, inline_macros, with_span};
 

@@ -177,7 +177,7 @@ fn issue14440(opt: Option<i32>) {
     opt.filter(|&x| unsafe { f(x as u32) });
     //~^ manual_filter
 }
-
+#[allow(clippy::collapsible_if)]
 fn issue_17804() {
     struct Inner(u8);
     impl Inner {
