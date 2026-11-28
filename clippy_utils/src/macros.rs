@@ -11,7 +11,7 @@ use crate::{get_clippy_attr, sym};
 use arrayvec::ArrayVec;
 use rustc_ast::{FormatArgs, FormatArgument, FormatPlaceholder};
 use rustc_data_structures::fx::FxHashMap;
-use rustc_hir::{self as hir, Expr, ExprKind, HirId, Node, QPath};
+use rustc_hir::{self as hir, Arm, Expr, ExprKind, HirId, MatchSource, Node, QPath};
 use rustc_lint::LateContext;
 use rustc_span::def_id::DefId;
 use rustc_span::hygiene::{self, MacroKind, SyntaxContext};
@@ -326,6 +326,17 @@ impl<'a> PanicCall<'a> {
                     _ => Self::DefaultMessage,
                 }
             },
+            // The `assert_matches!` macro expand to use
+            // `core::panicking::assert_matches_failed(left_val, "pattern", None | Some(format_args!(..)))`
+            sym::assert_matches_failed => {
+                let [_pat_str, msg_arg] = rest else {
+                    return None;
+                };
+                match msg_arg.kind {
+                    ExprKind::Call(_, [fmt_arg]) => Self::Format(fmt_arg),
+                    _ => Self::DefaultMessage,
+                }
+            },
             _ => return None,
         };
         Some(result)
@@ -360,11 +371,7 @@ fn find_assert_args_inner<'a, const N: usize>(
     expr: &'a Expr<'a>,
     expn: ExpnId,
 ) -> Option<([&'a Expr<'a>; N], PanicCall<'a>)> {
-    let macro_id = expn.expn_data().macro_def_id?;
-    let (expr, expn) = match cx.tcx.item_name(macro_id).as_str().strip_prefix("debug_") {
-        None => (expr, expn),
-        Some(inner_name) => find_assert_within_debug_assert(cx, expr, expn, Symbol::intern(inner_name))?,
-    };
+    let (expr, expn) = peel_debug_assert(cx, expr, expn)?;
     let mut args = ArrayVec::new();
     let panic_expn = for_each_expr_without_closures(expr, |e| {
         if args.is_full() {
@@ -381,6 +388,14 @@ fn find_assert_args_inner<'a, const N: usize>(
     });
     let args = args.into_inner().ok()?;
     Some((args, panic_expn?))
+}
+
+fn peel_debug_assert<'a>(cx: &LateContext<'_>, expr: &'a Expr<'a>, expn: ExpnId) -> Option<(&'a Expr<'a>, ExpnId)> {
+    let macro_id = expn.expn_data().macro_def_id?;
+    match cx.tcx.item_name(macro_id).as_str().strip_prefix("debug_") {
+        None => Some((expr, expn)),
+        Some(inner_name) => find_assert_within_debug_assert(cx, expr, expn, Symbol::intern(inner_name)),
+    }
 }
 
 fn find_assert_within_debug_assert<'a>(
@@ -424,6 +439,33 @@ fn is_assert_arg(cx: &LateContext<'_>, expr: &Expr<'_>, assert_expn: ExpnId) -> 
         ControlFlow::Break(is_assert_arg) => is_assert_arg,
         ControlFlow::Continue(()) => true,
     }
+}
+
+/// Finds the scrutinee, the pattern (and its optional guard), and the panic call of an
+/// `assert_matches!` or `debug_assert_matches!` macro call within the macro expansion.
+pub fn find_assert_matches_args<'a>(
+    cx: &LateContext<'_>,
+    expr: &'a Expr<'a>,
+    expn: ExpnId,
+) -> Option<(&'a Expr<'a>, &'a Arm<'a>, PanicCall<'a>)> {
+    let (expr, expn) = peel_debug_assert(cx, expr, expn)?;
+    let (scrutinee, arms) = for_each_expr_without_closures(expr, |e| {
+        if e.span.ctxt().outer_expn() != expn {
+            return ControlFlow::Continue(Descend::No);
+        }
+        match e.kind {
+            ExprKind::Match(scrutinee, arms, MatchSource::Normal) => ControlFlow::Break((scrutinee, arms)),
+            _ => ControlFlow::Continue(Descend::Yes),
+        }
+    })?;
+    let [arm, fail_arm] = arms else {
+        return None;
+    };
+    let panic_expn = for_each_expr_without_closures(fail_arm.body, |e| match PanicCall::parse(e) {
+        Some(expn) => ControlFlow::Break(expn),
+        None => ControlFlow::Continue(Descend::Yes),
+    })?;
+    Some((scrutinee, arm, panic_expn))
 }
 
 /// Stores AST [`FormatArgs`] nodes for use in late lint passes, as they are in a desugared form in

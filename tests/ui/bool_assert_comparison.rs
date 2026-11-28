@@ -3,6 +3,7 @@
 #![warn(clippy::bool_assert_comparison)]
 
 use std::ops::{Add, Not};
+use std::{assert_matches, debug_assert_matches};
 
 macro_rules! a {
     () => {
@@ -120,6 +121,14 @@ fn main() {
     assert_ne!(b, true);
     //~^ bool_assert_comparison
 
+    assert_matches!("a".len(), 1);
+    assert_matches!("a".is_empty(), false);
+    //~^ bool_assert_comparison
+    assert_matches!("".is_empty(), true);
+    //~^ bool_assert_comparison
+    assert_matches!(a!(), b!());
+    assert_matches!("".is_empty(), b!());
+
     debug_assert_eq!("a".len(), 1);
     debug_assert_eq!("a".is_empty(), false);
     //~^ bool_assert_comparison
@@ -148,6 +157,14 @@ fn main() {
     debug_assert_ne!(b, true);
     //~^ bool_assert_comparison
 
+    debug_assert_matches!("a".len(), 1);
+    debug_assert_matches!("a".is_empty(), false);
+    //~^ bool_assert_comparison
+    debug_assert_matches!("".is_empty(), true);
+    //~^ bool_assert_comparison
+    debug_assert_matches!(a!(), b!());
+    debug_assert_matches!("".is_empty(), b!());
+
     // assert with error messages
     assert_eq!("a".len(), 1, "tadam {}", 1);
     assert_eq!("a".len(), 1, "tadam {}", true);
@@ -159,6 +176,13 @@ fn main() {
     //~^ bool_assert_comparison
     assert_eq!(a, true, "tadam {}", false);
 
+    assert_matches!("a".len(), 1, "tadam {}", 1);
+    assert_matches!("a".len(), 1, "tadam {}", true);
+    assert_matches!("a".is_empty(), false, "tadam {}", 1);
+    //~^ bool_assert_comparison
+    assert_matches!("a".is_empty(), false, "tadam {}", true);
+    //~^ bool_assert_comparison
+
     debug_assert_eq!("a".len(), 1, "tadam {}", 1);
     debug_assert_eq!("a".len(), 1, "tadam {}", true);
     debug_assert_eq!("a".is_empty(), false, "tadam {}", 1);
@@ -168,6 +192,13 @@ fn main() {
     debug_assert_eq!(false, "a".is_empty(), "tadam {}", true);
     //~^ bool_assert_comparison
     debug_assert_eq!(a, true, "tadam {}", false);
+
+    debug_assert_matches!("a".len(), 1, "tadam {}", 1);
+    debug_assert_matches!("a".len(), 1, "tadam {}", true);
+    debug_assert_matches!("a".is_empty(), false, "tadam {}", 1);
+    //~^ bool_assert_comparison
+    debug_assert_matches!("a".is_empty(), false, "tadam {}", true);
+    //~^ bool_assert_comparison
 
     assert_eq!(a!(), true);
     //~^ bool_assert_comparison
