@@ -1,0 +1,26 @@
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map/macro_statements.rs:65:5
+   |
+LL | /     if let Some(n) = opt {
+...  |
+LL | |         None
+LL | |     }
+   | |_____^ help: try: `opt.map(|n| n + 1)`
+   |
+   = note: `-D clippy::manual-map` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::manual_map)]`
+
+error: manual implementation of `Option::map`
+  --> tests/ui/manual_map/macro_statements.rs:78:5
+   |
+LL | /     match opt {
+LL | |
+LL | |         Some(n) => unsafe /* { is inside a comment */ {
+LL | |             Some(increment(n))
+LL | |         },
+LL | |         None => None,
+LL | |     }
+   | |_____^ help: try: `opt.map(|n| unsafe { increment(n) })`
+
+error: aborting due to 2 previous errors
+
