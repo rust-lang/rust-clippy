@@ -10,9 +10,9 @@ use clippy_utils::sugg::Sugg;
 use clippy_utils::ty::{implements_trait, is_copy};
 use clippy_utils::usage::local_used_after_expr;
 use clippy_utils::{
-    eq_expr_value, fn_def_id_with_node_args, higher, is_else_clause, is_in_const_context, is_lint_allowed,
-    is_none_expr, is_none_pattern, pat_and_expr_can_be_question_mark, peel_blocks, peel_blocks_with_stmt,
-    span_contains_cfg, span_contains_comment, sym,
+    eq_expr_value, fn_def_id_with_node_args, higher, is_else_clause, is_expr_temporary_value, is_in_const_context,
+    is_lint_allowed, is_none_expr, is_none_pattern, pat_and_expr_can_be_question_mark, peel_blocks,
+    peel_blocks_with_stmt, span_contains_cfg, span_contains_comment, sym,
 };
 use rustc_attr_ir::lang_items::LangItem::{self, OptionNone, OptionSome, ResultErr, ResultOk};
 use rustc_errors::Applicability;
@@ -472,6 +472,31 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
         && !span_contains_cfg(cx, expr.span)
         && let Some(if_let_or_match_then) = check_arms_are_try(cx, mode, arm1, arm2)
     {
+        let scrutinee_ty = cx.typeck_results().expr_ty_adjusted(scrutinee);
+        let (try_expr, ref_suffix) = if let ExprKind::AddrOf(_, mutability, inner) = scrutinee.kind
+            && !is_expr_temporary_value(cx, inner)
+        {
+            (
+                Some(inner),
+                match mutability {
+                    Mutability::Mut => ".as_mut()",
+                    Mutability::Not => ".as_ref()",
+                },
+            )
+        } else if matches!(scrutinee.kind, ExprKind::AddrOf(..)) {
+            // Keep the borrow so temporary lifetime extension still applies.
+            (None, "")
+        } else {
+            (
+                None,
+                match scrutinee_ty.kind() {
+                    ty::Ref(_, _, Mutability::Mut) => ".as_mut()",
+                    ty::Ref(_, _, Mutability::Not) => ".as_ref()",
+                    _ => "",
+                },
+            )
+        };
+
         span_lint_and_then(
             cx,
             QUESTION_MARK,
@@ -479,14 +504,21 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
             "this `match` expression can be replaced with `?`",
             |diag| {
                 let mut applicability = Applicability::MachineApplicable;
-                let scrutinee_snippet =
-                    snippet_with_applicability(cx, scrutinee.span.source_callsite(), "..", &mut applicability);
+                let scrutinee_snippet = match try_expr {
+                    None => snippet_with_applicability(cx, scrutinee.span.source_callsite(), "..", &mut applicability)
+                        .into_owned(),
+                    Some(try_expr) => {
+                        Sugg::hir_with_context(cx, try_expr, scrutinee.span.ctxt(), "..", &mut applicability)
+                            .maybe_paren()
+                            .to_string()
+                    },
+                };
                 match if_let_or_match_then {
                     IfLetOrMatchThen::DirectReturn => {
                         diag.span_suggestion(
                             expr.span,
                             "try instead",
-                            scrutinee_snippet.into_owned() + "?",
+                            format!("{scrutinee_snippet}{ref_suffix}?"),
                             applicability,
                         );
                     },
@@ -499,12 +531,12 @@ fn check_if_try_match<'tcx>(cx: &LateContext<'tcx>, expr: &Expr<'tcx>) {
                         if matches!(arm_body.kind, ExprKind::Block(..)) && sugg.starts_with('{') {
                             sugg.insert_str(
                                 1,
-                                &format!("\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}?;"),
+                                &format!("\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}{ref_suffix}?;"),
                             );
                         } else {
                             let outer_indent = " ".repeat(indent);
                             sugg = format!(
-                                "{{\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}?;\n{inner_indent}{sugg}\n{outer_indent}}}"
+                                "{{\n{inner_indent}let {binding_snippet} = {scrutinee_snippet}{ref_suffix}?;\n{inner_indent}{sugg}\n{outer_indent}}}"
                             );
                         }
                         diag.span_suggestion(expr.span, "try instead", sugg, applicability);

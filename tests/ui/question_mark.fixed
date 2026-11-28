@@ -541,7 +541,7 @@ fn issue16654() -> Result<(), i32> {
 #[rustfmt::skip]
 fn issue16751(mut v: Option<usize>) -> Option<usize> {
     let _ = {
-        let n = &v?;
+        let n = v.as_ref()?;
         println!("{n}");
         Some(42)
     };
@@ -574,4 +574,79 @@ fn issue_destructuring_assignment() -> Option<(i32, i32)> {
         (a, b) = x
     }
     Some((a, b))
+}
+
+mod issue17386 {
+    fn return_ref_option() -> &'static Option<i32> {
+        &None
+    }
+
+    fn return_ref_mut_option() -> &'static mut Option<i32> {
+        Box::leak(Box::new(Some(42)))
+    }
+
+    fn return_ref_result() -> &'static Result<i32, i32> {
+        &Ok(42)
+    }
+
+    fn option_match(v: Option<usize>) -> Option<usize> {
+        // `match` on a function returning `&Option` — needs `.as_ref()?`
+        {
+            let it = return_ref_option().as_ref()?;
+            dbg!(it);
+        };
+        let _x: &i32 = return_ref_option().as_ref()?;
+        // `match` on a function returning `&mut Option` — needs `.as_mut()?`
+        {
+            let it = return_ref_mut_option().as_mut()?;
+            *it += 1;
+        };
+        let _x: &mut i32 = return_ref_mut_option().as_mut()?;
+        // `match &v` uses `.as_ref()` to avoid moving `v`
+        {
+            let n = v.as_ref()?;
+            println!("{n}");
+            Some(42)
+        };
+        Some(42)
+    }
+
+    fn result_match() -> Result<(), &'static i32> {
+        // `match` on a function returning `&Result` — needs `.as_ref()?`
+        {
+            let val = return_ref_result().as_ref()?;
+            dbg!(val);
+        };
+        let _x: &i32 = return_ref_result().as_ref()?;
+        Ok(())
+    }
+
+    fn borrowed_local_used_after(value: Option<String>) -> Option<()> {
+        {
+            let value = value.as_ref()?;
+            println!("{value}");
+        }
+        drop(value);
+        Some(())
+    }
+
+    struct Iter {
+        inner: Option<Vec<i32>>,
+    }
+
+    impl Iter {
+        fn next(&mut self) -> Option<()> {
+            let inner = self.inner.as_mut()?;
+            inner.push(0);
+            Some(())
+        }
+    }
+
+    fn borrowed_temporary() -> Option<()> {
+        {
+            let value = &Some(String::new())?;
+            println!("{value}");
+        }
+        Some(())
+    }
 }
