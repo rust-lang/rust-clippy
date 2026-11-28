@@ -4,54 +4,52 @@
 
 fn main() {
     {
-        let _ = vec![Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
         //~^ iter_filter_is_ok
 
-        let _ = vec![Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
         //~^ iter_filter_is_ok
 
         #[rustfmt::skip]
-        let _ = vec![Ok(1), Err(2)].into_iter().flatten();
+        let _ = [Ok(1), Err(2)].into_iter().flatten();
         //~^ iter_filter_is_ok
     }
 
     {
-        let _ = vec![Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
         //~^ iter_filter_is_ok
 
-        let _ = vec![Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
         //~^ iter_filter_is_ok
 
         #[rustfmt::skip]
-        let _ = vec![Ok(1), Err(2)].into_iter().flatten();
+        let _ = [Ok(1), Err(2)].into_iter().flatten();
         //~^ iter_filter_is_ok
     }
 
     {
-        let _ = vec![Ok(1), Err(2), Ok(3)]
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        //~^ iter_filter_is_ok
+
+        let _ = [Ok(1), Err(2), Ok(3)]
             .into_iter()
             .flatten();
         //~^ iter_filter_is_ok
 
-        let _ = vec![Ok(1), Err(2), Ok(3)]
-            .into_iter()
-            .flatten();
-        //~^ iter_filter_is_ok
-
         #[rustfmt::skip]
-        let _ = vec![Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
         //~^ iter_filter_is_ok
     }
 
     {
-        let _ = vec![Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
         //~^ iter_filter_is_ok
 
-        let _ = vec![Ok(1), Err(2), Ok(3)].into_iter().flatten();
+        let _ = [Ok(1), Err(2), Ok(3)].into_iter().flatten();
         //~^ iter_filter_is_ok
 
         #[rustfmt::skip]
-        let _ = vec![Ok(1), Err(2)].into_iter().flatten();
+        let _ = [Ok(1), Err(2)].into_iter().flatten();
         //~^ iter_filter_is_ok
     }
 }
@@ -59,14 +57,14 @@ fn main() {
 fn avoid_linting_when_filter_has_side_effects() {
     // Don't lint below
     let mut counter = 0;
-    let _ = vec![Ok(1), Err(2)].into_iter().filter(|o| {
+    let _ = [Ok(1), Err(2)].into_iter().filter(|o| {
         counter += 1;
         o.is_ok()
     });
 }
 
 fn avoid_linting_when_commented() {
-    let _ = vec![Ok(1), Err(2)].into_iter().filter(|o| {
+    let _ = [Ok(1), Err(2)].into_iter().filter(|o| {
         // Roses are red,
         // Violets are blue,
         // `Err` is not an `Option`,
@@ -79,20 +77,17 @@ fn ice_12058() {
     // check that checking the parent node doesn't cause an ICE
     // by indexing the parameters of a closure without parameters
     Some(1).or_else(|| {
-        vec![Ok(1), Err(())].into_iter().filter(|z| *z != Ok(2));
+        [Ok(1), Err(())].into_iter().filter(|z| *z != Ok(2));
         None
     });
 }
 
 fn avoid_linting_map() {
     // should not lint
-    let _ = vec![Ok(1), Err(())]
-        .into_iter()
-        .filter(|o| o.is_ok())
-        .map(|o| o.unwrap());
+    let _ = [Ok(1), Err(())].into_iter().filter(|o| o.is_ok()).map(|o| o.unwrap());
 
     // should not lint
-    let _ = vec![Ok(1), Err(())].into_iter().filter(|o| o.is_ok()).map(|o| o);
+    let _ = [Ok(1), Err(())].into_iter().filter(|o| o.is_ok()).map(|o| o);
 }
 
 fn avoid_false_positive_due_to_is_ok_and_iterator_impl() {
@@ -112,7 +107,7 @@ fn avoid_false_positive_due_to_is_ok_and_iterator_impl() {
         }
     }
 
-    let data = vec![Foo::default()];
+    let data = [Foo::default()];
     // should not lint
     let _ = data.clone().into_iter().filter(Foo::is_ok);
     // should not lint
@@ -129,7 +124,7 @@ fn avoid_false_positive_due_to_is_ok_and_into_iterator_impl() {
         }
     }
 
-    let data = vec![Foo::default()];
+    let data = [Foo::default()];
     // should not lint
     let _ = data.clone().into_iter().filter(Foo::is_ok);
     // should not lint
@@ -137,7 +132,7 @@ fn avoid_false_positive_due_to_is_ok_and_into_iterator_impl() {
 }
 
 fn avoid_fp_for_trivial() {
-    let _ = vec![Ok(1), Err(()), Ok(3)]
+    let _ = [Ok(1), Err(()), Ok(3)]
         .into_iter()
         // should not lint
         .filter(|o| (Err(()) as Result<i32, ()>).is_ok());
@@ -148,7 +143,7 @@ fn avoid_false_positive_due_to_method_name() {
         x.is_ok()
     }
 
-    vec![Ok(1), Err(2), Ok(3)].into_iter().filter(is_ok);
+    [Ok(1), Err(2), Ok(3)].into_iter().filter(is_ok);
     // should not lint
 }
 
@@ -161,24 +156,24 @@ fn avoid_fp_due_to_trait_type() {
             obj.is_ok()
         }
     }
-    vec![Ok(1), Err(2), Ok(3)].into_iter().filter(Foo::is_ok);
+    [Ok(1), Err(2), Ok(3)].into_iter().filter(Foo::is_ok);
     // should not lint
 }
 
 fn avoid_fp_with_call_to_outside_var() {
     let outside: Result<i32, ()> = Ok(1);
 
-    let _ = vec![Ok(1), Err(2), Ok(3)]
+    let _ = [Ok(1), Err(2), Ok(3)]
         .into_iter()
         // should not lint
         .filter(|o| outside.is_ok());
 
-    let _ = vec![Ok(1), Err(2), Ok(3)]
+    let _ = [Ok(1), Err(2), Ok(3)]
         .into_iter()
         // should not lint
         .filter(|o| Result::is_ok(&outside));
 
-    let _ = vec![Ok(1), Err(2), Ok(3)]
+    let _ = [Ok(1), Err(2), Ok(3)]
         .into_iter()
         // should not lint
         .filter(|o| std::result::Result::is_ok(&outside));
@@ -187,17 +182,17 @@ fn avoid_fp_with_call_to_outside_var() {
 fn avoid_fp_with_call_to_outside_var_mix_match_types() {
     let outside = Some(1);
 
-    let _ = vec![Ok(1), Err(2), Ok(3)]
+    let _ = [Ok(1), Err(2), Ok(3)]
         .into_iter()
         // should not lint
         .filter(|o| outside.is_some());
 
-    let _ = vec![Ok(1), Err(2), Ok(3)]
+    let _ = [Ok(1), Err(2), Ok(3)]
         .into_iter()
         // should not lint
         .filter(|o| Option::is_some(&outside));
 
-    let _ = vec![Ok(1), Err(2), Ok(3)]
+    let _ = [Ok(1), Err(2), Ok(3)]
         .into_iter()
         // should not lint
         .filter(|o| std::option::Option::is_some(&outside));

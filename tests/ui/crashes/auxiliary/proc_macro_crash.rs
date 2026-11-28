@@ -7,7 +7,7 @@ pub fn macro_test(input_stream: TokenStream) -> TokenStream {
     let first_token = input_stream.into_iter().next().unwrap();
     let span = first_token.span();
 
-    TokenStream::from_iter(vec![
+    TokenStream::from_iter([
         TokenTree::Ident(Ident::new("fn", Span::call_site())),
         TokenTree::Ident(Ident::new("code", Span::call_site())),
         TokenTree::Group(Group::new(Delimiter::Parenthesis, TokenStream::new())),
@@ -15,7 +15,7 @@ pub fn macro_test(input_stream: TokenStream) -> TokenStream {
             let mut clause = Group::new(Delimiter::Brace, TokenStream::new());
             clause.set_span(span);
 
-            TokenStream::from_iter(vec![
+            TokenStream::from_iter([
                 TokenTree::Ident(Ident::new("if", Span::call_site())),
                 TokenTree::Ident(Ident::new("true", Span::call_site())),
                 TokenTree::Group(clause.clone()),

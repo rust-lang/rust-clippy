@@ -8,7 +8,7 @@ fn main() {
     assert_eq!(element, Some(1));
 
     #[rustfmt::skip]
-    let _: Option<u32> = vec![1, 2, 3, 4, 5, 6]
+    let _: Option<u32> = [1, 2, 3, 4, 5, 6]
     //~^ filter_map_next
 
 
