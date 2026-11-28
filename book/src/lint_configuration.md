@@ -597,6 +597,8 @@ The list of disallowed methods, written as fully qualified paths.
 - `replacement` (optional): suggested alternative method
 - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
   if the path doesn't exist, instead of emitting an error
+- `suppress-in-macros` (optional, `false` by default): when set to `true`, suppresses lints
+  for calls originating from macros defined in external crates
 
 **Default Value:** `[]`
 

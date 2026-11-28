@@ -9,7 +9,7 @@ disallowed-methods = [
     # can use an inline table but omit reason
     { path = "regex::Regex::new" },
     # local paths
-    "conf_disallowed_methods::local_fn",
+    { path = "conf_disallowed_methods::local_fn", suppress-in-macros = true },
     "conf_disallowed_methods::local_mod::f",
     "conf_disallowed_methods::Struct::method",
     "conf_disallowed_methods::Trait::provided_method",

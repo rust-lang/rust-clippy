@@ -530,6 +530,8 @@ define_Conf! {
     /// - `replacement` (optional): suggested alternative method
     /// - `allow-invalid` (optional, `false` by default): when set to `true`, it will ignore this entry
     ///   if the path doesn't exist, instead of emitting an error
+    /// - `suppress-in-macros` (optional, `false` by default): when set to `true`, suppresses lints
+    ///   for calls originating from macros defined in external crates
     #[lints(disallowed_methods)]
     disallowed_methods("disallowed-methods"): Vec<DisallowedPath>,
     /// The list of disallowed names to lint about. NB: `bar` is not here since it has legitimate uses. The value
