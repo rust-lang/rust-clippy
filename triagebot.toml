@@ -19,6 +19,12 @@ allow-unauthenticated = [
 
 [issue-links]
 
+# Assume all ICE-fixing PRs should be backported (because that's usually the case)
+[backport.ice-backport]
+required-issue-label = "I-ICE"
+required-pr-labels = []
+add-labels = ["beta-nominated"]
+
 [mentions."clippy_lints/src/doc"]
 cc = ["@notriddle"]
 
