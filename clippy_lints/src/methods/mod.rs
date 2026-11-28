@@ -82,6 +82,7 @@ mod map_unwrap_or;
 mod map_unwrap_or_default;
 mod map_unwrap_or_else;
 mod map_with_unused_argument_over_ranges;
+mod missing_return_type;
 mod mut_mutex_lock;
 mod needless_as_bytes;
 mod needless_character_iteration;
@@ -167,6 +168,7 @@ use clippy_utils::msrvs::{self, Msrv};
 use clippy_utils::res::{MaybeDef as _, MaybeTypeckRes as _};
 use clippy_utils::{contains_return, iter_input_pats, peel_blocks, sym};
 use rustc_data_structures::fx::FxHashSet;
+use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{self as hir, Expr, ExprKind, Node, Stmt, StmtKind, TraitItem, TraitItemKind};
 use rustc_lint::{LateContext, LateLintPass, LintContext as _, impl_lint_pass};
 use rustc_middle::ty::TraitRef;
@@ -2572,6 +2574,35 @@ declare_clippy_lint! {
     pub MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
     restriction,
     "map of a trivial closure (not dependent on parameter) over a range"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for methods named `as_*`, `to_*` or `into_*` that return `()`.
+    /// ### Why is this bad?
+    /// Conversion should return with a type according to the [C-CONV](https://rust-lang.github.io/api-guidelines/naming.html#ad-hoc-conversions-follow-as_-to_-into_-conventions-c-conv) API guideline.
+    /// ### Example
+    /// ```no_run
+    /// struct MyStruct;
+    ///
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) {}
+    /// }
+    /// ```
+    /// Use instead:
+    /// ```no_run
+    /// struct MyStruct;
+    ///
+    /// impl MyStruct {
+    ///     fn as_bytes(&self) -> &[u8] {
+    ///         b"conversion should return with something"
+    ///     }
+    /// }
+    /// ```
+    #[clippy::version = "1.101.0"]
+    pub MISSING_RETURN_TYPE,
+    style,
+    "conversion-named method that returns `()`"
 }
 
 declare_clippy_lint! {
@@ -5161,6 +5192,7 @@ impl_lint_pass!(Methods => [
     MAP_OR_IDENTITY,
     MAP_UNWRAP_OR,
     MAP_WITH_UNUSED_ARGUMENT_OVER_RANGES,
+    MISSING_RETURN_TYPE,
     MUT_MUTEX_LOCK,
     NAIVE_BYTECOUNT,
     NEEDLESS_AS_BYTES,
@@ -5380,8 +5412,7 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
             should_implement_trait::check_impl_item(cx, impl_item, self_ty, implements_trait, first_arg_ty_opt, sig);
 
             if sig.decl.implicit_self().has_implicit_self()
-                && !(self.avoid_breaking_exported_api
-                    && cx.effective_visibilities.is_exported(impl_item.owner_id.def_id))
+                && self.may_break_exported_api(cx, impl_item.owner_id.def_id)
                 && let Some(first_arg) = iter_input_pats(sig.decl, cx.tcx.hir_body(id)).next()
                 && let Some(first_arg_ty) = first_arg_ty_opt
             {
@@ -5396,6 +5427,9 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 );
             }
 
+            if self.may_break_exported_api(cx, impl_item.owner_id.def_id) {
+                missing_return_type::check_impl_item(cx, impl_item, implements_trait);
+            }
             new_ret_no_self::check_impl_item(cx, impl_item, self_ty, implements_trait);
         }
     }
@@ -5427,12 +5461,20 @@ impl<'tcx> LateLintPass<'tcx> for Methods {
                 );
             }
 
+            if self.may_break_exported_api(cx, item.owner_id.def_id) {
+                missing_return_type::check_trait_item(cx, item);
+            }
+
             new_ret_no_self::check_trait_item(cx, item);
         }
     }
 }
 
 impl Methods {
+    fn may_break_exported_api(&self, cx: &LateContext<'_>, id: LocalDefId) -> bool {
+        !(self.avoid_breaking_exported_api && cx.effective_visibilities.is_exported(id))
+    }
+
     #[expect(clippy::too_many_lines)]
     fn check_methods<'tcx>(&self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'_>) {
         // Handle method calls whose receiver and arguments may not come from expansion

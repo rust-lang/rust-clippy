@@ -413,6 +413,7 @@ define_Conf! {
         enum_variant_names,
         large_types_passed_by_value,
         linkedlist,
+        missing_return_type,
         needless_pass_by_ref_mut,
         option_option,
         owned_cow,
