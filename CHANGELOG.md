@@ -7457,6 +7457,7 @@ Released 2018-09-13
 [`manual_try_fold`]: https://clippy.rust-lang.org/main/index.html#manual_try_fold
 [`manual_unwrap_or`]: https://clippy.rust-lang.org/main/index.html#manual_unwrap_or
 [`manual_unwrap_or_default`]: https://clippy.rust-lang.org/main/index.html#manual_unwrap_or_default
+[`manual_vec`]: https://clippy.rust-lang.org/main/index.html#manual_vec
 [`manual_while_let_some`]: https://clippy.rust-lang.org/main/index.html#manual_while_let_some
 [`many_single_char_names`]: https://clippy.rust-lang.org/main/index.html#many_single_char_names
 [`map_all_any_identity`]: https://clippy.rust-lang.org/main/index.html#map_all_any_identity
