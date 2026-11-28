@@ -852,6 +852,7 @@ For example, `[_, _, _, e, ..]` is a slice pattern with 4 elements.
 ---
 **Affected lints:**
 * [`index_refutable_slice`](https://clippy.rust-lang.org/main/index.html#index_refutable_slice)
+* [`manual_slice_match`](https://clippy.rust-lang.org/main/index.html#manual_slice_match)
 
 
 ## `max-trait-bounds`
