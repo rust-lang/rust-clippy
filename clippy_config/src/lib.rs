@@ -21,6 +21,8 @@ extern crate rustc_span;
 mod de;
 mod conf;
 mod metadata;
+#[cfg(feature = "jsonschema")]
+mod schema;
 pub mod types;
 
 pub use conf::{Conf, sanitize_explanation};
