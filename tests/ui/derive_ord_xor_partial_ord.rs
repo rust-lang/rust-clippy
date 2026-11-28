@@ -92,6 +92,7 @@ mod issue15708 {
 }
 
 mod issue16298 {
+    #[allow(clippy::derived_partial_eq_with_manual_eq)]
     #[derive(Clone, Copy, Debug, Default, PartialEq, PartialOrd)]
     struct Normalized<S>(S);
 
