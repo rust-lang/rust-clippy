@@ -2,7 +2,7 @@ use rustc_errors::Applicability;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::LateContext;
 use rustc_middle::ty::layout::LayoutOf as _;
-use rustc_middle::ty::{self, IntTy, UintTy};
+use rustc_middle::ty::{self, IntTy, Ty, UintTy};
 use rustc_span::Span;
 
 use clippy_utils::comparisons;
@@ -36,8 +36,8 @@ fn numeric_cast_precast_bounds(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<
     if let ExprKind::Cast(cast_exp, _) = expr.kind {
         let pre_cast_ty = cx.typeck_results().expr_ty(cast_exp);
         let cast_ty = cx.typeck_results().expr_ty(expr);
-        // if it's a cast from i32 to u32 wrapping will invalidate all these checks
-        if cx.layout_of(pre_cast_ty).ok().map(|l| l.size) == cx.layout_of(cast_ty).ok().map(|l| l.size) {
+        // only a widening cast carries the bounds over unchanged
+        if !is_upcast(cx, pre_cast_ty, cast_ty) {
             return None;
         }
         match pre_cast_ty.kind() {
@@ -62,6 +62,17 @@ fn numeric_cast_precast_bounds(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<
     } else {
         None
     }
+}
+
+fn is_upcast<'tcx>(cx: &LateContext<'tcx>, from: Ty<'tcx>, to: Ty<'tcx>) -> bool {
+    match (from.kind(), to.kind()) {
+        (ty::Int(_) | ty::Uint(_), ty::Int(_)) | (ty::Uint(_), ty::Uint(_)) => {},
+        _ => return false,
+    }
+    let (Ok(from_layout), Ok(to_layout)) = (cx.layout_of(from), cx.layout_of(to)) else {
+        return false;
+    };
+    from_layout.size.bits() < to_layout.size.bits()
 }
 
 fn upcast_comparison_bounds_err<'tcx>(
