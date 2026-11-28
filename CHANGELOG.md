@@ -7842,6 +7842,7 @@ Released 2018-09-13
 [`type_repetition_in_bounds`]: https://clippy.rust-lang.org/main/index.html#type_repetition_in_bounds
 [`unbuffered_bytes`]: https://clippy.rust-lang.org/main/index.html#unbuffered_bytes
 [`unchecked_duration_subtraction`]: https://clippy.rust-lang.org/main/index.html#unchecked_duration_subtraction
+[`unchecked_target_features`]: https://clippy.rust-lang.org/main/index.html#unchecked_target_features
 [`unchecked_time_subtraction`]: https://clippy.rust-lang.org/main/index.html#unchecked_time_subtraction
 [`unconditional_recursion`]: https://clippy.rust-lang.org/main/index.html#unconditional_recursion
 [`undocumented_may_panic_call`]: https://clippy.rust-lang.org/main/index.html#undocumented_may_panic_call

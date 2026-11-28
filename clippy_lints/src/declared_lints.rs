@@ -781,6 +781,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::types::REDUNDANT_ALLOCATION_INFO,
     crate::types::TYPE_COMPLEXITY_INFO,
     crate::types::VEC_BOX_INFO,
+    crate::unchecked_target_features::UNCHECKED_TARGET_FEATURES_INFO,
     crate::unconditional_recursion::UNCONDITIONAL_RECURSION_INFO,
     crate::undocumented_may_panic_call::UNDOCUMENTED_MAY_PANIC_CALL_INFO,
     crate::undocumented_unsafe_blocks::UNDOCUMENTED_UNSAFE_BLOCKS_INFO,
