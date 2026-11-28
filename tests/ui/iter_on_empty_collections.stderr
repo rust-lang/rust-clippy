@@ -43,5 +43,17 @@ error: `iter` call on an empty collection
 LL |     for i in smth.as_ref().map_or([].iter(), |s| s.iter()).chain([].iter()) {
    |                                                                  ^^^^^^^^^ help: try: `std::iter::empty()`
 
-error: aborting due to 7 previous errors
+error: `into_iter` call on an empty collection
+  --> tests/ui/iter_on_empty_collections.rs:89:9
+   |
+LL |         None::<T>.into_iter();
+   |         ^^^^^^^^^^^^^^^^^^^^^ help: try: `std::iter::empty::<T>()`
+
+error: `into_iter` call on an empty collection
+  --> tests/ui/iter_on_empty_collections.rs:91:9
+   |
+LL |         None::<()>.into_iter();
+   |         ^^^^^^^^^^^^^^^^^^^^^^ help: try: `std::iter::empty::<()>()`
+
+error: aborting due to 9 previous errors
 

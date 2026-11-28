@@ -1,12 +1,13 @@
 use std::iter::once;
 
 use clippy_utils::diagnostics::span_lint_and_sugg;
+use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::source::snippet;
 use clippy_utils::ty::{ExprFnSig, expr_sig, ty_sig};
-use clippy_utils::{as_some_expr, get_expr_use_or_unification_node, is_none_expr, sym};
-
+use clippy_utils::{as_some_expr, get_expr_use_or_unification_node, sym};
+use rustc_attr_ir::LangItem::OptionNone;
 use rustc_errors::Applicability;
-use rustc_hir::{Expr, ExprKind, HirId, Node};
+use rustc_hir::{AmbigArg, Expr, ExprKind, GenericArg, GenericArgs, HirId, Node, Path, Ty};
 use rustc_lint::{LateContext, std_or_core};
 use rustc_middle::ty::Binder;
 use rustc_span::Symbol;
@@ -27,6 +28,11 @@ impl IterType {
             Self::IntoIter => "",
         }
     }
+}
+
+enum ReplacementType<'tcx> {
+    Once(&'tcx Expr<'tcx>),
+    Empty(Option<&'tcx Ty<'tcx, AmbigArg>>),
 }
 
 fn is_arg_ty_unified_in_fn<'tcx>(
@@ -62,11 +68,26 @@ fn is_arg_ty_unified_in_fn<'tcx>(
 }
 
 pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, method_name: Symbol, recv: &'tcx Expr<'tcx>) {
-    let item = match recv.kind {
-        ExprKind::Array([]) => None,
-        ExprKind::Array([e]) => Some(e),
-        _ if is_none_expr(cx, recv) => None,
-        _ if let Some(arg) = as_some_expr(cx, recv) => Some(arg),
+    let replacement_type = match recv.kind {
+        ExprKind::Array([]) => ReplacementType::Empty(None),
+        ExprKind::Array([e]) => ReplacementType::Once(e),
+        _ if let (_, Some(Path { res, segments, .. })) = recv.opt_res_path()
+            && res.ctor_parent(cx).is_lang_item(cx, OptionNone) =>
+        {
+            ReplacementType::Empty(
+                if let Some(last_segment) = segments.last()
+                    && let Some(GenericArgs {
+                        args: [GenericArg::Type(ty)],
+                        ..
+                    }) = last_segment.args
+                {
+                    Some(*ty)
+                } else {
+                    None
+                },
+            )
+        },
+        _ if let Some(arg) = as_some_expr(cx, recv) => ReplacementType::Once(arg),
         _ => return,
     };
     let iter_type = match method_name {
@@ -106,30 +127,39 @@ pub(super) fn check<'tcx>(cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>, method
     }
 
     let Some(top_crate) = std_or_core(cx) else { return };
-    if let Some(i) = item {
-        let sugg = format!(
-            "{top_crate}::iter::once({}{})",
-            iter_type.ref_prefix(),
-            snippet(cx, i.span, "...")
-        );
-        span_lint_and_sugg(
-            cx,
-            ITER_ON_SINGLE_ITEMS,
-            expr.span,
-            format!("`{method_name}` call on a collection with only one item"),
-            "try",
-            sugg,
-            Applicability::MaybeIncorrect,
-        );
-    } else {
-        span_lint_and_sugg(
-            cx,
-            ITER_ON_EMPTY_COLLECTIONS,
-            expr.span,
-            format!("`{method_name}` call on an empty collection"),
-            "try",
-            format!("{top_crate}::iter::empty()"),
-            Applicability::MaybeIncorrect,
-        );
+
+    match replacement_type {
+        ReplacementType::Once(recv) => {
+            let sugg = format!(
+                "{top_crate}::iter::once({}{})",
+                iter_type.ref_prefix(),
+                snippet(cx, recv.span, "...")
+            );
+            span_lint_and_sugg(
+                cx,
+                ITER_ON_SINGLE_ITEMS,
+                expr.span,
+                format!("`{method_name}` call on a collection with only one item"),
+                "try",
+                sugg,
+                Applicability::MaybeIncorrect,
+            );
+        },
+        ReplacementType::Empty(opt_ty) => {
+            let sugg = match opt_ty {
+                Some(ty) => format!("{}::iter::empty::<{}>()", top_crate, snippet(cx, ty.span, "..")),
+                None => format!("{top_crate}::iter::empty()"),
+            };
+
+            span_lint_and_sugg(
+                cx,
+                ITER_ON_EMPTY_COLLECTIONS,
+                expr.span,
+                format!("`{method_name}` call on an empty collection"),
+                "try",
+                sugg,
+                Applicability::MaybeIncorrect,
+            );
+        },
     }
 }

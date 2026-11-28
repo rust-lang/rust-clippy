@@ -83,4 +83,14 @@ mod custom_option {
     }
 }
 
+mod issue18083 {
+
+    fn test<T>() {
+        None::<T>.into_iter();
+        //~^ iter_on_empty_collections
+        None::<()>.into_iter();
+        //~^ iter_on_empty_collections
+    }
+}
+
 fn main() {}
