@@ -11,7 +11,7 @@ declare_clippy_lint! {
     /// ### What it does
     /// Checks for blocks which are nested beyond a certain threshold.
     ///
-    /// Note: Even though this lint is warn-by-default, it will only trigger if a maximum nesting level is defined in the clippy.toml file.
+    /// The default maximum nesting level is 8 and can be customized in the clippy.toml file.
     ///
     /// ### Why is this bad?
     /// It can severely hinder readability.
@@ -57,7 +57,7 @@ declare_clippy_lint! {
     /// ```
     #[clippy::version = "1.72.0"]
     pub EXCESSIVE_NESTING,
-    complexity,
+    pedantic,
     "checks for blocks nested beyond a certain threshold"
 }
 
