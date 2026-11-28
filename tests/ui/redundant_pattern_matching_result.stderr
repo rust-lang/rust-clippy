@@ -1,5 +1,5 @@
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:14:12
+  --> tests/ui/redundant_pattern_matching_result.rs:15:12
    |
 LL |     if let Ok(_) = &result {}
    |            ^^^^^
@@ -13,7 +13,7 @@ LL +     if result.is_ok() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:17:12
+  --> tests/ui/redundant_pattern_matching_result.rs:18:12
    |
 LL |     if let Ok(_) = Ok::<i32, i32>(42) {}
    |            ^^^^^
@@ -25,7 +25,7 @@ LL +     if Ok::<i32, i32>(42).is_ok() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:20:12
+  --> tests/ui/redundant_pattern_matching_result.rs:21:12
    |
 LL |     if let Err(_) = Err::<i32, i32>(42) {}
    |            ^^^^^^
@@ -37,7 +37,7 @@ LL +     if Err::<i32, i32>(42).is_err() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:23:15
+  --> tests/ui/redundant_pattern_matching_result.rs:24:15
    |
 LL |     while let Ok(_) = Ok::<i32, i32>(10) {}
    |               ^^^^^
@@ -49,7 +49,7 @@ LL +     while Ok::<i32, i32>(10).is_ok() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:26:15
+  --> tests/ui/redundant_pattern_matching_result.rs:27:15
    |
 LL |     while let Err(_) = Ok::<i32, i32>(10) {}
    |               ^^^^^^
@@ -61,7 +61,7 @@ LL +     while Ok::<i32, i32>(10).is_err() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:37:5
+  --> tests/ui/redundant_pattern_matching_result.rs:38:5
    |
 LL | /     match Ok::<i32, i32>(42) {
 LL | |
@@ -81,7 +81,7 @@ LL +     Ok::<i32, i32>(42).is_ok();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:43:5
+  --> tests/ui/redundant_pattern_matching_result.rs:44:5
    |
 LL | /     match Ok::<i32, i32>(42) {
 LL | |
@@ -101,7 +101,7 @@ LL +     Ok::<i32, i32>(42).is_err();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:49:5
+  --> tests/ui/redundant_pattern_matching_result.rs:50:5
    |
 LL | /     match Err::<i32, i32>(42) {
 LL | |
@@ -121,7 +121,7 @@ LL +     Err::<i32, i32>(42).is_err();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:55:5
+  --> tests/ui/redundant_pattern_matching_result.rs:56:5
    |
 LL | /     match Err::<i32, i32>(42) {
 LL | |
@@ -141,7 +141,7 @@ LL +     Err::<i32, i32>(42).is_ok();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:61:20
+  --> tests/ui/redundant_pattern_matching_result.rs:62:20
    |
 LL |     let _ = if let Ok(_) = Ok::<usize, ()>(4) { true } else { false };
    |                    ^^^^^
@@ -153,7 +153,7 @@ LL +     let _ = if Ok::<usize, ()>(4).is_ok() { true } else { false };
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:70:20
+  --> tests/ui/redundant_pattern_matching_result.rs:71:20
    |
 LL |     let _ = if let Ok(_) = gen_res() {
    |                    ^^^^^
@@ -165,7 +165,7 @@ LL +     let _ = if gen_res().is_ok() {
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:73:19
+  --> tests/ui/redundant_pattern_matching_result.rs:74:19
    |
 LL |     } else if let Err(_) = gen_res() {
    |                   ^^^^^^
@@ -177,7 +177,7 @@ LL +     } else if gen_res().is_err() {
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:97:19
+  --> tests/ui/redundant_pattern_matching_result.rs:98:19
    |
 LL |         while let Some(_) = r#try!(result_opt()) {}
    |                   ^^^^^^^
@@ -189,7 +189,7 @@ LL +         while r#try!(result_opt()).is_some() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:99:16
+  --> tests/ui/redundant_pattern_matching_result.rs:100:16
    |
 LL |         if let Some(_) = r#try!(result_opt()) {}
    |                ^^^^^^^
@@ -201,7 +201,7 @@ LL +         if r#try!(result_opt()).is_some() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:106:12
+  --> tests/ui/redundant_pattern_matching_result.rs:107:12
    |
 LL |     if let Some(_) = m!() {}
    |            ^^^^^^^
@@ -213,7 +213,7 @@ LL +     if m!().is_some() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:108:15
+  --> tests/ui/redundant_pattern_matching_result.rs:109:15
    |
 LL |     while let Some(_) = m!() {}
    |               ^^^^^^^
@@ -225,7 +225,7 @@ LL +     while m!().is_some() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:127:12
+  --> tests/ui/redundant_pattern_matching_result.rs:128:12
    |
 LL |     if let Ok(_) = Ok::<i32, i32>(42) {}
    |            ^^^^^
@@ -237,7 +237,7 @@ LL +     if Ok::<i32, i32>(42).is_ok() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:130:12
+  --> tests/ui/redundant_pattern_matching_result.rs:131:12
    |
 LL |     if let Err(_) = Err::<i32, i32>(42) {}
    |            ^^^^^^
@@ -249,7 +249,7 @@ LL +     if Err::<i32, i32>(42).is_err() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:133:15
+  --> tests/ui/redundant_pattern_matching_result.rs:134:15
    |
 LL |     while let Ok(_) = Ok::<i32, i32>(10) {}
    |               ^^^^^
@@ -261,7 +261,7 @@ LL +     while Ok::<i32, i32>(10).is_ok() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:136:15
+  --> tests/ui/redundant_pattern_matching_result.rs:137:15
    |
 LL |     while let Err(_) = Ok::<i32, i32>(10) {}
    |               ^^^^^^
@@ -273,7 +273,7 @@ LL +     while Ok::<i32, i32>(10).is_err() {}
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:139:5
+  --> tests/ui/redundant_pattern_matching_result.rs:140:5
    |
 LL | /     match Ok::<i32, i32>(42) {
 LL | |
@@ -293,7 +293,7 @@ LL +     Ok::<i32, i32>(42).is_ok();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:145:5
+  --> tests/ui/redundant_pattern_matching_result.rs:146:5
    |
 LL | /     match Err::<i32, i32>(42) {
 LL | |
@@ -313,7 +313,7 @@ LL +     Err::<i32, i32>(42).is_err();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:156:5
+  --> tests/ui/redundant_pattern_matching_result.rs:157:5
    |
 LL | /     match x {
 LL | |
@@ -333,7 +333,7 @@ LL +     x.is_ok();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:162:5
+  --> tests/ui/redundant_pattern_matching_result.rs:163:5
    |
 LL | /     match x {
 LL | |
@@ -353,7 +353,7 @@ LL +     x.is_err();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:168:5
+  --> tests/ui/redundant_pattern_matching_result.rs:169:5
    |
 LL | /     match x {
 LL | |
@@ -373,7 +373,7 @@ LL +     x.is_err();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:174:5
+  --> tests/ui/redundant_pattern_matching_result.rs:175:5
    |
 LL | /     match x {
 LL | |
@@ -393,7 +393,7 @@ LL +     x.is_ok();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:196:13
+  --> tests/ui/redundant_pattern_matching_result.rs:197:13
    |
 LL |     let _ = matches!(x, Ok(_));
    |             ^^^^^^^^^^^^^^^^^^
@@ -405,7 +405,7 @@ LL +     let _ = x.is_ok();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:199:13
+  --> tests/ui/redundant_pattern_matching_result.rs:200:13
    |
 LL |     let _ = matches!(x, Err(_));
    |             ^^^^^^^^^^^^^^^^^^^
@@ -417,7 +417,7 @@ LL +     let _ = x.is_err();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:216:13
+  --> tests/ui/redundant_pattern_matching_result.rs:217:13
    |
 LL |       let _ = match test_expr!(42) {
    |  _____________^
@@ -438,7 +438,7 @@ LL +     let _ = test_expr!(42).is_ok();
    |
 
 error: redundant pattern matching
-  --> tests/ui/redundant_pattern_matching_result.rs:229:13
+  --> tests/ui/redundant_pattern_matching_result.rs:230:13
    |
 LL |     let _ = matches!(x, Ok(_) if test_guard!(42));
    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
