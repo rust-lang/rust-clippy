@@ -1,0 +1,15 @@
+error: this `if let Ok(...)` discards the `Err` variant
+  --> tests/ui-toml/ignored_result_err/ignored_result_err.rs:9:5
+   |
+LL | /     if let Ok(res) = some_call() {
+LL | |
+LL | |         println!("{res}");
+LL | |     }
+   | |_____^
+   |
+   = help: consider using `match` and binding the `Err` value for logging or recovery
+   = note: `-D clippy::ignored-result-err` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::ignored_result_err)]`
+
+error: aborting due to 1 previous error
+
