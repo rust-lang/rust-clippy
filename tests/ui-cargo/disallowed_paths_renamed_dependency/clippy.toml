@@ -1,0 +1,5 @@
+disallowed-methods = [
+    { path = "renamed_dependency::forbidden_by_alias", allow-invalid = true },
+    { path = "actual_dependency::forbidden_by_package_name", allow-invalid = true },
+    { path = "renamed_dependency::allowed", allow-invalid = true },
+]
