@@ -7378,6 +7378,7 @@ Released 2018-09-13
 [`len_without_is_empty`]: https://clippy.rust-lang.org/main/index.html#len_without_is_empty
 [`len_zero`]: https://clippy.rust-lang.org/main/index.html#len_zero
 [`let_and_return`]: https://clippy.rust-lang.org/main/index.html#let_and_return
+[`let_else_ok_or`]: https://clippy.rust-lang.org/main/index.html#let_else_ok_or
 [`let_underscore_drop`]: https://clippy.rust-lang.org/main/index.html#let_underscore_drop
 [`let_underscore_future`]: https://clippy.rust-lang.org/main/index.html#let_underscore_future
 [`let_underscore_lock`]: https://clippy.rust-lang.org/main/index.html#let_underscore_lock
