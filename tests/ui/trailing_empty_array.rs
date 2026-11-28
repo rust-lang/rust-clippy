@@ -200,6 +200,7 @@ mod tests {
         age: u8,
     }
 
+    #[expect(clippy::test_without_assertions)]
     #[test]
     fn oldest_empty_is_none() {
         struct Michael {

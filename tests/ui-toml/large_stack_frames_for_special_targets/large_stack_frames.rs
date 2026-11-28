@@ -8,6 +8,7 @@
 #[cfg(test)]
 #[expect(clippy::large_unopt_stack_frames)]
 mod test {
+    #[expect(clippy::test_without_assertions)]
     #[test]
     fn main_test() {}
 }

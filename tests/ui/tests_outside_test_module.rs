@@ -1,5 +1,6 @@
 //@require-annotations-for-level: WARN
 #![warn(clippy::tests_outside_test_module)]
+#![expect(clippy::test_without_assertions)]
 
 fn main() {
     // test code goes here
