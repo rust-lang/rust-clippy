@@ -79,11 +79,11 @@ fn main() {
     false_negative_5707();
 }
 
+// NOTE: This is not linted because of the move in `else` branch. This is a false negative.
 #[derive(Clone)]
 struct Alpha;
 fn with_branch(a: Alpha, b: bool) -> (Alpha, Alpha) {
-    if b { (a.clone(), a) } else { (Alpha, a) }
-    //~^ redundant_clone
+    if b { (a.clone(), a.clone()) } else { (Alpha, a) }
 }
 
 fn cannot_double_move(a: Alpha) -> (Alpha, Alpha) {
@@ -386,5 +386,13 @@ mod issue16096 {
         //~^ redundant_clone
         v?;
         Some(t)
+    }
+}
+
+fn issue18056(kind: u8, id: String, shown: &mut std::collections::HashSet<String>) {
+    match kind {
+        1 if shown.insert(id.clone()) => {},
+        2 if shown.insert(id) => {},
+        _ => {},
     }
 }
