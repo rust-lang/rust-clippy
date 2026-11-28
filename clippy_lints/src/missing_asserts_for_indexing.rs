@@ -112,12 +112,30 @@ fn len_comparison<'hir>(
     // this simplifies the logic a bit
     let (op, left, right) = normalize_comparison(bin_op, left, right)?;
     match (op, left.kind, right.kind) {
-        (Rel::Lt, int_lit_pat!(left), _) => Some((LengthComparison::IntLessThanLength, left as usize, right)),
-        (Rel::Lt, _, int_lit_pat!(right)) => Some((LengthComparison::LengthLessThanInt, right as usize, left)),
-        (Rel::Le, int_lit_pat!(left), _) => Some((LengthComparison::IntLessThanOrEqualLength, left as usize, right)),
-        (Rel::Le, _, int_lit_pat!(right)) => Some((LengthComparison::LengthLessThanOrEqualInt, right as usize, left)),
-        (Rel::Eq, int_lit_pat!(left), _) => Some((LengthComparison::LengthEqualInt, left as usize, right)),
-        (Rel::Eq, _, int_lit_pat!(right)) => Some((LengthComparison::LengthEqualInt, right as usize, left)),
+        (Rel::Lt, int_lit_pat!(left), _) => {
+            let left = usize::try_from(left).ok()?;
+            Some((LengthComparison::IntLessThanLength, left, right))
+        },
+        (Rel::Lt, _, int_lit_pat!(right)) => {
+            let right = usize::try_from(right).ok()?;
+            Some((LengthComparison::LengthLessThanInt, right, left))
+        },
+        (Rel::Le, int_lit_pat!(left), _) => {
+            let left = usize::try_from(left).ok()?;
+            Some((LengthComparison::IntLessThanOrEqualLength, left, right))
+        },
+        (Rel::Le, _, int_lit_pat!(right)) => {
+            let right = usize::try_from(right).ok()?;
+            Some((LengthComparison::LengthLessThanOrEqualInt, right, left))
+        },
+        (Rel::Eq, int_lit_pat!(left), _) => {
+            let left = usize::try_from(left).ok()?;
+            Some((LengthComparison::LengthEqualInt, left, right))
+        },
+        (Rel::Eq, _, int_lit_pat!(right)) => {
+            let right = usize::try_from(right).ok()?;
+            Some((LengthComparison::LengthEqualInt, right, left))
+        },
         _ => None,
     }
 }
@@ -219,14 +237,15 @@ fn upper_index_expr(cx: &LateContext<'_>, expr: &Expr<'_>) -> Option<usize> {
     if let ExprKind::Lit(lit) = &expr.kind
         && let LitKind::Int(Pu128(index), _) = lit.node
     {
-        Some(index as usize)
+        let index = usize::try_from(index).ok()?;
+        Some(index)
     } else if let Some(Range { end: Some(end), ty, .. }) = Range::hir(cx, expr)
         && let ExprKind::Lit(lit) = &end.kind
         && let LitKind::Int(Pu128(index @ 1..), _) = lit.node
     {
         match ty.limits() {
-            RangeLimits::HalfOpen => Some(index as usize - 1),
-            RangeLimits::Closed => Some(index as usize),
+            RangeLimits::HalfOpen => Some(usize::try_from(index).ok()? - 1),
+            RangeLimits::Closed => Some(usize::try_from(index).ok()?),
         }
     } else {
         None
