@@ -1,5 +1,6 @@
 //@rustc-env:CLIPPY_CONF_DIR=tests/ui-toml/arbitrary_source_item_ordering/alphabetical_or_trait_item_order
 #![deny(clippy::arbitrary_source_item_ordering)]
+#![expect(clippy::unit_as_impl_trait)]
 
 // Trait definition order: b, a, c. Deliberately unordered to make the
 // trait definition order differ from the alphabetical order; its own
