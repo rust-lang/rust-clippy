@@ -1,0 +1,225 @@
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:57:8
+   |
+LL |     if "42".parse().unwrap_or(0) > 0 {
+   |        ^^^^^^^^^^^^
+   |
+   = note: `-D clippy::str-parse-infer-to-i32` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::str_parse_infer_to_i32)]`
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     if "42".parse::<i32>().unwrap_or(0) > 0 {
+   |                  +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:60:14
+   |
+LL |     let _x = s.parse().unwrap_or(0);
+   |              ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _x = s.parse::<i32>().unwrap_or(0);
+   |                     +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:62:14
+   |
+LL |     let _x = s.parse::<_>().unwrap_or(0);
+   |              ^^^^^^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL -     let _x = s.parse::<_>().unwrap_or(0);
+LL +     let _x = s.parse::<i32>().unwrap_or(0);
+   |
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:65:14
+   |
+LL |     let _x = String::from(s).parse().unwrap_or(0);
+   |              ^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _x = String::from(s).parse::<i32>().unwrap_or(0);
+   |                                   +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:67:14
+   |
+LL |     let _x = s.parse().unwrap_or(-1);
+   |              ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _x = s.parse::<i32>().unwrap_or(-1);
+   |                     +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:69:14
+   |
+LL |     let _x = s.parse().unwrap_or(!1);
+   |              ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _x = s.parse::<i32>().unwrap_or(!1);
+   |                     +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:71:14
+   |
+LL |     let _x = s.parse().ok().unwrap_or(0);
+   |              ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _x = s.parse::<i32>().ok().unwrap_or(0);
+   |                     +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:74:14
+   |
+LL |     let _x = s.parse().unwrap_or(0) as i64;
+   |              ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _x = s.parse::<i32>().unwrap_or(0) as i64;
+   |                     +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:78:13
+   |
+LL |     let _ = s.parse().unwrap_or(0);
+   |             ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _ = s.parse::<i32>().unwrap_or(0);
+   |                    +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:81:17
+   |
+LL |         let x = s.parse().unwrap_or(0);
+   |                 ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |         let x = s.parse::<i32>().unwrap_or(0);
+   |                        +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:86:17
+   |
+LL |         let x = s.parse().unwrap_or(0);
+   |                 ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |         let x = s.parse::<i32>().unwrap_or(0);
+   |                        +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:93:17
+   |
+LL |         let x = s.parse().unwrap_or(0);
+   |                 ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |         let x = s.parse::<i32>().unwrap_or(0);
+   |                        +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:101:17
+   |
+LL |         let x = s.parse().unwrap_or(0);
+   |                 ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |         let x = s.parse::<i32>().unwrap_or(0);
+   |                        +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:120:12
+   |
+LL |     if 0 < s.parse().unwrap_or(0) {}
+   |            ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     if 0 < s.parse::<i32>().unwrap_or(0) {}
+   |                   +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:122:10
+   |
+LL |     if { s.parse().unwrap_or(0) } > 0 {}
+   |          ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     if { s.parse::<i32>().unwrap_or(0) } > 0 {}
+   |                 +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:124:8
+   |
+LL |     if s.parse().unwrap_or(0) > -1 {}
+   |        ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     if s.parse::<i32>().unwrap_or(0) > -1 {}
+   |               +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:129:17
+   |
+LL |         let x = s.parse().unwrap_or(0);
+   |                 ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |         let x = s.parse::<i32>().unwrap_or(0);
+   |                        +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:133:14
+   |
+LL |     let _y = s.parse().ok().unwrap_or(0) as i64;
+   |              ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _y = s.parse::<i32>().ok().unwrap_or(0) as i64;
+   |                     +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:135:15
+   |
+LL |     let _y = (s.parse().unwrap_or(0) as i64) > 0;
+   |               ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |     let _y = (s.parse::<i32>().unwrap_or(0) as i64) > 0;
+   |                      +++++++
+
+error: the type parsed by `str::parse` silently falls back to `i32`
+  --> tests/ui/str_parse_infer_to_i32.rs:138:17
+   |
+LL |         let x = s.parse().ok();
+   |                 ^^^^^^^^^
+   |
+help: if `i32` is intended, specify it explicitly
+   |
+LL |         let x = s.parse::<i32>().ok();
+   |                        +++++++
+
+error: aborting due to 20 previous errors
+

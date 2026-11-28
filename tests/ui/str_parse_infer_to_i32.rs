@@ -1,0 +1,188 @@
+//@aux-build:proc_macros.rs
+#![warn(clippy::str_parse_infer_to_i32)]
+#![allow(clippy::let_and_return, clippy::needless_ifs, clippy::unnecessary_lazy_evaluations)]
+
+extern crate proc_macros;
+use proc_macros::external;
+
+struct Foo {}
+impl Foo {
+    fn parse(&self) -> Result<i32, ()> {
+        Ok(42)
+    }
+}
+
+type AliasedInt32 = i32;
+
+fn takes_i32(x: i32) {
+    let _y = x;
+}
+
+fn main() {
+    let s = "2";
+    let aliased_int: AliasedInt32 = 66;
+    let an_int_32 = 77i32;
+    let closure = || "3".parse();
+
+    fn f() -> i32 {
+        "4".parse().unwrap_or(0)
+    }
+
+    // good ones
+    let _x = (Foo {}).parse().unwrap_or(0);
+    let _x = s.parse().unwrap_or(0i32);
+    let _x: i32 = s.parse().unwrap_or(0);
+    let _x = s.parse::<i32>().unwrap_or(0);
+    let _x = s.parse::<i64>().unwrap_or(0);
+    let _x = f();
+    let _x: i32 = String::from(s).parse().unwrap_or(0);
+    let _x: i32 = closure().unwrap_or(0);
+    let _x = s.parse::<AliasedInt32>().unwrap();
+    let _x = s.parse::<AliasedInt32>().unwrap_or(0);
+    let _x = s.parse().unwrap_or(aliased_int);
+    let _x = s.parse().unwrap_or(an_int_32);
+    let _x = s.parse().unwrap_or(-1i32);
+    let _x = s.parse().unwrap_or(!1i32);
+    // The i64 literal makes the parse type i64, so this is rejected by the i32 check,
+    // not by the comparison logic.
+    if "42".parse().unwrap_or(0) == 0i64 {
+        println!("parse type is i64");
+    }
+    // These do exercise the comparison logic: the other operand fixes the type.
+    if s.parse().unwrap_or(0) > 0i32 {}
+    if s.parse().unwrap_or(0) > an_int_32 {}
+    let _x = s.parse().ok().unwrap_or(0i32);
+
+    // bad ones
+    if "42".parse().unwrap_or(0) > 0 {
+        //~^ str_parse_infer_to_i32
+    }
+    let _x = s.parse().unwrap_or(0);
+    //~^ str_parse_infer_to_i32
+    let _x = s.parse::<_>().unwrap_or(0);
+    //~^ str_parse_infer_to_i32
+    // Check deref from string works
+    let _x = String::from(s).parse().unwrap_or(0);
+    //~^ str_parse_infer_to_i32
+    let _x = s.parse().unwrap_or(-1);
+    //~^ str_parse_infer_to_i32
+    let _x = s.parse().unwrap_or(!1);
+    //~^ str_parse_infer_to_i32
+    let _x = s.parse().ok().unwrap_or(0);
+    //~^ str_parse_infer_to_i32
+    // This case is interesting bc the developer probably thinks they're choosing the type being parsed too
+    let _x = s.parse().unwrap_or(0) as i64;
+    //~^ str_parse_infer_to_i32
+
+    // bad
+    let _ = s.parse().unwrap_or(0);
+    //~^ str_parse_infer_to_i32
+    {
+        let x = s.parse().unwrap_or(0);
+        //~^ str_parse_infer_to_i32
+        let x: i64 = 5; // shadowing
+    }
+    {
+        let x = s.parse().unwrap_or(0);
+        //~^ str_parse_infer_to_i32
+        if x > 0 {
+            println!("hi")
+        }
+    }
+    {
+        let x = s.parse().unwrap_or(0);
+        //~^ str_parse_infer_to_i32
+        let y = x;
+        if y > 0 {
+            println!("hi")
+        }
+    }
+    {
+        let x = s.parse().unwrap_or(0);
+        //~^ str_parse_infer_to_i32
+        let c = || x > 0;
+    }
+
+    // good
+    {
+        let x = s.parse().unwrap_or(0);
+        takes_i32(x);
+    }
+    {
+        let x = s.parse().unwrap_or(0);
+        if x > 0 {
+            println!("hi")
+        }
+        takes_i32(x);
+    }
+
+    // bad: comparisons
+    if 0 < s.parse().unwrap_or(0) {}
+    //~^ str_parse_infer_to_i32
+    if { s.parse().unwrap_or(0) } > 0 {}
+    //~^ str_parse_infer_to_i32
+    if s.parse().unwrap_or(0) > -1 {}
+    //~^ str_parse_infer_to_i32
+
+    // bad: casts and `ok()` combined with other features
+    {
+        let x = s.parse().unwrap_or(0);
+        //~^ str_parse_infer_to_i32
+        let _y = x as i64;
+    }
+    let _y = s.parse().ok().unwrap_or(0) as i64;
+    //~^ str_parse_infer_to_i32
+    let _y = (s.parse().unwrap_or(0) as i64) > 0;
+    //~^ str_parse_infer_to_i32
+    {
+        let x = s.parse().ok();
+        //~^ str_parse_infer_to_i32
+        if x.unwrap_or(0) > 0 {}
+    }
+
+    // good: turbofish wins over the cast
+    let _y = s.parse::<i32>().unwrap_or(0) as i64;
+
+    // good: the value flows somewhere that fixes its type
+    takes_i32(s.parse().unwrap_or(0));
+    let _s = S {
+        field: s.parse().unwrap_or(0),
+    };
+    let _c = || -> i32 { s.parse().unwrap_or(0) };
+    let _r = returns_parsed(s);
+
+    // good: macros (span context differs from the parse call)
+    println!("{}", s.parse().unwrap_or(0));
+    macro_rules! parse_and_compare {
+        ($input:expr) => {
+            $input.parse().unwrap_or(0) > 0
+        };
+    }
+    if parse_and_compare!(s) {}
+    external!(let _x = "5".parse().unwrap_or(0););
+
+    // Known limitations: these compile, fall back to i32, and are NOT linted today.
+    if -s.parse().unwrap_or(0) > 0 {}
+    if s.parse().unwrap_or(0) + 1 > 0 {}
+    {
+        let mut x = s.parse().unwrap_or(0);
+        x = 5;
+    }
+    if s.parse().unwrap_or_else(|_| 0) > 0 {}
+    if s.parse().unwrap_or(0) > s.parse().unwrap_or(0) {}
+    if s.parse().ok() == Some(1) {}
+    let (_a, _b) = (s.parse().unwrap_or(0), 1);
+    {
+        let x = s.parse().unwrap_or(0);
+        println!("{x}");
+    }
+}
+
+struct S {
+    field: i32,
+}
+
+fn returns_parsed(s: &str) -> i32 {
+    let x = s.parse().unwrap_or(0);
+    x
+}
