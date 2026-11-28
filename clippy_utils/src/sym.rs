@@ -297,6 +297,8 @@ generate! {
     fold,
     for_each,
     format,
+    from_ascii_bytes,
+    from_ascii_bytes_radix,
     from_be_bytes,
     from_bytes_with_nul,
     from_bytes_with_nul_unchecked,

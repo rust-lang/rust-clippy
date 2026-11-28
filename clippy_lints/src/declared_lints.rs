@@ -195,6 +195,7 @@ pub static LINTS: &[&::declare_clippy_lint::LintInfo] = &[
     crate::four_forward_slashes::FOUR_FORWARD_SLASHES_INFO,
     crate::from_over_into::FROM_OVER_INTO_INFO,
     crate::from_raw_with_void_ptr::FROM_RAW_WITH_VOID_PTR_INFO,
+    crate::from_str_instead_of_from_ascii_bytes::FROM_STR_INSTEAD_OF_FROM_ASCII_BYTES_INFO,
     crate::from_str_radix_10::FROM_STR_RADIX_10_INFO,
     crate::functions::DOUBLE_MUST_USE_INFO,
     crate::functions::DUPLICATE_UNDERSCORE_ARGUMENT_INFO,

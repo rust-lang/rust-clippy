@@ -7271,6 +7271,7 @@ Released 2018-09-13
 [`from_iter_instead_of_collect`]: https://clippy.rust-lang.org/main/index.html#from_iter_instead_of_collect
 [`from_over_into`]: https://clippy.rust-lang.org/main/index.html#from_over_into
 [`from_raw_with_void_ptr`]: https://clippy.rust-lang.org/main/index.html#from_raw_with_void_ptr
+[`from_str_instead_of_from_ascii_bytes`]: https://clippy.rust-lang.org/main/index.html#from_str_instead_of_from_ascii_bytes
 [`from_str_radix_10`]: https://clippy.rust-lang.org/main/index.html#from_str_radix_10
 [`future_not_send`]: https://clippy.rust-lang.org/main/index.html#future_not_send
 [`get_first`]: https://clippy.rust-lang.org/main/index.html#get_first

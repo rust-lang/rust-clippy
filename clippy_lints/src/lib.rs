@@ -138,6 +138,7 @@ mod formatting;
 mod four_forward_slashes;
 mod from_over_into;
 mod from_raw_with_void_ptr;
+mod from_str_instead_of_from_ascii_bytes;
 mod from_str_radix_10;
 mod functions;
 mod future_not_send;
@@ -874,6 +875,7 @@ rustc_lint::late_lint_methods!(
         BufreaderStdin: bufreader_stdin::BufreaderStdin = bufreader_stdin::BufreaderStdin::new(),
         IfsAsLogicalOps: ifs_as_logical_ops::IfsAsLogicalOps = ifs_as_logical_ops::IfsAsLogicalOps,
         UndocumentedMayPanicCall: undocumented_may_panic_call::UndocumentedMayPanicCall = undocumented_may_panic_call::UndocumentedMayPanicCall::new(tcx, conf),
+        FromStrInsteadOfFromAsciiBytes: from_str_instead_of_from_ascii_bytes::FromStrInsteadOfFromAsciiBytes = from_str_instead_of_from_ascii_bytes::FromStrInsteadOfFromAsciiBytes,
         // add late passes here, used by `cargo dev new_lint`
     ]]
 );

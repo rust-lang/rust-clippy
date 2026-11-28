@@ -1,0 +1,65 @@
+error: `from_ascii_bytes_radix` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:4:13
+   |
+LL |     let _ = u32::from_ascii_bytes_radix("A", 16).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `from_str_radix` instead: `u32::from_str_radix("A", 16)`
+   |
+   = note: `-D clippy::from-str-instead-of-from-ascii-bytes` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::from_str_instead_of_from_ascii_bytes)]`
+
+error: `from_ascii_bytes_radix` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:8:13
+   |
+LL |     let _ = u32::from_ascii_bytes_radix(s, 16).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `from_str_radix` instead: `u32::from_str_radix(s, 16)`
+
+error: `from_ascii_bytes_radix` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:12:13
+   |
+LL |     let _ = NonZero::<u32>::from_ascii_bytes_radix(s, 16).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `from_str_radix` instead: `<NonZero::<u32>>::from_str_radix(s, 16)`
+
+error: `from_ascii_bytes_radix` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:15:13
+   |
+LL |     let _ = <NonZero<u32>>::from_ascii_bytes_radix("C", 16).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `from_str_radix` instead: `<NonZero<u32>>::from_str_radix("C", 16)`
+
+error: `from_ascii_bytes_radix` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:18:13
+   |
+LL |     let _ = std::num::NonZeroU32::from_ascii_bytes_radix("D", 16).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `from_str_radix` instead: `<std::num::NonZeroU32>::from_str_radix("D", 16)`
+
+error: `from_ascii_bytes` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:27:13
+   |
+LL |     let _ = u32::from_ascii_bytes("A").unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `parse` method instead: `"A".parse::<u32>()`
+
+error: `from_ascii_bytes` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:31:13
+   |
+LL |     let _ = u32::from_ascii_bytes(s).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^ help: use `parse` method instead: `s.parse::<u32>()`
+
+error: `from_ascii_bytes` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:35:13
+   |
+LL |     let _ = NonZero::<u32>::from_ascii_bytes(s).unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `parse` method instead: `s.parse::<NonZero::<u32>>()`
+
+error: `from_ascii_bytes` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:38:13
+   |
+LL |     let _ = <NonZero<u32>>::from_ascii_bytes("C").unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `parse` method instead: `"C".parse::<NonZero<u32>>()`
+
+error: `from_ascii_bytes` is used with str
+  --> tests/ui/from_str_instead_of_from_ascii_bytes.rs:41:13
+   |
+LL |     let _ = std::num::NonZeroU32::from_ascii_bytes("D").unwrap();
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: use `parse` method instead: `"D".parse::<std::num::NonZeroU32>()`
+
+error: aborting due to 10 previous errors
+
