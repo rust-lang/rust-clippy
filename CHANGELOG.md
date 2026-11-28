@@ -7454,6 +7454,7 @@ Released 2018-09-13
 [`manual_strip`]: https://clippy.rust-lang.org/main/index.html#manual_strip
 [`manual_swap`]: https://clippy.rust-lang.org/main/index.html#manual_swap
 [`manual_take`]: https://clippy.rust-lang.org/main/index.html#manual_take
+[`manual_trim_whitespaces`]: https://clippy.rust-lang.org/main/index.html#manual_trim_whitespaces
 [`manual_try_fold`]: https://clippy.rust-lang.org/main/index.html#manual_try_fold
 [`manual_unwrap_or`]: https://clippy.rust-lang.org/main/index.html#manual_unwrap_or
 [`manual_unwrap_or_default`]: https://clippy.rust-lang.org/main/index.html#manual_unwrap_or_default
