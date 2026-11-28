@@ -67,9 +67,9 @@ pub(super) fn check<'tcx>(
         let help_msg = "try `.flatten()` and remove the `if let` statement in the for loop";
 
         let pat_snippet =
-            snippet_with_applicability(cx, inner_pat.span.source_callsite(), "_", &mut applicability).to_string();
+            snippet_with_applicability(cx, inner_pat.span.source_callsite(), "_", &mut applicability).into_owned();
         let body_snippet =
-            snippet_with_applicability(cx, if_then.span.source_callsite(), "[body]", &mut applicability).to_string();
+            snippet_with_applicability(cx, if_then.span.source_callsite(), "[body]", &mut applicability).into_owned();
         let suggestions = vec![
             // flatten the iterator
             (arg.span, format!("{arg_snippet}{copied}.flatten()")),

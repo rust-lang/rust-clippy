@@ -335,7 +335,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
                                     .source_map()
                                     .span_extend_to_prev_char(signature_span, ')', true);
 
-                            let tail_snippet = snippet_with_applicability(cx, tail_span, "_", &mut app).to_string();
+                            let tail_snippet = snippet_with_applicability(cx, tail_span, "_", &mut app).into_owned();
 
                             let mut sugg = vec![
                                 (async_span, String::new()),
@@ -352,7 +352,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedAsync {
                             sugg.extend(visitor.exprs.into_iter().filter_map(|expr| {
                                 walk_span_to_context(expr.span, ctxt).map(|expr_span| {
                                     let expr_snippet =
-                                        snippet_with_applicability(cx, expr_span, "_", &mut app).to_string();
+                                        snippet_with_applicability(cx, expr_span, "_", &mut app).into_owned();
 
                                     (expr_span, format!("{builtin_crate}::future::ready({expr_snippet})"))
                                 })
