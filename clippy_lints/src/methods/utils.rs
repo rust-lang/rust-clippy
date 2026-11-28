@@ -1,9 +1,12 @@
 use clippy_utils::res::{MaybeDef as _, MaybeResPath as _};
 use clippy_utils::{get_parent_expr, usage};
+use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::{Visitor, walk_expr};
 use rustc_hir::{BorrowKind, Expr, ExprKind, HirId, Mutability, Pat, QPath, Stmt, StmtKind};
 use rustc_lint::LateContext;
 use rustc_middle::hir::nested_filter;
+use rustc_middle::hir::place::PlaceBase;
+use rustc_middle::ty::consts::ConstExt as _;
 use rustc_middle::ty::{self, Ty};
 use rustc_span::Span;
 use rustc_span::symbol::sym;
@@ -98,6 +101,15 @@ impl<'tcx> Visitor<'tcx> for CloneOrCopyVisitor<'_, 'tcx> {
 
     fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
         walk_expr(self, expr);
+        // A closure that captures a binding by value takes
+        // ownership of it, whatever the body does with it.
+        if let ExprKind::Closure(closure) = expr.kind
+            && self.captures_binding_by_value(closure.def_id)
+        {
+            self.clone_or_copy_needed = true;
+            return;
+        }
+
         if self.is_binding(expr) {
             if let Some(parent) = get_parent_expr(self.cx, expr) {
                 match parent.kind {
@@ -132,6 +144,19 @@ impl<'tcx> Visitor<'tcx> for CloneOrCopyVisitor<'_, 'tcx> {
 }
 
 impl<'tcx> CloneOrCopyVisitor<'_, 'tcx> {
+    fn captures_binding_by_value(&self, closure_def_id: LocalDefId) -> bool {
+        self.cx
+            .typeck_results()
+            .closure_min_captures_flattened(closure_def_id)
+            .any(|capture| {
+                matches!(capture.info.capture_kind, ty::UpvarCapture::ByValue)
+                    && matches!(
+                        capture.place.base,
+                        PlaceBase::Upvar(id) if self.binding_hir_ids.contains(&id.var_path.hir_id)
+                    )
+            })
+    }
+
     fn is_binding(&self, expr: &Expr<'tcx>) -> bool {
         self.binding_hir_ids
             .iter()
