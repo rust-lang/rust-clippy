@@ -7,3 +7,15 @@ pub unsafe fn getpid() -> pid_t {
 pub fn getpid_SAFE_TRUTH() -> pid_t {
     unsafe { getpid() }
 }
+
+pub type fsblkcnt_t = u64;
+
+pub struct Statvfs {
+    pub f_blocks: fsblkcnt_t,
+}
+
+impl Statvfs {
+    pub fn init() -> Statvfs {
+        Statvfs { f_blocks: 0 }
+    }
+}
