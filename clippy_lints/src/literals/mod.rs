@@ -3,7 +3,7 @@ mod digit_groupings;
 mod mistyped_literal_suffix;
 
 use clippy_config::Conf;
-use clippy_utils::numeric_literal::NumericLiteral;
+use clippy_utils::numeric_literal::{IntStr, NumericLiteral};
 use clippy_utils::source::SpanExt as _;
 use rustc_ast::ast::{Expr, ExprKind, LitKind};
 use rustc_ast::token;
@@ -167,8 +167,10 @@ impl EarlyLintPass for Literals {
             && !expr.span.in_external_macro(cx.sess().source_map())
         {
             self.check_lit(cx, lit, expr.span);
-            if matches!(lit.kind, token::LitKind::Integer) {
-                decimal_literal_representation::check(cx, lit, expr.span, self.literal_representation_threshold);
+            if matches!(lit.kind, token::LitKind::Integer)
+                && let Some(num) = IntStr::from_token_lit(&lit)
+            {
+                decimal_literal_representation::check(cx, self.literal_representation_threshold, num, expr.span);
             }
         }
     }
