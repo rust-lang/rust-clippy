@@ -55,6 +55,7 @@ mod iter_overeager_cloned;
 mod iter_skip_next;
 mod iter_skip_zero;
 mod iter_with_drain;
+mod iterator_step_by_one;
 mod iterator_step_by_zero;
 mod join_absolute_paths;
 mod lib;
@@ -1714,6 +1715,27 @@ declare_clippy_lint! {
     pub ITER_WITH_DRAIN,
     nursery,
     "replace `.drain(..)` with `.into_iter()`"
+}
+
+declare_clippy_lint! {
+    /// ### What it does
+    /// Checks for calling `.step_by(1)` on iterators which does nothing.
+    ///
+    /// ### Why is this bad?
+    /// Calling `step_by` method with literal 1 as an argument
+    /// doesn't change the behaviour of the iterator.
+    /// Use the iterator itself, and remove the `step_by` method call.
+    ///
+    /// ### Example
+    /// ```rust
+    /// for x in (0..100).step_by(1) {
+    ///     //..
+    /// }
+    /// ```
+    #[clippy::version = "1.102.0"]
+    pub ITERATOR_STEP_BY_ONE,
+    complexity,
+    "using `Iterator::step_by(1)`, does nothing"
 }
 
 declare_clippy_lint! {
@@ -5119,6 +5141,7 @@ impl_lint_pass!(Methods => [
     IO_OTHER_ERROR,
     IP_CONSTANT,
     IS_DIGIT_ASCII_RADIX,
+    ITERATOR_STEP_BY_ONE,
     ITERATOR_STEP_BY_ZERO,
     ITER_CLONED_COLLECT,
     ITER_COUNT,
@@ -5956,7 +5979,10 @@ impl Methods {
                         suspicious_splitn::check(cx, name, expr, recv, count);
                     }
                 },
-                (sym::step_by, [arg]) => iterator_step_by_zero::check(cx, expr, arg),
+                (sym::step_by, [arg]) => {
+                    iterator_step_by_zero::check(cx, expr, arg);
+                    iterator_step_by_one::check(cx, expr, arg);
+                },
                 (sym::take, [arg]) => {
                     iter_out_of_bounds::check_take(cx, expr, recv, arg);
                     manual_repeat_n::check(cx, expr, recv, arg, self.msrv);
