@@ -5707,8 +5707,11 @@ impl Methods {
                     _ => {},
                 },
                 (sym::get, [arg]) => {
-                    get_first::check(cx, expr, recv, arg);
+                    get_first::check(cx, expr, recv, arg, false);
                     get_last_with_len::check(cx, expr, recv, arg);
+                },
+                (sym::get_mut, [arg]) => {
+                    get_first::check(cx, expr, recv, arg, true);
                 },
                 (sym::get_or_insert_with, [arg]) => {
                     unnecessary_lazy_eval::check(cx, expr, recv, arg, "get_or_insert", false);

@@ -70,7 +70,7 @@ struct S {
 
 fn dont_lint_those(s: &mut S, v: &mut [String], w: Option<&mut String>) {
     swap(&mut s.t, &mut v[0]);
-    swap(&mut s.t, v.get_mut(0).unwrap());
+    swap(&mut s.t, v.first_mut().unwrap());
     swap(w.unwrap(), &mut s.t);
 }
 

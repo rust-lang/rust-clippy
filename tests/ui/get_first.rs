@@ -51,4 +51,12 @@ fn main() {
     let non_primitives = [vec![1, 2], vec![3, 4]];
     let _ = non_primitives.get(0);
     //~^ get_first
+
+    let mut mutable_vec: Vec<i32> = vec![1, 2, 3];
+    let first = mutable_vec.get_mut(0);
+    //~^ get_first
+
+    let mut mutable_vecdeque: VecDeque<i32> = VecDeque::new();
+    let first = mutable_vecdeque.get_mut(0);
+    //~^ get_first
 }
