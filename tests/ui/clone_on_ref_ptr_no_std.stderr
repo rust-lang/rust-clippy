@@ -1,0 +1,35 @@
+error: using `.clone()` on a ref-counted pointer
+  --> tests/ui/clone_on_ref_ptr_no_std.rs:9:5
+   |
+LL |     x.clone()
+   |     ^^^^^^^^^ help: try: `alloc::rc::Rc::<i32>::clone(x)`
+   |
+   = note: `-D clippy::clone-on-ref-ptr` implied by `-D warnings`
+   = help: to override `-D warnings` add `#[allow(clippy::clone_on_ref_ptr)]`
+
+error: using `.clone()` on a ref-counted pointer
+  --> tests/ui/clone_on_ref_ptr_no_std.rs:14:5
+   |
+LL |     x.clone()
+   |     ^^^^^^^^^ help: try: `alloc::rc::Rc::<i32>::clone(&x)`
+
+error: using `.clone()` on a ref-counted pointer
+  --> tests/ui/clone_on_ref_ptr_no_std.rs:19:5
+   |
+LL |     x.clone()
+   |     ^^^^^^^^^ help: try: `alloc::rc::Weak::<i32>::clone(x)`
+
+error: using `.clone()` on a ref-counted pointer
+  --> tests/ui/clone_on_ref_ptr_no_std.rs:24:5
+   |
+LL |     x.clone()
+   |     ^^^^^^^^^ help: try: `alloc::sync::Arc::<i32>::clone(x)`
+
+error: using `.clone()` on a ref-counted pointer
+  --> tests/ui/clone_on_ref_ptr_no_std.rs:29:5
+   |
+LL |     x.clone()
+   |     ^^^^^^^^^ help: try: `alloc::sync::Weak::<i32>::clone(x)`
+
+error: aborting due to 5 previous errors
+
