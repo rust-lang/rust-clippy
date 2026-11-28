@@ -122,3 +122,15 @@ const _: crate::S = {
 pub fn f() {
     let _ = <crate::S as Clone>::clone(&m1::S); //~[no_short] absolute_paths
 }
+
+// #18123: do not lint paths in nested `UseTree`s.
+#[rustfmt::skip]
+pub use {core::cmp::max};
+#[rustfmt::skip]
+pub use {{std::fs::rename}};
+#[rustfmt::skip]
+pub use ::{{std::fs::remove_file}};
+#[rustfmt::skip]
+pub use std::{fs::read};
+#[rustfmt::skip]
+pub use std::{fs, {cmp::Ord, fs::write}};

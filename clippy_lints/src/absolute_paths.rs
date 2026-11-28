@@ -4,7 +4,7 @@ use clippy_utils::is_from_proc_macro;
 use rustc_data_structures::fx::FxHashSet;
 use rustc_hir::def::{DefKind, Res};
 use rustc_hir::def_id::{CRATE_DEF_INDEX, DefId};
-use rustc_hir::{HirId, ItemKind, Node, Path};
+use rustc_hir::{HirId, Item, ItemKind, Node, Path};
 use rustc_lint::{LateContext, LateLintPass, impl_lint_pass};
 use rustc_span::Symbol;
 use rustc_span::symbol::kw;
@@ -102,7 +102,13 @@ impl<'tcx> LateLintPass<'tcx> for AbsolutePaths {
             }
             && !path.span.from_expansion()
             && let node = cx.tcx.hir_node(hir_id)
-            && !matches!(node, Node::Item(item) if matches!(item.kind, ItemKind::Use(..)))
+            && !matches!(
+                node,
+                Node::Item(Item {
+                    kind: ItemKind::Use(..),
+                    ..
+                }) | Node::NestedUseTree(_)
+            )
             && !self.absolute_paths_allowed_crates.contains(&crate_name)
             && !is_from_proc_macro(cx, path)
         {
